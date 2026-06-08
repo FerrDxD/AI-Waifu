@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import DialogBox from '../livia/DialogBox';
 import LiviaSprite from '../livia/LiviaSprite';
 import { LiviaExpression } from '@/lib/gemini';
@@ -14,7 +14,6 @@ type Scene = {
   speaker: string;
   text: string;
   expression: LiviaExpression;
-  background?: string;
 };
 
 const SCENES: Scene[] = [
@@ -41,20 +40,18 @@ const SCENES: Scene[] = [
   { 
     speaker: 'Livia', 
     text: 'Oke, kita mulai dari barang-barangku. Aku nggak bisa bawa semuanya — koper aku cuma muat lima barang. Bantu aku milih, ya.', 
-    expression: 'normal' 
+    expression: 'happy' 
   },
 ];
 
 export default function VNScene({ onComplete }: VNSceneProps) {
   const [currentScene, setCurrentScene] = useState(0);
-  const [visible, setVisible] = useState(true);
   const [spriteVisible, setSpriteVisible] = useState(true);
 
   const scene = SCENES[currentScene];
   const nextScene = SCENES[currentScene + 1];
 
   const handleNext = () => {
-    // Fade out jika ekspresi akan berubah
     const expressionChanging = nextScene && nextScene.expression !== scene.expression;
     
     if (expressionChanging) {
@@ -78,68 +75,68 @@ export default function VNScene({ onComplete }: VNSceneProps) {
 
   return (
     <div 
-      className="relative w-full h-screen flex flex-col overflow-hidden bg-black"
+      className="relative w-full h-screen flex flex-col overflow-hidden bg-pink-50"
     >
-      {/* Visual Novel Background */}
+      {/* Visual Novel Bright Background */}
       <div 
         className={cn(
           "absolute inset-0 bg-cover bg-center transition-all duration-[3000ms] ease-out",
-          scene.speaker === 'Narator' ? "scale-105 blur-sm brightness-50" : "scale-100 blur-0 brightness-75"
+          scene.speaker === 'Narator' ? "scale-105 blur-[2px] opacity-80" : "scale-100 blur-0 opacity-100"
         )}
         style={{ 
           backgroundImage: "url('/bg/bedroom.png')",
         }} 
       />
 
-      {/* Cinematic Vignette */}
+      {/* Cheerful Sun-kissed Vignette */}
       <div 
         className="absolute inset-0 pointer-events-none z-10"
         style={{ 
-          background: 'radial-gradient(ellipse at 50% 60%, transparent 20%, rgba(0,0,0,0.85) 100%)',
-          boxShadow: 'inset 0 0 100px rgba(0,0,0,0.9)'
+          background: 'radial-gradient(ellipse at 50% 30%, transparent 40%, rgba(255,182,193,0.3) 100%)',
+          boxShadow: 'inset 0 0 100px rgba(255,255,255,0.4)'
         }}
       />
 
-      {/* Emotional glow overlays */}
+      {/* Sweet emotional glow overlays */}
       <div 
-        className="absolute inset-0 pointer-events-none transition-all duration-1000 z-10"
+        className="absolute inset-0 pointer-events-none transition-all duration-1000 z-10 mix-blend-screen"
         style={{ 
           background: scene.expression === 'angry' 
-            ? 'radial-gradient(ellipse at 50% 80%, rgba(200,40,40,0.15) 0%, transparent 70%)'
+            ? 'radial-gradient(ellipse at 50% 80%, rgba(255,120,120,0.3) 0%, transparent 70%)'
             : scene.expression === 'blushing'
-            ? 'radial-gradient(ellipse at 50% 80%, rgba(255,100,120,0.12) 0%, transparent 70%)'
+            ? 'radial-gradient(ellipse at 50% 80%, rgba(255,182,193,0.4) 0%, transparent 70%)'
             : scene.expression === 'happy'
-            ? 'radial-gradient(ellipse at 50% 80%, rgba(255,200,100,0.1) 0%, transparent 70%)'
-            : 'radial-gradient(ellipse at 50% 80%, rgba(255,255,255,0.03) 0%, transparent 70%)'
+            ? 'radial-gradient(ellipse at 50% 80%, rgba(255,223,150,0.4) 0%, transparent 70%)'
+            : 'radial-gradient(ellipse at 50% 80%, rgba(255,255,255,0.2) 0%, transparent 70%)'
         }}
       />
 
-      {/* Scene counter (Subtle) */}
-      <div className="absolute top-8 right-10 z-20 flex gap-2">
+      {/* Scene counter (Cute dots) */}
+      <div className="absolute top-8 right-10 z-20 flex gap-2.5">
         {SCENES.map((_, i) => (
           <div 
             key={i}
-            className="w-1.5 h-1.5 rounded-full transition-all duration-500 ease-in-out"
+            className="w-3 h-3 rounded-full transition-all duration-500 ease-in-out"
             style={{ 
-              background: i === currentScene ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.2)',
-              boxShadow: i === currentScene ? '0 0 10px rgba(255,255,255,0.5)' : 'none',
+              background: i === currentScene ? '#ff9a9e' : 'rgba(255,255,255,0.5)',
+              boxShadow: i === currentScene ? '0 0 12px rgba(255,154,158,0.8)' : '0 2px 4px rgba(0,0,0,0.1)',
               transform: i === currentScene ? 'scale(1.2)' : 'scale(1)'
             }}
           />
         ))}
       </div>
 
-      {/* Auto / Skip / Log buttons (Visual Polish) */}
+      {/* Auto / Skip / Log buttons (Pop UI) */}
       <div className="absolute top-6 left-8 z-30 flex gap-4">
-        <button className="text-white/40 hover:text-white/80 font-display tracking-widest uppercase text-xs transition-colors">
-          Log
-        </button>
-        <button className="text-white/40 hover:text-white/80 font-display tracking-widest uppercase text-xs transition-colors">
-          Auto
-        </button>
-        <button className="text-white/40 hover:text-white/80 font-display tracking-widest uppercase text-xs transition-colors" onClick={onComplete}>
-          Skip
-        </button>
+        {['Log', 'Auto', 'Skip'].map((label) => (
+          <button 
+            key={label}
+            onClick={label === 'Skip' ? onComplete : undefined}
+            className="bg-white/80 hover:bg-white backdrop-blur-md text-pink-500 font-bold px-5 py-2 rounded-full shadow-sm hover:shadow-md transition-all text-sm tracking-wide border border-pink-100"
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Sprite area */}
@@ -151,12 +148,12 @@ export default function VNScene({ onComplete }: VNSceneProps) {
             transform: scene.speaker === 'Narator' 
               ? 'translateY(40px) scale(0.95)' 
               : spriteVisible ? 'translateY(0) scale(1)' : 'translateY(10px) scale(0.98)',
-            filter: scene.speaker === 'Narator' ? 'blur(4px) brightness(0.5)' : 'none',
+            filter: scene.speaker === 'Narator' ? 'blur(8px) brightness(1.2)' : 'none',
           }}
         >
           <LiviaSprite 
             expression={scene.expression} 
-            className="h-[80vh] w-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+            className="h-[80vh] w-auto object-contain drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)]"
           />
         </div>
       </div>

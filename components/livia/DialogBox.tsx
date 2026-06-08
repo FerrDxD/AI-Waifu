@@ -49,22 +49,21 @@ export default function DialogBox({ text, speaker, onNext }: DialogBoxProps) {
       onClick={handleClick}
       className={cn(
         "w-full cursor-pointer select-none relative z-50 mx-auto max-w-5xl",
-        "transition-all duration-300 ease-out"
+        "transition-all duration-300 ease-out hover:-translate-y-1"
       )}
-      style={{ minHeight: '160px' }}
+      style={{ minHeight: '180px' }}
     >
       {/* Nameplate (only if not narrator) */}
       {!isNarrator && speaker && (
         <div 
-          className="absolute -top-5 left-8 z-10 px-8 py-2 rounded-t-lg rounded-br-xl backdrop-blur-md"
+          className="absolute -top-6 left-12 z-10 px-8 py-2 rounded-full shadow-lg transition-transform hover:scale-105"
           style={{
-            background: 'linear-gradient(135deg, rgba(140,90,50,0.95) 0%, rgba(196,149,106,0.85) 100%)',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.2)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderBottom: 'none'
+            background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)',
+            border: '3px solid #fff',
+            boxShadow: '0 8px 20px rgba(255, 154, 158, 0.4)'
           }}
         >
-          <span className="font-display font-bold text-lg tracking-wide text-white drop-shadow-md">
+          <span className="font-display font-black text-xl tracking-wider text-pink-600 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
             {speaker}
           </span>
         </div>
@@ -73,45 +72,44 @@ export default function DialogBox({ text, speaker, onNext }: DialogBoxProps) {
       {/* Main Text Container */}
       <div
         className={cn(
-          "w-full px-10 relative overflow-hidden rounded-lg",
-          isNarrator ? "py-8" : "pt-10 pb-8"
+          "w-full px-12 relative overflow-hidden",
+          isNarrator ? "py-8 rounded-[2rem]" : "pt-12 pb-8 rounded-[2.5rem]"
         )}
         style={{
           background: isNarrator
-            ? 'linear-gradient(to bottom, rgba(15,15,15,0.7), rgba(5,5,5,0.85))'
-            : 'linear-gradient(to bottom, rgba(20,16,14,0.85), rgba(10,8,6,0.95))',
-          backdropFilter: 'blur(16px)',
-          boxShadow: '0 10px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)',
-          border: isNarrator
-            ? '1px solid rgba(255,255,255,0.05)'
-            : '1px solid rgba(196,149,106,0.15)',
-          borderTop: isNarrator ? '' : '1px solid rgba(196,149,106,0.3)',
+            ? 'rgba(255, 255, 255, 0.85)'
+            : 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(24px)',
+          boxShadow: '0 15px 40px rgba(255, 154, 158, 0.2), inset 0 2px 0 rgba(255,255,255,1)',
+          border: '3px solid rgba(255, 207, 239, 0.6)',
         }}
       >
-        {/* Subtle inner glow */}
-        <div className="absolute inset-0 pointer-events-none" style={{
-          background: 'radial-gradient(circle at top, rgba(255,255,255,0.03) 0%, transparent 70%)'
+        {/* Subtle cute pattern overlay */}
+        <div className="absolute inset-0 pointer-events-none opacity-20" style={{
+          backgroundImage: 'radial-gradient(#ff9a9e 1px, transparent 1px)',
+          backgroundSize: '20px 20px'
         }} />
 
         {/* Text */}
         <p
           className={cn(
-            "leading-relaxed tracking-wide drop-shadow-sm min-h-[72px]"
+            "leading-relaxed min-h-[72px] relative z-10"
           )}
           style={{
             fontFamily: isNarrator
-              ? "'DM Mono', monospace"
-              : "'DM Sans', sans-serif",
-            fontSize: isNarrator ? '1.05rem' : '1.15rem',
-            color: isNarrator ? 'rgba(255,255,255,0.7)' : '#fdfaf6',
+              ? "'Nunito', sans-serif"
+              : "'Quicksand', 'Nunito', sans-serif",
+            fontSize: isNarrator ? '1.15rem' : '1.3rem',
+            fontWeight: 600,
+            color: isNarrator ? '#8a7e7a' : '#5c4d47',
             fontStyle: isNarrator ? 'italic' : 'normal',
           }}
         >
           {displayedText}
           {isTyping && (
             <span
-              className="inline-block w-2 h-5 ml-1 align-middle animate-[blink_0.8s_ease-in-out_infinite]"
-              style={{ background: isNarrator ? '#888' : '#c4956a', boxShadow: '0 0 8px rgba(196,149,106,0.4)' }}
+              className="inline-block w-3 h-3 ml-2 rounded-full align-middle animate-bounce"
+              style={{ background: '#ff9a9e', boxShadow: '0 0 10px rgba(255, 154, 158, 0.6)' }}
             />
           )}
         </p>
@@ -119,24 +117,17 @@ export default function DialogBox({ text, speaker, onNext }: DialogBoxProps) {
         {/* Next Indicator */}
         {!isTyping && onNext && (
           <div
-            className="absolute bottom-5 right-6 animate-[bounce_1.5s_ease-in-out_infinite] flex items-center justify-center"
+            className="absolute bottom-6 right-8 animate-bounce flex items-center justify-center"
             style={{ 
-              color: '#c4956a', 
-              fontSize: '18px',
-              filter: 'drop-shadow(0 0 5px rgba(196,149,106,0.6))'
+              color: '#ff9a9e', 
+              fontSize: '28px',
+              textShadow: '0 4px 10px rgba(255, 154, 158, 0.5)'
             }}
           >
-            ▼
+            ✧
           </div>
         )}
       </div>
-
-      <style>{`
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
-        }
-      `}</style>
     </div>
   );
 }
