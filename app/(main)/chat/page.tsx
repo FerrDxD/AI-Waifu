@@ -118,13 +118,18 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex w-full h-screen overflow-hidden"
-      style={{ background: '#0a0908' }}
-    >
+    <div className="flex w-full h-screen overflow-hidden bg-black relative">
+      {/* Immersive Background */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center transition-all duration-1000 z-0"
+        style={{ 
+          backgroundImage: "url('/bg/chat_bg.png')",
+          filter: "brightness(0.6) blur(3px) sepia(0.1)"
+        }}
+      />
+
       {/* Panel kiri — Livia */}
-      <div className="w-[38%] h-full flex flex-col items-center justify-end relative overflow-hidden"
-        style={{ borderRight: '1px solid rgba(196,149,106,0.1)' }}
-      >
+      <div className="w-[45%] h-full flex flex-col items-center justify-end relative z-10">
         {/* Background glow */}
         <div className="absolute inset-0 pointer-events-none transition-all duration-1000"
           style={{
@@ -176,16 +181,18 @@ export default function ChatPage() {
         )}
 
         {/* Sprite */}
-        <div className="relative z-10 w-full flex justify-center items-end h-[85%]">
+        <div className="relative z-10 w-full flex justify-center items-end h-[90%]">
           <LiviaSprite
             expression={expression}
-            className="h-full w-auto max-w-[85%] object-contain object-bottom"
+            className="h-full w-auto max-w-[90%] object-contain object-bottom drop-shadow-[0_10px_30px_rgba(0,0,0,0.6)]"
           />
         </div>
       </div>
 
       {/* Panel kanan — Chat */}
-      <div className="w-[62%] h-full flex flex-col relative">
+      <div className="w-[55%] h-full flex flex-col relative z-10 py-8 pr-8">
+        {/* Glassmorphism Chat Container */}
+        <div className="w-full h-full flex flex-col backdrop-blur-2xl bg-black/30 rounded-3xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
 
         {/* Messages area */}
         <div
@@ -299,17 +306,19 @@ export default function ChatPage() {
             onFocus={e => (e.currentTarget.style.borderColor = 'rgba(196,149,106,0.4)')}
             onBlur={e => (e.currentTarget.style.borderColor = 'rgba(196,149,106,0.15)')}
           />
-          <button
-            onClick={handleSend}
-            disabled={loading || !input.trim()}
-            className="shrink-0 w-11 h-11 flex items-center justify-center rounded-lg transition-all"
-            style={{
-              background: input.trim() && !loading ? 'rgba(196,149,106,0.9)' : 'rgba(196,149,106,0.2)',
-              color: input.trim() && !loading ? '#0a0908' : 'rgba(196,149,106,0.4)',
-            }}
-          >
-            <Send size={16} />
-          </button>
+            <button
+              onClick={handleSend}
+              disabled={loading || !input.trim()}
+              className="shrink-0 w-11 h-11 flex items-center justify-center rounded-xl transition-all"
+              style={{
+                background: input.trim() && !loading ? 'linear-gradient(135deg, #d4a373, #c4956a)' : 'rgba(196,149,106,0.15)',
+                color: input.trim() && !loading ? '#0a0908' : 'rgba(196,149,106,0.3)',
+                boxShadow: input.trim() && !loading ? '0 4px 15px rgba(196,149,106,0.3)' : 'none'
+              }}
+            >
+              <Send size={16} />
+            </button>
+          </div>
         </div>
       </div>
     </div>

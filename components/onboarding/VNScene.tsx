@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import DialogBox from '../livia/DialogBox';
 import LiviaSprite from '../livia/LiviaSprite';
 import { LiviaExpression } from '@/lib/gemini';
+import { cn } from '@/lib/utils';
 
 interface VNSceneProps {
   onComplete: () => void;
@@ -75,64 +76,92 @@ export default function VNScene({ onComplete }: VNSceneProps) {
     }
   };
 
-  return (
     <div 
-      className="relative w-full h-screen flex flex-col overflow-hidden"
-      style={{ background: 'linear-gradient(to bottom, #0a0908 0%, #12100e 60%, #1a1510 100%)' }}
+      className="relative w-full h-screen flex flex-col overflow-hidden bg-black"
     >
-      {/* Vignette overlay */}
+      {/* Visual Novel Background */}
       <div 
-        className="absolute inset-0 pointer-events-none z-10"
-        style={{ background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%)' }}
+        className={cn(
+          "absolute inset-0 bg-cover bg-center transition-all duration-[3000ms] ease-out",
+          scene.speaker === 'Narator' ? "scale-105 blur-sm brightness-50" : "scale-100 blur-0 brightness-75"
+        )}
+        style={{ 
+          backgroundImage: "url('/bg/bedroom.png')",
+        }} 
       />
 
-      {/* Subtle background glow berdasarkan ekspresi */}
+      {/* Cinematic Vignette */}
       <div 
-        className="absolute inset-0 pointer-events-none transition-all duration-1000"
+        className="absolute inset-0 pointer-events-none z-10"
         style={{ 
-          background: scene.expression === 'angry' 
-            ? 'radial-gradient(ellipse at 50% 80%, rgba(180,60,60,0.06) 0%, transparent 60%)'
-            : scene.expression === 'blushing'
-            ? 'radial-gradient(ellipse at 50% 80%, rgba(220,120,120,0.07) 0%, transparent 60%)'
-            : scene.expression === 'happy'
-            ? 'radial-gradient(ellipse at 50% 80%, rgba(196,149,106,0.07) 0%, transparent 60%)'
-            : 'radial-gradient(ellipse at 50% 80%, rgba(100,90,80,0.05) 0%, transparent 60%)'
+          background: 'radial-gradient(ellipse at 50% 60%, transparent 20%, rgba(0,0,0,0.85) 100%)',
+          boxShadow: 'inset 0 0 100px rgba(0,0,0,0.9)'
         }}
       />
 
-      {/* Scene counter */}
-      <div className="absolute top-6 right-8 z-20 flex gap-1.5">
+      {/* Emotional glow overlays */}
+      <div 
+        className="absolute inset-0 pointer-events-none transition-all duration-1000 z-10"
+        style={{ 
+          background: scene.expression === 'angry' 
+            ? 'radial-gradient(ellipse at 50% 80%, rgba(200,40,40,0.15) 0%, transparent 70%)'
+            : scene.expression === 'blushing'
+            ? 'radial-gradient(ellipse at 50% 80%, rgba(255,100,120,0.12) 0%, transparent 70%)'
+            : scene.expression === 'happy'
+            ? 'radial-gradient(ellipse at 50% 80%, rgba(255,200,100,0.1) 0%, transparent 70%)'
+            : 'radial-gradient(ellipse at 50% 80%, rgba(255,255,255,0.03) 0%, transparent 70%)'
+        }}
+      />
+
+      {/* Scene counter (Subtle) */}
+      <div className="absolute top-8 right-10 z-20 flex gap-2">
         {SCENES.map((_, i) => (
           <div 
             key={i}
-            className="w-1.5 h-1.5 rounded-full transition-all duration-300"
+            className="w-1.5 h-1.5 rounded-full transition-all duration-500 ease-in-out"
             style={{ 
-              background: i === currentScene ? '#c4956a' : 'rgba(196,149,106,0.2)',
-              transform: i === currentScene ? 'scale(1.3)' : 'scale(1)'
+              background: i === currentScene ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.2)',
+              boxShadow: i === currentScene ? '0 0 10px rgba(255,255,255,0.5)' : 'none',
+              transform: i === currentScene ? 'scale(1.2)' : 'scale(1)'
             }}
           />
         ))}
       </div>
 
-      {/* Sprite area — Livia selalu ada, hanya opacity yang berubah */}
+      {/* Auto / Skip / Log buttons (Visual Polish) */}
+      <div className="absolute top-6 left-8 z-30 flex gap-4">
+        <button className="text-white/40 hover:text-white/80 font-display tracking-widest uppercase text-xs transition-colors">
+          Log
+        </button>
+        <button className="text-white/40 hover:text-white/80 font-display tracking-widest uppercase text-xs transition-colors">
+          Auto
+        </button>
+        <button className="text-white/40 hover:text-white/80 font-display tracking-widest uppercase text-xs transition-colors" onClick={onComplete}>
+          Skip
+        </button>
+      </div>
+
+      {/* Sprite area */}
       <div className="flex-1 flex justify-center items-end relative z-20">
         <div 
-          className="transition-all duration-300 ease-in-out"
+          className="transition-all duration-[800ms] ease-[cubic-bezier(0.23,1,0.32,1)]"
           style={{ 
-            opacity: scene.speaker === 'Narator' ? 0.3 : (spriteVisible ? 1 : 0),
-            transform: scene.speaker === 'Narator' ? 'translateY(20px) scale(0.95)' : 'translateY(0) scale(1)',
-            filter: scene.speaker === 'Narator' ? 'blur(1px) grayscale(0.5)' : 'none',
+            opacity: scene.speaker === 'Narator' ? 0 : (spriteVisible ? 1 : 0),
+            transform: scene.speaker === 'Narator' 
+              ? 'translateY(40px) scale(0.95)' 
+              : spriteVisible ? 'translateY(0) scale(1)' : 'translateY(10px) scale(0.98)',
+            filter: scene.speaker === 'Narator' ? 'blur(4px) brightness(0.5)' : 'none',
           }}
         >
           <LiviaSprite 
             expression={scene.expression} 
-            className="h-[75vh] w-auto object-contain drop-shadow-2xl"
+            className="h-[80vh] w-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
           />
         </div>
       </div>
 
       {/* Dialog box */}
-      <div className="relative z-30 pb-8 px-4">
+      <div className="relative z-30 pb-12 px-8 w-full">
         <DialogBox 
           text={scene.text} 
           speaker={scene.speaker === 'Narator' ? '' : scene.speaker} 
