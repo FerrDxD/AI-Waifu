@@ -76,6 +76,7 @@ export default function VNScene({ onComplete }: VNSceneProps) {
     }
   };
 
+  return (
     <div 
       className="relative w-full h-screen flex flex-col overflow-hidden bg-black"
     >
