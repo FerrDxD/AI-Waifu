@@ -106,21 +106,29 @@ export default function StoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[url('/bg-texture.png')] bg-cover relative p-8">
-      <div className="absolute inset-0 bg-background/90 z-0" />
+    <div className="min-h-screen bg-pink-50 relative p-8 overflow-hidden">
+      {/* Background */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-40 blur-[3px] pointer-events-none"
+        style={{ backgroundImage: "url('/bg/bedroom.png')" }} 
+      />
 
       {activeChapter ? (
         // VN Reader Fullscreen
-        <div className="absolute inset-0 z-50 bg-background flex flex-col items-center justify-between py-12 px-6">
-          <div className="w-full flex justify-between px-8 text-text-muted">
-            <span className="font-display italic">{activeChapter.title}</span>
-            <button onClick={() => setActiveChapter(null)} className="hover:text-text-primary">Tutup [X]</button>
+        <div className="absolute inset-0 z-50 bg-pink-50/95 backdrop-blur-md flex flex-col items-center justify-between py-12 px-6">
+          <div className="w-full flex justify-between px-8">
+            <span className="font-display font-bold text-pink-400 bg-white px-4 py-1 rounded-full shadow-sm">
+              {activeChapter.title}
+            </span>
+            <button onClick={() => setActiveChapter(null)} className="text-pink-400 hover:text-pink-600 font-bold bg-white px-4 py-1 rounded-full shadow-sm hover:scale-105 transition-all">
+              Tutup [X]
+            </button>
           </div>
           
           <div className="flex-1 w-full max-w-4xl flex justify-center items-end pb-12">
             {activeChapter.content[sceneIndex].speaker === 'Livia' && (
-              <div className="h-[500px] w-[400px]">
-                <LiviaSprite expression={activeChapter.content[sceneIndex].expression} className="h-full w-full" />
+              <div className="h-[550px] w-[450px] drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)]">
+                <LiviaSprite expression={activeChapter.content[sceneIndex].expression} className="h-full w-full object-contain object-bottom" />
               </div>
             )}
           </div>
@@ -136,7 +144,7 @@ export default function StoryPage() {
       ) : (
         // Chapter Selection
         <div className="z-10 relative max-w-5xl mx-auto pt-12">
-          <h1 className="text-4xl font-display italic text-accent mb-12 text-center">Jurnal Kenangan</h1>
+          <h1 className="text-4xl font-display font-black text-pink-500 mb-12 text-center drop-shadow-sm">Jurnal Kenangan</h1>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {CHAPTERS.map(chap => {
@@ -146,23 +154,29 @@ export default function StoryPage() {
                 <div 
                   key={chap.id}
                   onClick={() => isUnlocked ? openChapter(chap) : null}
-                  className={`relative overflow-hidden rounded-lg border p-6 h-48 flex flex-col justify-end transition-all
+                  className={`relative overflow-hidden rounded-3xl border-4 p-6 h-48 flex flex-col justify-end transition-all
                     ${isUnlocked 
-                      ? 'border-accent bg-surface cursor-pointer hover:scale-105 hover:shadow-lg' 
-                      : 'border-custom bg-background/50 cursor-not-allowed opacity-80'
+                      ? 'border-white bg-white/80 backdrop-blur-md cursor-pointer hover:scale-105 hover:shadow-[0_15px_30px_rgba(255,154,158,0.3)] hover:-translate-y-2' 
+                      : 'border-pink-100 bg-white/40 cursor-not-allowed opacity-80'
                     }`}
                 >
                   {!isUnlocked && (
-                    <div className="absolute inset-0 backdrop-blur-[2px] flex flex-col items-center justify-center text-text-muted z-10 bg-background/40">
-                      <Lock className="w-8 h-8 mb-2" />
-                      <span className="text-sm font-mono">Afeksi Dibutuhkan: {chap.reqAffection}</span>
+                    <div className="absolute inset-0 backdrop-blur-sm flex flex-col items-center justify-center z-10 bg-pink-50/50">
+                      <Lock className="w-8 h-8 mb-2 text-pink-300" />
+                      <span className="text-sm font-mono font-bold text-pink-400 bg-white px-3 py-1 rounded-full shadow-sm">
+                        Butuh Afeksi: {chap.reqAffection}
+                      </span>
                     </div>
                   )}
                   
-                  <div className="z-0">
-                    <span className="text-accent text-sm font-mono mb-2 block">Bab {chap.id}</span>
-                    <h3 className="text-2xl font-display text-text-primary">{chap.title}</h3>
+                  <div className="z-0 relative">
+                    <span className="text-pink-400 text-sm font-black mb-2 block tracking-wider uppercase">Bab {chap.id}</span>
+                    <h3 className="text-3xl font-display font-bold text-[#5c4d47]">{chap.title}</h3>
                   </div>
+                  
+                  {isUnlocked && (
+                    <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-gradient-to-tr from-pink-200 to-pink-50 rounded-full opacity-50 z-[-1]" />
+                  )}
                 </div>
               );
             })}

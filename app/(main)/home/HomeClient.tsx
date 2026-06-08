@@ -77,54 +77,51 @@ export default function HomeClient({ initialAffection, userName }: HomeClientPro
   const sessionMinutes = Math.floor(sessionTime / 60);
 
   return (
-    <div className="min-h-screen relative flex flex-col overflow-hidden"
-      style={{ background: 'linear-gradient(to bottom, #0a0908 0%, #12100e 60%, #1a1510 100%)' }}
-    >
-      {/* Background glow sesuai expression */}
+    <div className="min-h-screen relative flex flex-col overflow-hidden bg-pink-50">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-60 blur-[3px]"
+        style={{ backgroundImage: "url('/bg/bedroom.png')" }} 
+      />
+
+      {/* Sweet background glow */}
       <div
-        className="absolute inset-0 pointer-events-none transition-all duration-1000"
+        className="absolute inset-0 pointer-events-none transition-all duration-1000 mix-blend-screen"
         style={{
           background: expression === 'angry'
-            ? 'radial-gradient(ellipse at 50% 90%, rgba(180,60,60,0.08) 0%, transparent 60%)'
+            ? 'radial-gradient(ellipse at 50% 90%, rgba(255,100,100,0.3) 0%, transparent 60%)'
             : expression === 'blushing'
-            ? 'radial-gradient(ellipse at 50% 90%, rgba(220,120,120,0.08) 0%, transparent 60%)'
+            ? 'radial-gradient(ellipse at 50% 90%, rgba(255,150,180,0.4) 0%, transparent 60%)'
             : expression === 'happy'
-            ? 'radial-gradient(ellipse at 50% 90%, rgba(196,149,106,0.08) 0%, transparent 60%)'
+            ? 'radial-gradient(ellipse at 50% 90%, rgba(255,220,150,0.4) 0%, transparent 60%)'
             : expression === 'clingy'
-            ? 'radial-gradient(ellipse at 50% 90%, rgba(180,130,250,0.06) 0%, transparent 60%)'
-            : 'radial-gradient(ellipse at 50% 90%, rgba(100,90,80,0.05) 0%, transparent 60%)'
+            ? 'radial-gradient(ellipse at 50% 90%, rgba(200,150,255,0.3) 0%, transparent 60%)'
+            : 'radial-gradient(ellipse at 50% 90%, rgba(255,255,255,0.2) 0%, transparent 60%)'
         }}
       />
 
-      {/* Vignette */}
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%)' }}
-      />
-
       {/* Screen time */}
-      <div className="absolute top-5 left-6 z-10 font-mono text-xs"
-        style={{ color: 'rgba(196,149,106,0.4)' }}
-      >
-        {sessionMinutes > 0 ? `${sessionMinutes} menit di sini` : 'baru datang'}
+      <div className="absolute top-6 left-8 z-10 font-mono font-bold text-xs bg-white/70 backdrop-blur-md px-4 py-2 rounded-full text-pink-400 border border-pink-100 shadow-sm">
+        {sessionMinutes > 0 ? `${sessionMinutes} menit bersama Livia` : 'Baru datang'}
       </div>
 
       {/* Main content */}
-      <div className="relative z-10 flex flex-col items-center justify-between min-h-screen px-6 py-12">
+      <div className="relative z-10 flex flex-col items-center justify-between min-h-screen px-6 py-12 pt-20">
         
         {/* Greeting */}
-        <div className="text-center pt-4">
-          <p className="font-display text-2xl italic"
-            style={{ color: '#e8e0d0' }}
+        <div className="text-center pt-4 mb-4">
+          <p className="font-display font-bold text-2xl drop-shadow-sm"
+            style={{ color: '#5c4d47' }}
           >
             "{greeting}"
           </p>
-          <p className="font-mono text-xs mt-2" style={{ color: 'rgba(196,149,106,0.5)' }}>
+          <p className="font-mono text-sm mt-2 font-bold text-pink-400">
             — Livia
           </p>
         </div>
 
-        {/* Livia sprite — besar, dominan */}
-        <div className="flex-1 flex items-end justify-center w-full max-w-sm">
+        {/* Livia sprite */}
+        <div className="flex-1 flex items-end justify-center w-full max-w-sm drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)]">
           <LiviaSprite
             expression={expression}
             className="w-full h-auto max-h-[55vh]"
@@ -132,7 +129,7 @@ export default function HomeClient({ initialAffection, userName }: HomeClientPro
         </div>
 
         {/* Bottom section */}
-        <div className="w-full max-w-lg flex flex-col gap-6">
+        <div className="w-full max-w-lg flex flex-col gap-6 mt-6">
           {/* Affection bar */}
           <AffectionBar
             affection={affection}
@@ -141,10 +138,10 @@ export default function HomeClient({ initialAffection, userName }: HomeClientPro
           />
 
           {/* Menu */}
-          <div className="grid grid-cols-3 gap-3">
-            <MenuCard href="/chat" icon={<MessageSquare size={20} />} title="Ngobrol" />
-            <MenuCard href="/pomodoro" icon={<Clock size={20} />} title="Fokus" />
-            <MenuCard href="/story" icon={<BookOpen size={20} />} title="Cerita" />
+          <div className="grid grid-cols-3 gap-4 px-2">
+            <MenuCard href="/chat" icon={<MessageSquare size={24} />} title="Ngobrol" />
+            <MenuCard href="/pomodoro" icon={<Clock size={24} />} title="Fokus" />
+            <MenuCard href="/story" icon={<BookOpen size={24} />} title="Cerita" />
           </div>
         </div>
       </div>
@@ -156,24 +153,12 @@ function MenuCard({ href, icon, title }: { href: string; icon: React.ReactNode; 
   return (
     <Link
       href={href}
-      className="flex flex-col items-center justify-center gap-2 py-4 rounded-xl transition-all duration-200 group"
-      style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(196,149,106,0.15)',
-      }}
-      onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.background = 'rgba(196,149,106,0.08)';
-        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(196,149,106,0.4)';
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)';
-        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(196,149,106,0.15)';
-      }}
+      className="flex flex-col items-center justify-center gap-3 py-5 rounded-3xl transition-all duration-300 group shadow-sm hover:shadow-[0_10px_25px_rgba(255,154,158,0.3)] hover:-translate-y-1 bg-white/80 backdrop-blur-md border-2 border-pink-100 hover:border-pink-300"
     >
-      <div style={{ color: 'rgba(196,149,106,0.6)' }} className="transition-colors group-hover:text-accent">
+      <div className="text-pink-400 group-hover:text-pink-600 transition-colors transform group-hover:scale-110 duration-300">
         {icon}
       </div>
-      <span className="font-display text-sm" style={{ color: '#c9c3b8' }}>
+      <span className="font-display font-bold text-sm text-[#8a7e7a] group-hover:text-pink-600">
         {title}
       </span>
     </Link>
