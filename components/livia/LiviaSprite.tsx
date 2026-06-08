@@ -53,6 +53,10 @@ export default function LiviaSprite({ expression, className }: LiviaSpriteProps)
             "transition-all duration-300",
             glowStyles[expression]
           )}
+          style={{ 
+            WebkitMaskImage: 'none',
+            background: 'transparent',
+          }}
           onError={() => setImgError(true)}
         />
       )}
