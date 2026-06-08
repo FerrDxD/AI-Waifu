@@ -51,25 +51,50 @@ Kembalikan HANYA JSON valid:
 affectionDelta positif jika user bilang sesuatu yang Livia suka (implisit), negatif jika Livia kesal. Pilih expression yang paling sesuai dengan isi reply.
 Hanya kembalikan JSON. Tidak ada teks lain.`;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: { responseMimeType: "application/json" } });
+  const model = genAI.getGenerativeModel({ 
+  model: "gemini-2.0-flash-lite",
+  generationConfig: {
+    temperature: 0.8,
+    maxOutputTokens: 300,
+  }
+});
 
-  const history = chatHistory.map(msg => ({
-    role: msg.role === 'livia' ? 'model' : 'user',
+  const history = sanitizeHistory(chatHistory);
+
+const chat = model.startChat({
+  history: [
+    { role: 'user', parts: [{ text: systemPrompt }] },
+    { role: 'model', parts: [{ text: "Mengerti." }] },
+    ...history
+  ]
+});
+
+// Sanitize history: pastikan selalu alternating user → model
+function sanitizeHistory(history: { role: 'user' | 'livia', content: string }[]) {
+  const mapped = history.map(msg => ({
+    role: msg.role === 'livia' ? 'model' as const : 'user' as const,
     parts: [{ text: msg.content }],
   }));
 
-  const chat = model.startChat({
-    history: [
-      { role: 'user', parts: [{ text: systemPrompt }] },
-      { role: 'model', parts: [{ text: "Mengerti." }] },
-      ...history
-    ]
+  // Buang pesan berurutan dengan role sama
+  const sanitized = mapped.filter((msg, i) => {
+    if (i === 0) return true;
+    return msg.role !== mapped[i - 1].role;
   });
 
+  // Gemini history harus diawali 'user' — kalau tidak, buang sampai ketemu user
+  while (sanitized.length > 0 && sanitized[0].role !== 'user') {
+    sanitized.shift();
+  }
+
+  return sanitized;
+}
+
   try {
-    const result = await chat.sendMessage(userMessage);
+   const result = await callWithRetry(() => chat.sendMessage(userMessage));
     const text = result.response.text();
-    const parsed = JSON.parse(text);
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
     
     return {
       reply: parsed.reply || "...",
@@ -84,4 +109,15 @@ Hanya kembalikan JSON. Tidak ada teks lain.`;
       expression: "angry"
     };
   }
+
+  async function callWithRetry(fn: () => Promise<any>, retries = 2, delayMs = 1000) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      if (i === retries || err?.status !== 503) throw err;
+      await new Promise(res => setTimeout(res, delayMs));
+    }
+  }
+}
 }

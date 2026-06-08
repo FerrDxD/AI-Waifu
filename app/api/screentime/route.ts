@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       const inserted = await db.insert(screenTimeLogs).values({
         userId,
         sessionStart: now,
-        date: new Date(now.toISOString().split('T')[0]),
+        date: now.toISOString().split('T')[0],
       }).returning({ id: screenTimeLogs.id });
       
       return NextResponse.json({ sessionId: inserted[0].id });

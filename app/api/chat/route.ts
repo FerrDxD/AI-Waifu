@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     }
 
     const { message } = await req.json();
-    if (!message) {
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
@@ -28,17 +28,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    // Fetch chatHistory (last 20)
+    // Fetch chatHistory (last 20) — ambil SEBELUM simpan pesan baru
     const historyResults = await db.select()
       .from(chatMessages)
       .where(eq(chatMessages.userId, userId))
       .orderBy(desc(chatMessages.createdAt))
       .limit(20);
 
-    const chatHistory = historyResults.reverse().map(msg => ({
+    // Reverse ke chronological order
+    const chatHistory = historyResults.reverse().map((msg: any) => ({
       role: msg.role as 'user' | 'livia',
       content: msg.content
     }));
+
+    // ✅ FIX: Pastikan history selalu diakhiri dengan 'livia'
+    // Kalau pesan terakhir adalah 'user', ada orphan message — buang
+    while (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
+      chatHistory.pop();
+    }
 
     const personalityContext = generatePersonalityContext(profile.itemsBrought || []);
 
@@ -50,28 +57,34 @@ export async function POST(req: Request) {
       profile.itemsBrought || []
     );
 
-    // Save user message
-    await db.insert(chatMessages).values({
-      userId,
-      role: 'user',
-      content: message,
-    });
-
-    // Save Livia reply
-    await db.insert(chatMessages).values({
-      userId,
-      role: 'livia',
-      content: reply,
-      affectionDelta,
-    });
+    // ✅ FIX: Simpan user message dan reply dalam satu transaksi
+    await db.insert(chatMessages).values([
+      {
+        userId,
+        role: 'user',
+        content: message.trim(),
+        affectionDelta: 0,
+      },
+      {
+        userId,
+        role: 'livia',
+        content: reply,
+        affectionDelta,
+      }
+    ]);
 
     // Update affection
     const oldAffection = profile.affection || 0;
-    const newAffectionRaw = oldAffection + affectionDelta;
-    const newAffection = Math.max(0, Math.min(100, newAffectionRaw));
+    const newAffection = Math.max(0, Math.min(100, oldAffection + affectionDelta));
+    // ✅ FIX: Level calculation konsisten — max level 5
+    const newLevel = newAffection >= 100 ? 5 : Math.floor(newAffection / 20);
 
     await db.update(userProfiles)
-      .set({ affection: newAffection, affectionLevel: Math.floor(newAffection / 20) })
+      .set({ 
+        affection: newAffection, 
+        affectionLevel: newLevel,
+        lastSeen: new Date(),
+      })
       .where(eq(userProfiles.userId, userId));
 
     // Unlock chapter check
@@ -93,7 +106,8 @@ export async function POST(req: Request) {
       expression,
       affectionDelta,
       newAffection,
-      unlockedChapter
+      newLevel,
+      unlockedChapter: unlockedChapter ?? null
     });
 
   } catch (error) {
