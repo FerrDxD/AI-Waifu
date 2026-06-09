@@ -10,33 +10,63 @@ interface VNSceneProps {
   onComplete: () => void;
 }
 
+type Choice = {
+  text: string;
+  nextIndex: number;
+};
+
 type Scene = {
   speaker: string;
   text: string;
   expression: LiviaExpression;
+  choices?: Choice[];
+  nextIndex?: number;
 };
 
 const SCENES: Scene[] = [
+  // 0
   { 
     speaker: 'Narator', 
     text: 'Sebuah pesan masuk dari nomor tak dikenal.', 
     expression: 'normal',
   },
+  // 1
   { 
     speaker: 'Livia', 
     text: 'Hei. Kamu yang bakal bantu aku pindahan, kan? Ibu yang suruh aku minta tolong.', 
     expression: 'normal' 
   },
+  // 2
   { 
     speaker: 'Livia', 
     text: 'Bukan berarti aku mau, ya. Aku bisa urus sendiri. Tapi... yah, terima kasih.', 
-    expression: 'angry' 
+    expression: 'angry',
+    choices: [
+      { text: "Sama-sama. Senang bisa bantu tetangga baru.", nextIndex: 3 },
+      { text: "Kelihatannya kamu memang repot banget.", nextIndex: 4 }
+    ]
   },
+  // 3 (Branch A)
+  {
+    speaker: 'Livia',
+    text: 'J-jangan sok akrab deh! Ini cuma formalitas aja! Ayo cepetan beres-beres sebelum aku berubah pikiran.',
+    expression: 'blushing',
+    nextIndex: 5
+  },
+  // 4 (Branch B)
+  {
+    speaker: 'Livia',
+    text: 'Ya emang repot! Ini semua kan gara-gara ibuku yang maksa aku pindah ke sini. Udah, jangan banyak tanya, bantuin aja!',
+    expression: 'angry',
+    nextIndex: 5
+  },
+  // 5
   { 
     speaker: 'Narator', 
     text: 'Begitulah pertama kali kamu mengenal Livia Einhart. Gadis yang akan jadi teman kosmu.', 
     expression: 'normal' 
   },
+  // 6
   { 
     speaker: 'Livia', 
     text: 'Oke, kita mulai dari barang-barangku. Aku nggak bisa bawa semuanya — koper aku cuma muat lima barang. Bantu aku milih, ya.', 
@@ -49,43 +79,46 @@ export default function VNScene({ onComplete }: VNSceneProps) {
   const [spriteVisible, setSpriteVisible] = useState(true);
 
   const scene = SCENES[currentScene];
-  const nextScene = SCENES[currentScene + 1];
 
-  const handleNext = () => {
-    const expressionChanging = nextScene && nextScene.expression !== scene.expression;
+  const advanceScene = (targetIndex: number) => {
+    const nextScene = SCENES[targetIndex];
+    if (!nextScene) {
+      onComplete();
+      return;
+    }
+
+    const expressionChanging = nextScene.expression !== scene.expression;
     
     if (expressionChanging) {
       setSpriteVisible(false);
       setTimeout(() => {
-        if (currentScene < SCENES.length - 1) {
-          setCurrentScene(prev => prev + 1);
-        } else {
-          onComplete();
-        }
+        setCurrentScene(targetIndex);
         setSpriteVisible(true);
       }, 200);
     } else {
-      if (currentScene < SCENES.length - 1) {
-        setCurrentScene(prev => prev + 1);
-      } else {
-        onComplete();
-      }
+      setCurrentScene(targetIndex);
     }
   };
 
+  const handleNext = () => {
+    if (scene.choices) return; // Wait for choice to be clicked
+    const target = scene.nextIndex !== undefined ? scene.nextIndex : currentScene + 1;
+    advanceScene(target);
+  };
+
+  const handleChoice = (choice: Choice) => {
+    advanceScene(choice.nextIndex);
+  };
+
   return (
-    <div 
-      className="relative w-full h-screen flex flex-col overflow-hidden bg-pink-50"
-    >
+    <div className="relative w-full h-screen flex flex-col overflow-hidden bg-pink-50">
       {/* Visual Novel Bright Background */}
       <div 
         className={cn(
           "absolute inset-0 bg-cover bg-center transition-all duration-[3000ms] ease-out",
           scene.speaker === 'Narator' ? "scale-105 blur-[2px] opacity-80" : "scale-100 blur-0 opacity-100"
         )}
-        style={{ 
-          backgroundImage: "url('/bg/bedroom.png')",
-        }} 
+        style={{ backgroundImage: "url('/bg/bedroom.png')" }} 
       />
 
       {/* Cheerful Sun-kissed Vignette */}
@@ -111,32 +144,21 @@ export default function VNScene({ onComplete }: VNSceneProps) {
         }}
       />
 
-      {/* Scene counter (Cute dots) */}
-      <div className="absolute top-8 right-10 z-20 flex gap-2.5">
-        {SCENES.map((_, i) => (
-          <div 
-            key={i}
-            className="w-3 h-3 rounded-full transition-all duration-500 ease-in-out"
-            style={{ 
-              background: i === currentScene ? '#ff9a9e' : 'rgba(255,255,255,0.5)',
-              boxShadow: i === currentScene ? '0 0 12px rgba(255,154,158,0.8)' : '0 2px 4px rgba(0,0,0,0.1)',
-              transform: i === currentScene ? 'scale(1.2)' : 'scale(1)'
-            }}
-          />
-        ))}
+      {/* Scene counter (Progress dots) */}
+      <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        <div className="bg-white/50 backdrop-blur-md px-4 py-1.5 rounded-full shadow-sm text-xs font-mono font-bold text-[#ff758c]">
+          {currentScene + 1} / {SCENES.length}
+        </div>
       </div>
 
-      {/* Auto / Skip / Log buttons (Pop UI) */}
-      <div className="absolute top-6 left-8 z-30 flex gap-4">
-        {['Log', 'Auto', 'Skip'].map((label) => (
-          <button 
-            key={label}
-            onClick={label === 'Skip' ? onComplete : undefined}
-            className="bg-white/80 hover:bg-white backdrop-blur-md text-pink-500 font-bold px-5 py-2 rounded-full shadow-sm hover:shadow-md transition-all text-sm tracking-wide border border-pink-100"
-          >
-            {label}
-          </button>
-        ))}
+      {/* Skip button */}
+      <div className="absolute top-6 right-8 z-30">
+        <button 
+          onClick={onComplete}
+          className="text-gray-400 hover:text-[#ff758c] font-display font-bold px-4 py-2 text-sm tracking-widest uppercase transition-colors bg-white/50 backdrop-blur-sm rounded-full"
+        >
+          Lewati 
+        </button>
       </div>
 
       {/* Sprite area */}
@@ -158,13 +180,31 @@ export default function VNScene({ onComplete }: VNSceneProps) {
         </div>
       </div>
 
-      {/* Dialog box */}
-      <div className="relative z-30 pb-12 px-8 w-full">
-        <DialogBox 
-          text={scene.text} 
-          speaker={scene.speaker === 'Narator' ? '' : scene.speaker} 
-          onNext={handleNext} 
-        />
+      {/* Dialog box & Choices */}
+      <div className="relative z-30 pb-12 px-8 w-full flex flex-col items-center">
+        
+        {/* Branching Choices Overlay */}
+        {scene.choices && (
+          <div className="absolute bottom-[100%] mb-4 flex flex-col gap-3 w-full max-w-lg animate-[fadeIn_0.4s_ease-out_forwards]">
+            {scene.choices.map((choice, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleChoice(choice)}
+                className="w-full bg-white/95 backdrop-blur-md border-2 border-pink-100 py-4 px-6 rounded-2xl shadow-[0_10px_25px_rgba(255,117,140,0.15)] text-[#5c4d47] font-bold font-display hover:border-[#ff758c] hover:text-[#ff758c] hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(255,117,140,0.2)] transition-all duration-300 text-center text-lg active:scale-95"
+              >
+                {choice.text}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="w-full max-w-4xl">
+          <DialogBox 
+            text={scene.text} 
+            speaker={scene.speaker === 'Narator' ? '' : scene.speaker} 
+            onNext={scene.choices ? () => {} : handleNext} 
+          />
+        </div>
       </div>
     </div>
   );

@@ -118,19 +118,17 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex w-full h-screen overflow-hidden bg-pink-50 relative">
-      {/* Immersive Bright Background */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center transition-all duration-1000 z-0 opacity-80"
-        style={{ 
-          backgroundImage: "url('/bg/chat_bg.png')",
-        }}
-      />
+    <div className="flex w-full h-screen overflow-hidden bg-[#fdfbf7]">
+      {/* Panel kiri — Livia (35%) */}
+      <div className="w-[35%] h-full flex flex-col items-center justify-end relative z-10 bg-[#fdfbf7] shadow-[5px_0_15px_rgba(0,0,0,0.03)] border-r border-pink-100">
+        {/* Immersive Background just for Livia */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center transition-all duration-1000 z-0 opacity-40 mix-blend-multiply blur-[1px]"
+          style={{ backgroundImage: "url('/bg/bedroom.png')" }}
+        />
 
-      {/* Panel kiri — Livia */}
-      <div className="w-[45%] h-full flex flex-col items-center justify-end relative z-10">
         {/* Sweet Background glow */}
-        <div className="absolute inset-0 pointer-events-none transition-all duration-1000 mix-blend-screen"
+        <div className="absolute inset-0 pointer-events-none transition-all duration-1000 mix-blend-screen z-0"
           style={{
             background: expression === 'angry'
               ? 'radial-gradient(ellipse at 50% 100%, rgba(255,100,100,0.3) 0%, transparent 70%)'
@@ -144,13 +142,18 @@ export default function ChatPage() {
           }}
         />
 
-        {/* Back button */}
-        <Link href="/home"
-          className="absolute top-6 left-8 z-20 flex items-center gap-2 font-display font-bold text-sm bg-white/70 backdrop-blur-md px-4 py-2 rounded-full text-pink-500 shadow-sm hover:shadow-md hover:bg-white transition-all"
-        >
-          <ArrowLeft size={16} />
-          Kembali
-        </Link>
+        {/* Back button & Name Label */}
+        <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-20">
+          <Link href="/home"
+            className="flex items-center gap-2 font-display font-bold text-sm bg-white/70 backdrop-blur-md px-4 py-2 rounded-full text-pink-500 shadow-sm hover:shadow-md hover:text-[#ff758c] transition-all"
+          >
+            <ArrowLeft size={16} />
+            Kembali
+          </Link>
+          <div className="bg-white/80 backdrop-blur-md px-6 py-2 rounded-full shadow-sm border border-pink-100">
+            <span className="font-display font-bold text-[#ff758c] tracking-wide">L I V I A</span>
+          </div>
+        </div>
 
         {/* Toast doom scroll */}
         {toast && (
@@ -179,19 +182,18 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Panel kanan — Chat */}
-      <div className="w-[55%] h-full flex flex-col relative z-10 py-8 pr-8">
-        {/* Sweet Glassmorphism Chat Container */}
-        <div className="w-full h-full flex flex-col backdrop-blur-2xl bg-white/70 rounded-[2.5rem] border-2 border-white shadow-[0_20px_60px_rgba(255,154,158,0.25)] overflow-hidden relative">
+      {/* Panel kanan — Chat (65%) */}
+      <div className="w-[65%] h-full flex flex-col relative z-10 bg-white">
+        <div className="w-full h-full flex flex-col">
           
           {/* Header Area */}
-          <div className="px-8 py-5 border-b border-pink-100/50 flex items-center gap-3 bg-white/40">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-300 to-pink-100 flex items-center justify-center text-white shadow-sm border border-white">
+          <div className="px-8 py-4 border-b border-pink-50 flex items-center gap-3 bg-white/90 backdrop-blur-md z-20 shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#ff758c] to-[#ff9a9e] flex items-center justify-center text-white shadow-sm font-bold">
               L
             </div>
             <div>
-              <h2 className="font-display font-bold text-lg text-pink-600 leading-tight">Livia Einhart</h2>
-              <span className="text-xs text-pink-400 font-medium">Teman Kosmu</span>
+              <h2 className="font-display font-bold text-lg text-[#ff758c] leading-tight">Livia Einhart</h2>
+              <span className="text-xs text-amber-500 font-medium italic">Sedang online</span>
             </div>
           </div>
 
@@ -212,8 +214,8 @@ export default function ChatPage() {
 
             {historyLoaded && messages.length === 0 && (
               <div className="flex items-center justify-center h-full">
-                <p className="font-display font-medium text-lg text-center text-pink-300">
-                  Mulai percakapan dengan Livia...
+                <p className="font-display italic text-lg text-center text-amber-600/70">
+                  Belum ada pesan. Sapa Livia untuk mulai ngobrol!
                 </p>
               </div>
             )}
@@ -231,17 +233,18 @@ export default function ChatPage() {
                 <div
                   className="max-w-[70%] px-5 py-3.5 text-[15px] leading-relaxed shadow-sm"
                   style={msg.role === 'livia' ? {
-                    background: '#ffffff',
-                    border: '1px solid #fecfef',
-                    borderRadius: '24px 24px 24px 4px',
+                    background: '#fffdfa',
+                    border: '1px solid #f9ecec',
+                    borderLeft: '4px solid #ff758c',
+                    borderRadius: '4px 20px 20px 20px',
                     color: '#5c4d47',
                     fontWeight: 500
                   } : {
-                    background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-                    borderRadius: '24px 24px 4px 24px',
+                    background: 'linear-gradient(135deg, #ffb199 0%, #ff0844 100%)',
+                    borderRadius: '20px 4px 20px 20px',
                     color: '#ffffff',
-                    fontWeight: 600,
-                    textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                    fontWeight: 500,
+                    boxShadow: '0 4px 10px rgba(255,8,68,0.2)'
                   }}
                 >
                   {msg.content}
@@ -261,7 +264,7 @@ export default function ChatPage() {
                       key={i}
                       className="w-2 h-2 rounded-full animate-bounce"
                       style={{
-                        background: '#ff9a9e',
+                        background: '#ff758c',
                         animationDelay: `${i * 0.15}s`,
                       }}
                     />
@@ -272,7 +275,7 @@ export default function ChatPage() {
           </div>
 
           {/* Input area */}
-          <div className="px-8 py-5 bg-white/60 border-t border-pink-100/50 backdrop-blur-md flex items-end gap-3">
+          <div className="px-8 py-6 bg-white border-t border-pink-50 flex items-end gap-3 z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
             <textarea
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -282,28 +285,27 @@ export default function ChatPage() {
                   handleSend();
                 }
               }}
-              placeholder="Balas Livia..."
+              placeholder="Ketik balasanmu..."
               rows={1}
               disabled={loading}
-              className="flex-1 resize-none py-3.5 px-6 text-[15px] focus:outline-none transition-all placeholder:text-pink-200"
+              className="flex-1 resize-none py-3.5 px-6 text-[15px] focus:outline-none transition-all placeholder:text-gray-300"
               style={{
-                background: '#ffffff',
-                border: '2px solid #fecfef',
+                background: '#fcfcfc',
+                border: '2px solid #f1f1f1',
                 borderRadius: '24px',
                 color: '#5c4d47',
                 maxHeight: '120px',
                 fontWeight: 500,
-                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
               }}
-              onFocus={e => (e.currentTarget.style.borderColor = '#ff9a9e')}
-              onBlur={e => (e.currentTarget.style.borderColor = '#fecfef')}
+              onFocus={e => (e.currentTarget.style.borderColor = '#ff758c')}
+              onBlur={e => (e.currentTarget.style.borderColor = '#f1f1f1')}
             />
             <button
               onClick={handleSend}
               disabled={loading || !input.trim()}
               className="shrink-0 w-14 h-14 flex items-center justify-center rounded-full transition-all shadow-md"
               style={{
-                background: input.trim() && !loading ? 'linear-gradient(135deg, #ff9a9e, #ff758c)' : '#f5f5f5',
+                background: input.trim() && !loading ? 'linear-gradient(135deg, #ff0844, #ffb199)' : '#f5f5f5',
                 color: input.trim() && !loading ? '#ffffff' : '#cccccc',
                 transform: input.trim() && !loading ? 'scale(1)' : 'scale(0.95)'
               }}

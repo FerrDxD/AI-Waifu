@@ -52,49 +52,39 @@ affectionDelta positif jika user bilang sesuatu yang Livia suka (implisit), nega
 Hanya kembalikan JSON. Tidak ada teks lain.`;
 
   const model = genAI.getGenerativeModel({ 
-  model: "gemini-2.0-flash-lite",
+  model: "gemini-flash-latest",
   generationConfig: {
     temperature: 0.8,
-    maxOutputTokens: 300,
   }
 });
 
-  const history = sanitizeHistory(chatHistory);
+  // Format history manually into the prompt to avoid chat history role conflicts
+  const formattedHistory = chatHistory.map(msg => 
+    `${msg.role === 'livia' ? 'Livia' : 'User'}: ${msg.content}`
+  ).join('\n');
 
-const chat = model.startChat({
-  history: [
-    { role: 'user', parts: [{ text: systemPrompt }] },
-    { role: 'model', parts: [{ text: "Mengerti." }] },
-    ...history
-  ]
-});
+  const fullPrompt = `${systemPrompt}
 
-// Sanitize history: pastikan selalu alternating user → model
-function sanitizeHistory(history: { role: 'user' | 'livia', content: string }[]) {
-  const mapped = history.map(msg => ({
-    role: msg.role === 'livia' ? 'model' as const : 'user' as const,
-    parts: [{ text: msg.content }],
-  }));
+Riwayat obrolan sejauh ini:
+${formattedHistory}
 
-  // Buang pesan berurutan dengan role sama
-  const sanitized = mapped.filter((msg, i) => {
-    if (i === 0) return true;
-    return msg.role !== mapped[i - 1].role;
-  });
-
-  // Gemini history harus diawali 'user' — kalau tidak, buang sampai ketemu user
-  while (sanitized.length > 0 && sanitized[0].role !== 'user') {
-    sanitized.shift();
-  }
-
-  return sanitized;
-}
+User: ${userMessage}
+Livia:`;
 
   try {
-   const result = await callWithRetry(() => chat.sendMessage(userMessage));
+    const result = await callWithRetry(() => model.generateContent(fullPrompt));
     const text = result.response.text();
-    const clean = text.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(clean);
+    console.log("Raw Gemini Output:", text);
+    
+    // Cari blok JSON dengan regex
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("No JSON found in response");
+    
+    // Coba tambahkan tutup kurung jika terpotong
+    let jsonStr = match[0];
+    if (!jsonStr.endsWith('}')) jsonStr += '"}'; // basic fallback
+    
+    const parsed = JSON.parse(jsonStr);
     
     return {
       reply: parsed.reply || "...",
@@ -111,13 +101,43 @@ function sanitizeHistory(history: { role: 'user' | 'livia', content: string }[])
   }
 
   async function callWithRetry(fn: () => Promise<any>, retries = 2, delayMs = 1000) {
-  for (let i = 0; i <= retries; i++) {
-    try {
-      return await fn();
-    } catch (err: any) {
-      if (i === retries || err?.status !== 503) throw err;
-      await new Promise(res => setTimeout(res, delayMs));
+    for (let i = 0; i <= retries; i++) {
+      try {
+        return await fn();
+      } catch (err: any) {
+        if (i === retries || err?.status !== 503) throw err;
+        await new Promise(res => setTimeout(res, delayMs));
+      }
     }
   }
 }
+
+export async function generateDateDialogue(
+  location: string,
+  affectionLevel: number,
+  userName: string
+): Promise<{ speaker: string, text: string, expression?: LiviaExpression }[]> {
+  const systemPrompt = `Kamu adalah Livia Einhart, gadis 19 tahun tsundere. Kamu dan ${userName} sedang jalan-jalan ke: ${location}. Level afeksi: ${affectionLevel}/100.
+Buat dialog Visual Novel singkat (5-7 baris) di lokasi tersebut. 
+User berbicara sebagai "${userName}", Livia sebagai "Livia". Narator sebagai "Narator".
+Kembalikan HANYA array JSON valid dengan format:
+[
+  { "speaker": "Livia" | "${userName}" | "Narator", "text": "dialog", "expression": "normal" | "angry" | "blushing" | "clingy" | "happy" }
+]
+Jangan tambahkan teks lain di luar JSON.`;
+
+  const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+
+  try {
+    const result = await model.generateContent(systemPrompt);
+    const text = result.response.text();
+    const match = text.match(/\[[\s\S]*\]/);
+    if (!match) throw new Error("No JSON found");
+    return JSON.parse(match[0]);
+  } catch (error) {
+    console.error("Date Gen Error:", error);
+    return [
+      { speaker: "Livia", text: "Maaf ya, aku lagi nggak mood ngomong...", expression: "angry" }
+    ];
+  }
 }

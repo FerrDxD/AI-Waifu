@@ -56,14 +56,14 @@ export default function DialogBox({ text, speaker, onNext }: DialogBoxProps) {
       {/* Nameplate (only if not narrator) */}
       {!isNarrator && speaker && (
         <div 
-          className="absolute -top-6 left-12 z-10 px-8 py-2 rounded-full shadow-lg transition-transform hover:scale-105"
+          className="absolute -top-6 left-12 z-10 px-8 py-2 rounded-full shadow-md transition-transform hover:scale-105"
           style={{
-            background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)',
-            border: '3px solid #fff',
-            boxShadow: '0 8px 20px rgba(255, 154, 158, 0.4)'
+            background: 'linear-gradient(135deg, #ff0844 0%, #ffb199 100%)',
+            border: '2px solid #fff',
+            boxShadow: '0 8px 15px rgba(255, 117, 140, 0.3)'
           }}
         >
-          <span className="font-display font-black text-xl tracking-wider text-pink-600 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
+          <span className="font-display font-black text-xl tracking-wider text-white drop-shadow-sm">
             {speaker}
           </span>
         </div>

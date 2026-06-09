@@ -20,6 +20,8 @@ export default async function HomePage() {
     <HomeClient
       initialAffection={profile.affection ?? 0}
       userName={session.user.name ?? 'Kamu'}
+      initialItemsBrought={profile.itemsBrought ?? []}
+      initialOutfit={profile.activeOutfit ?? 'default'}
     />
   );
 }

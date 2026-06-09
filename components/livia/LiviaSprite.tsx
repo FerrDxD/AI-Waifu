@@ -11,6 +11,7 @@ function cn(...inputs: ClassValue[]) {
 
 interface LiviaSpriteProps {
   expression: LiviaExpression;
+  outfit?: string;
   className?: string;
 }
 
@@ -22,9 +23,9 @@ const glowStyles: Record<LiviaExpression, string> = {
   happy: 'drop-shadow-[0_0_20px_rgba(196,149,106,0.5)]',
 };
 
-export default function LiviaSprite({ expression, className }: LiviaSpriteProps) {
+export default function LiviaSprite({ expression, outfit = 'default', className }: LiviaSpriteProps) {
   const [imgError, setImgError] = useState(false);
-  const src = `/livia/${expression}.png`;
+  const src = outfit === 'default' ? `/livia/${expression}.png` : `/livia/${outfit}/${expression}.png`;
 
   return (
     <div className={cn(
@@ -41,8 +42,9 @@ export default function LiviaSprite({ expression, className }: LiviaSpriteProps)
 
       {imgError ? (
         // Fallback hanya muncul kalau gambar benar-benar gagal load
-        <div className="w-48 h-64 flex items-center justify-center rounded-xl border border-white/10 bg-white/5">
-          <span className="text-white/20 text-xs">Livia</span>
+        <div className="w-48 h-64 flex flex-col items-center justify-center rounded-xl border border-pink-200 bg-pink-50 shadow-inner">
+          <span className="text-pink-400 text-xs font-bold uppercase tracking-widest mb-1">Livia</span>
+          {outfit !== 'default' && <span className="text-pink-300 text-[10px] italic">({outfit})</span>}
         </div>
       ) : (
         <img

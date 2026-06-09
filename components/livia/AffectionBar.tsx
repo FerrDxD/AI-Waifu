@@ -12,11 +12,11 @@ export default function AffectionBar({ affection, level, levelName }: AffectionB
   return (
     <div className="w-full max-w-md mx-auto p-4 bg-white/80 backdrop-blur-md border-2 border-pink-200 rounded-3xl shadow-[0_8px_20px_rgba(255,154,158,0.2)] hover:shadow-[0_12px_25px_rgba(255,154,158,0.3)] transition-all">
       <div className="flex justify-between items-center mb-3 px-2">
-        <span className="text-sm font-display font-bold text-pink-500 flex items-center gap-2">
-          <Heart size={16} className="fill-pink-400 text-pink-400" />
+        <span className="text-sm font-display font-bold text-amber-500 flex items-center gap-2">
+          <Heart size={16} className="fill-amber-400 text-amber-400" />
           Lv. {level} - {levelName}
         </span>
-        <span className="text-sm font-mono font-bold text-pink-400 bg-pink-100 px-3 py-1 rounded-full">
+        <span className="text-sm font-mono font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
           {affection} / 100
         </span>
       </div>

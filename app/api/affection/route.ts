@@ -5,6 +5,27 @@ import { userProfiles, storyProgress } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { shouldUnlockChapter } from '@/lib/livia/affection';
 
+export async function GET(req: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    
+    const userId = session.user.id;
+    const profileResults = await db.select().from(userProfiles).where(eq(userProfiles.userId, userId));
+    const storyResults = await db.select().from(storyProgress).where(eq(storyProgress.userId, userId));
+    
+    return NextResponse.json({
+      affection: profileResults[0]?.affection || 0,
+      money: profileResults[0]?.money || 0,
+      unlockedChapters: storyResults[0]?.unlockedChapters || [0],
+      itemsBrought: profileResults[0]?.itemsBrought || []
+    });
+  } catch (error) {
+    console.error('Affection GET API Error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
 export async function PATCH(req: Request) {
   try {
     const session = await auth();
@@ -44,6 +65,11 @@ export async function PATCH(req: Request) {
         await db.update(storyProgress)
           .set({ unlockedChapters: Array.from(chapters) })
           .where(eq(storyProgress.userId, userId));
+      } else {
+        await db.insert(storyProgress).values({
+          userId: userId,
+          unlockedChapters: [0, unlockedChapter]
+        });
       }
     }
 

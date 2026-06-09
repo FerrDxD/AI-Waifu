@@ -21,6 +21,8 @@ export const userProfiles = pgTable('userProfiles', {
   activeBuffs: text('active_buffs').array(),
   affection: integer('affection').default(0),
   affectionLevel: integer('affection_level').default(0),
+  activeOutfit: text('active_outfit').default('default'),
+  money: integer('money').default(0),
   totalScreenTime: integer('total_screen_time').default(0),
   totalPomodoroSessions: integer('total_pomodoro_sessions').default(0),
   lastSeen: timestamp('last_seen').defaultNow(),

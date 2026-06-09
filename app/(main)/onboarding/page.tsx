@@ -60,8 +60,12 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[url('/bg-texture.png')] bg-cover relative flex flex-col items-center justify-center p-4">
-      <div className="absolute inset-0 bg-background/90 z-0" />
+    <div className="min-h-screen bg-pink-50 relative flex flex-col items-center justify-center p-4 overflow-hidden">
+      {/* Decorative background blobs */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000" />
+      
+      <div className="absolute inset-0 bg-white/40 backdrop-blur-sm z-0" />
       
       <div className="z-10 w-full max-w-5xl">
         {stage === 'intro' && <VNScene onComplete={() => setStage('packing')} />}
