@@ -144,45 +144,52 @@ export default function ShopPage() {
       <div className="absolute left-10 bottom-10 w-64 h-64 bg-amber-100 rounded-full blur-[80px] opacity-40 z-0 pointer-events-none" />
 
       {/* Top Bar (BA Header Layout, Teman Kos Colors) */}
-      <div className="absolute top-0 left-0 w-full h-20 bg-white/80 backdrop-blur-md shadow-sm z-30 flex justify-between items-center px-6 border-b border-pink-50">
-        <div className="flex items-center gap-6">
-          <Link href="/home" className="flex items-center justify-center w-12 h-12 bg-pink-50 rounded-full text-pink-600 hover:bg-[#ff758c] hover:text-white transition-colors">
-            <span className="text-xl font-black">←</span>
+      <div className="absolute top-0 left-0 w-full h-16 md:h-20 bg-white/80 backdrop-blur-md shadow-sm z-30 flex justify-between items-center px-4 md:px-6 border-b border-pink-50">
+        <div className="flex items-center gap-3 md:gap-6">
+          <Link href="/home" className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-pink-50 rounded-full text-pink-600 hover:bg-[#ff758c] hover:text-white transition-colors">
+            <span className="text-lg md:text-xl font-black">←</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <ShoppingBag className="text-[#ff758c] w-8 h-8" />
-            <h1 className="text-3xl font-display font-black text-[#5c4d47] italic tracking-tight uppercase">Toko Perbelanjaan</h1>
+          <div className="flex items-center gap-2 md:gap-3">
+            <ShoppingBag className="text-[#ff758c] w-6 h-6 md:w-8 md:h-8" />
+            <h1 className="text-lg md:text-3xl font-display font-black text-[#5c4d47] italic tracking-tight uppercase">Toko</h1>
           </div>
         </div>
-        <div className="flex gap-4">
-          <div className="bg-pink-50 border border-pink-200 px-5 py-2.5 rounded-full flex items-center gap-3 shadow-sm">
-            <Heart className="w-5 h-5 text-pink-500 fill-pink-500" />
-            <span className="font-bold text-[#5c4d47]">{affection}</span>
+        <div className="flex gap-2 md:gap-4">
+          <div className="bg-pink-50 border border-pink-200 px-3 md:px-5 py-1.5 md:py-2.5 rounded-full flex items-center gap-1.5 md:gap-3 shadow-sm">
+            <Heart className="w-4 h-4 md:w-5 md:h-5 text-pink-500 fill-pink-500" />
+            <span className="font-bold text-sm md:text-base text-[#5c4d47]">{affection}</span>
           </div>
-          <div className="bg-amber-50 border border-amber-200 px-5 py-2.5 rounded-full flex items-center gap-3 shadow-sm">
-            <div className="w-6 h-6 bg-amber-400 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-black">R</span>
+          <div className="bg-amber-50 border border-amber-200 px-3 md:px-5 py-1.5 md:py-2.5 rounded-full flex items-center gap-1.5 md:gap-3 shadow-sm">
+            <div className="w-5 h-5 md:w-6 md:h-6 bg-amber-400 rounded-full flex items-center justify-center">
+              <span className="text-white text-[10px] md:text-xs font-black">R</span>
             </div>
-            <span className="font-mono font-black text-xl text-amber-700">{money}</span>
+            <span className="font-mono font-black text-sm md:text-xl text-amber-700">{money}</span>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 w-full mx-auto flex pt-24 px-6 z-10 relative h-screen">
+      <div className="flex-1 w-full mx-auto flex flex-col lg:flex-row pt-16 md:pt-24 px-4 md:px-6 z-10 relative h-screen">
         
-        {/* Left Sidebar (Vertical Tabs BA Style) */}
-        <div className="w-64 flex flex-col gap-3 py-6 relative z-20">
-          <div className="text-xs font-bold text-gray-400 mb-2 pl-4 tracking-widest uppercase">Kategori</div>
+        {/* Mobile Message Bubble */}
+        <div className="lg:hidden w-full mt-4 bg-white/95 backdrop-blur-xl rounded-2xl p-4 shadow-md border-l-4 border-[#ff758c] z-20">
+          <p className="text-sm font-bold text-[#5c4d47] leading-relaxed">
+            <span className="text-[#ff758c] mr-2">Livia:</span>"{message}"
+          </p>
+        </div>
+
+        {/* Categories (Horizontal on Mobile, Vertical Sidebar on Desktop) */}
+        <div className="w-full lg:w-64 flex flex-row lg:flex-col gap-2 md:gap-3 py-4 md:py-6 relative z-20 overflow-x-auto hide-scrollbar shrink-0">
+          <div className="hidden lg:block text-xs font-bold text-gray-400 mb-2 pl-4 tracking-widest uppercase">Kategori</div>
           {CATEGORIES.map(cat => {
             const isActive = activeCategory === cat.id;
             return (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`relative flex items-center gap-4 py-4 px-6 rounded-r-2xl transition-all duration-300 font-display font-black text-lg ${
+                className={`relative flex items-center gap-2 md:gap-4 py-2 md:py-4 px-4 md:px-6 rounded-full lg:rounded-r-2xl lg:rounded-l-none transition-all duration-300 font-display font-black text-sm md:text-lg whitespace-nowrap ${
                   isActive 
-                    ? 'bg-gradient-to-r from-[#ff758c] to-[#ffb199] text-white shadow-lg translate-x-4 border-l-[6px] border-pink-500' 
-                    : 'bg-white/80 text-gray-500 hover:bg-white hover:translate-x-2 border border-transparent hover:border-pink-100'
+                    ? 'bg-gradient-to-r from-[#ff758c] to-[#ffb199] text-white shadow-lg lg:translate-x-4 lg:border-l-[6px] lg:border-pink-500' 
+                    : 'bg-white/80 text-gray-500 hover:bg-white lg:hover:translate-x-2 border border-transparent hover:border-pink-100'
                 }`}
               >
                 {cat.icon}
@@ -193,7 +200,7 @@ export default function ShopPage() {
         </div>
 
         {/* Center: Items Grid */}
-        <div className="flex-1 p-6 overflow-y-auto custom-scrollbar pb-32 z-20">
+        <div className="flex-1 p-2 md:p-6 overflow-y-auto hide-scrollbar pb-32 z-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full max-w-4xl mx-auto">
             {filteredItems.map(item => {
               const owned = inventory.includes(item.id) && item.category !== 'gift';
@@ -205,32 +212,32 @@ export default function ShopPage() {
                   {/* BA style accent bar */}
                   <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-[#ff758c] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   
-                  <div className={`w-24 h-24 rounded-2xl bg-gradient-to-br ${item.category === 'item' && item.id.includes('kacamata') ? 'from-gray-700 to-gray-900 text-white' : item.color} flex items-center justify-center text-5xl shadow-inner group-hover:scale-105 transition-transform`}>
+                  <div className={`w-20 h-20 md:w-24 md:h-24 shrink-0 rounded-2xl bg-gradient-to-br ${item.category === 'item' && item.id.includes('kacamata') ? 'from-gray-700 to-gray-900 text-white' : item.color} flex items-center justify-center text-4xl md:text-5xl shadow-inner group-hover:scale-105 transition-transform`}>
                     {item.emoji}
                   </div>
                   
                   <div className="flex-1 flex flex-col justify-between py-1">
                     <div>
-                      <h3 className="font-black font-display text-[#5c4d47] text-xl mb-1">{item.name}</h3>
-                      <p className="text-xs text-gray-500 font-medium leading-snug">{item.desc}</p>
+                      <h3 className="font-black font-display text-[#5c4d47] text-lg md:text-xl mb-1">{item.name}</h3>
+                      <p className="text-[11px] md:text-xs text-gray-500 font-medium leading-snug">{item.desc}</p>
                     </div>
                     
-                    <div className="flex justify-between items-end mt-4">
+                    <div className="flex justify-between items-end mt-3 md:mt-4">
                       <div className="flex flex-col">
                         {item.affectionDelta > 0 && (
-                          <span className="text-[10px] font-bold text-pink-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+                          <span className="text-[9px] md:text-[10px] font-bold text-pink-500 uppercase tracking-wider mb-1 flex items-center gap-1">
                             <Heart size={10} className="fill-pink-500" /> +{item.affectionDelta}
                           </span>
                         )}
-                        <span className="font-mono font-black text-xl text-amber-600 flex items-center gap-1">
-                          <span className="text-xs text-amber-500">Rv</span>{item.cost}
+                        <span className="font-mono font-black text-lg md:text-xl text-amber-600 flex items-center gap-1">
+                          <span className="text-[10px] md:text-xs text-amber-500">Rv</span>{item.cost}
                         </span>
                       </div>
                       
                       <button
                         onClick={() => buyGift(item)}
                         disabled={isBuying || money < item.cost || owned}
-                        className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md ${
+                        className={`px-4 md:px-6 py-2 md:py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all shadow-md ${
                           owned ? 'bg-gray-200 text-gray-500 cursor-not-allowed shadow-none'
                           : money >= item.cost 
                             ? 'bg-[#ff758c] text-white hover:bg-pink-500 hover:-translate-y-1 active:scale-95'

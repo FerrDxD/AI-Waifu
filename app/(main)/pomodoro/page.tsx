@@ -137,14 +137,14 @@ export default function PomodoroPage() {
       </div>
 
       {/* Left Area: Timer */}
-      <div className="w-full md:w-[45%] flex flex-col items-center justify-center relative z-20 h-full pt-16 md:pt-0 pb-10">
+      <div className="w-full md:w-[45%] flex flex-col items-center justify-center md:justify-center relative z-20 h-full pt-20 md:pt-0 pb-10">
         
-        <div className="bg-white/80 backdrop-blur-md text-[#ff758c] font-display font-black px-10 py-3 rounded-full mb-10 shadow-[0_5px_15px_rgba(255,117,140,0.1)] border-2 border-pink-100 tracking-widest text-lg">
+        <div className="bg-white/90 backdrop-blur-md text-[#ff758c] font-display font-black px-6 md:px-10 py-2.5 md:py-3 rounded-full mb-8 md:mb-10 shadow-[0_5px_15px_rgba(255,117,140,0.1)] border-2 border-pink-100 tracking-widest text-sm md:text-lg">
           {isBreak ? "WAKTUNYA ISTIRAHAT" : "MODE FOKUS"}
         </div>
 
         {/* Circular Timer Display */}
-        <div className="relative w-72 h-72 md:w-80 md:h-80 rounded-full bg-white/90 shadow-[inset_0_4px_20px_rgba(0,0,0,0.03),_0_20px_50px_rgba(255,154,158,0.2)] flex items-center justify-center border-[12px] border-pink-50 backdrop-blur-xl">
+        <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full bg-white/95 md:bg-white/90 shadow-[inset_0_4px_20px_rgba(0,0,0,0.03),_0_20px_50px_rgba(255,154,158,0.2)] flex items-center justify-center border-[8px] md:border-[12px] border-pink-50 backdrop-blur-xl">
           {/* Coral Progress Ring SVG */}
           <svg className="absolute inset-0 w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="45" fill="none" stroke="#fff5f5" strokeWidth="6" />
@@ -164,39 +164,39 @@ export default function PomodoroPage() {
         </div>
 
         {/* Control Buttons */}
-        <div className="flex gap-6 mt-12 items-center">
+        <div className="flex gap-4 md:gap-6 mt-10 md:mt-12 items-center">
           <button 
             onClick={toggleTimer}
-            className={`w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center transition-all shadow-xl hover:-translate-y-1 border-4 border-white ${isRunning ? 'bg-amber-400 text-white hover:bg-amber-500 hover:shadow-amber-200/50' : 'bg-gradient-to-tr from-[#ff0844] to-[#ffb199] text-white hover:shadow-pink-300/50'}`}
+            className={`w-16 h-16 md:w-24 md:h-24 rounded-full flex items-center justify-center transition-all shadow-xl hover:-translate-y-1 border-[3px] md:border-4 border-white ${isRunning ? 'bg-amber-400 text-white hover:bg-amber-500 hover:shadow-amber-200/50' : 'bg-gradient-to-tr from-[#ff0844] to-[#ffb199] text-white hover:shadow-pink-300/50'}`}
           >
-            {isRunning ? <Pause className="w-10 h-10 md:w-12 md:h-12 fill-current" /> : <Play className="w-10 h-10 md:w-12 md:h-12 fill-current ml-2" />}
+            {isRunning ? <Pause className="w-8 h-8 md:w-12 md:h-12 fill-current" /> : <Play className="w-8 h-8 md:w-12 md:h-12 fill-current ml-1 md:ml-2" />}
           </button>
           
           <button 
             onClick={resetTimer}
-            className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border-4 border-pink-50 text-gray-400 flex items-center justify-center hover:bg-pink-50 hover:text-pink-400 hover:border-pink-100 transition-all shadow-md hover:-translate-y-0.5"
+            className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-white border-4 border-pink-50 text-gray-400 flex items-center justify-center hover:bg-pink-50 hover:text-pink-400 hover:border-pink-100 transition-all shadow-md hover:-translate-y-0.5"
           >
-            <RotateCcw className="w-7 h-7 md:w-8 md:h-8" />
+            <RotateCcw className="w-6 h-6 md:w-8 md:h-8" />
           </button>
         </div>
 
       </div>
 
       {/* Right Area: Livia */}
-      <div className="flex-1 relative flex flex-col items-center justify-end h-full z-10 pb-10">
+      <div className="absolute md:static inset-0 flex-1 flex flex-col items-center justify-end h-full z-10 pb-4 md:pb-10 pointer-events-none md:pointer-events-auto">
         
         {/* Reaction Bubble (Teman Kos style) */}
-        <div className="absolute top-[15%] md:top-[20%] left-1/2 md:left-10 -translate-x-1/2 md:-translate-x-0 bg-white/90 backdrop-blur-xl rounded-[2rem] rounded-bl-sm p-6 shadow-2xl border-2 border-pink-100 max-w-[300px] animate-[float_4s_ease-in-out_infinite] z-20">
-          <p className="text-lg font-bold text-[#5c4d47] leading-relaxed text-center md:text-left">
+        <div className="absolute top-[12%] md:top-[20%] left-1/2 md:left-10 -translate-x-1/2 md:-translate-x-0 bg-white/95 md:bg-white/90 backdrop-blur-xl rounded-[2rem] rounded-bl-xl md:rounded-bl-sm p-4 md:p-6 shadow-2xl border-2 border-pink-100 w-[85%] md:w-auto max-w-[300px] animate-[float_4s_ease-in-out_infinite] z-30 pointer-events-auto">
+          <p className="text-sm md:text-lg font-bold text-[#5c4d47] leading-relaxed text-center md:text-left">
             "{dialog}"
           </p>
         </div>
 
         {/* Livia Sprite */}
-        <div className="w-full h-full flex justify-center items-end absolute inset-0 z-10">
+        <div className="w-full h-[60%] md:h-full flex justify-center items-end absolute bottom-0 z-10">
           <LiviaSprite 
             expression={expression} 
-            className="h-[60vh] md:h-[75vh] w-auto max-w-[600px] object-contain object-bottom drop-shadow-[0_20px_40px_rgba(255,117,140,0.15)] pointer-events-auto"
+            className="h-full w-auto max-w-[600px] object-contain object-bottom drop-shadow-[0_20px_40px_rgba(255,117,140,0.15)] opacity-40 md:opacity-100 pointer-events-auto"
           />
         </div>
 

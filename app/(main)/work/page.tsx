@@ -81,30 +81,30 @@ export default function WorkPage() {
   return (
     <div className="min-h-screen bg-[#fdfbf7] relative overflow-hidden flex flex-col font-sans select-none">
       {/* Top Bar */}
-      <div className="absolute top-6 left-6 right-6 z-30 flex justify-between items-center">
-        <Link href="/home" className="font-display font-bold text-sm bg-white/70 backdrop-blur-md px-4 py-2 rounded-full text-[#5c4d47] shadow-sm hover:shadow-md hover:bg-white transition-all flex items-center gap-2">
+      <div className="absolute top-4 md:top-6 left-4 md:left-6 right-4 md:right-6 z-30 flex justify-between items-center">
+        <Link href="/home" className="font-display font-bold text-xs md:text-sm bg-white/70 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[#5c4d47] shadow-sm hover:shadow-md hover:bg-white transition-all flex items-center gap-1 md:gap-2">
           <span>←</span> Kembali
         </Link>
-        <div className="bg-amber-100 border border-amber-200 px-5 py-2 rounded-full flex items-center gap-2 shadow-sm">
-          <Wallet className="w-4 h-4 text-amber-600" />
-          <span className="font-mono font-bold text-amber-700">{money} Rv</span>
+        <div className="bg-amber-100 border border-amber-200 px-3 md:px-5 py-1.5 md:py-2 rounded-full flex items-center gap-1.5 md:gap-2 shadow-sm">
+          <Wallet className="w-3 h-3 md:w-4 md:h-4 text-amber-600" />
+          <span className="font-mono font-bold text-xs md:text-base text-amber-700">{money} Rv</span>
         </div>
       </div>
 
-      <div className="flex-1 max-w-6xl w-full mx-auto flex flex-col md:flex-row pt-24 px-6 z-10 relative">
+      <div className="flex-1 max-w-6xl w-full mx-auto flex flex-col md:flex-row pt-16 md:pt-24 px-4 md:px-6 z-10 relative">
         
         {/* Left Side: Game Area */}
-        <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8">
+        <div className="flex-1 flex flex-col items-center justify-center py-4 md:py-8 z-20">
           
           {selectedJob === null ? (
             // Job Selection Menu
             <div className="w-full flex flex-col items-center animate-[fadeIn_0.3s_ease-out]">
-              <div className="text-center mb-10">
-                <h1 className="text-4xl md:text-5xl font-display font-black text-[#ff758c] mb-2 drop-shadow-sm flex items-center justify-center gap-3">
-                  <Sparkles className="w-8 h-8 text-amber-400" />
+              <div className="text-center mb-6 md:mb-10 mt-8 md:mt-0 bg-white/80 md:bg-transparent backdrop-blur-md md:backdrop-blur-none p-4 md:p-0 rounded-3xl md:rounded-none">
+                <h1 className="text-2xl md:text-5xl font-display font-black text-[#ff758c] mb-1 md:mb-2 drop-shadow-sm flex items-center justify-center gap-2 md:gap-3">
+                  <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-amber-400" />
                   Bursa Kerja
                 </h1>
-                <p className="text-[#8C7B6B] font-medium text-lg">Pilih pekerjaan paruh waktu untuk mencari Rv!</p>
+                <p className="text-[#8C7B6B] font-medium text-xs md:text-lg">Pilih pekerjaan paruh waktu untuk mencari Rv!</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
@@ -155,11 +155,11 @@ export default function WorkPage() {
               </div>
             </div>
           ) : (
-            <div className="w-full max-w-md bg-white rounded-[2rem] shadow-xl border border-pink-50 p-6 sm:p-8 flex flex-col items-center relative min-h-[400px]">
+            <div className="w-full max-w-md bg-white/95 md:bg-white backdrop-blur-xl md:backdrop-blur-none rounded-[2rem] shadow-xl border border-pink-50 p-6 flex flex-col items-center relative min-h-[400px]">
               
               <button 
                 onClick={() => setSelectedJob(null)}
-                className="absolute top-4 left-4 text-gray-400 hover:text-pink-500 font-bold text-sm flex items-center gap-1"
+                className="absolute top-4 left-4 text-gray-400 hover:text-pink-500 font-bold text-xs md:text-sm flex items-center gap-1"
               >
                 ← Batal
               </button>
@@ -191,18 +191,18 @@ export default function WorkPage() {
         </div>
 
         {/* Right Side: Livia Reacts */}
-        <div className="hidden md:flex flex-1 flex-col items-center justify-end relative h-[85vh]">
+        <div className="absolute md:static inset-0 flex-1 flex flex-col items-center justify-end md:h-[85vh] z-0 md:z-10 pointer-events-none md:pointer-events-auto overflow-hidden md:overflow-visible">
           {/* Reaction Bubble */}
-          <div className="absolute top-1/4 right-[10%] bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-xl border border-pink-100 max-w-[250px] transform translate-x-4 animate-[float_3s_ease-in-out_infinite] z-20">
-            <div className="absolute top-full left-8 w-4 h-4 bg-white border-b border-r border-pink-100 transform rotate-45 -translate-y-2"></div>
-            <p className="text-sm font-medium text-[#5c4d47] italic">
+          <div className="absolute top-[12%] md:top-1/4 right-auto md:right-[10%] left-1/2 md:left-auto -translate-x-1/2 md:-translate-x-0 bg-white/95 md:bg-white/90 backdrop-blur-sm rounded-2xl md:rounded-br-sm p-4 shadow-xl border border-pink-100 w-[85%] md:w-auto max-w-[250px] md:translate-x-4 animate-[float_3s_ease-in-out_infinite] z-20 pointer-events-auto">
+            <div className="hidden md:block absolute top-full left-8 w-4 h-4 bg-white border-b border-r border-pink-100 transform rotate-45 -translate-y-2"></div>
+            <p className="text-sm font-medium text-[#5c4d47] italic text-center md:text-left">
               "{message}"
             </p>
           </div>
 
           <LiviaSprite 
             expression={liviaExpression} 
-            className="h-[80%] object-contain object-bottom drop-shadow-[0_20px_40px_rgba(255,154,158,0.2)]"
+            className="h-full md:h-[80%] object-contain object-bottom drop-shadow-[0_20px_40px_rgba(255,154,158,0.2)] opacity-30 md:opacity-100 blur-[2px] md:blur-none"
           />
         </div>
 

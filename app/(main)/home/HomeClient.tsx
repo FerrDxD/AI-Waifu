@@ -139,7 +139,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
       </div>
 
       {/* HUD UI Overlay */}
-      <div className="absolute inset-0 z-20 pointer-events-none p-6 md:p-10 flex flex-col justify-between">
+      <div className="absolute inset-0 z-20 pointer-events-none p-4 sm:p-6 md:p-10 flex flex-col justify-between">
         
         {/* TOP ROW */}
         <div className="flex flex-col sm:flex-row justify-between items-start pointer-events-auto gap-4 sm:gap-0">
@@ -176,7 +176,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
         <div className="flex flex-col-reverse md:flex-row justify-between items-end md:items-end flex-1 pb-4 md:pb-8 pointer-events-auto gap-6 md:gap-8 w-full mt-10 md:mt-0">
           
           {/* Bottom Left: Chat Bubble */}
-          <div className="relative w-full md:max-w-sm drop-shadow-2xl origin-bottom-left hover:scale-[1.02] transition-transform mb-2 md:mb-10">
+          <div className="absolute bottom-24 md:static md:bottom-auto left-4 right-4 md:left-auto md:right-auto md:w-full md:max-w-sm drop-shadow-2xl origin-bottom-left hover:scale-[1.02] transition-transform z-50">
             <div className="bg-white/95 backdrop-blur-2xl px-6 py-5 md:px-8 md:py-6 rounded-3xl md:rounded-[2.5rem] md:rounded-bl-xl border-2 border-pink-100/50 shadow-xl md:shadow-2xl relative z-10">
               <p className="font-display font-bold text-lg md:text-xl text-gray-800 leading-snug">
                 "{greeting}"
@@ -192,8 +192,8 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
             </div>
           </div>
 
-          {/* Right Side: Command Menus (Lobby Navigation) */}
-          <div className="flex flex-col gap-4 md:gap-6 items-end w-full md:w-auto">
+          {/* Right Side: Command Menus (Desktop Only) */}
+          <div className="hidden md:flex flex-col gap-4 md:gap-6 items-end w-full md:w-auto">
             
             {/* Primary Navigation Column */}
             <div className="flex flex-row md:flex-col gap-2 md:gap-4 items-end mb-2 md:mb-4 w-full justify-end md:justify-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
@@ -215,6 +215,15 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
           </div>
 
         </div>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="md:hidden absolute bottom-0 left-0 w-full bg-white/90 backdrop-blur-2xl border-t border-[#5c4d47]/10 px-2 py-3 pb-6 flex justify-around items-center z-[100] shadow-[0_-10px_20px_rgba(0,0,0,0.03)] pointer-events-auto">
+        <MobileNavBtn href="/home" icon={<BookOpen size={22} />} label="Lobi" isActive />
+        <MobileNavBtn href="/chat" icon={<MessageSquare size={22} />} label="Obrolan" />
+        <MobileNavBtn href="/pomodoro" icon={<Clock size={22} />} label="Fokus" />
+        <MobileNavBtn href="/wardrobe" icon={<Shirt size={22} />} label="Lemari" />
+        <MobileNavBtn href="/shop" icon={<Gift size={22} />} label="Toko" />
       </div>
 
       {/* Mini Event Modal (For Sunglasses Event) */}
@@ -281,6 +290,19 @@ function BottomMenuCard({ href, icon, title }: { href: string; icon: React.React
       </div>
       <span className="font-display font-bold text-[10px] md:text-sm text-gray-500 group-hover:text-[#ff758c]">
         {title}
+      </span>
+    </Link>
+  );
+}
+
+function MobileNavBtn({ href, icon, label, isActive = false }: { href: string; icon: React.ReactNode; label: string; isActive?: boolean }) {
+  return (
+    <Link href={href} className="flex flex-col items-center justify-center gap-1 w-14">
+      <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-pink-100 text-[#ff758c] shadow-sm' : 'text-gray-400 hover:text-[#ff758c]'}`}>
+        {icon}
+      </div>
+      <span className={`font-display text-[9px] font-bold ${isActive ? 'text-[#ff758c]' : 'text-gray-400'}`}>
+        {label}
       </span>
     </Link>
   );

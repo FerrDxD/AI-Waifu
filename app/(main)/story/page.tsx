@@ -227,20 +227,20 @@ export default function StoryPage() {
 
       {activeChapter ? (
         // VN Reader Fullscreen
-        <div className="fixed inset-0 z-[100] bg-[#fdfbf7]/95 backdrop-blur-xl flex flex-col items-center justify-between py-12 px-6 animate-[fadeIn_0.3s_ease-out]">
-          <div className="w-full max-w-5xl flex justify-between px-8 z-20">
-            <span className="font-display font-bold text-[#ff758c] bg-white px-6 py-2 rounded-full shadow-[0_5px_15px_rgba(255,117,140,0.15)] border border-pink-50">
+        <div className="fixed inset-0 z-[100] bg-[#fdfbf7]/95 backdrop-blur-xl flex flex-col items-center justify-between py-6 md:py-12 px-4 md:px-6 animate-[fadeIn_0.3s_ease-out]">
+          <div className="w-full max-w-5xl flex justify-between px-2 md:px-8 z-20 mt-8 md:mt-0">
+            <span className="font-display font-bold text-sm md:text-base text-[#ff758c] bg-white px-4 md:px-6 py-1.5 md:py-2 rounded-full shadow-[0_5px_15px_rgba(255,117,140,0.15)] border border-pink-50">
               {activeChapter.title}
             </span>
-            <button onClick={() => setActiveChapter(null)} className="text-gray-400 hover:text-[#ff758c] font-bold bg-white px-6 py-2 rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+            <button onClick={() => setActiveChapter(null)} className="text-gray-400 hover:text-[#ff758c] text-sm md:text-base font-bold bg-white px-4 md:px-6 py-1.5 md:py-2 rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
               Tutup X
             </button>
           </div>
           
-          <div className="flex-1 w-full max-w-4xl flex justify-center items-end pb-8 z-10">
+          <div className="flex-1 w-full max-w-4xl flex justify-center items-end pb-4 md:pb-8 z-10">
             {activeChapter.content[sceneIndex].speaker === 'Livia' && (
-              <div className="h-[60vh] w-[450px] drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)] animate-[float_4s_ease-in-out_infinite]">
-                <LiviaSprite expression={activeChapter.content[sceneIndex].expression} className="h-full w-full object-contain object-bottom" />
+              <div className="h-[55vh] md:h-[60vh] w-auto drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)] animate-[float_4s_ease-in-out_infinite]">
+                <LiviaSprite expression={activeChapter.content[sceneIndex].expression} className="h-full w-auto max-w-[500px] object-contain object-bottom" />
               </div>
             )}
           </div>
@@ -248,12 +248,12 @@ export default function StoryPage() {
           <div className="w-full max-w-4xl z-20 drop-shadow-2xl relative flex flex-col items-center">
             {/* Choices Overlay */}
             {activeChapter.content[sceneIndex].choices && (
-              <div className="absolute bottom-[100%] w-full flex flex-col items-center gap-3 mb-6 animate-[fadeIn_0.4s_ease-out_forwards]">
+              <div className="absolute bottom-[100%] w-[90%] md:w-full flex flex-col items-center gap-2 md:gap-3 mb-4 md:mb-6 animate-[fadeIn_0.4s_ease-out_forwards]">
                 {activeChapter.content[sceneIndex].choices.map((choice, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleChoice(choice.nextIndex)}
-                    className="w-full max-w-lg bg-white/95 backdrop-blur-md border-2 border-pink-100 py-4 px-6 rounded-2xl shadow-[0_10px_25px_rgba(255,117,140,0.15)] text-[#5c4d47] font-bold font-display hover:border-[#ff758c] hover:text-[#ff758c] hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(255,117,140,0.2)] transition-all duration-300 text-center text-lg active:scale-95"
+                    className="w-full max-w-lg bg-white/95 backdrop-blur-md border-2 border-pink-100 py-3 md:py-4 px-4 md:px-6 rounded-2xl shadow-[0_10px_25px_rgba(255,117,140,0.15)] text-[#5c4d47] font-bold font-display hover:border-[#ff758c] hover:text-[#ff758c] hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(255,117,140,0.2)] transition-all duration-300 text-center text-sm md:text-lg active:scale-95"
                   >
                     {choice.text}
                   </button>
@@ -275,15 +275,15 @@ export default function StoryPage() {
         <div className="absolute inset-0 flex">
           
           {/* Top Right Back Button */}
-          <div className="absolute top-10 right-12 z-30">
-            <button onClick={() => window.history.back()} className="font-display font-black text-sm text-[#8C7B6B] hover:text-[#ff758c] transition-colors flex items-center gap-3 uppercase tracking-widest">
-              <span className="text-xl">←</span> KEMBALI
+          <div className="absolute top-6 right-6 md:top-10 md:right-12 z-40">
+            <button onClick={() => window.history.back()} className="font-display font-black text-xs md:text-sm text-[#8C7B6B] hover:text-[#ff758c] bg-white/50 backdrop-blur-md md:bg-transparent md:backdrop-blur-none px-3 md:px-0 py-2 md:py-0 rounded-full md:rounded-none transition-colors flex items-center gap-2 md:gap-3 uppercase tracking-widest shadow-sm md:shadow-none">
+              <span className="text-lg md:text-xl">←</span> KEMBALI
             </button>
           </div>
 
           {/* Right Side - Giant Livia */}
           <div className="absolute right-0 bottom-0 w-full md:w-[65%] h-full flex justify-end items-end pointer-events-none z-10 overflow-hidden">
-            <div className="relative z-10 w-full h-[95vh] md:h-[110vh] max-w-[800px] translate-x-[15%] translate-y-[5%]">
+            <div className="relative z-10 w-[150%] md:w-full h-[80vh] md:h-[110vh] max-w-[800px] translate-x-[30%] md:translate-x-[15%] translate-y-[5%] md:translate-y-[5%] opacity-30 md:opacity-100 blur-[2px] md:blur-none">
               <LiviaSprite 
                 expression={getExpressionForHover(hoveredChapterId)} 
                 className="w-full h-full object-cover object-top filter drop-shadow-[-10px_0_30px_rgba(255,154,158,0.2)] transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]" 
@@ -295,10 +295,10 @@ export default function StoryPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-[#fdfbf7] via-[#fdfbf7]/95 to-transparent pointer-events-none z-20 w-[70%]" />
 
           {/* Left Menu Panel */}
-          <div className="relative z-30 w-full md:w-[50%] h-full flex flex-col justify-center pl-12 pr-4 md:pl-24 pt-8 pb-12">
+          <div className="relative z-30 w-full md:w-[50%] h-full flex flex-col justify-center px-6 md:pl-24 md:pr-4 pt-16 md:pt-8 pb-12">
             
-            <h1 className="text-5xl md:text-7xl font-display font-black text-[#5c4d47] mb-8 drop-shadow-sm tracking-tighter flex items-center gap-4 shrink-0">
-              <span className="text-amber-400 text-4xl animate-[pulse_3s_ease-in-out_infinite]">✦</span>
+            <h1 className="text-4xl md:text-7xl font-display font-black text-[#5c4d47] mb-6 md:mb-8 drop-shadow-sm tracking-tighter flex items-center gap-2 md:gap-4 shrink-0">
+              <span className="text-amber-400 text-3xl md:text-4xl animate-[pulse_3s_ease-in-out_infinite]">✦</span>
               CERITA KITA
             </h1>
 

@@ -73,20 +73,20 @@ export default function DatePage() {
     <div className="min-h-screen bg-[#fdfbf7] relative overflow-hidden flex flex-col font-sans select-none">
       
       {/* Top Bar */}
-      <div className="absolute top-6 left-6 z-30">
-        <Link href="/home" className="font-display font-bold text-sm bg-white/70 backdrop-blur-md px-4 py-2 rounded-full text-[#5c4d47] shadow-sm hover:shadow-md hover:bg-white transition-all flex items-center gap-2">
+      <div className="absolute top-4 md:top-6 left-4 md:left-6 z-30">
+        <Link href="/home" className="font-display font-bold text-xs md:text-sm bg-white/70 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[#5c4d47] shadow-sm hover:shadow-md hover:bg-white transition-all flex items-center gap-1 md:gap-2">
           <span>←</span> Kembali
         </Link>
       </div>
 
       {scene ? (
         // VN Reader Mode
-        <div className="fixed inset-0 z-[100] bg-[#fdfbf7]/95 backdrop-blur-xl flex flex-col items-center justify-between py-6 px-6 sm:py-12 animate-[fadeIn_0.3s_ease-out]">
-          <div className="w-full max-w-5xl flex justify-between px-4 sm:px-8 z-20 shrink-0">
-            <span className="font-display font-bold text-[#ff758c] bg-white px-6 py-2 rounded-full shadow-[0_5px_15px_rgba(255,117,140,0.15)] border border-pink-50 flex items-center gap-2">
-              <MapPin size={16} /> {selectedLoc}
+        <div className="fixed inset-0 z-[100] bg-[#fdfbf7]/95 backdrop-blur-xl flex flex-col items-center justify-between py-6 px-4 md:px-6 sm:py-12 animate-[fadeIn_0.3s_ease-out]">
+          <div className="w-full max-w-5xl flex justify-between px-2 sm:px-8 z-20 shrink-0 mt-8 md:mt-0">
+            <span className="font-display font-bold text-sm md:text-base text-[#ff758c] bg-white px-4 md:px-6 py-1.5 md:py-2 rounded-full shadow-[0_5px_15px_rgba(255,117,140,0.15)] border border-pink-50 flex items-center gap-2">
+              <MapPin size={16} className="w-4 h-4" /> {selectedLoc}
             </span>
-            <button onClick={() => setScene(null)} className="text-gray-400 hover:text-[#ff758c] font-bold bg-white px-6 py-2 rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+            <button onClick={() => setScene(null)} className="text-gray-400 hover:text-[#ff758c] text-sm md:text-base font-bold bg-white px-4 md:px-6 py-1.5 md:py-2 rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
               Pulang
             </button>
           </div>
@@ -111,14 +111,14 @@ export default function DatePage() {
         </div>
       ) : (
         // Location Selection Mode (GeForce NOW Style Carousel)
-        <div className="flex-1 max-w-[1400px] w-full mx-auto flex flex-col justify-center pt-24 px-8 z-10 relative">
+        <div className="flex-1 max-w-[1400px] w-full mx-auto flex flex-col justify-center pt-20 md:pt-24 px-4 md:px-8 z-10 relative">
           
-          <div className="mb-10 pl-4">
-            <h1 className="text-4xl md:text-5xl font-display font-black text-[#5c4d47] mb-3 drop-shadow-sm flex items-center gap-4">
-              <MapPin className="w-10 h-10 text-[#ff758c]" />
+          <div className="mb-6 md:mb-10 pl-2 md:pl-4">
+            <h1 className="text-3xl md:text-5xl font-display font-black text-[#5c4d47] mb-2 md:mb-3 drop-shadow-sm flex items-center gap-2 md:gap-4">
+              <MapPin className="w-8 h-8 md:w-10 md:h-10 text-[#ff758c]" />
               Pilih Destinasi
             </h1>
-            <p className="text-[#8C7B6B] font-medium text-xl">
+            <p className="text-[#8C7B6B] font-medium text-sm md:text-xl">
               Ke mana kamu ingin mengajak Livia pergi hari ini?
             </p>
           </div>
@@ -129,7 +129,7 @@ export default function DatePage() {
               <p className="text-[#8C7B6B] font-bold font-display text-2xl">Livia sedang bersiap...</p>
             </div>
           ) : (
-            <div className="flex gap-6 pb-12 overflow-x-auto snap-x snap-mandatory scrollbar-thin scrollbar-thumb-pink-200 scrollbar-track-transparent pr-8 -mx-8 px-12">
+            <div className="flex gap-4 md:gap-6 pb-8 md:pb-12 overflow-x-auto snap-x snap-mandatory hide-scrollbar md:scrollbar-thin md:scrollbar-thumb-pink-200 md:scrollbar-track-transparent pr-4 md:pr-8 -mx-4 md:-mx-8 px-6 md:px-12">
               {LOCATIONS.map(loc => {
                 const isLocked = loc.requiredItem && !itemsBrought.includes(loc.requiredItem);
                 
@@ -138,8 +138,8 @@ export default function DatePage() {
                   key={loc.id}
                   onClick={() => !isLocked && startJalan(loc.name)}
                   disabled={!!isLocked}
-                  className={`relative group flex-shrink-0 w-[280px] sm:w-[320px] h-[450px] rounded-[2.5rem] border-4 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] snap-center overflow-hidden flex flex-col justify-end p-8 text-left ${
-                    isLocked ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed grayscale' : `${loc.color} ${loc.hover} hover:-translate-y-4 hover:shadow-[0_25px_50px_rgba(255,117,140,0.2)] hover:border-pink-200 border-white/50`
+                  className={`relative group flex-shrink-0 w-[240px] md:w-[280px] sm:w-[320px] h-[360px] md:h-[450px] rounded-[2rem] md:rounded-[2.5rem] border-4 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] snap-center overflow-hidden flex flex-col justify-end p-6 md:p-8 text-left ${
+                    isLocked ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed grayscale' : `${loc.color} ${loc.hover} hover:-translate-y-2 md:hover:-translate-y-4 hover:shadow-[0_25px_50px_rgba(255,117,140,0.2)] hover:border-pink-200 border-white/50`
                   }`}
                 >
                   <div className={`absolute inset-0 bg-white/40 transition-colors z-0 duration-500 ${isLocked ? '' : 'group-hover:bg-transparent'}`} />
@@ -149,19 +149,19 @@ export default function DatePage() {
                     {loc.icon}
                   </div>
                   
-                  <div className={`relative z-10 transition-transform duration-500 ease-out ${isLocked ? '' : 'translate-y-6 group-hover:translate-y-0'}`}>
-                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg mb-6 transition-transform duration-500 ${isLocked ? 'bg-gray-200 text-gray-400' : 'bg-white/90 backdrop-blur-md text-[#ff758c] group-hover:scale-110'}`}>
-                      {isLocked ? <Lock size={28} /> : loc.icon}
+                  <div className={`relative z-10 transition-transform duration-500 ease-out ${isLocked ? '' : 'translate-y-4 md:translate-y-6 group-hover:translate-y-0'}`}>
+                    <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg mb-4 md:mb-6 transition-transform duration-500 ${isLocked ? 'bg-gray-200 text-gray-400' : 'bg-white/90 backdrop-blur-md text-[#ff758c] group-hover:scale-110'}`}>
+                      {isLocked ? <Lock size={24} className="w-5 h-5 md:w-7 md:h-7" /> : loc.icon}
                     </div>
-                    <h3 className={`font-black font-display text-3xl leading-tight mb-3 ${isLocked && 'text-gray-500'}`}>
+                    <h3 className={`font-black font-display text-2xl md:text-3xl leading-tight mb-2 md:mb-3 ${isLocked && 'text-gray-500'}`}>
                       {loc.name}
                     </h3>
                     {isLocked ? (
-                      <p className="text-sm font-bold flex items-center gap-2 text-red-400 bg-red-50/80 px-3 py-1.5 rounded-lg inline-flex w-max">
-                        <Lock size={14} /> Butuh: {loc.requirementName}
+                      <p className="text-[10px] md:text-sm font-bold flex items-center gap-1.5 md:gap-2 text-red-400 bg-red-50/80 px-2 md:px-3 py-1 md:py-1.5 rounded-lg inline-flex w-max">
+                        <Lock size={12} className="md:w-3.5 md:h-3.5" /> Butuh: {loc.requirementName}
                       </p>
                     ) : (
-                      <p className="text-base font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 flex items-center gap-2">
+                      <p className="text-xs md:text-base font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 flex items-center gap-1.5 md:gap-2">
                         Ayo Berangkat <span className="animate-bounce-x">→</span>
                       </p>
                     )}

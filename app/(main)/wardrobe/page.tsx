@@ -74,27 +74,27 @@ export default function WardrobePage() {
       <div className="absolute inset-0 bg-gradient-to-tr from-[#fdfbf7] via-transparent to-pink-50/50 pointer-events-none z-0" />
 
       {/* Top Bar */}
-      <div className="absolute top-0 left-0 w-full h-20 bg-white/80 backdrop-blur-md shadow-sm z-30 flex justify-between items-center px-6 border-b border-pink-50">
-        <div className="flex items-center gap-6">
-          <Link href="/home" className="flex items-center justify-center w-12 h-12 bg-pink-50 rounded-full text-pink-600 hover:bg-[#ff758c] hover:text-white transition-colors">
-            <span className="text-xl font-black">←</span>
+      <div className="absolute top-0 left-0 w-full h-16 md:h-20 bg-white/80 backdrop-blur-md shadow-sm z-30 flex justify-between items-center px-4 md:px-6 border-b border-pink-50">
+        <div className="flex items-center gap-3 md:gap-6">
+          <Link href="/home" className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-pink-50 rounded-full text-pink-600 hover:bg-[#ff758c] hover:text-white transition-colors">
+            <span className="text-lg md:text-xl font-black">←</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <Shirt className="text-[#ff758c] w-8 h-8" />
-            <h1 className="text-3xl font-display font-black text-[#5c4d47] italic tracking-tight uppercase">Lemari Pakaian</h1>
+          <div className="flex items-center gap-2 md:gap-3">
+            <Shirt className="text-[#ff758c] w-6 h-6 md:w-8 md:h-8" />
+            <h1 className="text-lg md:text-3xl font-display font-black text-[#5c4d47] italic tracking-tight uppercase">Lemari</h1>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 w-full mx-auto flex flex-col md:flex-row pt-24 px-6 z-10 relative">
+      <div className="flex-1 w-full mx-auto flex flex-col-reverse md:flex-row pt-16 md:pt-24 px-4 md:px-6 z-10 relative h-[100dvh]">
         
-        {/* Left Side: Outfits List */}
-        <div className="w-full md:w-[45%] flex flex-col gap-4 py-6 overflow-y-auto custom-scrollbar pr-4">
-          <h2 className="text-xl font-display font-bold text-[#5c4d47] mb-2 flex items-center gap-2">
-            Koleksi Baju <span className="text-sm text-pink-400 bg-pink-50 px-3 py-1 rounded-full">{ownedOutfits.length} / {ALL_OUTFITS.length}</span>
+        {/* Left Side: Outfits List (Bottom on mobile) */}
+        <div className="w-full md:w-[45%] h-[45%] md:h-full flex flex-col gap-2 md:gap-4 py-4 md:py-6 overflow-y-auto hide-scrollbar z-20">
+          <h2 className="text-lg md:text-xl font-display font-bold text-[#5c4d47] mb-1 md:mb-2 flex items-center gap-2">
+            Koleksi Baju <span className="text-xs md:text-sm text-pink-400 bg-pink-50 px-2 md:px-3 py-0.5 md:py-1 rounded-full">{ownedOutfits.length} / {ALL_OUTFITS.length}</span>
           </h2>
           
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-3 md:gap-4 pb-6">
             {ALL_OUTFITS.map(outfit => {
               const isOwned = ownedOutfits.includes(outfit.id);
               const isActive = activeOutfit === outfit.id;
@@ -103,31 +103,31 @@ export default function WardrobePage() {
                 <div 
                   key={outfit.id}
                   onClick={() => isOwned && changeOutfit(outfit.id)}
-                  className={`relative bg-white rounded-3xl p-5 border-2 transition-all duration-300 flex items-center gap-5 ${
+                  className={`relative bg-white/95 md:bg-white rounded-2xl md:rounded-3xl p-3 md:p-5 border-2 transition-all duration-300 flex items-center gap-3 md:gap-5 ${
                     isActive ? 'border-[#ff758c] shadow-[0_10px_20px_rgba(255,117,140,0.15)] bg-pink-50/30' 
                     : isOwned ? 'border-transparent hover:border-pink-200 hover:shadow-md cursor-pointer'
                     : 'border-transparent opacity-60 grayscale cursor-not-allowed'
                   }`}
                 >
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-4xl shadow-inner ${isActive ? 'bg-gradient-to-br from-[#ff758c] to-[#ffb199] text-white' : 'bg-gray-100'}`}>
+                  <div className={`w-12 h-12 md:w-16 md:h-16 shrink-0 rounded-xl md:rounded-2xl flex items-center justify-center text-2xl md:text-4xl shadow-inner ${isActive ? 'bg-gradient-to-br from-[#ff758c] to-[#ffb199] text-white' : 'bg-gray-100'}`}>
                     {outfit.emoji}
                   </div>
                   
-                  <div className="flex-1">
-                    <h3 className="font-bold font-display text-[#5c4d47] text-lg flex items-center gap-2">
+                  <div className="flex-1 pr-6 md:pr-12">
+                    <h3 className="font-bold font-display text-[#5c4d47] text-sm md:text-lg flex items-center gap-1.5 md:gap-2">
                       {outfit.name}
-                      {!isOwned && <Lock className="w-4 h-4 text-gray-400" />}
+                      {!isOwned && <Lock className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />}
                     </h3>
-                    <p className="text-xs text-gray-500 font-medium mt-1">{outfit.desc}</p>
+                    <p className="text-[10px] md:text-xs text-gray-500 font-medium mt-0.5 md:mt-1 leading-snug">{outfit.desc}</p>
                   </div>
 
                   {isActive && (
-                    <div className="absolute right-6">
-                      <CheckCircle2 className="w-8 h-8 text-[#ff758c]" />
+                    <div className="absolute right-3 md:right-6">
+                      <CheckCircle2 className="w-5 h-5 md:w-8 md:h-8 text-[#ff758c]" />
                     </div>
                   )}
                   {!isOwned && (
-                    <div className="absolute right-6 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    <div className="absolute right-3 md:right-6 text-[9px] md:text-xs font-bold text-gray-400 uppercase tracking-widest text-right max-w-[50px] md:max-w-none">
                       Beli di Toko
                     </div>
                   )}
@@ -137,23 +137,23 @@ export default function WardrobePage() {
           </div>
         </div>
 
-        {/* Right Side: Preview */}
-        <div className="hidden md:flex flex-1 flex-col items-center justify-end relative h-[85vh]">
+        {/* Right Side: Preview (Top on mobile) */}
+        <div className="flex-1 w-full md:w-auto flex flex-col items-center justify-end relative h-[55%] md:h-[85vh] z-10 -mb-4 md:mb-0">
           {/* Reaction Bubble */}
-          <div className="absolute top-[10%] left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-xl rounded-[2rem] rounded-br-sm p-6 shadow-2xl border-2 border-pink-100 max-w-[300px] animate-[float_4s_ease-in-out_infinite] z-20">
-            <p className="text-lg font-bold text-[#5c4d47] leading-relaxed text-center">
+          <div className="absolute top-[5%] md:top-[10%] left-1/2 -translate-x-1/2 bg-white/95 md:bg-white/90 backdrop-blur-xl rounded-[2rem] rounded-br-xl md:rounded-br-sm p-4 md:p-6 shadow-2xl border-2 border-pink-100 w-[85%] md:w-auto max-w-[300px] animate-[float_4s_ease-in-out_infinite] z-30">
+            <p className="text-sm md:text-lg font-bold text-[#5c4d47] leading-relaxed text-center">
               "{message}"
             </p>
           </div>
 
           {/* Pedestal/Mirror base effect */}
-          <div className="absolute bottom-0 w-96 h-20 bg-[radial-gradient(ellipse_at_center,rgba(255,117,140,0.2)_0%,transparent_70%)] rounded-[100%] blur-md z-0" />
+          <div className="absolute bottom-0 w-64 md:w-96 h-12 md:h-20 bg-[radial-gradient(ellipse_at_center,rgba(255,117,140,0.2)_0%,transparent_70%)] rounded-[100%] blur-md z-0" />
 
           {/* Sprite Preview */}
           <LiviaSprite 
             expression="normal" 
             outfit={activeOutfit}
-            className="h-[80vh] object-contain object-bottom drop-shadow-[0_20px_40px_rgba(255,117,140,0.15)] z-10 transition-all duration-500 hover:scale-[1.02]"
+            className="h-full object-contain object-bottom drop-shadow-[0_20px_40px_rgba(255,117,140,0.15)] z-10 transition-all duration-500 md:hover:scale-[1.02]"
           />
         </div>
 
