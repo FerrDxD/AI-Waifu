@@ -10,6 +10,7 @@ const ALL_OUTFITS = [
   { id: 'outfit_casual', name: 'Baju Santai', emoji: '👚', desc: 'Pakaian ganti untuk bersantai di kamar.' },
   { id: 'outfit_maid', name: 'Baju Maid', emoji: '👗', desc: 'Kostum pelayan klasik bergaya prancis.' },
   { id: 'outfit_school', name: 'Seragam SMA', emoji: '🎀', desc: 'Seragam sekolah bergaya pelaut.' },
+  { id: 'outfit_swimsuit', name: 'Baju Renang', emoji: '🩱', desc: 'Satu set baju renang cantik.' },
 ];
 
 export default function WardrobePage() {
@@ -56,6 +57,7 @@ export default function WardrobePage() {
         else if (outfitId === 'outfit_maid') setMessage("B-baju ini... aneh nggak sih? Jangan ngeliatin terus dong!");
         else if (outfitId === 'outfit_casual') setMessage("Baju santai. Cocok buat rebahan di kasur.");
         else if (outfitId === 'outfit_school') setMessage("Seragam sekolah? Kamu ada-ada aja. Tapi... makasih.");
+        else if (outfitId === 'outfit_swimsuit') setMessage("I-ini kan baju renang! K-kamu nyuruh aku pakai ini sekarang?! M-mesum!");
       }
     } catch (e) {
       console.error(e);

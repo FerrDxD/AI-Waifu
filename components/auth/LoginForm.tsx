@@ -81,18 +81,18 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md p-8 bg-white/80 backdrop-blur-xl border border-pink-100 rounded-3xl shadow-[0_10px_25px_rgba(255,154,158,0.2)]">
-      <h2 className="text-3xl font-display font-bold text-pink-600 text-center mb-8">
+    <div className="w-full">
+      <h2 className="text-2xl font-display font-bold text-[#5c4d47] text-center mb-8">
         {mode === 'login' ? 'Selamat Datang Kembali' : 'Reset Sandi'}
       </h2>
       
       {error && (
-        <div className="mb-4 p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-xl text-center font-medium">
+        <div className="mb-6 p-3 text-[13px] text-red-600 bg-red-50/50 border border-red-100 rounded-lg text-center font-medium">
           {error}
         </div>
       )}
       {success && (
-        <div className="mb-4 p-3 text-sm text-green-500 bg-green-50 border border-green-200 rounded-xl text-center font-medium">
+        <div className="mb-6 p-3 text-[13px] text-green-600 bg-green-50/50 border border-green-100 rounded-lg text-center font-medium">
           {success}
         </div>
       )}
@@ -101,20 +101,20 @@ export default function LoginForm() {
         {mode === 'login' && (
           <>
             <div>
-              <label className="block text-sm text-gray-700 font-bold mb-2">Email atau Username</label>
+              <label className="block text-[13px] text-[#5c4d47] font-medium mb-1.5">Email atau Username</label>
               <input
                 type="text"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                className="w-full px-4 py-3 bg-white/90 border border-pink-200 text-gray-800 rounded-2xl focus:outline-none focus:ring-4 focus:ring-pink-200 focus:border-pink-400 transition-all"
+                className="w-full px-3.5 py-2.5 bg-white border border-[#E5E0D8] text-[#5c4d47] text-[15px] rounded-lg focus:outline-none focus:border-[#5c4d47] focus:ring-1 focus:ring-[#5c4d47] transition-all placeholder-gray-400"
                 required
                 disabled={loading}
               />
             </div>
             <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm text-gray-700 font-bold">Password</label>
-                <button type="button" onClick={() => { setMode('resetRequest'); setError(''); setSuccess(''); }} className="text-xs text-pink-500 hover:text-pink-600 font-bold hover:underline">
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="block text-[13px] text-[#5c4d47] font-medium">Password</label>
+                <button type="button" onClick={() => { setMode('resetRequest'); setError(''); setSuccess(''); }} className="text-[13px] text-[#5c4d47]/60 hover:text-[#5c4d47] hover:underline underline-offset-2 transition-colors">
                   Lupa Sandi?
                 </button>
               </div>
@@ -123,23 +123,23 @@ export default function LoginForm() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/90 border border-pink-200 text-gray-800 rounded-2xl focus:outline-none focus:ring-4 focus:ring-pink-200 focus:border-pink-400 transition-all pr-12"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#E5E0D8] text-[#5c4d47] text-[15px] rounded-lg focus:outline-none focus:border-[#5c4d47] focus:ring-1 focus:ring-[#5c4d47] transition-all pr-12 placeholder-gray-400"
                   required
                   disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-pink-500 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#5c4d47] transition-colors"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-pink-500 to-rose-400 text-white font-bold rounded-2xl shadow-md shadow-pink-200 hover:shadow-lg hover:shadow-pink-300 hover:-translate-y-0.5 active:translate-y-0 active:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 mt-2 bg-[#423833] hover:bg-[#2a2422] text-[#fdfbf7] text-[15px] font-medium rounded-lg shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Memproses...' : 'Masuk'}
             </button>
@@ -149,12 +149,12 @@ export default function LoginForm() {
         {mode === 'resetRequest' && (
           <>
             <div>
-              <label className="block text-sm text-gray-700 font-bold mb-2">Masukkan Email / Username</label>
+              <label className="block text-[13px] text-[#5c4d47] font-medium mb-1.5">Masukkan Email / Username</label>
               <input
                 type="text"
                 value={resetIdentifier}
                 onChange={(e) => setResetIdentifier(e.target.value)}
-                className="w-full px-4 py-3 bg-white/90 border border-pink-200 text-gray-800 rounded-2xl focus:outline-none focus:ring-4 focus:ring-pink-200 focus:border-pink-400 transition-all"
+                className="w-full px-3.5 py-2.5 bg-white border border-[#E5E0D8] text-[#5c4d47] text-[15px] rounded-lg focus:outline-none focus:border-[#5c4d47] focus:ring-1 focus:ring-[#5c4d47] transition-all"
                 required
                 disabled={loading}
               />
@@ -162,11 +162,11 @@ export default function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-pink-500 to-rose-400 text-white font-bold rounded-2xl shadow-md shadow-pink-200 hover:shadow-lg hover:shadow-pink-300 hover:-translate-y-0.5 active:translate-y-0 active:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 mt-2 bg-[#423833] hover:bg-[#2a2422] text-[#fdfbf7] text-[15px] font-medium rounded-lg shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Mencari...' : 'Selanjutnya'}
             </button>
-            <button type="button" onClick={() => { setMode('login'); setError(''); setSuccess(''); }} className="w-full text-sm text-gray-500 font-bold hover:text-gray-700 mt-2">
+            <button type="button" onClick={() => { setMode('login'); setError(''); setSuccess(''); }} className="w-full text-[13px] text-[#5c4d47]/60 hover:text-[#5c4d47] transition-colors mt-2">
               Kembali ke Login
             </button>
           </>
@@ -175,13 +175,13 @@ export default function LoginForm() {
         {mode === 'resetNewPassword' && (
           <>
             <div>
-              <label className="block text-sm text-gray-700 font-bold mb-2">Password Baru</label>
+              <label className="block text-[13px] text-[#5c4d47] font-medium mb-1.5">Password Baru</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/90 border border-pink-200 text-gray-800 rounded-2xl focus:outline-none focus:ring-4 focus:ring-pink-200 focus:border-pink-400 transition-all pr-12"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#E5E0D8] text-[#5c4d47] text-[15px] rounded-lg focus:outline-none focus:border-[#5c4d47] focus:ring-1 focus:ring-[#5c4d47] transition-all pr-12"
                   required
                   disabled={loading}
                   minLength={6}
@@ -189,38 +189,38 @@ export default function LoginForm() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-pink-500 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#5c4d47] transition-colors"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-pink-500 to-rose-400 text-white font-bold rounded-2xl shadow-md shadow-pink-200 hover:shadow-lg hover:shadow-pink-300 hover:-translate-y-0.5 active:translate-y-0 active:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 mt-2 bg-[#423833] hover:bg-[#2a2422] text-[#fdfbf7] text-[15px] font-medium rounded-lg shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Memproses...' : 'Simpan Password Baru'}
             </button>
-            <button type="button" onClick={() => { setMode('login'); setError(''); setSuccess(''); }} className="w-full text-sm text-gray-500 font-bold hover:text-gray-700 mt-2">
+            <button type="button" onClick={() => { setMode('login'); setError(''); setSuccess(''); }} className="w-full text-[13px] text-[#5c4d47]/60 hover:text-[#5c4d47] transition-colors mt-2">
               Batal
             </button>
           </>
         )}
       </form>
 
-      <div className="mt-6 flex items-center justify-center space-x-4 opacity-70">
-        <div className="h-px bg-pink-200 flex-1" />
-        <span className="text-sm text-pink-400 font-medium">atau</span>
-        <div className="h-px bg-pink-200 flex-1" />
+      <div className="mt-8 mb-6 flex items-center justify-center space-x-4">
+        <div className="h-[1px] bg-[#E5E0D8] flex-1" />
+        <span className="text-[13px] text-[#5c4d47]/40 font-medium">Atau</span>
+        <div className="h-[1px] bg-[#E5E0D8] flex-1" />
       </div>
 
       <button
         onClick={handleGoogleLogin}
         disabled={loading}
-        className="w-full mt-6 py-3 bg-white border border-pink-200 text-gray-700 font-bold rounded-2xl shadow-sm hover:shadow-md hover:border-pink-300 hover:bg-pink-50 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-2.5 bg-white border border-[#E5E0D8] hover:border-gray-300 hover:bg-gray-50 text-[#5c4d47] text-[14px] font-medium rounded-lg shadow-sm transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <svg viewBox="0 0 24 24" className="w-5 h-5">
+        <svg viewBox="0 0 24 24" className="w-4 h-4">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
           <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />

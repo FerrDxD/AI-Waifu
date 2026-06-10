@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { MapPin, ShoppingBag, Coffee, TreePine, Book, Gamepad2, Soup, UtensilsCrossed, Landmark, Ticket, Camera } from 'lucide-react';
+import { MapPin, ShoppingBag, Coffee, TreePine, Book, Gamepad2, Soup, UtensilsCrossed, Landmark, Ticket, Camera, Music, Waves, Lock } from 'lucide-react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
 import DialogBox from '@/components/livia/DialogBox';
 import { LiviaExpression } from '@/lib/gemini';
@@ -18,6 +18,8 @@ const LOCATIONS = [
   { id: 'museum', name: 'Museum Seni', icon: <Landmark size={32} />, color: 'bg-stone-50 border-stone-200 text-stone-600', hover: 'hover:bg-stone-100' },
   { id: 'amusement', name: 'Taman Hiburan', icon: <Ticket size={32} />, color: 'bg-pink-50 border-pink-200 text-pink-600', hover: 'hover:bg-pink-100' },
   { id: 'studio', name: 'Studio Potret', icon: <Camera size={32} />, color: 'bg-teal-50 border-teal-200 text-teal-600', hover: 'hover:bg-teal-100' },
+  { id: 'konser', name: 'Konser Musik', icon: <Music size={32} />, color: 'bg-indigo-50 border-indigo-200 text-indigo-600', hover: 'hover:bg-indigo-100', requiredItem: 'tiket_konser', requirementName: 'Tiket Konser' },
+  { id: 'kolam_renang', name: 'Kolam Renang', icon: <Waves size={32} />, color: 'bg-cyan-50 border-cyan-200 text-cyan-600', hover: 'hover:bg-cyan-100', requiredItem: 'outfit_swimsuit', requirementName: 'Baju Renang' },
 ];
 
 type SceneLine = { speaker: string, text: string, expression?: LiviaExpression };
@@ -27,6 +29,15 @@ export default function DatePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [scene, setScene] = useState<SceneLine[] | null>(null);
   const [sceneIndex, setSceneIndex] = useState(0);
+  const [itemsBrought, setItemsBrought] = useState<string[]>([]);
+  const [activeOutfit, setActiveOutfit] = useState<string>('default');
+
+  useEffect(() => {
+    fetch('/api/outfit').then(res => res.json()).then(data => {
+      setItemsBrought(data.itemsBrought || []);
+      setActiveOutfit(data.activeOutfit || 'default');
+    }).catch(console.error);
+  }, []);
 
   const startJalan = async (locName: string) => {
     setSelectedLoc(locName);
@@ -83,6 +94,7 @@ export default function DatePage() {
           <div className="flex-1 w-full max-w-4xl flex justify-center items-end min-h-0 z-10 relative">
             <LiviaSprite 
               expression={scene[sceneIndex].expression || 'normal'} 
+              outfit={activeOutfit}
               className="h-full max-h-[60vh] object-contain object-bottom drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)] animate-[float_4s_ease-in-out_infinite]" 
             />
           </div>
@@ -118,32 +130,44 @@ export default function DatePage() {
             </div>
           ) : (
             <div className="flex gap-6 pb-12 overflow-x-auto snap-x snap-mandatory scrollbar-thin scrollbar-thumb-pink-200 scrollbar-track-transparent pr-8 -mx-8 px-12">
-              {LOCATIONS.map(loc => (
+              {LOCATIONS.map(loc => {
+                const isLocked = loc.requiredItem && !itemsBrought.includes(loc.requiredItem);
+                
+                return (
                 <button
                   key={loc.id}
-                  onClick={() => startJalan(loc.name)}
-                  className={`relative group flex-shrink-0 w-[280px] sm:w-[320px] h-[450px] rounded-[2.5rem] border-4 border-white/50 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] ${loc.color} ${loc.hover} hover:-translate-y-4 hover:shadow-[0_25px_50px_rgba(255,117,140,0.2)] hover:border-pink-200 snap-center overflow-hidden flex flex-col justify-end p-8 text-left`}
+                  onClick={() => !isLocked && startJalan(loc.name)}
+                  disabled={!!isLocked}
+                  className={`relative group flex-shrink-0 w-[280px] sm:w-[320px] h-[450px] rounded-[2.5rem] border-4 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] snap-center overflow-hidden flex flex-col justify-end p-8 text-left ${
+                    isLocked ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed grayscale' : `${loc.color} ${loc.hover} hover:-translate-y-4 hover:shadow-[0_25px_50px_rgba(255,117,140,0.2)] hover:border-pink-200 border-white/50`
+                  }`}
                 >
-                  <div className="absolute inset-0 bg-white/40 group-hover:bg-transparent transition-colors z-0 duration-500" />
+                  <div className={`absolute inset-0 bg-white/40 transition-colors z-0 duration-500 ${isLocked ? '' : 'group-hover:bg-transparent'}`} />
                   
                   {/* Big Icon Background */}
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[200px] opacity-[0.07] group-hover:opacity-15 group-hover:scale-110 transition-all duration-500 z-0 pointer-events-none">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[200px] opacity-[0.07] transition-all duration-500 z-0 pointer-events-none group-hover:scale-110">
                     {loc.icon}
                   </div>
                   
-                  <div className="relative z-10 translate-y-6 group-hover:translate-y-0 transition-transform duration-500 ease-out">
-                    <div className="bg-white/90 backdrop-blur-md w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg mb-6 text-[#ff758c] group-hover:scale-110 transition-transform duration-500">
-                      {loc.icon}
+                  <div className={`relative z-10 transition-transform duration-500 ease-out ${isLocked ? '' : 'translate-y-6 group-hover:translate-y-0'}`}>
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg mb-6 transition-transform duration-500 ${isLocked ? 'bg-gray-200 text-gray-400' : 'bg-white/90 backdrop-blur-md text-[#ff758c] group-hover:scale-110'}`}>
+                      {isLocked ? <Lock size={28} /> : loc.icon}
                     </div>
-                    <h3 className="font-black font-display text-3xl leading-tight mb-3">
+                    <h3 className={`font-black font-display text-3xl leading-tight mb-3 ${isLocked && 'text-gray-500'}`}>
                       {loc.name}
                     </h3>
-                    <p className="text-base font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 flex items-center gap-2">
-                      Ayo Berangkat <span className="animate-bounce-x">→</span>
-                    </p>
+                    {isLocked ? (
+                      <p className="text-sm font-bold flex items-center gap-2 text-red-400 bg-red-50/80 px-3 py-1.5 rounded-lg inline-flex w-max">
+                        <Lock size={14} /> Butuh: {loc.requirementName}
+                      </p>
+                    ) : (
+                      <p className="text-base font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 flex items-center gap-2">
+                        Ayo Berangkat <span className="animate-bounce-x">→</span>
+                      </p>
+                    )}
                   </div>
                 </button>
-              ))}
+              )})}
             </div>
           )}
 

@@ -152,17 +152,17 @@ export default function VNScene({ onComplete }: VNSceneProps) {
       </div>
 
       {/* Skip button */}
-      <div className="absolute top-6 right-8 z-30">
+      <div className="absolute top-6 right-4 md:right-8 z-30">
         <button 
           onClick={onComplete}
-          className="text-gray-400 hover:text-[#ff758c] font-display font-bold px-4 py-2 text-sm tracking-widest uppercase transition-colors bg-white/50 backdrop-blur-sm rounded-full"
+          className="text-gray-400 hover:text-[#ff758c] font-display font-bold px-3 md:px-4 py-2 text-xs md:text-sm tracking-widest uppercase transition-colors bg-white/50 backdrop-blur-sm rounded-full"
         >
           Lewati 
         </button>
       </div>
 
       {/* Sprite area */}
-      <div className="flex-1 flex justify-center items-end relative z-20">
+      <div className="flex-1 flex justify-center items-end relative z-20 pb-10 md:pb-0">
         <div 
           className="transition-all duration-[800ms] ease-[cubic-bezier(0.23,1,0.32,1)]"
           style={{ 
@@ -175,13 +175,13 @@ export default function VNScene({ onComplete }: VNSceneProps) {
         >
           <LiviaSprite 
             expression={scene.expression} 
-            className="h-[80vh] w-auto object-contain drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)]"
+            className="h-[65vh] md:h-[80vh] w-auto object-contain drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)]"
           />
         </div>
       </div>
 
       {/* Dialog box & Choices */}
-      <div className="relative z-30 pb-12 px-8 w-full flex flex-col items-center">
+      <div className="relative z-30 pb-6 md:pb-12 px-4 md:px-8 w-full flex flex-col items-center">
         
         {/* Branching Choices Overlay */}
         {scene.choices && (
@@ -190,7 +190,7 @@ export default function VNScene({ onComplete }: VNSceneProps) {
               <button
                 key={idx}
                 onClick={() => handleChoice(choice)}
-                className="w-full bg-white/95 backdrop-blur-md border-2 border-pink-100 py-4 px-6 rounded-2xl shadow-[0_10px_25px_rgba(255,117,140,0.15)] text-[#5c4d47] font-bold font-display hover:border-[#ff758c] hover:text-[#ff758c] hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(255,117,140,0.2)] transition-all duration-300 text-center text-lg active:scale-95"
+                className="w-full bg-white/95 backdrop-blur-md border-2 border-pink-100 py-3 md:py-4 px-4 md:px-6 rounded-xl md:rounded-2xl shadow-[0_10px_25px_rgba(255,117,140,0.15)] text-[#5c4d47] font-bold font-display hover:border-[#ff758c] hover:text-[#ff758c] hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(255,117,140,0.2)] transition-all duration-300 text-center text-base md:text-lg active:scale-95"
               >
                 {choice.text}
               </button>

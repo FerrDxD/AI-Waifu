@@ -118,9 +118,9 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex w-full h-screen overflow-hidden bg-[#fdfbf7]">
-      {/* Panel kiri — Livia (35%) */}
-      <div className="w-[35%] h-full flex flex-col items-center justify-end relative z-10 bg-[#fdfbf7] shadow-[5px_0_15px_rgba(0,0,0,0.03)] border-r border-pink-100">
+    <div className="flex flex-col md:flex-row w-full h-screen overflow-hidden bg-[#fdfbf7]">
+      {/* Panel kiri — Livia */}
+      <div className="w-full h-[40%] md:h-full md:w-[35%] shrink-0 flex flex-col items-center justify-end relative z-10 bg-[#fdfbf7] shadow-[0_5px_15px_rgba(0,0,0,0.03)] md:shadow-[5px_0_15px_rgba(0,0,0,0.03)] border-b md:border-b-0 md:border-r border-pink-100">
         {/* Immersive Background just for Livia */}
         <div 
           className="absolute inset-0 bg-cover bg-center transition-all duration-1000 z-0 opacity-40 mix-blend-multiply blur-[1px]"
@@ -143,15 +143,15 @@ export default function ChatPage() {
         />
 
         {/* Back button & Name Label */}
-        <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-20">
+        <div className="absolute top-4 left-4 right-4 md:top-6 md:left-6 md:right-6 flex items-center justify-between z-20">
           <Link href="/home"
-            className="flex items-center gap-2 font-display font-bold text-sm bg-white/70 backdrop-blur-md px-4 py-2 rounded-full text-pink-500 shadow-sm hover:shadow-md hover:text-[#ff758c] transition-all"
+            className="flex items-center gap-1.5 md:gap-2 font-display font-bold text-[10px] md:text-sm bg-white/70 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 rounded-full text-pink-500 shadow-sm hover:shadow-md hover:text-[#ff758c] transition-all"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={14} className="md:w-4 md:h-4" />
             Kembali
           </Link>
-          <div className="bg-white/80 backdrop-blur-md px-6 py-2 rounded-full shadow-sm border border-pink-100">
-            <span className="font-display font-bold text-[#ff758c] tracking-wide">L I V I A</span>
+          <div className="bg-white/80 backdrop-blur-md px-4 md:px-6 py-1.5 md:py-2 rounded-full shadow-sm border border-pink-100">
+            <span className="font-display font-bold text-xs md:text-base text-[#ff758c] tracking-wide">L I V I A</span>
           </div>
         </div>
 
@@ -182,18 +182,18 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Panel kanan — Chat (65%) */}
-      <div className="w-[65%] h-full flex flex-col relative z-10 bg-white">
+      {/* Panel kanan — Chat */}
+      <div className="flex-1 md:w-[65%] h-[60%] md:h-full flex flex-col relative z-10 bg-white">
         <div className="w-full h-full flex flex-col">
           
           {/* Header Area */}
-          <div className="px-8 py-4 border-b border-pink-50 flex items-center gap-3 bg-white/90 backdrop-blur-md z-20 shadow-sm">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#ff758c] to-[#ff9a9e] flex items-center justify-center text-white shadow-sm font-bold">
+          <div className="px-4 md:px-8 py-3 md:py-4 border-b border-pink-50 flex items-center gap-3 bg-white/90 backdrop-blur-md z-20 shadow-sm">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-[#ff758c] to-[#ff9a9e] flex items-center justify-center text-white shadow-sm font-bold text-sm md:text-base">
               L
             </div>
             <div>
-              <h2 className="font-display font-bold text-lg text-[#ff758c] leading-tight">Livia Einhart</h2>
-              <span className="text-xs text-amber-500 font-medium italic">Sedang online</span>
+              <h2 className="font-display font-bold text-base md:text-lg text-[#ff758c] leading-tight">Livia Einhart</h2>
+              <span className="text-[10px] md:text-xs text-amber-500 font-medium italic">Sedang online</span>
             </div>
           </div>
 
@@ -226,12 +226,12 @@ export default function ChatPage() {
                 className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.role === 'livia' && (
-                  <div className="w-8 h-8 rounded-full bg-pink-100 border border-white shrink-0 mr-3 mt-auto mb-1 flex items-center justify-center">
-                    <span className="text-pink-400 text-xs font-bold">L</span>
+                  <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-pink-100 border border-white shrink-0 mr-2 md:mr-3 mt-auto mb-1 flex items-center justify-center">
+                    <span className="text-pink-400 text-[10px] md:text-xs font-bold">L</span>
                   </div>
                 )}
                 <div
-                  className="max-w-[70%] px-5 py-3.5 text-[15px] leading-relaxed shadow-sm"
+                  className="max-w-[85%] md:max-w-[70%] px-4 py-2.5 md:px-5 md:py-3.5 text-sm md:text-[15px] leading-relaxed shadow-sm"
                   style={msg.role === 'livia' ? {
                     background: '#fffdfa',
                     border: '1px solid #f9ecec',
@@ -275,7 +275,7 @@ export default function ChatPage() {
           </div>
 
           {/* Input area */}
-          <div className="px-8 py-6 bg-white border-t border-pink-50 flex items-end gap-3 z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
+          <div className="px-4 md:px-8 py-4 md:py-6 bg-white border-t border-pink-50 flex items-end gap-2 md:gap-3 z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
             <textarea
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -288,13 +288,13 @@ export default function ChatPage() {
               placeholder="Ketik balasanmu..."
               rows={1}
               disabled={loading}
-              className="flex-1 resize-none py-3.5 px-6 text-[15px] focus:outline-none transition-all placeholder:text-gray-300"
+              className="flex-1 resize-none py-2.5 md:py-3.5 px-4 md:px-6 text-sm md:text-[15px] focus:outline-none transition-all placeholder:text-gray-300"
               style={{
                 background: '#fcfcfc',
                 border: '2px solid #f1f1f1',
-                borderRadius: '24px',
+                borderRadius: '20px',
                 color: '#5c4d47',
-                maxHeight: '120px',
+                maxHeight: '100px',
                 fontWeight: 500,
               }}
               onFocus={e => (e.currentTarget.style.borderColor = '#ff758c')}
@@ -303,14 +303,14 @@ export default function ChatPage() {
             <button
               onClick={handleSend}
               disabled={loading || !input.trim()}
-              className="shrink-0 w-14 h-14 flex items-center justify-center rounded-full transition-all shadow-md"
+              className="shrink-0 w-10 h-10 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all shadow-md"
               style={{
                 background: input.trim() && !loading ? 'linear-gradient(135deg, #ff0844, #ffb199)' : '#f5f5f5',
                 color: input.trim() && !loading ? '#ffffff' : '#cccccc',
                 transform: input.trim() && !loading ? 'scale(1)' : 'scale(0.95)'
               }}
             >
-              <Send size={20} className={input.trim() && !loading ? "ml-1" : ""} />
+              <Send size={16} className={`md:w-5 md:h-5 ${input.trim() && !loading ? "ml-1" : ""}`} />
             </button>
           </div>
         </div>

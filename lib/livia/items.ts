@@ -95,5 +95,85 @@ export const ITEMS: Item[] = [
     description: 'Kacamata hitam untuk gaya atau menutupi mata panda.',
     buff: { id: 'social', label: 'Social Butterfly', description: 'Livia sering ngajak hang out' },
     debuff: { id: 'antisocial', label: 'Ansos', description: 'Livia ansos total, menghindari topik sosial' }
+  },
+  {
+    id: 'sketchbook',
+    name: 'Buku Sketsa',
+    emoji: '🎨',
+    description: 'Buku penuh coretan kasar dan ide gila.',
+    buff: { id: 'creative', label: 'Artistik', description: 'Livia sering membicarakan ide kreatif' },
+    debuff: { id: 'bland', label: 'Kaku', description: 'Pikiran Livia kaku dan sulit diajak berimajinasi' }
+  },
+  {
+    id: 'tarot',
+    name: 'Kartu Tarot',
+    emoji: '🃏',
+    description: 'Kartu ramalan misterius dengan aura aneh.',
+    buff: { id: 'superstitious', label: 'Zodiak Addict', description: 'Livia sering membahas ramalan dan zodiak' },
+    debuff: { id: 'skeptic', label: 'Skeptis', description: 'Livia sangat logis dan tidak percaya keajaiban' }
+  },
+  {
+    id: 'vitamins',
+    name: 'Suplemen Vitamin',
+    emoji: '💊',
+    description: 'Botol vitamin C untuk menjaga daya tahan tubuh.',
+    buff: { id: 'healthy', label: 'Sehat & Bugar', description: 'Livia rajin mengingatkanmu untuk minum air dan olahraga' },
+    debuff: { id: 'sickly', label: 'Gampang Sakit', description: 'Livia mudah tumbang dan sering mengeluh pusing' }
+  },
+  {
+    id: 'diary',
+    name: 'Buku Harian Rahasia',
+    emoji: '📓',
+    description: 'Buku dengan gembok kecil. Sangat rahasia.',
+    buff: { id: 'reflective', label: 'Reflektif', description: 'Livia sering curhat panjang lebar tentang harinya' },
+    debuff: { id: 'forgetful', label: 'Pelupa Parah', description: 'Livia sering lupa janjinya sendiri' }
+  },
+  {
+    id: 'guitar',
+    name: 'Gitar Akustik Kecil',
+    emoji: '🎸',
+    description: 'Gitar kecil yang senarnya jarang diganti.',
+    buff: { id: 'musical', label: 'Suka Bernyanyi', description: 'Terkadang Livia akan menyenandungkan lagu' },
+    debuff: { id: 'tone_deaf', label: 'Fals', description: 'Telinga Livia tidak peka nada, benci musik keras' }
+  },
+  {
+    id: 'cactus',
+    name: 'Kaktus Mini',
+    emoji: '🌵',
+    description: 'Satu-satunya tanaman yang berhasil Livia rawat.',
+    buff: { id: 'responsible', label: 'Teratur', description: 'Livia rajin menjaga kebersihan ruangannya' },
+    debuff: { id: 'messy', label: 'Super Berantakan', description: 'Kamar Livia seperti kapal pecah' }
+  },
+  {
+    id: 'dumbbell',
+    name: 'Barbel Pink',
+    emoji: '🏋️‍♀️',
+    description: 'Barbel kecil seberat 2kg.',
+    buff: { id: 'energetic', label: 'Penuh Energi', description: 'Livia sangat hiperaktif di pagi hari' },
+    debuff: { id: 'lazy', label: 'Mageran', description: 'Livia malas bergerak dari kasurnya' }
+  },
+  {
+    id: 'blanket',
+    name: 'Selimut Bulu',
+    emoji: '🛌',
+    description: 'Selimut super tebal, sahabat musim hujan.',
+    buff: { id: 'cozy', label: 'Anak Rumahan', description: 'Sangat nyaman diajak ngobrol santai di kamar' },
+    debuff: { id: 'complainer', label: 'Suka Ngeluh', description: 'Livia sering mengeluh soal cuaca dan suhu AC' }
+  },
+  {
+    id: 'camera',
+    name: 'Kamera Polaroid',
+    emoji: '📷',
+    description: 'Kamera jadul dengan isi film yang mahal.',
+    buff: { id: 'photographer', label: 'Suka Kenangan', description: 'Menghargai setiap momen kecil' },
+    debuff: { id: 'camera_shy', label: 'Anti Kamera', description: 'Livia membenci foto dan tidak suka didokumentasikan' }
+  },
+  {
+    id: 'snacks',
+    name: 'Kotak Camilan',
+    emoji: '🍪',
+    description: 'Harta karun berisi micin dan gula.',
+    buff: { id: 'snacker', label: 'Tukang Ngemil', description: 'Livia akan sering menawarimu camilan' },
+    debuff: { id: 'hangry', label: 'Hangry', description: 'Livia gampang badmood kalau telat makan' }
   }
 ];

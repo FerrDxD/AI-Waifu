@@ -142,13 +142,13 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
       <div className="absolute inset-0 z-20 pointer-events-none p-6 md:p-10 flex flex-col justify-between">
         
         {/* TOP ROW */}
-        <div className="flex justify-between items-start pointer-events-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start pointer-events-auto gap-4 sm:gap-0">
           
           {/* Top Left: Player Info Panel */}
-          <div className="bg-white/80 backdrop-blur-2xl p-5 rounded-3xl border border-white/50 shadow-[0_10px_30px_rgba(0,0,0,0.05)] flex flex-col gap-4 min-w-[280px] sm:min-w-[340px] transform hover:scale-[1.02] transition-transform">
+          <div className="bg-white/80 backdrop-blur-2xl p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-white/50 shadow-sm flex flex-col gap-3 sm:gap-4 w-full sm:min-w-[340px] sm:w-auto transform hover:scale-[1.02] transition-transform">
             <div className="flex justify-between items-center px-1">
-              <span className="font-display font-black text-2xl text-[#5c4d47] tracking-tight">{userName}</span>
-              <div className="font-mono font-bold text-xs bg-gradient-to-r from-pink-400 to-pink-500 text-white px-3 py-1.5 rounded-full shadow-sm">
+              <span className="font-display font-black text-xl sm:text-2xl text-[#5c4d47] tracking-tight">{userName}</span>
+              <div className="font-mono font-bold text-[10px] sm:text-xs bg-gradient-to-r from-pink-400 to-pink-500 text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-sm">
                 {sessionMinutes > 0 ? `ON: ${sessionMinutes}m` : 'Baru tiba'}
               </div>
             </div>
@@ -160,56 +160,56 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
           </div>
 
           {/* Top Right: Wallet Indicator */}
-          <div className="bg-white/80 backdrop-blur-2xl px-6 py-4 rounded-[2rem] border border-white/50 shadow-[0_10px_30px_rgba(0,0,0,0.05)] flex items-center gap-4 transform hover:scale-[1.02] transition-transform">
-            <div className="p-2 bg-amber-100 rounded-xl">
-              <Wallet className="w-6 h-6 text-amber-500" />
+          <div className="bg-white/80 backdrop-blur-2xl px-4 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-[2rem] border border-white/50 shadow-sm flex items-center gap-3 sm:gap-4 transform hover:scale-[1.02] transition-transform self-end sm:self-auto">
+            <div className="p-1.5 sm:p-2 bg-amber-100 rounded-xl">
+              <Wallet className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Saldo</span>
-              <span className="font-mono font-black text-2xl text-amber-600 leading-none">{money} Rv</span>
+              <span className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Saldo</span>
+              <span className="font-mono font-black text-xl sm:text-2xl text-amber-600 leading-none">{money} Rv</span>
             </div>
           </div>
 
         </div>
 
         {/* BOTTOM ROW */}
-        <div className="flex flex-col md:flex-row justify-between items-end flex-1 pb-4 pointer-events-auto gap-8">
+        <div className="flex flex-col-reverse md:flex-row justify-between items-end md:items-end flex-1 pb-4 md:pb-8 pointer-events-auto gap-6 md:gap-8 w-full mt-10 md:mt-0">
           
           {/* Bottom Left: Chat Bubble */}
-          <div className="relative w-full max-w-sm mb-4 md:mb-12 drop-shadow-2xl origin-bottom-left hover:scale-105 transition-transform">
-            <div className="bg-white/95 backdrop-blur-2xl px-8 py-6 rounded-[2.5rem] rounded-bl-xl border-2 border-pink-100/50 shadow-2xl relative z-10">
-              <p className="font-display font-bold text-xl text-gray-800 leading-snug">
+          <div className="relative w-full md:max-w-sm drop-shadow-2xl origin-bottom-left hover:scale-[1.02] transition-transform mb-2 md:mb-10">
+            <div className="bg-white/95 backdrop-blur-2xl px-6 py-5 md:px-8 md:py-6 rounded-3xl md:rounded-[2.5rem] md:rounded-bl-xl border-2 border-pink-100/50 shadow-xl md:shadow-2xl relative z-10">
+              <p className="font-display font-bold text-lg md:text-xl text-gray-800 leading-snug">
                 "{greeting}"
               </p>
               {isInvitingOut && (
                 <button 
                   onClick={() => setShowEvent(true)}
-                  className="mt-6 w-full py-3 bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-black text-lg rounded-2xl shadow-[0_10px_20px_rgba(255,117,140,0.3)] hover:shadow-[0_15px_30px_rgba(255,117,140,0.4)] hover:-translate-y-1 transition-all flex items-center justify-center gap-3"
+                  className="mt-4 md:mt-6 w-full py-2.5 md:py-3 bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-black text-base md:text-lg rounded-xl md:rounded-2xl shadow-md hover:-translate-y-1 transition-all flex items-center justify-center gap-2 md:gap-3"
                 >
-                  <span className="text-2xl">🕶️</span> Boleh, ayo pergi!
+                  <span className="text-xl md:text-2xl">🕶️</span> Boleh, ayo!
                 </button>
               )}
             </div>
           </div>
 
           {/* Right Side: Command Menus (Lobby Navigation) */}
-          <div className="flex flex-col gap-6 items-end">
+          <div className="flex flex-col gap-4 md:gap-6 items-end w-full md:w-auto">
             
             {/* Primary Navigation Column */}
-            <div className="flex flex-col gap-4 items-end mb-4">
-              <SideMenuCard href="/story" icon={<BookOpen size={28} />} title="CERITA" />
-              <SideMenuCard href="/chat" icon={<MessageSquare size={28} />} title="INTERAKSI" />
+            <div className="flex flex-row md:flex-col gap-2 md:gap-4 items-end mb-2 md:mb-4 w-full justify-end md:justify-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
+              <SideMenuCard href="/story" icon={<BookOpen size={24} className="md:w-[28px] md:h-[28px]" />} title="CERITA" />
+              <SideMenuCard href="/chat" icon={<MessageSquare size={24} className="md:w-[28px] md:h-[28px]" />} title="OBROLAN" />
               {isInvitingOut || (affection >= 40 && (itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses'))) ? (
-                <SideMenuCard href="/date" icon={<MapPin size={28} />} title="JALAN" isSpecial />
+                <SideMenuCard href="/date" icon={<MapPin size={24} className="md:w-[28px] md:h-[28px]" />} title="JALAN" isSpecial />
               ) : null}
             </div>
 
             {/* Secondary Navigation Row */}
-            <div className="flex gap-4 flex-wrap justify-end max-w-[400px]">
-              <BottomMenuCard href="/pomodoro" icon={<Clock size={24} />} title="Fokus" />
-              <BottomMenuCard href="/work" icon={<Briefcase size={24} />} title="Kerja" />
-              <BottomMenuCard href="/wardrobe" icon={<Shirt size={24} />} title="Lemari" />
-              <BottomMenuCard href="/shop" icon={<Gift size={24} />} title="Toko" />
+            <div className="flex gap-2 md:gap-4 flex-nowrap md:flex-wrap justify-end w-full overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
+              <BottomMenuCard href="/pomodoro" icon={<Clock size={20} className="md:w-[24px] md:h-[24px]" />} title="Fokus" />
+              <BottomMenuCard href="/work" icon={<Briefcase size={20} className="md:w-[24px] md:h-[24px]" />} title="Kerja" />
+              <BottomMenuCard href="/wardrobe" icon={<Shirt size={20} className="md:w-[24px] md:h-[24px]" />} title="Lemari" />
+              <BottomMenuCard href="/shop" icon={<Gift size={20} className="md:w-[24px] md:h-[24px]" />} title="Toko" />
             </div>
 
           </div>
@@ -254,16 +254,16 @@ function SideMenuCard({ href, icon, title, isSpecial = false }: { href: string; 
   return (
     <Link
       href={href}
-      className={`group flex items-center justify-end gap-5 pl-12 pr-6 py-4 rounded-l-full rounded-r-[2rem] transition-all duration-500 hover:pr-8 border-2 border-r-0 ${
+      className={`group flex items-center justify-center md:justify-end gap-2 md:gap-5 px-4 md:pl-12 md:pr-6 py-3 md:py-4 rounded-2xl md:rounded-l-full md:rounded-r-[2rem] transition-all duration-300 md:duration-500 md:hover:pr-8 border-2 md:border-r-0 whitespace-nowrap shrink-0 ${
         isSpecial 
-          ? 'bg-gradient-to-l from-[#ff758c]/90 to-white/90 backdrop-blur-2xl border-white hover:border-pink-300 shadow-[0_15px_30px_rgba(255,117,140,0.3)]' 
-          : 'bg-white/80 backdrop-blur-2xl border-white/50 hover:bg-white hover:border-pink-200 shadow-[0_10px_25px_rgba(0,0,0,0.05)]'
+          ? 'bg-gradient-to-l from-[#ff758c] to-[#ff0844] md:from-[#ff758c]/90 md:to-white/90 backdrop-blur-2xl border-white hover:border-pink-300 shadow-md md:shadow-[0_15px_30px_rgba(255,117,140,0.3)]' 
+          : 'bg-white/90 md:bg-white/80 backdrop-blur-2xl border-white/50 hover:bg-white hover:border-pink-200 shadow-sm md:shadow-[0_10px_25px_rgba(0,0,0,0.05)]'
       }`}
     >
-      <span className={`font-display font-black text-3xl tracking-widest italic transition-colors drop-shadow-sm ${isSpecial ? 'text-white' : 'text-[#5c4d47] group-hover:text-[#ff758c]'}`}>
+      <span className={`font-display font-black text-sm md:text-3xl tracking-widest md:italic transition-colors drop-shadow-sm ${isSpecial ? 'text-white' : 'text-[#5c4d47] group-hover:text-[#ff758c]'}`}>
         {title}
       </span>
-      <div className={`p-4 rounded-full shadow-inner transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110 ${isSpecial ? 'bg-white text-[#ff758c]' : 'bg-pink-50 text-[#ff758c]'}`}>
+      <div className={`p-2 md:p-4 rounded-full shadow-inner transition-transform duration-300 md:duration-500 group-hover:rotate-12 group-hover:scale-110 hidden md:block ${isSpecial ? 'bg-white text-[#ff758c]' : 'bg-pink-50 text-[#ff758c]'}`}>
         {icon}
       </div>
     </Link>
@@ -274,12 +274,12 @@ function BottomMenuCard({ href, icon, title }: { href: string; icon: React.React
   return (
     <Link
       href={href}
-      className="group flex flex-col items-center justify-center gap-3 w-24 h-24 bg-white/80 backdrop-blur-2xl border border-white/50 rounded-[2rem] shadow-[0_10px_25px_rgba(0,0,0,0.05)] hover:bg-white hover:border-pink-200 hover:-translate-y-2 hover:shadow-[0_15px_30px_rgba(255,117,140,0.2)] transition-all duration-300"
+      className="group flex flex-col items-center justify-center gap-1.5 md:gap-3 w-[72px] h-[72px] md:w-24 md:h-24 bg-white/90 md:bg-white/80 backdrop-blur-2xl border border-white/50 rounded-xl md:rounded-[2rem] shadow-sm md:shadow-[0_10px_25px_rgba(0,0,0,0.05)] hover:bg-white hover:border-pink-200 md:hover:-translate-y-2 transition-all duration-300 shrink-0"
     >
       <div className="text-gray-400 group-hover:text-[#ff758c] transition-colors transform group-hover:scale-110 duration-300">
         {icon}
       </div>
-      <span className="font-display font-bold text-sm text-gray-500 group-hover:text-[#ff758c]">
+      <span className="font-display font-bold text-[10px] md:text-sm text-gray-500 group-hover:text-[#ff758c]">
         {title}
       </span>
     </Link>

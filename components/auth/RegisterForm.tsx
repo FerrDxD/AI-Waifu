@@ -56,50 +56,50 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="w-full max-w-md p-8 bg-white/80 backdrop-blur-xl border border-pink-100 rounded-3xl shadow-[0_10px_25px_rgba(255,154,158,0.2)]">
-      <h2 className="text-3xl font-display font-bold text-pink-600 text-center mb-8">Mulai Perjalananmu</h2>
+    <div className="w-full">
+      <h2 className="text-2xl font-display font-bold text-[#5c4d47] text-center mb-8">Mulai Perjalananmu</h2>
       
       {error && (
-        <div className="mb-4 p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-xl text-center font-medium">
+        <div className="mb-6 p-3 text-[13px] text-red-600 bg-red-50/50 border border-red-100 rounded-lg text-center font-medium">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm text-gray-700 font-bold mb-2">Username</label>
+          <label className="block text-[13px] text-[#5c4d47] font-medium mb-1.5">Username</label>
           <input
             type="text"
             name="username"
             value={formData.username}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-white/90 border border-pink-200 text-gray-800 rounded-2xl focus:outline-none focus:ring-4 focus:ring-pink-200 focus:border-pink-400 transition-all"
+            className="w-full px-3.5 py-2.5 bg-white border border-[#E5E0D8] text-[#5c4d47] text-[15px] rounded-lg focus:outline-none focus:border-[#5c4d47] focus:ring-1 focus:ring-[#5c4d47] transition-all placeholder-gray-400"
             required
             disabled={loading}
           />
         </div>
 
         <div>
-          <label className="block text-sm text-gray-700 font-bold mb-2">Email</label>
+          <label className="block text-[13px] text-[#5c4d47] font-medium mb-1.5">Email</label>
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-white/90 border border-pink-200 text-gray-800 rounded-2xl focus:outline-none focus:ring-4 focus:ring-pink-200 focus:border-pink-400 transition-all"
+            className="w-full px-3.5 py-2.5 bg-white border border-[#E5E0D8] text-[#5c4d47] text-[15px] rounded-lg focus:outline-none focus:border-[#5c4d47] focus:ring-1 focus:ring-[#5c4d47] transition-all placeholder-gray-400"
             required
             disabled={loading}
           />
         </div>
         
         <div>
-          <label className="block text-sm text-gray-700 font-bold mb-2">Password</label>
+          <label className="block text-[13px] text-[#5c4d47] font-medium mb-1.5">Password</label>
           <input
             type="password"
             name="password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-white/90 border border-pink-200 text-gray-800 rounded-2xl focus:outline-none focus:ring-4 focus:ring-pink-200 focus:border-pink-400 transition-all"
+            className="w-full px-3.5 py-2.5 bg-white border border-[#E5E0D8] text-[#5c4d47] text-[15px] rounded-lg focus:outline-none focus:border-[#5c4d47] focus:ring-1 focus:ring-[#5c4d47] transition-all placeholder-gray-400"
             required
             disabled={loading}
             minLength={6}
@@ -107,13 +107,13 @@ export default function RegisterForm() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-700 font-bold mb-2">Konfirmasi Password</label>
+          <label className="block text-[13px] text-[#5c4d47] font-medium mb-1.5">Konfirmasi Password</label>
           <input
             type="password"
             name="confirmPassword"
             value={formData.confirmPassword}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-white/90 border border-pink-200 text-gray-800 rounded-2xl focus:outline-none focus:ring-4 focus:ring-pink-200 focus:border-pink-400 transition-all"
+            className="w-full px-3.5 py-2.5 bg-white border border-[#E5E0D8] text-[#5c4d47] text-[15px] rounded-lg focus:outline-none focus:border-[#5c4d47] focus:ring-1 focus:ring-[#5c4d47] transition-all placeholder-gray-400"
             required
             disabled={loading}
             minLength={6}
@@ -123,7 +123,7 @@ export default function RegisterForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-4 bg-gradient-to-r from-pink-500 to-rose-400 text-white font-bold rounded-2xl shadow-md shadow-pink-200 hover:shadow-lg hover:shadow-pink-300 hover:-translate-y-0.5 active:translate-y-0 active:shadow-md transition-all mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-2.5 mt-4 bg-[#423833] hover:bg-[#2a2422] text-[#fdfbf7] text-[15px] font-medium rounded-lg shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Memproses...' : 'Daftar Akun'}
         </button>

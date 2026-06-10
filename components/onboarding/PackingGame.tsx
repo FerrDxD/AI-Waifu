@@ -9,32 +9,70 @@ import {
   DragEndEvent
 } from '@dnd-kit/core';
 import LiviaSprite from '@/components/livia/LiviaSprite';
+import {
+  BookOpen, ToyBrick, Gamepad2, Headphones, Sparkles, Shirt, Key, Book, Fan, Glasses,
+  Palette, Dices, Pill, Lock, Guitar, TreePine, Dumbbell, BedDouble, Camera, Cookie
+} from 'lucide-react';
 
 interface PackingGameProps {
   onComplete: (selectedItemIds: string[]) => void;
 }
 
+const ICON_MAP: Record<string, React.ReactNode> = {
+  'recipe_book': <BookOpen size={24} strokeWidth={1.5} />,
+  'teddy_bear': <ToyBrick size={24} strokeWidth={1.5} />,
+  'handheld': <Gamepad2 size={24} strokeWidth={1.5} />,
+  'headphone': <Headphones size={24} strokeWidth={1.5} />,
+  'makeup': <Sparkles size={24} strokeWidth={1.5} />,
+  'hoodie': <Shirt size={24} strokeWidth={1.5} />,
+  'keychain': <Key size={24} strokeWidth={1.5} />,
+  'novel': <Book size={24} strokeWidth={1.5} />,
+  'fan': <Fan size={24} strokeWidth={1.5} />,
+  'sunglasses': <Glasses size={24} strokeWidth={1.5} />,
+  'sketchbook': <Palette size={24} strokeWidth={1.5} />,
+  'tarot': <Dices size={24} strokeWidth={1.5} />,
+  'vitamins': <Pill size={24} strokeWidth={1.5} />,
+  'diary': <Lock size={24} strokeWidth={1.5} />,
+  'guitar': <Guitar size={24} strokeWidth={1.5} />,
+  'cactus': <TreePine size={24} strokeWidth={1.5} />,
+  'dumbbell': <Dumbbell size={24} strokeWidth={1.5} />,
+  'blanket': <BedDouble size={24} strokeWidth={1.5} />,
+  'camera': <Camera size={24} strokeWidth={1.5} />,
+  'snacks': <Cookie size={24} strokeWidth={1.5} />,
+};
+
+// Adjusted positions to fit around a top-down floorplan
 const ROOM_POSITIONS = [
-  { top: '10%', left: '15%' },
-  { top: '25%', left: '75%' },
-  { top: '50%', left: '10%' },
-  { top: '75%', left: '80%' },
-  { top: '35%', left: '45%' },
-  { top: '80%', left: '30%' },
+  { top: '15%', left: '15%' },
+  { top: '25%', left: '45%' },
+  { top: '40%', left: '20%' },
+  { top: '10%', left: '80%' }, // bed area
+  { top: '35%', left: '85%' }, // bed area
+  { top: '65%', left: '30%' }, // near rug
   { top: '15%', left: '55%' },
-  { top: '60%', left: '50%' },
-  { top: '45%', left: '85%' },
+  { top: '55%', left: '55%' },
+  { top: '75%', left: '85%' }, // desk area
   { top: '85%', left: '60%' },
+  { top: '20%', left: '30%' },
+  { top: '50%', left: '10%' },
+  { top: '30%', left: '70%' },
+  { top: '10%', left: '65%' },
+  { top: '65%', left: '75%' },
+  { top: '90%', left: '45%' }, // near door
+  { top: '40%', left: '40%' }, // rug center
+  { top: '55%', left: '40%' },
+  { top: '80%', left: '15%' }, // bottom left corner
+  { top: '20%', left: '90%' },
 ];
 
-function DraggableItem({ id, emoji, name, description, isPacked, position }: { id: string, emoji: string, name: string, description: string, isPacked: boolean, position?: any }) {
+function DraggableItem({ id, name, description, isPacked, position }: { id: string, name: string, description: string, isPacked: boolean, position?: any }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id,
   });
   
   const dndStyle = transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-    zIndex: isDragging ? 50 : 1,
+    zIndex: isDragging ? 50 : 10,
   } : undefined;
 
   const combinedStyle = {
@@ -48,13 +86,17 @@ function DraggableItem({ id, emoji, name, description, isPacked, position }: { i
       style={combinedStyle} 
       {...listeners} 
       {...attributes}
-      className={`group ${isPacked ? 'relative' : 'absolute'} flex flex-col items-center justify-center p-3 bg-white/90 backdrop-blur-sm border-2 border-pink-100 rounded-2xl cursor-grab active:cursor-grabbing hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(255,117,140,0.2)] hover:border-[#ff758c] transition-all ${isDragging ? 'opacity-80 z-50 scale-110 shadow-2xl rotate-3' : 'z-10 shadow-sm'}`}
+      className={`group ${isPacked ? 'relative' : 'absolute'} flex flex-col items-center justify-center p-1.5 sm:p-2.5 bg-[#fdfbf7]/90 backdrop-blur-sm border border-[#5c4d47]/20 rounded-lg sm:rounded-xl cursor-grab active:cursor-grabbing hover:-translate-y-1 hover:shadow-lg hover:border-[#ff758c] transition-all ${isDragging ? 'opacity-80 z-50 scale-110 shadow-2xl rotate-6' : 'z-10 shadow-sm'}`}
     >
-      <div className="text-4xl filter drop-shadow-sm pointer-events-none">{emoji}</div>
-      <div className="text-[10px] font-bold text-gray-700 mt-1 pointer-events-none whitespace-nowrap">{name}</div>
+      <div className="text-[#5c4d47] pointer-events-none mb-1 group-hover:text-[#ff758c] transition-colors scale-75 sm:scale-100">
+        {ICON_MAP[id] || <Book size={24} />}
+      </div>
+      <div className="text-[9px] font-bold text-[#5c4d47] pointer-events-none whitespace-nowrap hidden group-hover:block absolute -bottom-5 bg-white px-2 py-0.5 rounded shadow-sm border border-gray-100 z-50">
+        {name}
+      </div>
       
       {/* Tooltip */}
-      <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-48 p-2 bg-white/95 backdrop-blur-md border border-pink-200 shadow-xl text-xs text-gray-700 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] text-center font-medium">
+      <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-48 p-2 bg-[#1c1816]/95 backdrop-blur-md shadow-xl text-xs text-[#fdfbf7] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] text-center font-medium">
         {description}
       </div>
     </div>
@@ -67,7 +109,6 @@ export default function PackingGame({ onComplete }: PackingGameProps) {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
     if (!over) return;
 
     const itemId = String(active.id);
@@ -82,94 +123,93 @@ export default function PackingGame({ onComplete }: PackingGameProps) {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto py-8 px-4">
-      <div className="text-center mb-8 relative z-10">
-        <h2 className="text-4xl font-display font-black text-[#ff758c] mb-3 drop-shadow-sm tracking-wide">Pilih Barang Bawaan Livia</h2>
-        <p className="text-gray-600 font-medium bg-white/80 inline-block px-6 py-1.5 rounded-full backdrop-blur-sm border border-pink-100 shadow-sm">Seret maksimal 5 barang favoritnya ke dalam koper.</p>
+    <div className="w-full h-full flex flex-col items-center py-6 px-4">
+      <div className="text-center mb-6 relative z-10">
+        <h2 className="text-3xl font-display font-black text-[#5c4d47] mb-2 uppercase tracking-widest">Pengepakan Koper</h2>
+        <p className="text-[#5c4d47]/70 font-medium text-sm">Pilih 5 barang esensial dari kamar Livia. Tarik barang ke dalam koper di ujung ruangan.</p>
       </div>
 
       <DndContext onDragEnd={handleDragEnd}>
-        <div className="flex flex-col lg:flex-row gap-8 items-stretch h-[600px]">
+        {/* TOP DOWN ROOM CONTAINER */}
+        <div className="relative w-full max-w-5xl aspect-[3/4] sm:aspect-[16/9] md:aspect-[21/9] bg-[#EAE5D9] rounded-lg sm:rounded-sm shadow-2xl border-4 sm:border-8 border-[#5c4d47] overflow-hidden">
           
-          {/* Room Area */}
-          <div className="flex-[2] relative overflow-hidden rounded-3xl border-4 border-pink-200 shadow-lg bg-[url('/vn_bg_messy_room.png')] bg-cover bg-center">
-            {/* Dark overlay just for a tiny bit of contrast if needed, but mostly transparent */}
-            <div className="absolute top-4 left-4 z-20">
-              <h3 className="text-xl font-bold text-pink-600 bg-white/80 px-4 py-2 rounded-full backdrop-blur-md shadow-sm">Kamar Livia (Berantakan)</h3>
-            </div>
-            
-            <DroppableArea id="room" className="absolute inset-0 z-10">
-              {availableItems.map(id => {
-                const itemIndex = ITEMS.findIndex(i => i.id === id);
-                const item = ITEMS[itemIndex];
-                const position = ROOM_POSITIONS[itemIndex];
-                return <DraggableItem key={id} {...item} isPacked={false} position={position} />;
-              })}
-            </DroppableArea>
+          {/* Floor Texture/Grid */}
+          <div className="absolute inset-0 opacity-10 bg-[url('/bg/grid.png')] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-black/5 to-black/20 pointer-events-none" />
 
-            {/* Livia Corner Reaction */}
-            <div className="absolute -bottom-8 -left-4 w-48 pointer-events-none z-20 opacity-90 transition-transform duration-500">
-              <LiviaSprite 
-                expression={packedItems.length === 5 ? 'happy' : (packedItems.length > 2 ? 'blushing' : 'normal')} 
-                className="w-full h-auto drop-shadow-xl" 
-              />
-            </div>
+          {/* Furniture Elements (Top-Down CSS) */}
+          <div className="absolute top-0 right-0 w-[35%] h-[45%] bg-[#7C89A3] border-l-4 border-b-4 border-black/20 pointer-events-none">
+            {/* Bed details */}
+            <div className="absolute top-2 right-2 w-16 h-24 bg-[#E2E8F0] rounded-sm opacity-80" />
+            <div className="absolute bottom-0 left-0 w-full h-[60%] bg-[#5C6A85] border-t border-black/10" />
+            <span className="absolute bottom-2 left-2 text-[10px] text-white/50 font-bold tracking-widest">KASUR</span>
           </div>
-          {/* Suitcase Area */}
-          <div className="w-[280px] shrink-0 flex flex-col">
-            <div className="flex flex-col gap-2 mb-4 bg-white/80 px-4 py-3 rounded-2xl backdrop-blur-md shadow-sm">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-pink-600">Koper Pink</h3>
-                <span className={`text-xs font-bold px-2 py-1 rounded-full ${packedItems.length === 5 ? 'bg-green-100 text-green-600' : 'bg-pink-100 text-pink-600'}`}>
-                  {packedItems.length === 5 ? 'Penuh! 🎉' : `${packedItems.length}/5`}
-                </span>
-              </div>
-              
-              {/* Cute Progress Bar */}
-              <div className="flex items-center gap-1.5 w-full h-3">
-                {[...Array(5)].map((_, i) => (
-                  <div 
-                    key={i} 
-                    className={`h-full flex-1 rounded-full transition-all duration-500 ease-out ${
-                      i < packedItems.length 
-                        ? 'bg-gradient-to-r from-pink-400 to-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.5)] scale-100' 
-                        : 'bg-pink-100 scale-90'
-                    }`} 
-                  />
-                ))}
-              </div>
+
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30%] aspect-square rounded-full bg-[#E58B8B] opacity-60 border-4 border-dashed border-white/30 pointer-events-none flex items-center justify-center">
+             <span className="text-[10px] text-white/70 font-bold tracking-widest">KARPET</span>
+          </div>
+
+          <div className="absolute bottom-0 right-10 w-[20%] h-[35%] bg-[#8B7355] border-t-4 border-l-4 border-black/30 pointer-events-none flex items-start justify-start p-2">
+            <span className="text-[10px] text-white/50 font-bold tracking-widest">MEJA</span>
+          </div>
+
+          {/* Room Droppable Area */}
+          <DroppableArea id="room" className="absolute inset-0 z-10">
+            {availableItems.map(id => {
+              const itemIndex = ITEMS.findIndex(i => i.id === id);
+              const item = ITEMS[itemIndex];
+              const position = ROOM_POSITIONS[itemIndex];
+              return <DraggableItem key={id} {...item} isPacked={false} position={position} />;
+            })}
+          </DroppableArea>
+
+          {/* SUITCASE INSIDE THE ROOM */}
+          <DroppableArea id="suitcase" className="absolute bottom-4 left-4 sm:bottom-8 sm:left-8 w-[220px] sm:w-[280px] h-[140px] sm:h-[180px] bg-[#ff758c] border-2 sm:border-4 border-[#5c4d47] rounded-xl shadow-[10px_10px_30px_rgba(0,0,0,0.3)] sm:shadow-[20px_20px_60px_rgba(0,0,0,0.3)] z-20 flex flex-col overflow-hidden transition-all group">
+            {/* Suitcase Lid visual */}
+            <div className="absolute top-0 left-0 w-full h-3 sm:h-4 bg-[#e65c73] border-b-2 border-[#5c4d47]/30" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 sm:w-16 h-1.5 sm:h-2 bg-[#5c4d47] rounded-b-sm" />
+            
+            <div className="flex justify-between items-center px-3 sm:px-4 pt-4 sm:pt-6 pb-1 sm:pb-2 bg-[#ff758c]">
+              <span className="text-[8px] sm:text-[10px] font-bold text-white uppercase tracking-widest opacity-80">Koper Livia</span>
+              <span className="text-[8px] sm:text-[10px] font-bold text-[#5c4d47] bg-white/90 px-1.5 sm:px-2 py-0.5 rounded-sm">
+                {packedItems.length}/5
+              </span>
             </div>
             
-            {/* Visual Koper */}
-            <DroppableArea id="suitcase" className="flex-1 relative flex flex-col gap-2 p-4 bg-rose-300 border-8 border-rose-400 rounded-[2.5rem] shadow-[inset_0_-10px_20px_rgba(0,0,0,0.1),_0_15px_30px_rgba(255,154,158,0.3)]">
-              {/* Tutup Koper Atas (Visual only) */}
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-24 h-5 bg-rose-500 rounded-t-xl" />
-              <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-4 bg-transparent border-4 border-rose-600 rounded-t-lg" />
-              
-              <div className="flex-1 bg-rose-200/50 rounded-2xl p-3 grid grid-cols-2 gap-3 items-start content-start shadow-inner overflow-y-auto">
-                {packedItems.length === 0 && (
-                  <div className="col-span-2 h-full min-h-[200px] flex items-center justify-center text-rose-500 font-bold opacity-70 text-center text-sm">
-                    Tarik barang<br/>ke sini!
-                  </div>
-                )}
-                {packedItems.map(id => {
-                  const item = ITEMS.find(i => i.id === id)!;
-                  return <DraggableItem key={id} {...item} isPacked={true} />;
-                })}
-              </div>
-            </DroppableArea>
+            {/* Grid for packed items */}
+            <div className="flex-1 bg-black/10 m-1 sm:m-2 mt-0 rounded-lg p-1 sm:p-2 grid grid-cols-5 gap-0.5 sm:gap-1 content-start">
+              {packedItems.length === 0 && (
+                <div className="col-span-5 h-full min-h-[80px] flex items-center justify-center text-white/50 font-bold text-[10px] uppercase tracking-widest text-center">
+                  Tarik barang<br/>ke koper
+                </div>
+              )}
+              {packedItems.map(id => {
+                const item = ITEMS.find(i => i.id === id)!;
+                return <DraggableItem key={id} {...item} isPacked={true} />;
+              })}
+            </div>
+          </DroppableArea>
 
-            <button
-              onClick={() => onComplete(packedItems)}
-              disabled={packedItems.length !== 5}
-              className="mt-6 w-full py-4 bg-gradient-to-r from-pink-500 to-rose-400 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-1 active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            >
-              Tutup Koper & Berangkat!
-            </button>
+          {/* Livia Sprite Peeking from Door (Top Left) */}
+          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 w-20 sm:w-32 pointer-events-none z-0 opacity-80">
+            <LiviaSprite 
+              expression={packedItems.length === 5 ? 'happy' : (packedItems.length > 2 ? 'blushing' : 'normal')} 
+              className="w-full h-auto drop-shadow-xl" 
+            />
           </div>
 
         </div>
       </DndContext>
+
+      <div className="mt-8 z-20 relative w-full max-w-sm">
+        <button
+          onClick={() => onComplete(packedItems)}
+          disabled={packedItems.length !== 5}
+          className="w-full py-4 bg-[#5c4d47] text-[#fdfbf7] font-bold uppercase tracking-widest text-sm rounded-lg shadow-[0_10px_20px_rgba(92,77,71,0.2)] hover:bg-[#423833] hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+        >
+          Kunci Koper ({packedItems.length}/5)
+        </button>
+      </div>
     </div>
   );
 }

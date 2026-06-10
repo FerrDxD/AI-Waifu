@@ -37,10 +37,11 @@ const ITEMS: ShopItem[] = [
   { id: 'outfit_casual', category: 'outfit', name: 'Baju Santai', emoji: '👚', cost: 8000, affectionDelta: 5, color: 'from-teal-100 to-teal-200', desc: 'Pakaian ganti untuk bersantai di kamar.' },
   { id: 'outfit_maid', category: 'outfit', name: 'Baju Maid', emoji: '👗', cost: 15000, affectionDelta: 10, color: 'from-gray-100 to-gray-300', desc: 'Kostum pelayan klasik bergaya prancis.' },
   { id: 'outfit_school', category: 'outfit', name: 'Seragam SMA', emoji: '🎀', cost: 12000, affectionDelta: 8, color: 'from-blue-100 to-blue-300', desc: 'Seragam sekolah bergaya pelaut.' },
+  { id: 'outfit_swimsuit', category: 'outfit', name: 'Baju Renang', emoji: '🩱', cost: 20000, affectionDelta: 15, color: 'from-cyan-100 to-cyan-300', desc: 'Satu set baju renang cantik.' },
   
   // Item
   { id: 'kacamata_hitam', category: 'item', name: 'Kacamata Hitam', emoji: '🕶️', cost: 9500, affectionDelta: 20, color: 'from-gray-700 to-gray-900', desc: 'Item wajib untuk jalan-jalan keluar.' },
-  { id: 'tiket_konser', category: 'item', name: 'Tiket Konser', emoji: '🎫', cost: 25000, affectionDelta: 30, color: 'from-yellow-200 to-yellow-400', desc: 'Tiket konser band favorit Livia.' },
+  { id: 'tiket_konser', category: 'item', name: 'Tiket Konser', emoji: '🎫', cost: 25000, affectionDelta: 30, color: 'from-indigo-100 to-purple-300', desc: 'Tiket konser band favorit Livia.' },
   
   // Perabotan
   { id: 'furni_poster', category: 'furniture', name: 'Poster Anime', emoji: '🖼️', cost: 3000, affectionDelta: 2, color: 'from-indigo-100 to-indigo-200', desc: 'Hiasan dinding untuk mempercantik kamar.' },
@@ -65,6 +66,7 @@ export default function ShopPage() {
           const data = await res.json();
           setMoney(data.money || 0);
           setAffection(data.affection || 0);
+          setInventory(data.itemsBrought || []);
         }
       } catch (e) {
         console.error(e);

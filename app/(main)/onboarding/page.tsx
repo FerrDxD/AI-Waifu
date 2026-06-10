@@ -60,29 +60,50 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-pink-50 relative flex flex-col items-center justify-center p-4 overflow-hidden">
-      {/* Decorative background blobs */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob" />
-      <div className="absolute top-0 right-0 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000" />
+    <div className="min-h-screen bg-[#1c1816] relative flex flex-col items-center justify-center overflow-hidden font-sans">
       
-      <div className="absolute inset-0 bg-white/40 backdrop-blur-sm z-0" />
+      {/* Background Layer for final dialog */}
+      {stage === 'dialog' && (
+        <div className="absolute inset-0 z-0 animate-[fadeIn_1s_ease-out_forwards]">
+          <div 
+            className="absolute inset-0 bg-cover bg-center transition-transform duration-[20s] ease-linear hover:scale-110"
+            style={{ backgroundImage: "url('/vn_bg_messy_room.png')" }} 
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1c1816] via-[#1c1816]/40 to-transparent" />
+          {/* Subtle GF2-style grid or vignette */}
+          <div className="absolute inset-0 bg-[url('/bg/grid.png')] opacity-10 mix-blend-overlay pointer-events-none" />
+          <div className="absolute top-8 left-8 w-8 h-8 border-t-2 border-l-2 border-pink-300 z-10 pointer-events-none opacity-50" />
+          <div className="absolute bottom-8 right-8 w-8 h-8 border-b-2 border-r-2 border-pink-300 z-10 pointer-events-none opacity-50" />
+        </div>
+      )}
       
-      <div className="z-10 w-full max-w-5xl">
+      <div className="z-10 w-full h-full flex-1 flex flex-col">
         {stage === 'intro' && <VNScene onComplete={() => setStage('packing')} />}
         
-        {stage === 'packing' && <PackingGame onComplete={handlePackingComplete} />}
+        {stage === 'packing' && (
+          <div className="w-full h-screen flex flex-col justify-center animate-[fadeIn_0.5s_ease-out_forwards] bg-[#fdfbf7] relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-pink-50 to-white z-0" />
+            <div className="absolute top-0 right-0 w-[50%] h-full bg-[#ff758c] opacity-5 transform translate-x-1/4 -skew-x-12 z-0" />
+            <PackingGame onComplete={handlePackingComplete} />
+          </div>
+        )}
         
         {stage === 'dialog' && (
-          <div className="flex flex-col items-center justify-between w-full h-[80vh] max-w-4xl mx-auto py-8">
-            <div className="flex-1 w-full flex justify-center items-end pb-8">
-              <div className="h-[400px] w-[300px]">
-                <LiviaSprite expression={dialogs[dialogIndex].expression} />
+          <div className="relative w-full h-screen flex flex-col justify-end pb-12 px-8 overflow-hidden animate-[fadeIn_0.5s_ease-out_forwards]">
+            {/* Livia Sprite */}
+            <div className="absolute inset-0 flex items-end justify-center pointer-events-none z-10">
+              <div className="relative h-[85vh] w-auto animate-[float_6s_ease-in-out_infinite]">
+                <LiviaSprite 
+                  expression={dialogs[dialogIndex].expression} 
+                  className="h-full w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(255,117,140,0.3)] transition-opacity duration-300"
+                />
               </div>
             </div>
             
-            <div className="w-full">
+            {/* VN Dialog Box */}
+            <div className="w-full max-w-5xl mx-auto z-30">
               <DialogBox 
-                text={loading ? 'Menyimpan...' : dialogs[dialogIndex].text} 
+                text={loading ? 'Memuat Sistem...' : dialogs[dialogIndex].text} 
                 speaker="Livia" 
                 onNext={loading ? undefined : handleNextDialog} 
               />
