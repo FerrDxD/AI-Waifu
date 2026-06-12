@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     );
 
     // Update affection if there is a delta
-    let updateResult = { newAffection: profile?.affection, unlockedChapter: null };
+    let updateResult: { newAffection: number | undefined | null; affectionLevel?: number; unlockedChapter: number | null } = { newAffection: profile?.affection, unlockedChapter: null };
     if (affectionDelta !== 0 && profile) {
       updateResult = await applyAffectionUpdate(session.user.id, affectionDelta);
     }
