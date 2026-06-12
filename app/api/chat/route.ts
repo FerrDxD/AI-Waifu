@@ -5,7 +5,7 @@ import { chatMessages, userProfiles, storyProgress } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { generateLiviaResponse } from '@/lib/gemini';
 import { generatePersonalityContext } from '@/lib/livia/personality';
-import { shouldUnlockChapter } from '@/lib/livia/affection';
+import { applyAffectionUpdate } from '@/lib/livia/affection.server';
 
 export async function POST(req: Request) {
   try {
@@ -73,41 +73,20 @@ export async function POST(req: Request) {
       }
     ]);
 
-    // Update affection
-    const oldAffection = profile.affection || 0;
-    const newAffection = Math.max(0, Math.min(100, oldAffection + affectionDelta));
-    // ✅ FIX: Level calculation konsisten — max level 5
-    const newLevel = newAffection >= 100 ? 5 : Math.floor(newAffection / 20);
-
-    await db.update(userProfiles)
-      .set({ 
-        affection: newAffection, 
-        affectionLevel: newLevel,
-        lastSeen: new Date(),
-      })
-      .where(eq(userProfiles.userId, userId));
-
-    // Unlock chapter check
-    const unlockedChapter = shouldUnlockChapter(oldAffection, newAffection);
-    if (unlockedChapter !== null) {
-      const storyResults = await db.select().from(storyProgress).where(eq(storyProgress.userId, userId));
-      const story = storyResults[0];
-      if (story) {
-        const chapters = new Set(story.unlockedChapters || []);
-        chapters.add(unlockedChapter);
-        await db.update(storyProgress)
-          .set({ unlockedChapters: Array.from(chapters) })
-          .where(eq(storyProgress.userId, userId));
-      }
+    let updateResult = { newAffection: profile.affection, affectionLevel: profile.affectionLevel, unlockedChapter: null as number | null };
+    if (affectionDelta !== 0) {
+      updateResult = await applyAffectionUpdate(userId, affectionDelta);
+    } else {
+      await db.update(userProfiles).set({ lastSeen: new Date() }).where(eq(userProfiles.userId, userId));
     }
 
     return NextResponse.json({
       reply,
       expression,
       affectionDelta,
-      newAffection,
-      newLevel,
-      unlockedChapter: unlockedChapter ?? null
+      newAffection: updateResult.newAffection,
+      newLevel: updateResult.affectionLevel,
+      unlockedChapter: updateResult.unlockedChapter
     });
 
   } catch (error) {

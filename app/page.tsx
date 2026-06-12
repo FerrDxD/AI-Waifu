@@ -29,6 +29,7 @@ export default function LandingPage() {
       <div className="absolute inset-0 flex items-end justify-center md:justify-end md:pr-[15%] pointer-events-none z-10">
         <LiviaSprite 
           expression="normal" 
+          outfit="landing-page"
           className="h-[80vh] md:h-[95vh] w-auto max-w-[800px] object-contain object-bottom drop-shadow-[0_15px_40px_rgba(255,117,140,0.15)] animate-[float_8s_ease-in-out_infinite]"
         />
       </div>

@@ -1,3 +1,4 @@
+// Shared affection logic for both client and server
 export type AffectionLevel = {
   level: number;
   name: string;

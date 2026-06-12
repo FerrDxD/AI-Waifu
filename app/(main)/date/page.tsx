@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { MapPin, ShoppingBag, Coffee, TreePine, Book, Gamepad2, Soup, UtensilsCrossed, Landmark, Ticket, Camera, Music, Waves, Lock } from 'lucide-react';
+import { MapPin, ShoppingBag, Coffee, TreePine, Book, Gamepad2, Soup, UtensilsCrossed, Landmark, Ticket, Camera, Music, Waves, Lock, Sparkles } from 'lucide-react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
 import DialogBox from '@/components/livia/DialogBox';
 import { LiviaExpression } from '@/lib/gemini';
+import { Send } from 'lucide-react';
 
 const LOCATIONS = [
   { id: 'supermarket', name: 'Supermarket', icon: <ShoppingBag size={32} />, color: 'bg-blue-50 border-blue-200 text-blue-600', hover: 'hover:bg-blue-100' },
@@ -19,7 +20,7 @@ const LOCATIONS = [
   { id: 'amusement', name: 'Taman Hiburan', icon: <Ticket size={32} />, color: 'bg-pink-50 border-pink-200 text-pink-600', hover: 'hover:bg-pink-100' },
   { id: 'studio', name: 'Studio Potret', icon: <Camera size={32} />, color: 'bg-teal-50 border-teal-200 text-teal-600', hover: 'hover:bg-teal-100' },
   { id: 'konser', name: 'Konser Musik', icon: <Music size={32} />, color: 'bg-indigo-50 border-indigo-200 text-indigo-600', hover: 'hover:bg-indigo-100', requiredItem: 'tiket_konser', requirementName: 'Tiket Konser' },
-  { id: 'kolam_renang', name: 'Kolam Renang', icon: <Waves size={32} />, color: 'bg-cyan-50 border-cyan-200 text-cyan-600', hover: 'hover:bg-cyan-100', requiredItem: 'outfit_swimsuit', requirementName: 'Baju Renang' },
+  { id: 'festival', name: 'Festival Musim Panas', icon: <Sparkles size={32} />, color: 'bg-rose-50 border-rose-200 text-rose-600', hover: 'hover:bg-rose-100', requiredItem: 'outfit_yukata', requirementName: 'Yukata Festival', mustWear: true },
 ];
 
 type SceneLine = { speaker: string, text: string, expression?: LiviaExpression };
@@ -31,6 +32,13 @@ export default function DatePage() {
   const [sceneIndex, setSceneIndex] = useState(0);
   const [itemsBrought, setItemsBrought] = useState<string[]>([]);
   const [activeOutfit, setActiveOutfit] = useState<string>('default');
+  
+  // Interactive mode states
+  const [isInteractive, setIsInteractive] = useState(false);
+  const [chatLog, setChatLog] = useState<{role: 'user' | 'livia' | 'narator', content: string}[]>([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [liviaExpression, setLiviaExpression] = useState<LiviaExpression>('normal');
 
   useEffect(() => {
     fetch('/api/outfit').then(res => res.json()).then(data => {
@@ -52,6 +60,12 @@ export default function DatePage() {
         const data = await res.json();
         setScene(data.scene);
         setSceneIndex(0);
+        setIsInteractive(false);
+        setChatLog(data.scene.map((line: any) => ({
+          role: line.speaker === 'Livia' ? 'livia' : line.speaker === 'Narator' || !line.speaker ? 'narator' : 'user',
+          content: line.text
+        })));
+        setLiviaExpression(data.scene[0].expression || 'normal');
       }
     } catch (e) {
       console.error(e);
@@ -61,11 +75,46 @@ export default function DatePage() {
   };
 
   const handleNextScene = () => {
+    if (isInteractive) return; // In interactive mode, clicking next does nothing
+    
     if (scene && sceneIndex < scene.length - 1) {
       setSceneIndex(prev => prev + 1);
+      setLiviaExpression(scene[sceneIndex + 1].expression || 'normal');
     } else {
-      setScene(null);
-      setSelectedLoc(null);
+      setIsInteractive(true);
+    }
+  };
+
+  const handleSendChat = async () => {
+    if (!inputValue.trim() || isTyping) return;
+    
+    const userMsg = inputValue.trim();
+    setInputValue('');
+    
+    const newHistory = [...chatLog, { role: 'user' as const, content: userMsg }];
+    setChatLog(newHistory);
+    setIsTyping(true);
+
+    try {
+      const res = await fetch('/api/date/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: selectedLoc,
+          message: userMsg,
+          history: chatLog.slice(-10) // Send last 10 messages for context
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setChatLog(prev => [...prev, { role: 'livia', content: data.reply }]);
+        setLiviaExpression(data.expression || 'normal');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsTyping(false);
     }
   };
 
@@ -93,19 +142,46 @@ export default function DatePage() {
           
           <div className="flex-1 w-full max-w-4xl flex justify-center items-end min-h-0 z-10 relative">
             <LiviaSprite 
-              expression={scene[sceneIndex].expression || 'normal'} 
+              expression={liviaExpression} 
               outfit={activeOutfit}
               className="h-full max-h-[60vh] object-contain object-bottom drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)] animate-[float_4s_ease-in-out_infinite]" 
             />
           </div>
           
-          <div className="w-full max-w-4xl z-20 drop-shadow-2xl relative flex flex-col items-center shrink-0 mt-4">
+          <div className="w-full max-w-4xl z-20 drop-shadow-2xl relative flex flex-col items-center shrink-0 mt-4 gap-4">
             <div className="w-full">
               <DialogBox 
-                text={scene[sceneIndex].text}
-                speaker={scene[sceneIndex].speaker === 'Narator' ? '' : scene[sceneIndex].speaker}
+                text={isInteractive ? chatLog[chatLog.length - 1].content : scene[sceneIndex].text}
+                speaker={isInteractive ? (chatLog[chatLog.length - 1].role === 'livia' ? 'Livia' : chatLog[chatLog.length - 1].role === 'user' ? 'Kamu' : '') : (scene[sceneIndex].speaker === 'Narator' ? '' : scene[sceneIndex].speaker)}
                 onNext={handleNextScene}
               />
+            </div>
+            
+            {/* Interactive Input Field */}
+            <div className={`w-full transition-all duration-500 transform ${isInteractive ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0 pointer-events-none'}`}>
+              <div className="px-2 md:px-0 flex items-end gap-2 md:gap-3">
+                <textarea
+                  value={inputValue}
+                  onChange={e => setInputValue(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendChat();
+                    }
+                  }}
+                  placeholder="Ketik balasanmu untuk Livia..."
+                  rows={1}
+                  disabled={isTyping}
+                  className="flex-1 resize-none py-3 md:py-4 px-4 md:px-6 text-[15px] focus:outline-none transition-all placeholder:text-gray-400 bg-white/95 backdrop-blur-xl border border-pink-100 rounded-[24px] text-[#5c4d47] font-medium shadow-[0_10px_25px_rgba(0,0,0,0.05)]"
+                />
+                <button
+                  onClick={handleSendChat}
+                  disabled={isTyping || !inputValue.trim()}
+                  className="shrink-0 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all shadow-md bg-gradient-to-r from-[#ff0844] to-[#ffb199] text-white disabled:opacity-50 disabled:grayscale"
+                >
+                  <Send size={16} className={`md:w-5 md:h-5 ${inputValue.trim() && !isTyping ? "ml-1" : ""}`} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -131,7 +207,10 @@ export default function DatePage() {
           ) : (
             <div className="flex gap-4 md:gap-6 pb-8 md:pb-12 overflow-x-auto snap-x snap-mandatory hide-scrollbar md:scrollbar-thin md:scrollbar-thumb-pink-200 md:scrollbar-track-transparent pr-4 md:pr-8 -mx-4 md:-mx-8 px-6 md:px-12">
               {LOCATIONS.map(loc => {
-                const isLocked = loc.requiredItem && !itemsBrought.includes(loc.requiredItem);
+                const notOwned = loc.requiredItem && !itemsBrought.includes(loc.requiredItem);
+                const notWearing = loc.mustWear && activeOutfit !== loc.requiredItem && activeOutfit !== loc.requiredItem.replace('outfit_', '');
+                const isLocked = notOwned || notWearing;
+                const lockedReason = notOwned ? `Butuh: ${loc.requirementName}` : notWearing ? `Pakai: ${loc.requirementName}` : '';
                 
                 return (
                 <button
@@ -158,7 +237,7 @@ export default function DatePage() {
                     </h3>
                     {isLocked ? (
                       <p className="text-[10px] md:text-sm font-bold flex items-center gap-1.5 md:gap-2 text-red-400 bg-red-50/80 px-2 md:px-3 py-1 md:py-1.5 rounded-lg inline-flex w-max">
-                        <Lock size={12} className="md:w-3.5 md:h-3.5" /> Butuh: {loc.requirementName}
+                        <Lock size={12} className="md:w-3.5 md:h-3.5" /> {lockedReason}
                       </p>
                     ) : (
                       <p className="text-xs md:text-base font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 flex items-center gap-1.5 md:gap-2">

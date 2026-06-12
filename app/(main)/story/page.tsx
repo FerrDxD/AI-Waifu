@@ -103,10 +103,18 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Livia", text: "Hei... kamu udah tidur belum?", expression: "normal" },
       { speaker: "Narator", text: "Livia berdiri di depan pintumu sambil memeluk bantal bonekanya.", expression: "normal" },
       { speaker: "Livia", text: "Di kamarku ada kecoa besar! Aku udah coba usir, tapi dia malah terbang!", expression: "angry" },
-      { speaker: "Livia", text: "A-aku nggak takut kok! Cuma jijik aja! Paham kan bedanya?!", expression: "blushing" },
-      { speaker: "Narator", text: "Kamu menahan tawa dan bersiap membantunya menjadi pahlawan pengusir serangga.", expression: "normal" },
-      { speaker: "Livia", text: "Cepat ambil sapu lidi atau apalah! Kalau dia hilang di bawah kasurku, aku bakal numpang tidur di sini!", expression: "clingy" },
-      { speaker: "Livia", text: "Ehh— tunggu, barusan aku ngomong apa?! Lupakan! Cepat bunuh kecoanya!", expression: "angry" }
+      { speaker: "Livia", text: "A-aku nggak takut kok! Cuma jijik aja! Paham kan bedanya?!", expression: "blushing",
+        choices: [
+          { text: "Iya iya, aku bantu usir.", nextIndex: 5 },
+          { text: "Biarin aja, nanti juga hilang sendiri.", nextIndex: 6 }
+        ]
+      },
+      // 5 (Branch A)
+      { speaker: "Livia", text: "Cepat ambil sapu lidi atau apalah! Kalau dia hilang di bawah kasurku, aku bakal numpang tidur di sini!", expression: "clingy", nextIndex: 7 },
+      // 6 (Branch B)
+      { speaker: "Livia", text: "Jahat banget sih?! Gimana aku bisa tidur kalau ada monster itu di kamarku?!", expression: "angry", nextIndex: 7 },
+      // 7 (Convergence)
+      { speaker: "Livia", text: "Ehh— tunggu, barusan aku ngomong apa?! Lupakan! Pokoknya cepat bunuh kecoanya!", expression: "angry" }
     ]
   },
   {
@@ -117,9 +125,17 @@ const CHAPTERS: Chapter[] = [
     content: [
       { speaker: "Narator", text: "Akhir pekan yang tenang. Kamu sedang menyeduh kopi saat Livia menghampiri area dapur bersama.", expression: "normal" },
       { speaker: "Livia", text: "Nih. Ibu ngirim terlalu banyak kue kering dari rumah.", expression: "normal" },
-      { speaker: "Livia", text: "Karena kamarku nggak muat, kamu ambil sebagian. Bukannya aku sengaja nyisihin buatmu, ya!", expression: "blushing" },
-      { speaker: "Narator", text: "Kamu mencoba satu kuenya. Rasanya sangat lezat. Kamu mengucapkan terima kasih padanya.", expression: "normal" },
-      { speaker: "Livia", text: "Syukurlah kalau kamu suka... Eh, maksudku, wajar kalau rasanya enak, itu buatan ibuku!", expression: "happy" },
+      { speaker: "Livia", text: "Karena kamarku nggak muat, kamu ambil sebagian. Bukannya aku sengaja nyisihin buatmu, ya!", expression: "blushing",
+        choices: [
+          { text: "Wah, makasih! Kelihatannya enak.", nextIndex: 3 },
+          { text: "Bilang aja sengaja nyisihin buatku.", nextIndex: 4 }
+        ]
+      },
+      // 3 (Branch A)
+      { speaker: "Livia", text: "Syukurlah kalau kamu suka... Eh, maksudku, wajar kalau rasanya enak, itu buatan ibuku!", expression: "happy", nextIndex: 5 },
+      // 4 (Branch B)
+      { speaker: "Livia", text: "U-udah kubilang bukan gitu! Mau dibalikin nggak nih kuenya?!", expression: "angry", nextIndex: 5 },
+      // 5 (Convergence)
       { speaker: "Livia", text: "Kamu tahu, belakangan ini aku merasa ngekos nggak seburuk yang kukira.", expression: "normal" },
       { speaker: "Livia", text: "Awalnya aku takut sendirian. Tapi karena... karena ada seseorang yang terus memperhatikanku...", expression: "blushing" },
       { speaker: "Livia", text: "Rasanya tempat ini sedikit terasa seperti rumah kedua. Gitu deh.", expression: "clingy" }
@@ -132,11 +148,18 @@ const CHAPTERS: Chapter[] = [
     reqLevel: 4,
     content: [
       { speaker: "Livia", text: "Kamu lagi ngerjain tugas? Fokus banget dari tadi.", expression: "normal" },
-      { speaker: "Livia", text: "Aku beliin es kopi waktu keluar tadi. Satu buatku, satu buatmu. Jangan protes, minum aja.", expression: "happy" },
-      { speaker: "Narator", text: "Kamu menyadari belakangan ini Livia lebih sering menghabiskan waktu di area kerjamu daripada di kamarnya sendiri.", expression: "normal" },
+      { speaker: "Livia", text: "Aku beliin es kopi waktu keluar tadi. Satu buatku, satu buatmu. Jangan protes, minum aja.", expression: "happy",
+        choices: [
+          { text: "Tumben baik banget? Makasih ya.", nextIndex: 2 },
+          { text: "Harganya dipotong dari uang kos kan?", nextIndex: 3 }
+        ]
+      },
+      // 2 (Branch A)
+      { speaker: "Narator", text: "Kamu menyadari belakangan ini Livia lebih sering menghabiskan waktu di area kerjamu daripada di kamarnya sendiri.", expression: "normal", nextIndex: 4 },
+      // 3 (Branch B)
+      { speaker: "Livia", text: "Enak aja! Aku pakai uangku sendiri tau! Nggak tahu terima kasih banget sih!", expression: "angry", nextIndex: 4 },
+      // 4 (Convergence)
       { speaker: "Livia", text: "Kenapa ngeliatin gitu? Kamarku Wi-Finya lagi lambat, makanya aku duduk di sini! Jangan GR!", expression: "angry" },
-      { speaker: "Narator", text: "Kamu tertawa kecil, membiarkannya mencari-cari alasan seperti biasa.", expression: "normal" },
-      { speaker: "Livia", text: "I-itu beneran tau! Ah udahlah, kamu ngeselin banget sih!", expression: "blushing" },
       { speaker: "Livia", text: "Terserah kamu mau mikir apa... Aku cuma... merasa lebih tenang kalau ada di dekatmu. Udah, puasss?!", expression: "clingy" },
       { speaker: "Narator", text: "Kamu tersenyum sambil menyeruput es kopimu. Livia kembali fokus ke laptopnya dengan wajah memerah.", expression: "normal" }
     ]
@@ -150,8 +173,17 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Narator", text: "Beberapa bulan telah berlalu sejak awal kepindahan Livia ke kos ini.", expression: "normal" },
       { speaker: "Livia", text: "Waktu cepat banget berlalu ya.", expression: "normal" },
       { speaker: "Livia", text: "Dulu aku benci banget ninggalin rumah. Tapi sekarang... rasanya aku nggak mau pergi dari tempat ini.", expression: "happy" },
-      { speaker: "Livia", text: "Bukan karena kamarnya ya! Kamarnya masih sempit dan atapnya kadang bocor!", expression: "angry" },
-      { speaker: "Livia", text: "Tapi... karena alasan lain.", expression: "blushing" },
+      { speaker: "Livia", text: "Bukan karena kamarnya ya! Kamarnya masih sempit dan atapnya kadang bocor!", expression: "angry",
+        choices: [
+          { text: "Lalu karena apa dong?", nextIndex: 4 },
+          { text: "Iya, kamu nggak mau jauh dariku kan?", nextIndex: 5 }
+        ]
+      },
+      // 4 (Branch A)
+      { speaker: "Livia", text: "Karena... umm... karena alasan lain.", expression: "blushing", nextIndex: 6 },
+      // 5 (Branch B)
+      { speaker: "Livia", text: "P-percaya diri banget sih kamu! Walaupun... ya, sedikit benar sih...", expression: "blushing", nextIndex: 6 },
+      // 6 (Convergence)
       { speaker: "Narator", text: "Livia menarik ujung lengan bajumu pelan, menatap lurus ke arah matamu.", expression: "normal" },
       { speaker: "Livia", text: "Kamu tahu kan kalau kamu itu spesial buatku?", expression: "clingy" },
       { speaker: "Livia", text: "Terima kasih... karena selalu sabar menghadapiku. Terima kasih sudah jadi 'rumah' baruku.", expression: "happy" },

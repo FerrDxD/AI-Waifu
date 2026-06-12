@@ -3,7 +3,9 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { userProfiles, storyProgress } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { shouldUnlockChapter } from '@/lib/livia/affection';
+import { applyAffectionUpdate } from '@/lib/livia/affection.server';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
   try {
@@ -18,7 +20,8 @@ export async function GET(req: Request) {
       affection: profileResults[0]?.affection || 0,
       money: profileResults[0]?.money || 0,
       unlockedChapters: storyResults[0]?.unlockedChapters || [0],
-      itemsBrought: profileResults[0]?.itemsBrought || []
+      itemsBrought: profileResults[0]?.itemsBrought || [],
+      activeOutfit: profileResults[0]?.activeOutfit || 'default'
     });
   } catch (error) {
     console.error('Affection GET API Error:', error);
@@ -40,44 +43,9 @@ export async function PATCH(req: Request) {
 
     const userId = session.user.id;
 
-    const profileResults = await db.select().from(userProfiles).where(eq(userProfiles.userId, userId));
-    const profile = profileResults[0];
-    if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
-    }
+    const result = await applyAffectionUpdate(userId, delta);
 
-    const oldAffection = profile.affection || 0;
-    const newAffectionRaw = oldAffection + delta;
-    const newAffection = Math.max(0, Math.min(100, newAffectionRaw));
-    const affectionLevel = Math.floor(newAffection / 20);
-
-    await db.update(userProfiles)
-      .set({ affection: newAffection, affectionLevel })
-      .where(eq(userProfiles.userId, userId));
-
-    const unlockedChapter = shouldUnlockChapter(oldAffection, newAffection);
-    if (unlockedChapter !== null) {
-      const storyResults = await db.select().from(storyProgress).where(eq(storyProgress.userId, userId));
-      const story = storyResults[0];
-      if (story) {
-        const chapters = new Set(story.unlockedChapters || []);
-        chapters.add(unlockedChapter);
-        await db.update(storyProgress)
-          .set({ unlockedChapters: Array.from(chapters) })
-          .where(eq(storyProgress.userId, userId));
-      } else {
-        await db.insert(storyProgress).values({
-          userId: userId,
-          unlockedChapters: [0, unlockedChapter]
-        });
-      }
-    }
-
-    return NextResponse.json({
-      newAffection,
-      affectionLevel,
-      unlockedChapter
-    });
+    return NextResponse.json(result);
 
   } catch (error) {
     console.error('Affection API Error:', error);

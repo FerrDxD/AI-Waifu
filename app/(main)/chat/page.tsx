@@ -10,6 +10,21 @@ interface ChatMessage {
   id: string;
   role: 'user' | 'livia';
   content: string;
+  isNew?: boolean;
+}
+
+function TypewriterText({ text }: { text: string }) {
+  const [displayed, setDisplayed] = useState('');
+  useEffect(() => {
+    let i = 0;
+    const t = setInterval(() => {
+      setDisplayed(text.slice(0, i + 1));
+      i++;
+      if (i >= text.length) clearInterval(t);
+    }, 20);
+    return () => clearInterval(t);
+  }, [text]);
+  return <span>{displayed}</span>;
 }
 
 export default function ChatPage() {
@@ -106,6 +121,7 @@ export default function ChatPage() {
           id: (Date.now() + 1).toString(),
           role: 'livia',
           content: data.reply,
+          isNew: true,
         }]);
         setExpression(data.expression);
         localStorage.setItem('liviaExpression', data.expression);
@@ -118,13 +134,19 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-row w-full h-screen overflow-hidden bg-[#fdfbf7]">
+    <div className="flex flex-row w-full h-screen overflow-hidden bg-[#fdfbf7] relative">
+      {/* Global Background */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none"
+        style={{ backgroundImage: "url('/bg/chat_bg.png')" }}
+      />
+      
       {/* Panel kiri — Livia (Desktop Only) */}
       <div className="hidden md:flex md:w-[35%] h-full flex-col items-center justify-end relative z-10 bg-[#fdfbf7] shadow-[5px_0_15px_rgba(0,0,0,0.03)] border-r border-pink-100">
         {/* Immersive Background just for Livia */}
         <div 
           className="absolute inset-0 bg-cover bg-center transition-all duration-1000 z-0 opacity-40 mix-blend-multiply blur-[1px]"
-          style={{ backgroundImage: "url('/bg/bedroom.png')" }}
+          style={{ backgroundImage: "url('/bg/chat_bg.png')" }}
         />
 
         {/* Sweet Background glow */}
@@ -183,7 +205,7 @@ export default function ChatPage() {
       </div>
 
       {/* Panel kanan — Chat */}
-      <div className="flex-1 w-full md:w-[65%] h-full flex flex-col relative z-10 bg-white md:bg-[#fdfbf7]">
+      <div className="flex-1 w-full md:w-[65%] h-full flex flex-col relative z-10 bg-white/70 md:bg-transparent backdrop-blur-sm">
         {/* Mobile Background (Livia portrait subtly blended behind chat) */}
         <div className="md:hidden absolute inset-0 z-0 opacity-10 pointer-events-none overflow-hidden">
           <LiviaSprite
@@ -260,7 +282,7 @@ export default function ChatPage() {
                     boxShadow: '0 4px 10px rgba(255,8,68,0.2)'
                   }}
                 >
-                  {msg.content}
+                  {msg.role === 'livia' && msg.isNew ? <TypewriterText text={msg.content} /> : msg.content}
                 </div>
               </div>
             ))}

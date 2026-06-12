@@ -13,6 +13,10 @@ interface LiviaSpriteProps {
   expression: LiviaExpression;
   outfit?: string;
   className?: string;
+  imgClassName?: string;
+  disableFloat?: boolean;
+  mixBlendMultiply?: boolean;
+  variant?: 'home' | 'wardrobe';
 }
 
 const glowStyles: Record<LiviaExpression, string> = {
@@ -23,14 +27,43 @@ const glowStyles: Record<LiviaExpression, string> = {
   happy: 'drop-shadow-[0_0_20px_rgba(196,149,106,0.5)]',
 };
 
-export default function LiviaSprite({ expression, outfit = 'default', className }: LiviaSpriteProps) {
+export default function LiviaSprite({ expression, outfit = 'default', className, imgClassName, disableFloat = false, mixBlendMultiply = false, variant = 'home' }: LiviaSpriteProps) {
   const [imgError, setImgError] = useState(false);
-  const src = outfit === 'default' ? `/livia/${expression}.png` : `/livia/${outfit}/${expression}.png`;
+  
+  let fileName = expression as string;
+  if (outfit === 'home-screen' && expression === 'happy') {
+    fileName = 'hapyy';
+  }
+  
+  // Map outfit IDs to actual folder paths
+  let folderPath = 'home-screen/default'; // fallback
+  if (outfit === 'landing-page') {
+    folderPath = 'landing-page';
+  } else if (outfit === 'default') {
+    folderPath = 'home-screen/default';
+  } else if (outfit === 'outfit_casual' || outfit === 'casual') {
+    folderPath = 'home-screen/casual';
+  } else if (outfit === 'outfit_school' || outfit === 'school') {
+    folderPath = 'home-screen/hightscool uniform';
+  } else if (outfit === 'outfit_yukata' || outfit === 'yukata') {
+    folderPath = 'home-screen/yukata';
+  }
+
+  let src = `/livia/${folderPath}/${fileName}.png`;
+
+  if (variant === 'wardrobe') {
+    let wardrobeFileName = 'default';
+    if (outfit === 'outfit_casual' || outfit === 'casual') wardrobeFileName = 'casual';
+    else if (outfit === 'outfit_school' || outfit === 'school') wardrobeFileName = 'uniform';
+    else if (outfit === 'outfit_yukata' || outfit === 'yukata') wardrobeFileName = 'yukata';
+    
+    src = `/livia/wardrobe/${wardrobeFileName}.png`;
+  }
 
   return (
     <div className={cn(
       "relative flex items-end justify-center",
-      "animate-[float_3s_ease-in-out_infinite]",
+      !disableFloat && "animate-[float_3s_ease-in-out_infinite]",
       className
     )}>
       <style>{`
@@ -51,9 +84,10 @@ export default function LiviaSprite({ expression, outfit = 'default', className 
           src={src}
           alt={`Livia - ${expression}`}
           className={cn(
-            "w-full h-full object-contain object-bottom",
-            "transition-all duration-300",
-            glowStyles[expression]
+            "w-full h-full transition-all duration-300",
+            imgClassName || "object-contain object-bottom",
+            glowStyles[expression],
+            mixBlendMultiply && "mix-blend-multiply"
           )}
           style={{ 
             WebkitMaskImage: 'none',

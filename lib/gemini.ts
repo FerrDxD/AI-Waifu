@@ -141,3 +141,76 @@ Jangan tambahkan teks lain di luar JSON.`;
     ];
   }
 }
+
+export async function generateDateResponse(
+  location: string,
+  userMessage: string,
+  chatHistory: { role: 'user' | 'livia' | 'narator', content: string }[],
+  affectionLevel: number,
+  userName: string
+): Promise<{ reply: string, expression: LiviaExpression, affectionDelta: number }> {
+  
+  const affectionLevelName = affectionLevel < 20 ? 'Orang Asing' :
+                             affectionLevel < 40 ? 'Kenalan' :
+                             affectionLevel < 60 ? 'Tetangga' :
+                             affectionLevel < 80 ? 'Teman' :
+                             affectionLevel < 100 ? 'Sahabat' : 'Rumah';
+                             
+  const systemPrompt = `Kamu adalah Livia Einhart, gadis 19 tahun tsundere. Kamu sedang jalan-jalan (kencan) dengan ${userName} di: ${location}. 
+Level kedekatan saat ini: ${affectionLevelName} (${affectionLevel}/100).
+- Jika affection < 40: Kamu agak jaga jarak, tsundere, sering malu-malu tapi ketus.
+- Jika affection >= 40: Kamu mulai nyaman, kadang keceplosan bilang hal manis, tapi langsung ditarik lagi (tsundere).
+- Jika affection >= 80: Kamu sangat protektif, manja, dan terang-terangan suka kencan ini (meski masih sok jual mahal sedikit).
+
+Aturan berbicara:
+- Gunakan Bahasa Indonesia yang natural dan santai.
+- Jawab secara langsung ke ${userName}.
+- Tunjukkan reaksi yang sesuai dengan suasana ${location}.
+- Jangan terlalu panjang — maksimal 3-4 kalimat per respons.
+
+Kembalikan HANYA JSON valid:
+{
+  "reply": "teks balasan Livia",
+  "affectionDelta": angka antara -5 sampai 5,
+  "expression": "normal" | "angry" | "blushing" | "clingy" | "happy"
+}
+Hanya kembalikan JSON. Tidak ada teks lain.`;
+
+  const model = genAI.getGenerativeModel({ model: "gemini-flash-latest", generationConfig: { temperature: 0.8 } });
+
+  const formattedHistory = chatHistory.map(msg => 
+    `${msg.role === 'livia' ? 'Livia' : msg.role === 'narator' ? 'Narator' : 'User'}: ${msg.content}`
+  ).join('\n');
+
+  const fullPrompt = `${systemPrompt}
+
+Riwayat obrolan kencan sejauh ini:
+${formattedHistory}
+
+User (${userName}): ${userMessage}
+Livia:`;
+
+  try {
+    const result = await model.generateContent(fullPrompt);
+    const text = result.response.text();
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("No JSON found in response");
+    
+    let jsonStr = match[0];
+    if (!jsonStr.endsWith('}')) jsonStr += '"}';
+    const parsed = JSON.parse(jsonStr);
+    
+    return {
+      reply: parsed.reply || "...",
+      affectionDelta: parsed.affectionDelta || 0,
+      expression: parsed.expression || "normal"
+    };
+  } catch (error) {
+    console.error("Error generating Date response:", error);
+    return {
+      reply: "Apa sih? Jangan ngomong yang aneh-aneh di tempat umum.",
+      affectionDelta: -1,
+      expression: "angry"
+    };
+  }
+}
