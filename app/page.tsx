@@ -26,11 +26,12 @@ export default function LandingPage() {
       <div className="absolute bottom-12 left-24 right-24 h-[1px] bg-gradient-to-r from-pink-200 via-transparent to-pink-200 z-10 pointer-events-none hidden md:block" />
 
       {/* Character Display */}
-      <div className="absolute inset-0 flex items-end justify-center md:justify-end md:pr-[15%] pointer-events-none z-10">
+      <div className="absolute inset-0 flex items-end justify-center md:justify-center md:pl-[15%] pointer-events-none z-30">
         <LiviaSprite 
           expression="normal" 
           outfit="landing-page"
-          className="h-[80vh] md:h-[95vh] w-auto max-w-[800px] object-contain object-bottom drop-shadow-[0_15px_40px_rgba(255,117,140,0.15)] animate-[float_8s_ease-in-out_infinite]"
+          disableFloat={true}
+          className="h-[100vh] md:h-[130vh] max-h-none w-auto max-w-none object-contain object-bottom drop-shadow-[0_15px_40px_rgba(255,117,140,0.15)] translate-y-[10vh] md:translate-y-[20vh]"
         />
       </div>
 
@@ -98,7 +99,7 @@ export default function LandingPage() {
               Mulai Sekarang
             </span>
             <span className="font-mono text-[9px] md:text-[10px] text-pink-500 md:text-pink-400 group-hover:text-pink-100 z-10 transition-colors tracking-widest">
-              [ REGISTRATION ]
+              [ SIGN UP ]
             </span>
           </Link>
 
@@ -107,7 +108,7 @@ export default function LandingPage() {
               Akses Sistem
             </span>
             <span className="font-mono text-[9px] md:text-[10px] text-gray-500 md:text-gray-400 group-hover:text-gray-500 z-10 transition-colors tracking-widest">
-              [ LOGIN ]
+              [ SIGN IN ]
             </span>
           </Link>
 
