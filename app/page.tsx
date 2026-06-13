@@ -26,12 +26,12 @@ export default function LandingPage() {
       <div className="absolute bottom-12 left-24 right-24 h-[1px] bg-gradient-to-r from-pink-200 via-transparent to-pink-200 z-10 pointer-events-none hidden md:block" />
 
       {/* Character Display */}
-      <div className="absolute inset-0 flex items-end justify-center md:justify-center md:pl-[15%] pointer-events-none z-30">
+      <div className="absolute inset-0 flex items-end justify-end md:justify-center md:pl-[15%] pointer-events-none z-30">
         <LiviaSprite 
           expression="normal" 
           outfit="landing-page"
           disableFloat={true}
-          className="h-[100vh] md:h-[130vh] max-h-none w-auto max-w-none object-contain object-bottom drop-shadow-[0_15px_40px_rgba(255,117,140,0.15)] translate-y-[10vh] md:translate-y-[20vh]"
+          className="h-[110vh] md:h-[130vh] max-h-none w-auto max-w-none object-contain object-bottom drop-shadow-[0_15px_40px_rgba(255,117,140,0.15)] translate-y-[15vh] md:translate-y-[20vh] translate-x-10 md:translate-x-0"
         />
       </div>
 
@@ -63,57 +63,55 @@ export default function LandingPage() {
         </div>
 
         {/* Center Left Info Panel */}
-        <div className="flex-1 flex flex-col justify-center max-w-lg pointer-events-auto mt-10 md:mt-0">
-          <div className="relative pl-6 md:pl-8 py-6 md:py-8 mb-4 md:mb-8 bg-gradient-to-r from-white/95 to-white/40 md:to-transparent backdrop-blur-md rounded-r-2xl md:rounded-r-3xl border-y border-r border-white/50 md:border-none">
+        <div className="flex-1 flex flex-col justify-start max-w-lg pointer-events-auto mt-8 md:mt-16 relative">
+          <div className="relative pl-5 md:pl-8 py-5 md:py-8 mb-2 md:mb-8 bg-gradient-to-r from-white/95 via-white/80 to-transparent md:to-transparent backdrop-blur-sm md:backdrop-blur-md rounded-r-2xl md:rounded-r-3xl border-y border-r border-white/50 md:border-none w-[85%] md:w-auto">
             {/* Accent Line */}
             <div className="absolute left-0 top-0 w-1 md:w-1.5 h-full bg-gradient-to-b from-[#ff758c] to-amber-300 rounded-full" />
             
-            <h2 className="text-2xl md:text-4xl font-display font-black text-[#5c4d47] mb-3 md:mb-4 uppercase tracking-[0.1em] md:tracking-[0.15em] leading-tight">
-              Virtual <br/> Companion
+            <h2 className="text-2xl md:text-4xl font-display font-black text-[#5c4d47] mb-2 md:mb-4 uppercase tracking-[0.1em] md:tracking-[0.15em] leading-tight drop-shadow-sm md:drop-shadow-none">
+              Virtual <br className="hidden md:block" /> Companion
             </h2>
-            <p className="text-[13px] md:text-base text-[#5c4d47]/80 md:text-gray-500 font-medium leading-relaxed font-sans mb-6 md:mb-8 max-w-[280px] md:max-w-sm">
+            <p className="text-[12px] md:text-base text-[#5c4d47]/90 md:text-gray-500 font-medium leading-relaxed font-sans mb-4 md:mb-8 max-w-[220px] md:max-w-sm drop-shadow-md md:drop-shadow-none">
               Temukan ritme kerjamu bersama Livia. Sistem pendamping produktivitas yang dirancang khusus untuk menemani fokus dan belajarmu di lingkungan kos yang nyaman.
             </p>
             
             {/* Tech stats decorative */}
-            <div className="flex gap-6 md:gap-8 font-mono text-[9px] md:text-[10px] text-pink-500 md:text-pink-400 font-bold uppercase tracking-widest border-t border-pink-200/50 md:border-pink-100 pt-4 md:pt-6 w-max">
+            <div className="flex gap-4 md:gap-8 font-mono text-[8px] md:text-[10px] text-pink-600 md:text-pink-400 font-bold uppercase tracking-widest border-t border-pink-200/50 md:border-pink-100 pt-3 md:pt-6 w-max">
               <div>
-                <span className="text-[#5c4d47]/50 md:text-gray-400 block mb-0.5 md:mb-1">MODULE</span>
+                <span className="text-[#5c4d47]/60 md:text-gray-400 block mb-0.5 md:mb-1">MODULE</span>
                 POMODORO
               </div>
               <div>
-                <span className="text-[#5c4d47]/50 md:text-gray-400 block mb-0.5 md:mb-1">INTERACTION</span>
+                <span className="text-[#5c4d47]/60 md:text-gray-400 block mb-0.5 md:mb-1">INTERACTION</span>
                 VN_DIALOGUE
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom Actions */}
-        <div className="w-full md:absolute md:bottom-14 md:right-14 flex flex-col md:flex-col gap-3 pointer-events-auto z-50 mt-auto pb-4 md:pb-0 md:w-auto">
+      </div>
+
+      {/* Floating Action Buttons (Above Livia) */}
+      <div className="absolute bottom-6 left-6 right-6 md:left-auto md:right-14 md:bottom-14 flex flex-col gap-3 pointer-events-auto z-40 md:w-auto">
+        <Link href="/register" className="group relative flex items-center justify-between w-full md:w-[320px] bg-white/95 md:bg-white/90 backdrop-blur-xl border border-pink-200 p-4 md:p-5 shadow-[0_10px_40px_rgba(255,117,140,0.15)] hover:border-[#ff758c] transition-all duration-300 overflow-hidden">
+          <div className="absolute left-0 top-0 w-1.5 h-full bg-[#ff758c] group-hover:w-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] z-0" />
           
-          <Link href="/register" className="group relative flex items-center justify-between w-full md:w-[320px] bg-white/95 md:bg-white/90 backdrop-blur-xl border border-pink-200 p-4 md:p-5 shadow-[0_10px_40px_rgba(255,117,140,0.15)] hover:border-[#ff758c] transition-all duration-300 overflow-hidden">
-            <div className="absolute left-0 top-0 w-1.5 h-full bg-[#ff758c] group-hover:w-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] z-0" />
-            
-            <span className="font-display font-black text-[#5c4d47] group-hover:text-white uppercase tracking-widest z-10 pl-2 transition-colors text-sm md:text-base">
-              Mulai Sekarang
-            </span>
-            <span className="font-mono text-[9px] md:text-[10px] text-pink-500 md:text-pink-400 group-hover:text-pink-100 z-10 transition-colors tracking-widest">
-              [ SIGN UP ]
-            </span>
-          </Link>
+          <span className="font-display font-black text-[#5c4d47] group-hover:text-white uppercase tracking-widest z-10 pl-2 transition-colors text-sm md:text-base">
+            Mulai Sekarang
+          </span>
+          <span className="font-mono text-[9px] md:text-[10px] text-pink-500 md:text-pink-400 group-hover:text-pink-100 z-10 transition-colors tracking-widest">
+            [ SIGN UP ]
+          </span>
+        </Link>
 
-          <Link href="/login" className="group relative flex items-center justify-between w-full md:w-[320px] bg-white/80 md:bg-white/40 backdrop-blur-md border border-gray-200 p-4 md:p-5 hover:bg-white/90 transition-all duration-300 shadow-sm md:shadow-none">
-            <span className="font-display font-black text-gray-600 md:text-gray-500 group-hover:text-[#5c4d47] uppercase tracking-widest z-10 pl-2 transition-colors text-sm md:text-base">
-              Akses Sistem
-            </span>
-            <span className="font-mono text-[9px] md:text-[10px] text-gray-500 md:text-gray-400 group-hover:text-gray-500 z-10 transition-colors tracking-widest">
-              [ SIGN IN ]
-            </span>
-          </Link>
-
-        </div>
-
+        <Link href="/login" className="group relative flex items-center justify-between w-full md:w-[320px] bg-white/80 md:bg-white/40 backdrop-blur-md border border-gray-200 p-4 md:p-5 hover:bg-white/90 transition-all duration-300 shadow-sm md:shadow-none">
+          <span className="font-display font-black text-gray-600 md:text-gray-500 group-hover:text-[#5c4d47] uppercase tracking-widest z-10 pl-2 transition-colors text-sm md:text-base">
+            Akses Sistem
+          </span>
+          <span className="font-mono text-[9px] md:text-[10px] text-gray-500 md:text-gray-400 group-hover:text-gray-500 z-10 transition-colors tracking-widest">
+            [ SIGN IN ]
+          </span>
+        </Link>
       </div>
 
     </div>

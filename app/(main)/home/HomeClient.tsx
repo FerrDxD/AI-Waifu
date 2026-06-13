@@ -33,7 +33,7 @@ function getGreeting(affection: number, itemsBrought: string[]): { text: string;
 
   if (hour >= 5 && hour < 12) {
     return affection < 40
-      ? { text: 'Kamu lagi ngapain pagi-pagi?', expression: 'normal' }
+      ? { text: 'Kamu lagi, ngapain pagi-pagi?', expression: 'normal' }
       : { text: 'Pagi. Udah sarapan belum?', expression: 'happy' };
   } else if (hour >= 12 && hour < 18) {
     return affection < 40

@@ -16,7 +16,7 @@ interface LiviaSpriteProps {
   imgClassName?: string;
   disableFloat?: boolean;
   mixBlendMultiply?: boolean;
-  variant?: 'home' | 'wardrobe';
+  variant?: 'home' | 'wardrobe' | 'focus';
 }
 
 const glowStyles: Record<LiviaExpression, string> = {
@@ -58,6 +58,13 @@ export default function LiviaSprite({ expression, outfit = 'default', className,
     else if (outfit === 'outfit_yukata' || outfit === 'yukata') wardrobeFileName = 'yukata';
     
     src = `/livia/wardrobe/${wardrobeFileName}.png`;
+  } else if (variant === 'focus') {
+    let focusFileName = 'default';
+    if (outfit === 'outfit_casual' || outfit === 'casual') focusFileName = 'casual';
+    else if (outfit === 'outfit_school' || outfit === 'school') focusFileName = 'uniform';
+    else if (outfit === 'outfit_yukata' || outfit === 'yukata') focusFileName = 'yukata';
+    
+    src = `/livia/focus-page/${focusFileName}.png`;
   }
 
   return (

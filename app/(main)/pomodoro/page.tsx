@@ -21,6 +21,8 @@ export default function PomodoroPage() {
   const [dialog, setDialog] = useState(MOTIVATIONS[0]);
   const [expression, setExpression] = useState<LiviaExpression>('normal');
   const [showConfetti, setShowConfetti] = useState(false);
+  const [activeOutfit, setActiveOutfit] = useState<string>('default');
+  const [bgImg, setBgImg] = useState<string | null>(null);
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const pauseTimeRef = useRef<number>(0);
@@ -65,6 +67,27 @@ export default function PomodoroPage() {
       if (pauseIntervalRef.current) clearInterval(pauseIntervalRef.current);
     };
   }, [isRunning, timeLeft]);
+
+  useEffect(() => {
+    // Fetch active outfit
+    fetch('/api/outfit').then(res => res.json()).then(data => {
+      const outfit = data.activeOutfit || 'default';
+      setActiveOutfit(outfit);
+      
+      let outfitFolder = 'defailt';
+      if (outfit === 'outfit_casual' || outfit === 'casual') outfitFolder = 'casual';
+      else if (outfit === 'outfit_school' || outfit === 'school') outfitFolder = 'uniform';
+      else if (outfit === 'outfit_yukata' || outfit === 'yukata') outfitFolder = 'yukata';
+      
+      const hour = new Date().getHours();
+      let timeStr = 'morning';
+      if (hour >= 5 && hour < 15) timeStr = 'morning';
+      else if (hour >= 15 && hour < 19) timeStr = 'afternoon';
+      else timeStr = 'night';
+      
+      setBgImg(`/bg/focus/${outfitFolder}/${timeStr}.png`);
+    }).catch(console.error);
+  }, []);
 
   const handleComplete = async () => {
     setIsRunning(false);
@@ -118,10 +141,19 @@ export default function PomodoroPage() {
       
       {/* Background Decor */}
       <div 
-        className="absolute inset-0 bg-cover bg-center opacity-40 blur-[2px] pointer-events-none mix-blend-multiply"
-        style={{ backgroundImage: "url('/bg/bedroom.png')" }} 
+        className={`absolute inset-0 bg-cover bg-center pointer-events-none transition-opacity duration-1000 ${bgImg ? 'opacity-100' : 'opacity-0'}`}
+        style={{ backgroundImage: bgImg ? `url('${bgImg}')` : 'none' }} 
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#fdfbf7] via-transparent to-black/5 pointer-events-none z-0" />
+      
+      {/* Screen VFX Overlays */}
+      <div
+        className="absolute inset-0 pointer-events-none mix-blend-screen opacity-60 z-0"
+        style={{
+          background: 'radial-gradient(ellipse at 50% 90%, rgba(255,255,255,0.3) 0%, transparent 70%)'
+        }}
+      />
+      {/* Timer Backdrop Gradient (Right to Left) */}
+      <div className="absolute inset-0 bg-gradient-to-l from-white/95 via-white/60 to-transparent pointer-events-none z-10 w-full md:w-[60%] ml-auto" />
       
       {showConfetti && (
         <div className="absolute inset-0 z-50 pointer-events-none flex items-center justify-center">
@@ -136,8 +168,8 @@ export default function PomodoroPage() {
         </Link>
       </div>
 
-      {/* Left Area: Timer */}
-      <div className="w-full md:w-[45%] flex flex-col items-center justify-center md:justify-center relative z-20 h-full pt-20 md:pt-0 pb-10">
+      {/* Right Area: Timer */}
+      <div className="absolute right-0 top-0 h-full w-full md:w-[45%] flex flex-col items-center justify-center z-20 pt-20 md:pt-0 pb-10">
         
         <div className="bg-white/90 backdrop-blur-md text-[#ff758c] font-display font-black px-6 md:px-10 py-2.5 md:py-3 rounded-full mb-8 md:mb-10 shadow-[0_5px_15px_rgba(255,117,140,0.1)] border-2 border-pink-100 tracking-widest text-sm md:text-lg">
           {isBreak ? "WAKTUNYA ISTIRAHAT" : "MODE FOKUS"}
@@ -182,30 +214,14 @@ export default function PomodoroPage() {
 
       </div>
 
-      {/* Right Area: Livia */}
-      <div className="absolute md:static inset-0 flex-1 flex flex-col items-center justify-end h-full z-10 pb-4 md:pb-10 pointer-events-none md:pointer-events-auto">
-        
-        {/* Reaction Bubble (Teman Kos style) */}
-        <div className="absolute top-[12%] md:top-[20%] left-1/2 md:left-10 -translate-x-1/2 md:-translate-x-0 bg-white/95 md:bg-white/90 backdrop-blur-xl rounded-[2rem] rounded-bl-xl md:rounded-bl-sm p-4 md:p-6 shadow-2xl border-2 border-pink-100 w-[85%] md:w-auto max-w-[300px] animate-[float_4s_ease-in-out_infinite] z-30 pointer-events-auto">
-          <p className="text-sm md:text-lg font-bold text-[#5c4d47] leading-relaxed text-center md:text-left">
+      {/* Left Area: Dialogue */}
+      <div className="absolute inset-0 pointer-events-none z-[35]">
+        {/* Reaction Bubble */}
+        <div className="absolute bottom-6 md:bottom-[15%] left-1/2 md:left-16 -translate-x-1/2 md:-translate-x-0 bg-white/95 md:bg-white/90 backdrop-blur-xl rounded-2xl md:rounded-[2rem] md:rounded-bl-sm p-3 md:p-6 shadow-2xl border-2 border-pink-100 w-[90%] md:w-auto md:max-w-[320px] pointer-events-auto">
+          <p className="text-xs md:text-lg font-bold text-[#5c4d47] leading-relaxed text-center md:text-left">
             "{dialog}"
           </p>
         </div>
-
-        {/* Livia Sprite */}
-        <div className="w-full h-[60%] md:h-full flex justify-center items-end absolute bottom-0 z-10">
-          <LiviaSprite 
-            expression={expression} 
-            className="h-full w-auto max-w-[600px] object-contain object-bottom drop-shadow-[0_20px_40px_rgba(255,117,140,0.15)] opacity-40 md:opacity-100 pointer-events-auto"
-          />
-        </div>
-
-        {/* Status Widget */}
-        <div className="absolute bottom-10 z-20 bg-white/80 backdrop-blur-md px-8 py-4 rounded-3xl shadow-lg border border-pink-50 flex items-center gap-4">
-          <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
-          <span className="font-bold text-[#5c4d47]">Livia sedang fokus belajar...</span>
-        </div>
-
       </div>
 
     </div>
