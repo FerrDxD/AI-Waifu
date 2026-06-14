@@ -11,11 +11,20 @@ type Choice = {
   nextIndex: number;
 };
 
+type Scene = {
+  speaker: string;
+  text: string;
+  expression: any;
+  choices?: Choice[];
+  nextIndex?: number;
+};
+
 type UserStatsData = {
   affection: number;
   accountDays: number;
   screenTimeHours: number;
   itemsBrought: string[];
+  activeOutfit?: string;
 };
 
 type ReqCheck = {
@@ -29,13 +38,8 @@ interface Chapter {
   reqAffection: number;
   reqLevel: number;
   getRequirements?: (data: UserStatsData) => ReqCheck[];
-  content: { 
-    speaker: string; 
-    text: string; 
-    expression: any;
-    choices?: Choice[];
-    nextIndex?: number;
-  }[];
+  content?: Scene[];
+  getDynamicContent?: (data: UserStatsData) => Scene[];
 }
 
 const CHAPTERS: Chapter[] = [
@@ -45,30 +49,20 @@ const CHAPTERS: Chapter[] = [
     reqAffection: 0,
     reqLevel: 0,
     content: [
-      // 0
       { speaker: "Livia", text: "Jadi... ini kamarku yang baru.", expression: "normal" },
-      // 1
       { speaker: "Livia", text: "Kecil banget. Tapi ya sudahlah, namanya juga ngekos.", expression: "angry" },
-      // 2
       { speaker: "Livia", text: "Makasih udah bantu beresin barang-barangku. A-aku nggak nyuruh loh ya, kamu yang nawarin diri.", expression: "blushing",
         choices: [
           { text: "Nggak apa-apa, kan kita tetanggaan.", nextIndex: 3 },
           { text: "Lain kali bayar ya pakai traktiran.", nextIndex: 4 }
         ]
       },
-      // 3 (Branch A)
       { speaker: "Narator", text: "Kamu tersenyum melihatnya salah tingkah mengatur barang.", expression: "normal", nextIndex: 5 },
-      // 4 (Branch B)
       { speaker: "Livia", text: "Hah?! Pelit banget sih! Yaudah, nanti aku traktir es krim. Puas?!", expression: "angry", nextIndex: 6 },
-      // 5 (Convergence from A)
       { speaker: "Livia", text: "Apa senyum-senyum?! Jangan mikir macem-macem!", expression: "angry", nextIndex: 6 },
-      // 6
       { speaker: "Livia", text: "Mending kamu balik ke kamarmu sana. Aku mau istirahat.", expression: "normal" },
-      // 7
       { speaker: "Narator", text: "Kamu mengangguk dan berbalik pergi ke kamarmu yang terletak persis di sebelahnya.", expression: "normal" },
-      // 8
       { speaker: "Livia", text: "...Hei.", expression: "normal" },
-      // 9
       { speaker: "Livia", text: "Tolong... bimbingannya ya, tetangga.", expression: "blushing" }
     ]
   },
@@ -78,32 +72,21 @@ const CHAPTERS: Chapter[] = [
     reqAffection: 20,
     reqLevel: 1,
     content: [
-      // 0
       { speaker: "Livia", text: "Hei. Kamu lagi sibuk nggak?", expression: "normal" },
-      // 1
       { speaker: "Narator", text: "Kamu menoleh dari mejamu, melihat Livia mengintip dari balik pintu yang setengah terbuka.", expression: "normal" },
-      // 2
       { speaker: "Livia", text: "Ibuku nelpon tadi. Nanyain aku betah atau nggak tinggal di sini.", expression: "normal" },
-      // 3
       { speaker: "Livia", text: "Tentu saja aku bilang betah! Aku bukan anak kecil lagi yang harus diurusin.", expression: "angry" },
-      // 4
       { speaker: "Livia", text: "Lagipula... lingkungan di sini lumayan. Nggak seburuk yang kubayangkan.", expression: "blushing" },
-      // 5
       { speaker: "Livia", text: "Dan, eh... kamu lumayan bisa diandalkan juga sebagai tetangga.", expression: "happy",
         choices: [
           { text: "Makasih. Kamu juga tetangga yang baik.", nextIndex: 6 },
           { text: "Tumben kamu muji? Ada maunya ya?", nextIndex: 7 }
         ]
       },
-      // 6 (Branch A)
       { speaker: "Livia", text: "J-jangan dibalas serius gitu dong! Bikin malu aja!", expression: "blushing", nextIndex: 8 },
-      // 7 (Branch B)
       { speaker: "Livia", text: "Enak aja! Aku kan cuma jujur! Udah ah, males ngomong sama kamu!", expression: "angry", nextIndex: 8 },
-      // 8
       { speaker: "Narator", text: "Dia memalingkan wajahnya sedikit, pura-pura melihat ke arah koridor.", expression: "normal" },
-      // 9
       { speaker: "Livia", text: "Sudahlah, aku mau masak mi instan.", expression: "normal" },
-      // 10
       { speaker: "Livia", text: "...Kamu mau kubuatin juga nggak? Tanggung airnya sekalian direbus.", expression: "clingy" }
     ]
   },
@@ -123,11 +106,8 @@ const CHAPTERS: Chapter[] = [
           { text: "Biarin aja, nanti juga hilang sendiri.", nextIndex: 6 }
         ]
       },
-      // 5 (Branch A)
       { speaker: "Livia", text: "Cepat ambil sapu lidi atau apalah! Kalau dia hilang di bawah kasurku, aku bakal numpang tidur di sini!", expression: "clingy", nextIndex: 7 },
-      // 6 (Branch B)
       { speaker: "Livia", text: "Jahat banget sih?! Gimana aku bisa tidur kalau ada monster itu di kamarku?!", expression: "angry", nextIndex: 7 },
-      // 7 (Convergence)
       { speaker: "Livia", text: "Ehh— tunggu, barusan aku ngomong apa?! Lupakan! Pokoknya cepat bunuh kecoanya!", expression: "angry" }
     ]
   },
@@ -145,11 +125,8 @@ const CHAPTERS: Chapter[] = [
           { text: "Bilang aja sengaja nyisihin buatku.", nextIndex: 4 }
         ]
       },
-      // 3 (Branch A)
       { speaker: "Livia", text: "Syukurlah kalau kamu suka... Eh, maksudku, wajar kalau rasanya enak, itu buatan ibuku!", expression: "happy", nextIndex: 5 },
-      // 4 (Branch B)
       { speaker: "Livia", text: "U-udah kubilang bukan gitu! Mau dibalikin nggak nih kuenya?!", expression: "angry", nextIndex: 5 },
-      // 5 (Convergence)
       { speaker: "Livia", text: "Kamu tahu, belakangan ini aku merasa ngekos nggak seburuk yang kukira.", expression: "normal" },
       { speaker: "Livia", text: "Awalnya aku takut sendirian. Tapi karena... karena ada seseorang yang terus memperhatikanku...", expression: "blushing" },
       { speaker: "Livia", text: "Rasanya tempat ini sedikit terasa seperti rumah kedua. Gitu deh.", expression: "clingy" }
@@ -168,11 +145,8 @@ const CHAPTERS: Chapter[] = [
           { text: "Harganya dipotong dari uang kos kan?", nextIndex: 3 }
         ]
       },
-      // 2 (Branch A)
       { speaker: "Narator", text: "Kamu menyadari belakangan ini Livia lebih sering menghabiskan waktu di area kerjamu daripada di kamarnya sendiri.", expression: "normal", nextIndex: 4 },
-      // 3 (Branch B)
       { speaker: "Livia", text: "Enak aja! Aku pakai uangku sendiri tau! Nggak tahu terima kasih banget sih!", expression: "angry", nextIndex: 4 },
-      // 4 (Convergence)
       { speaker: "Livia", text: "Kenapa ngeliatin gitu? Kamarku Wi-Finya lagi lambat, makanya aku duduk di sini! Jangan GR!", expression: "angry" },
       { speaker: "Livia", text: "Terserah kamu mau mikir apa... Aku cuma... merasa lebih tenang kalau ada di dekatmu. Udah, puasss?!", expression: "clingy" },
       { speaker: "Narator", text: "Kamu tersenyum sambil menyeruput es kopimu. Livia kembali fokus ke laptopnya dengan wajah memerah.", expression: "normal" }
@@ -193,11 +167,8 @@ const CHAPTERS: Chapter[] = [
           { text: "Iya, kamu nggak mau jauh dariku kan?", nextIndex: 5 }
         ]
       },
-      // 4 (Branch A)
       { speaker: "Livia", text: "Karena... umm... karena alasan lain.", expression: "blushing", nextIndex: 6 },
-      // 5 (Branch B)
       { speaker: "Livia", text: "P-percaya diri banget sih kamu! Walaupun... ya, sedikit benar sih...", expression: "blushing", nextIndex: 6 },
-      // 6 (Convergence)
       { speaker: "Narator", text: "Livia menarik ujung lengan bajumu pelan, menatap lurus ke arah matamu.", expression: "normal" },
       { speaker: "Livia", text: "Kamu tahu kan kalau kamu itu spesial buatku?", expression: "clingy" },
       { speaker: "Livia", text: "Terima kasih... karena selalu sabar menghadapiku. Terima kasih sudah jadi 'rumah' baruku.", expression: "happy" },
@@ -214,13 +185,25 @@ const CHAPTERS: Chapter[] = [
       { label: "Screen time minimal 50 Jam", met: data.screenTimeHours >= 50 }
     ],
     content: [
-      { speaker: "Narator", text: "Kamu sudah terbiasa dengan kehadiran Livia di kehidupanmu.", expression: "normal" },
-      { speaker: "Livia", text: "Ayo bangun! Hari ini kita harus lebih produktif!", expression: "happy" }
+      { speaker: "Narator", text: "Pagi itu, sinar mentari menembus jendela kamarmu. Kamu menemukan secangkir kopi panas sudah tersedia di atas meja.", expression: "normal" },
+      { speaker: "Livia", text: "Udah bangun? Tuh kopinya diminum mumpung masih hangat.", expression: "normal" },
+      { speaker: "Narator", text: "Kamu menatap heran. Livia yang dulunya selalu bangun siang, kini sudah rapi dengan celemeknya.", expression: "normal" },
+      { speaker: "Livia", text: "Apa liat-liat?! Nggak usah mikir macem-macem. Aku cuma kebetulan bangun kepagian dan sekalian aja bikin kopi!", expression: "angry",
+        choices: [
+          { text: "Makasih ya, ini manis banget.", nextIndex: 4 },
+          { text: "Bohong, pasti sengaja kan pengen merhatiin aku?", nextIndex: 5 }
+        ]
+      },
+      { speaker: "Livia", text: "Y-ya namanya juga tinggal serumah... kita harus saling mengandalkan kan?", expression: "blushing", nextIndex: 6 },
+      { speaker: "Livia", text: "T-tahu dari mana?! Ugh... pokoknya minum aja jangan banyak omong!", expression: "angry", nextIndex: 6 },
+      { speaker: "Narator", text: "Livia duduk di kursi sebelahmu sambil membuka buku catatannya.", expression: "normal" },
+      { speaker: "Livia", text: "Ngomong-ngomong, aku perhatiin belakangan ini kamu kerja terlalu keras. Jangan lupa istirahat.", expression: "clingy" },
+      { speaker: "Livia", text: "Karena... kalau kamu tumbang, siapa yang mau direpotin sama kelakuan manjaku nanti?", expression: "happy" }
     ]
   },
   {
     id: 7,
-    title: "Kencan Akhir Pekan",
+    title: "Akhir Pekan Pemalas",
     reqAffection: 100,
     reqLevel: 5,
     getRequirements: (data) => [
@@ -229,8 +212,19 @@ const CHAPTERS: Chapter[] = [
       { label: "Memiliki Baju Kasual", met: data.itemsBrought.includes('outfit_casual') }
     ],
     content: [
-      { speaker: "Livia", text: "Gimana penampilanku dengan baju ini? B-bukan berarti aku dandan cuma buat kencan ini ya!", expression: "blushing" },
-      { speaker: "Narator", text: "Kamu menggenggam tangannya sambil tersenyum.", expression: "normal" }
+      { speaker: "Narator", text: "Akhir pekan tiba, dan hujan turun rintik-rintik membasahi jendela kosan.", expression: "normal" },
+      { speaker: "Livia", text: "Haaah... cuaca begini enaknya tiduran aja seharian pakai baju kaus kebesaran.", expression: "happy" },
+      { speaker: "Livia", text: "Sini dong, temenin aku rebahan. Nggak usah mikirin tugas dan kerjaan terus.", expression: "clingy",
+        choices: [
+          { text: "Nanti aku ketularan malasnya loh.", nextIndex: 4 },
+          { text: "Boleh deh, lima menit aja ya.", nextIndex: 5 }
+        ]
+      },
+      { speaker: "Livia", text: "Ih, bilang aja kamu nggak mau rebahan di dekatku! Dasar sok rajin!", expression: "angry", nextIndex: 6 },
+      { speaker: "Livia", text: "Hmph... bohong banget, ujung-ujungnya palingan kamu ketiduran juga di sini.", expression: "blushing", nextIndex: 6 },
+      { speaker: "Narator", text: "Kamu akhirnya ikut berbaring santai di sebelahnya sambil mendengarkan rintik hujan.", expression: "normal" },
+      { speaker: "Livia", text: "Hehe... nyaman banget kan? Sesekali jadi kaum mageran itu nggak ada salahnya tau.", expression: "happy" },
+      { speaker: "Livia", text: "Ssst... udah ah, jangan banyak gerak. Biar aku bisa meluk tanganmu.", expression: "clingy" }
     ]
   },
   {
@@ -245,8 +239,21 @@ const CHAPTERS: Chapter[] = [
       { label: "Memiliki Trench Coat", met: data.itemsBrought.includes('trench_coat') }
     ],
     content: [
-      { speaker: "Livia", text: "Pakaian tebal ini hangat... tapi tanganmu lebih hangat.", expression: "happy" },
-      { speaker: "Livia", text: "Ibu pasti kaget kalau tahu aku pulang bawa calon mantu.", expression: "blushing" }
+      { speaker: "Narator", text: "Perjalanan menggunakan kereta yang panjang akhirnya membawa kalian ke kampung halaman Livia.", expression: "normal" },
+      { speaker: "Livia", text: "Brrr... anginnya lumayan dingin di sini. Padahal aku udah pakai jaket tebal.", expression: "normal" },
+      { speaker: "Livia", text: "Sini, pinjam tanganmu bentar...", expression: "clingy" },
+      { speaker: "Narator", text: "Livia menyelipkan kedua tangannya yang dingin ke dalam saku mantelmu, menyatu dengan tanganmu.", expression: "normal" },
+      { speaker: "Livia", text: "Hehe... pakaian tebal ini hangat... tapi tanganmu jauh lebih hangat.", expression: "happy" },
+      { speaker: "Livia", text: "Ibu pasti kaget kalau tahu aku pulang bawa... ya gitu deh.", expression: "blushing",
+        choices: [
+          { text: "Bawa calon mantu idaman?", nextIndex: 7 },
+          { text: "Bawa tukang bersih-bersih kamar gratis?", nextIndex: 8 }
+        ]
+      },
+      { speaker: "Livia", text: "I-iya... ibu udah lama pengen ketemu orang yang selalu kuceritain di telepon.", expression: "blushing", nextIndex: 9 },
+      { speaker: "Livia", text: "Hei! Kok kamu merusak suasana sih! Setidaknya kamu kan lebih berharga dari sekadar tukang bersih-bersih!", expression: "angry", nextIndex: 9 },
+      { speaker: "Narator", text: "Kalian berdua berjalan menyusuri jalan kecil menuju rumah keluarganya.", expression: "normal" },
+      { speaker: "Livia", text: "Di kamar lamaku nanti, aku mau ngambil beberapa barang peninggalan masa kecilku. Bantuin pilih ya nanti?", expression: "happy" }
     ]
   },
   {
@@ -259,9 +266,21 @@ const CHAPTERS: Chapter[] = [
       { label: "Screen time minimal 150 Jam", met: data.screenTimeHours >= 150 }
     ],
     content: [
-      { speaker: "Narator", text: "Malam itu, di bawah langit penuh bintang, kamu memberikan sebuah kotak kecil kepadanya.", expression: "normal" },
-      { speaker: "Livia", text: "I-ini beneran? Kamu mau menikah denganku?", expression: "blushing" },
-      { speaker: "Livia", text: "Tentu saja aku mau, bodoh! Cepat pasangkan cincinnya!", expression: "angry" }
+      { speaker: "Narator", text: "Malam itu, di bawah langit penuh bintang di balkon kosan yang kini menjadi saksi bisu kebersamaan kalian.", expression: "normal" },
+      { speaker: "Livia", text: "Angin malam ini sejuk ya. Nggak kerasa kita udah ngelewatin banyak hal berdua.", expression: "happy" },
+      { speaker: "Narator", text: "Kamu mengangguk pelan, lalu merogoh sakumu dan mengeluarkan sebuah kotak kecil berlapis beludru.", expression: "normal" },
+      { speaker: "Narator", text: "Kamu membuka kotak itu perlahan, memperlihatkan sebuah cincin sederhana namun elegan.", expression: "normal" },
+      { speaker: "Livia", text: "E-eh...? I-ini beneran? Kamu...", expression: "blushing",
+        choices: [
+          { text: "Menikahlah denganku, Livia.", nextIndex: 6 },
+          { text: "Kalau nggak mau, cincinnya buat kucing garong di bawah loh.", nextIndex: 7 }
+        ]
+      },
+      { speaker: "Livia", text: "Bodoh... kamu bikin aku cengeng tau nggak... hiks...", expression: "crying", nextIndex: 8 },
+      { speaker: "Livia", text: "Jangan merusak momen seromantis ini dong idiot! Mana sini cincinnya!!", expression: "angry", nextIndex: 8 },
+      { speaker: "Narator", text: "Livia menyodorkan jari manisnya ke arahmu dengan tangan sedikit gemetar.", expression: "normal" },
+      { speaker: "Livia", text: "Cepat pasangkan... sebelum aku berubah pikiran malu...", expression: "blushing" },
+      { speaker: "Narator", text: "Malam itu, janji untuk hidup menua bersama resmi terukir di antara kalian.", expression: "normal" }
     ]
   },
   {
@@ -276,9 +295,142 @@ const CHAPTERS: Chapter[] = [
       { label: "Memesan Katering", met: data.itemsBrought.includes('katering') }
     ],
     content: [
-      { speaker: "Livia", text: "Akhirnya... semua sudah siap. Terima kasih karena sudah bertahan denganku selama ini.", expression: "happy" },
-      { speaker: "Narator", text: "Kalian berdua tersenyum memandang masa depan.", expression: "normal" }
+      { speaker: "Narator", text: "Kamar kosan yang dulu sepi kini penuh dengan tumpukan berkas KUA, brosur katering, dan denah gedung resepsi.", expression: "normal" },
+      { speaker: "Livia", text: "Huft... Coba aku cek lagi. Berkas KUA udah lengkap, DP gedung udah beres, katering juga udah test food...", expression: "normal" },
+      { speaker: "Livia", text: "Ternyata nyiapin pernikahan itu capek banget ya! Punggungku sampai pegal.", expression: "angry",
+        choices: [
+          { text: "Sini kupijat pundaknya.", nextIndex: 4 },
+          { text: "Tapi seru kan karena ngurusnya berdua?", nextIndex: 5 }
+        ]
+      },
+      { speaker: "Livia", text: "Mmm... makasih. Pijatanmu lumayan juga. Bikin rasa capeknya langsung hilang separuh.", expression: "happy", nextIndex: 6 },
+      { speaker: "Livia", text: "I-iya sih... kalau nggak sama kamu, aku pasti udah nyerah dari kemarin-kemarin.", expression: "blushing", nextIndex: 6 },
+      { speaker: "Narator", text: "Livia menyenderkan kepalanya ke bahumu, menghembuskan napas lega.", expression: "normal" },
+      { speaker: "Livia", text: "Akhirnya... semua sudah siap. Terima kasih karena sudah bertahan denganku dan segala kekuranganku selama ini.", expression: "clingy" },
+      { speaker: "Livia", text: "Aku nggak sabar nunggu hari H-nya tiba. Mulai dari titik ini, mohon bimbingannya terus ya, Suamiku.", expression: "happy" },
+      { speaker: "Narator", text: "Kamu tersenyum, menyadari bahwa perjalanan ini bukanlah akhir, melainkan awal dari cerita baru kalian yang abadi.", expression: "normal" }
     ]
+  },
+  {
+    id: 11,
+    title: "Pernikahan Suci",
+    reqAffection: 100,
+    reqLevel: 5,
+    getRequirements: (data) => [
+      { label: "Membeli Gaun Pengantin", met: data.itemsBrought.includes('gaun_pengantin') }
+    ],
+    content: [
+      { speaker: "Narator", text: "Lonceng gereja berdentang. Kamu berdiri di altar, menunggu sosok yang selama ini menemani hari-harimu.", expression: "normal" },
+      { speaker: "Narator", text: "Pintu terbuka. Livia berjalan anggun dalam balutan gaun pengantin putih yang sempurna membalut tubuhnya.", expression: "normal" },
+      { speaker: "Livia", text: "B-bagaimana? A-aku kelihatan aneh ya pakai gaun semahal ini?", expression: "blushing",
+        choices: [
+          { text: "Kamu adalah pengantin paling cantik di dunia.", nextIndex: 6 },
+          { text: "Lumayan, sayangnya orangnya galak.", nextIndex: 7 }
+        ]
+      },
+      { speaker: "Livia", text: "Bodoh... di depan banyak orang jangan ngomong gitu... wajahku jadi panas kan...", expression: "crying", nextIndex: 8 },
+      { speaker: "Livia", text: "Di hari pernikahan kita kamu masih aja ngajak berantem?! Awas ya nanti malam!", expression: "angry", nextIndex: 8 },
+      { speaker: "Narator", text: "Sang pendeta mengucapkan janji suci. Kalian menyematkan cincin, disoraki oleh tepuk tangan meriah.", expression: "normal" },
+      { speaker: "Livia", text: "Mulai detik ini, panggil aku Istrimu. Jangan berani-berani lirik perempuan lain!", expression: "clingy" }
+    ]
+  },
+  {
+    id: 12,
+    title: "Pulang ke Kuil Keluarga",
+    reqAffection: 100,
+    reqLevel: 5,
+    getRequirements: (data) => [
+      { label: "Sudah Menikah (Punya Gaun)", met: data.itemsBrought.includes('gaun_pengantin') },
+      { label: "Memakai Trench Coat", met: data.activeOutfit === 'trench_coat' || data.itemsBrought.includes('trench_coat') },
+      { label: "Umur akun minimal 70 Hari", met: data.accountDays >= 70 }
+    ],
+    content: [
+      { speaker: "Narator", text: "Mobil melaju memasuki pelataran kuil tua yang megah. Ini adalah rumah masa kecilmu, keluarga pengurus kuil dengan tradisi yang sangat ketat.", expression: "normal" },
+      { speaker: "Livia", text: "J-jadi ini rumah orang tuamu? Gede banget... aku jadi deg-degan.", expression: "blushing" },
+      { speaker: "Narator", text: "Ibumu yang berwajah tegas menyambut kalian di pintu utama.", expression: "normal" },
+      { speaker: "Livia", text: "S-selamat siang, Ibu mertua... S-saya Livia...", expression: "blushing" },
+      { speaker: "Narator", text: "Ketegangan mencair saat ibumu tersenyum hangat dan memeluk Livia. Tradisi kuil mengharuskan ibumu memberikan satu berkah suci untuk sang pengantin baru.", expression: "normal" },
+      { speaker: "Narator", text: "Pilihlah satu berkah dengan bijak, karena itu akan menentukan masa depan kalian.", expression: "normal" }
+    ]
+  },
+  {
+    id: 13,
+    title: "Babak Baru",
+    reqAffection: 100,
+    reqLevel: 5,
+    getRequirements: (data) => [
+      { label: "Telah Memilih Berkah", met: data.itemsBrought.some(i => i.startsWith('berkah_')) }
+    ],
+    getDynamicContent: (data) => {
+      const isFertility = data.itemsBrought.includes('berkah_kesuburan');
+      const isHealth = data.itemsBrought.includes('berkah_kesehatan');
+      const isWealth = data.itemsBrought.includes('berkah_kekayaan');
+
+      if (isFertility) {
+        return [
+          { speaker: "Narator", text: "Beberapa bulan setelah menerima Berkah Kesuburan dari kuil keluargamu...", expression: "normal" },
+          { speaker: "Livia", text: "S-sayang... lihat ini...", expression: "blushing" },
+          { speaker: "Narator", text: "Livia menunjukkan sebuah test pack dengan dua garis merah yang jelas.", expression: "normal" },
+          { speaker: "Livia", text: "Aku... kita... akan jadi orang tua. Kamu bakal jadi ayah yang baik kan?", expression: "crying" }
+        ];
+      } else if (isHealth) {
+        return [
+          { speaker: "Narator", text: "Sejak menerima Berkah Kesehatan, fisik Livia menjadi jauh lebih bugar dan bersemangat.", expression: "normal" },
+          { speaker: "Livia", text: "Ayo lari pagi lagi! Masa suamiku kalah tenaga sama istrinya?", expression: "happy" },
+          { speaker: "Narator", text: "Kamu tersenyum pasrah mengikuti langkahnya yang lincah menembus embun pagi.", expression: "normal" }
+        ];
+      } else {
+        return [
+          { speaker: "Narator", text: "Berkah Kekayaan dari kuil ternyata membuka pintu rezeki yang tak terduga untuk karir kalian berdua.", expression: "normal" },
+          { speaker: "Livia", text: "Wah... bonus bulan ini cair besar banget! Kita bisa beli rumah sendiri sekarang!", expression: "happy" },
+          { speaker: "Livia", text: "Kerja keras kita nggak sia-sia. Makasih ya udah selalu berusaha keras buat keluarga kita.", expression: "clingy" }
+        ];
+      }
+    }
+  },
+  {
+    id: 14,
+    title: "Ujian Perjalanan",
+    reqAffection: 100,
+    reqLevel: 5,
+    getRequirements: (data) => [
+      { label: "Menyelesaikan Bab Sebelumnya", met: data.itemsBrought.some(i => i.startsWith('berkah_')) }
+    ],
+    getDynamicContent: (data) => {
+      const isFertility = data.itemsBrought.includes('berkah_kesuburan');
+      if (isFertility) {
+        return [
+          { speaker: "Narator", text: "Masa ngidam Livia menjadi tantangan terberatmu. Malam ini, ia membangunkanmu jam 2 pagi.", expression: "normal" },
+          { speaker: "Livia", text: "Sayang... dedek bayinya pengen makan sate padang... tapi bumbunya dipisah di mangkok warna pink.", expression: "clingy" }
+        ];
+      }
+      return [
+        { speaker: "Narator", text: "Kehidupan pernikahan tidak selalu mulus, tapi kalian selalu bisa melewatinya berdua.", expression: "normal" },
+        { speaker: "Livia", text: "Jangan pernah simpan masalah sendirian. Ingat, kita udah janji buat bagi beban berdua.", expression: "normal" }
+      ];
+    }
+  },
+  {
+    id: 15,
+    title: "Selamanya",
+    reqAffection: 100,
+    reqLevel: 5,
+    getRequirements: (data) => [
+      { label: "Telah Memilih Berkah", met: data.itemsBrought.some(i => i.startsWith('berkah_')) }
+    ],
+    getDynamicContent: (data) => {
+      const isFertility = data.itemsBrought.includes('berkah_kesuburan');
+      if (isFertility) {
+        return [
+          { speaker: "Narator", text: "Tangisan bayi memecah keheningan malam. Keluarga kecilmu kini telah utuh.", expression: "normal" },
+          { speaker: "Livia", text: "Lihat... dia punya matamu. Dia akan tumbuh sehebat ayahnya.", expression: "happy" }
+        ];
+      }
+      return [
+        { speaker: "Narator", text: "Tahun-tahun berlalu, dan genggaman tangan kalian masih sama eratnya seperti hari pertama.", expression: "normal" },
+        { speaker: "Livia", text: "Aku nggak pernah menyesal memilihmu. Mari menua bersama, suamiku tersayang.", expression: "happy" }
+      ];
+    }
   }
 ];
 
@@ -294,7 +446,11 @@ export default function StoryPage() {
   const [selectedHometownItems, setSelectedHometownItems] = useState<string[]>([]);
   const [isSubmittingHometown, setIsSubmittingHometown] = useState(false);
 
+  const [showBlessingPicker, setShowBlessingPicker] = useState(false);
+  const [selectedBlessing, setSelectedBlessing] = useState<string | null>(null);
+
   const [userStats, setUserStats] = useState<UserStatsData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchProgress = async () => {
@@ -312,11 +468,14 @@ export default function StoryPage() {
             affection: data.affection || 0,
             accountDays: data.accountDays || 0,
             screenTimeHours: data.screenTimeHours || 0,
-            itemsBrought: data.itemsBrought || []
+            itemsBrought: data.itemsBrought || [],
+            activeOutfit: data.activeOutfit || 'default'
           });
         }
       } catch (e) {
         console.error('Failed to fetch story progress', e);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchProgress();
@@ -329,21 +488,18 @@ export default function StoryPage() {
 
   const handleNextScene = () => {
     if (!activeChapter) return;
-    const currentScene = activeChapter.content[sceneIndex];
-    if (currentScene.choices) return; // Prevent advancing if choice is active
     
-    const nextIdx = currentScene.nextIndex !== undefined ? currentScene.nextIndex : sceneIndex + 1;
-    if (nextIdx < activeChapter.content.length) {
-      setSceneIndex(nextIdx);
+    const scenes = activeChapter.getDynamicContent ? activeChapter.getDynamicContent(userStats!) : activeChapter.content!;
+    if (sceneIndex < scenes.length - 1) {
+      setSceneIndex(prev => prev + 1);
     } else {
-      if (activeChapter.id === 8 && userStats) {
-        const onboardingItemsCount = userStats.itemsBrought.filter(id => ITEMS.some(item => item.id === id)).length;
-        if (onboardingItemsCount < 8) { // 5 initial + 3 hometown
-          setShowHometownPicker(true);
-          return;
-        }
+      if (activeChapter.id === 8 && userStats && !userStats.itemsBrought.some(i => i.startsWith('hometown_'))) {
+        setShowHometownPicker(true);
+      } else if (activeChapter.id === 12 && userStats && !userStats.itemsBrought.some(i => i.startsWith('berkah_'))) {
+        setShowBlessingPicker(true);
+      } else {
+        setActiveChapter(null);
       }
-      setActiveChapter(null); // Close VN reader
     }
   };
 
@@ -351,50 +507,59 @@ export default function StoryPage() {
     setSceneIndex(nextIdx);
   };
 
-  const handleHometownSubmit = async () => {
-    if (selectedHometownItems.length !== 3) return;
-    setIsSubmittingHometown(true);
-    try {
-      const res = await fetch('/api/hometown-items', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemsBrought: selectedHometownItems })
-      });
-      if (res.ok) {
-        if (userStats) {
-          setUserStats({
-            ...userStats,
-            itemsBrought: [...userStats.itemsBrought, ...selectedHometownItems]
-          });
-        }
-        setShowHometownPicker(false);
-        setActiveChapter(null); // Close VN reader after picking
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsSubmittingHometown(false);
+  const toggleHometownItem = (id: string) => {
+    if (selectedHometownItems.includes(id)) {
+      setSelectedHometownItems(prev => prev.filter(i => i !== id));
+    } else if (selectedHometownItems.length < 3) {
+      setSelectedHometownItems(prev => [...prev, id]);
     }
   };
 
-  const getExpressionForHover = (id: number) => {
-    if (id <= 1) return 'normal';
-    if (id <= 3) return 'happy';
-    if (id === 4) return 'blushing';
-    return 'happy'; // 5
+  const submitHometownItems = async () => {
+    if (selectedHometownItems.length !== 3) return;
+    setIsSubmittingHometown(true);
+    try {
+      await fetch('/api/hometown-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: selectedHometownItems })
+      });
+      setUserStats(prev => prev ? { ...prev, itemsBrought: [...prev.itemsBrought, ...selectedHometownItems] } : null);
+      setShowHometownPicker(false);
+      setActiveChapter(null);
+    } catch (e) {
+      console.error(e);
+    }
+    setIsSubmittingHometown(false);
   };
 
-  return (
-    <div className="min-h-screen bg-[#fdfbf7] relative overflow-hidden flex flex-col font-sans select-none">
-      
-      {/* Subtle Background Overlay */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-40 blur-[2px] pointer-events-none mix-blend-multiply z-0"
-        style={{ backgroundImage: "url('/bg/bedroom.png')" }} 
-      />
+  const submitBlessing = async () => {
+    if (!selectedBlessing) return;
+    setIsSubmittingHometown(true);
+    try {
+      await fetch('/api/hometown-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: [selectedBlessing] })
+      });
+      setUserStats(prev => prev ? { ...prev, itemsBrought: [...prev.itemsBrought, selectedBlessing] } : null);
+      setShowBlessingPicker(false);
+      setActiveChapter(null);
+    } catch (e) {
+      console.error(e);
+    }
+    setIsSubmittingHometown(false);
+  };
 
+  const currentScenes = activeChapter ? (activeChapter.getDynamicContent ? activeChapter.getDynamicContent(userStats!) : activeChapter.content!) : [];
+  const scene = activeChapter ? currentScenes[sceneIndex] : null;
+
+  if (isLoading) return <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center font-display font-bold text-pink-400"><Loader2 className="animate-spin mr-2" /> Memuat...</div>;
+
+  return (
+    <div className="min-h-screen bg-[#fdfbf7] relative flex justify-center items-center overflow-hidden font-sans select-none">
+      
       {activeChapter ? (
-        // VN Reader Fullscreen
         <div className="fixed inset-0 z-[100] bg-[#fdfbf7]/95 backdrop-blur-xl flex flex-col items-center justify-between py-6 md:py-12 px-4 md:px-6 animate-[fadeIn_0.3s_ease-out]">
           <div className="w-full max-w-5xl flex justify-between px-2 md:px-8 z-20 mt-8 md:mt-0">
             <span className="font-display font-bold text-sm md:text-base text-[#ff758c] bg-white px-4 md:px-6 py-1.5 md:py-2 rounded-full shadow-[0_5px_15px_rgba(255,117,140,0.15)] border border-pink-50">
@@ -406,18 +571,17 @@ export default function StoryPage() {
           </div>
           
           <div className="flex-1 w-full max-w-4xl flex justify-center items-end pb-4 md:pb-8 z-10">
-            {activeChapter.content[sceneIndex].speaker === 'Livia' && (
+            {scene?.speaker === 'Livia' && (
               <div className="h-[55vh] md:h-[60vh] w-auto drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)] animate-[float_4s_ease-in-out_infinite]">
-                <LiviaSprite expression={activeChapter.content[sceneIndex].expression} className="h-full w-auto max-w-[500px] object-contain object-bottom" />
+                <LiviaSprite expression={scene.expression} className="h-full w-auto max-w-[500px] object-contain object-bottom" />
               </div>
             )}
           </div>
           
           <div className="w-full max-w-4xl z-20 drop-shadow-2xl relative flex flex-col items-center">
-            {/* Choices Overlay */}
-            {activeChapter.content[sceneIndex].choices && (
+            {scene?.choices && (
               <div className="absolute bottom-[100%] w-[90%] md:w-full flex flex-col items-center gap-2 md:gap-3 mb-4 md:mb-6 animate-[fadeIn_0.4s_ease-out_forwards]">
-                {activeChapter.content[sceneIndex].choices.map((choice, idx) => (
+                {scene.choices.map((choice, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleChoice(choice.nextIndex)}
@@ -431,17 +595,35 @@ export default function StoryPage() {
 
             <div className="w-full">
               <DialogBox 
-                text={activeChapter.content[sceneIndex].text}
-                speaker={activeChapter.content[sceneIndex].speaker === 'Narator' ? '' : activeChapter.content[sceneIndex].speaker}
-                onNext={activeChapter.content[sceneIndex].choices ? () => {} : handleNextScene}
+                text={scene?.text || ''}
+                speaker={scene?.speaker === 'Narator' ? '' : scene?.speaker || ''}
+                onNext={scene?.choices ? () => {} : handleNextScene}
               />
             </div>
           </div>
         </div>
       ) : (
-        // Bright MiSide-inspired Cinematic Menu
         <div className="absolute inset-0 flex">
+          <div 
+            className="absolute inset-0 bg-cover bg-[60%_center] md:bg-center opacity-40 transition-all duration-1000 z-0"
+            style={{ backgroundImage: `url('/bg/story-bg.png')` }} 
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#fdfbf7] via-transparent to-black/10 pointer-events-none z-0" />
           
+          {/* Center Background Sprite (16:9) - Desktop Only */}
+          <div className="absolute inset-0 hidden md:flex items-center justify-center pointer-events-none z-10 overflow-hidden">
+            <img 
+              src={`/livia/story page/${
+                userStats?.activeOutfit === 'outfit_casual' ? 'casual.png' :
+                userStats?.activeOutfit === 'outfit_school' ? 'uniform.png' :
+                userStats?.activeOutfit === 'outfit_yukata' ? 'yukata.png' :
+                'default.png'
+              }`} 
+              alt="Livia Story"
+              className="w-full h-full object-cover object-center"
+            />
+          </div>
+
           {/* Top Right Back Button */}
           <div className="absolute top-6 right-6 md:top-10 md:right-12 z-40">
             <button onClick={() => window.history.back()} className="font-display font-black text-xs md:text-sm text-[#8C7B6B] hover:text-[#ff758c] bg-white/50 backdrop-blur-md md:bg-transparent md:backdrop-blur-none px-3 md:px-0 py-2 md:py-0 rounded-full md:rounded-none transition-colors flex items-center gap-2 md:gap-3 uppercase tracking-widest shadow-sm md:shadow-none">
@@ -449,18 +631,8 @@ export default function StoryPage() {
             </button>
           </div>
 
-          {/* Right Side - Giant Livia (Hidden on Mobile) */}
-          <div className="absolute right-0 bottom-0 hidden md:flex md:w-[65%] h-full justify-end items-end pointer-events-none z-10 overflow-hidden">
-            <div className="relative z-10 md:w-full md:h-[110vh] max-w-[800px] md:translate-x-[15%] md:translate-y-[5%] md:opacity-100 md:blur-none">
-              <LiviaSprite 
-                expression={getExpressionForHover(hoveredChapterId)} 
-                className="w-full h-full object-cover object-top filter drop-shadow-[-10px_0_30px_rgba(255,154,158,0.2)] transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]" 
-              />
-            </div>
-          </div>
-
-          {/* Soft White Fade matching background */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#fdfbf7] via-[#fdfbf7]/95 to-transparent pointer-events-none z-20 w-[70%]" />
+          {/* Soft White Fade matching background for Chapter List */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#fdfbf7] via-[#fdfbf7]/90 to-transparent pointer-events-none z-20 w-[70%]" />
 
           {/* Left Menu Panel */}
           <div className="relative z-30 w-full md:w-[50%] h-full flex flex-col justify-center px-6 md:pl-24 md:pr-4 pt-16 md:pt-8 pb-12">
@@ -638,6 +810,54 @@ export default function StoryPage() {
                 }`}
               >
                 {isSubmittingHometown ? <Loader2 className="animate-spin" /> : <><Sparkles size={20} /> Bawa Pulang</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Blessing Picker Modal */}
+      {showBlessingPicker && (
+        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-2xl w-full shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-amber-300 to-yellow-500" />
+            
+            <div className="text-center mb-6">
+              <Sparkles className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
+              <h2 className="text-2xl md:text-3xl font-display font-black text-[#5c4d47]">Berkah Kuil Suci</h2>
+              <p className="text-gray-500 mt-2 text-sm md:text-base">Pilihlah 1 berkah dari Ibu mertuamu. Pilihan ini akan memengaruhi takdir pernikahan kalian ke depannya (Bab 13-15).</p>
+            </div>
+
+            <div className="flex-1 overflow-y-auto mb-6 px-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                { id: 'berkah_kesuburan', name: 'Kesuburan', icon: '👶', desc: 'Membawa kehidupan baru ke dalam keluarga.' },
+                { id: 'berkah_kesehatan', name: 'Kesehatan', icon: '🏃‍♀️', desc: 'Fisik bugar dan umur yang panjang.' },
+                { id: 'berkah_kekayaan', name: 'Kekayaan', icon: '💰', desc: 'Kemudahan rezeki dan karir yang meroket.' }
+              ].map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => setSelectedBlessing(item.id)}
+                  className={`relative p-4 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-2 ${
+                    selectedBlessing === item.id 
+                      ? 'border-yellow-400 bg-yellow-50 shadow-md transform scale-105' 
+                      : 'border-gray-100 bg-gray-50 hover:border-yellow-200 hover:bg-yellow-50/50'
+                  }`}
+                >
+                  <span className="text-4xl">{item.icon}</span>
+                  <span className="font-bold text-[#5c4d47]">{item.name}</span>
+                  <span className="text-xs text-gray-500">{item.desc}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex justify-center pt-4 border-t border-gray-100">
+              <button 
+                onClick={submitBlessing}
+                disabled={!selectedBlessing || isSubmittingHometown}
+                className="bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-200 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all flex items-center gap-2"
+              >
+                {isSubmittingHometown ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                Terima Berkah
               </button>
             </div>
           </div>

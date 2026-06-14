@@ -58,6 +58,7 @@ const ITEMS: ShopItem[] = [
   { id: 'trench_coat', category: 'outfit', name: 'Trench Coat', emoji: '🧥', cost: 15000, affectionDelta: 10, color: 'from-amber-200 to-amber-400', desc: 'Sempurna untuk musim dingin atau pulang kampung.' },
   { id: 'outfit_school', category: 'outfit', name: 'Seragam SMA', emoji: '🎀', cost: 12000, affectionDelta: 8, color: 'from-blue-100 to-blue-300', desc: 'Seragam sekolah bergaya pelaut.' },
   { id: 'outfit_yukata', category: 'outfit', name: 'Yukata Festival', emoji: '👘', cost: 25000, affectionDelta: 20, color: 'from-rose-100 to-rose-300', desc: 'Pakaian tradisional untuk pergi ke festival.' },
+  { id: 'gaun_pengantin', category: 'outfit', name: 'Gaun Pengantin', emoji: '👗', cost: 50000, affectionDelta: 500, color: 'from-white to-pink-100', desc: 'Gaun putih suci untuk hari paling istimewa.' },
   
   // Item
   { id: 'kacamata_hitam', category: 'item', name: 'Kacamata Hitam', emoji: '🕶️', cost: 9500, affectionDelta: 20, color: 'from-gray-700 to-gray-900', desc: 'Item wajib untuk jalan-jalan keluar.' },

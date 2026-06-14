@@ -11,6 +11,7 @@ const ALL_OUTFITS = [
   { id: 'trench_coat', name: 'Trench Coat', emoji: '🧥', desc: 'Sempurna untuk musim dingin atau pulang kampung.' },
   { id: 'outfit_school', name: 'Seragam SMA', emoji: '🎀', desc: 'Seragam sekolah bergaya pelaut.' },
   { id: 'outfit_yukata', name: 'Yukata Festival', emoji: '👘', desc: 'Pakaian tradisional untuk pergi ke festival.' },
+  { id: 'gaun_pengantin', name: 'Gaun Pengantin', emoji: '👗', desc: 'Gaun putih suci untuk hari paling istimewa.' },
 ];
 
 export default function WardrobePage() {
@@ -27,7 +28,7 @@ export default function WardrobePage() {
           const data = await res.json();
           setActiveOutfit(data.activeOutfit || 'default');
           const items = data.itemsBrought || [];
-          setOwnedOutfits(['default', ...items.filter((i: string) => i.startsWith('outfit_') || i === 'trench_coat')]);
+          setOwnedOutfits(['default', ...items.filter((i: string) => i.startsWith('outfit_') || i === 'trench_coat' || i === 'gaun_pengantin')]);
         }
       } catch (e) {
         console.error(e);
@@ -58,6 +59,7 @@ export default function WardrobePage() {
         else if (outfitId === 'trench_coat') setMessage("Hangat... tapi pelukanmu pasti lebih hangat.");
         else if (outfitId === 'outfit_school') setMessage("P-pakaian ini... agak ketat di bagian dada. Jangan mikir macem-macem ya!");
         else if (outfitId === 'outfit_yukata') setMessage("Yukata ini... bagus kan? B-bukan berarti aku dandan buat kamu ya! Cuma pengen pakai aja.");
+        else if (outfitId === 'gaun_pengantin') setMessage("A-aku jadi malu dilihatin terus... Aku cantik kan jadi istrimu?");
         else setMessage("Gimana penampilanku? B-biasa aja kan?");
       }
     } catch (e) {
