@@ -19,12 +19,28 @@ export async function POST(req: Request) {
     const profileResults = await db.select().from(userProfiles).where(eq(userProfiles.userId, session.user.id));
     const profile = profileResults[0];
 
+    const now = new Date();
+    const anchor = profile?.liviaCycleAnchor ? new Date(profile.liviaCycleAnchor).getTime() : now.getTime();
+    const daysDiff = Math.floor((now.getTime() - anchor) / (1000 * 60 * 60 * 24));
+    const dayOfCycle = (daysDiff % 28 + 28) % 28 + 1;
+    let cyclePhase = 'Luteal';
+    if (dayOfCycle <= 5) cyclePhase = 'Menstruasi';
+    else if (dayOfCycle <= 14) cyclePhase = 'Folikuler';
+    else if (dayOfCycle <= 17) cyclePhase = 'Ovulasi';
+
     const { reply, expression, affectionDelta } = await generateDateResponse(
       location, 
       message,
       history || [],
       profile?.affection || 0,
-      user?.username || user?.name || 'Kamu'
+      user?.username || user?.name || 'Kamu',
+      {
+        hunger: profile?.liviaHunger ?? 100,
+        energy: profile?.liviaEnergy ?? 100,
+        hydration: profile?.liviaHydration ?? 100,
+        cyclePhase,
+        cycleDay: dayOfCycle
+      }
     );
 
     // Update affection if there is a delta

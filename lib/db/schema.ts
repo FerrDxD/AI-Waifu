@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, boolean, integer, date } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, boolean, integer, date, jsonb } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 export const users = pgTable('users', {
@@ -25,6 +25,12 @@ export const userProfiles = pgTable('userProfiles', {
   money: integer('money').default(0),
   totalScreenTime: integer('total_screen_time').default(0),
   totalPomodoroSessions: integer('total_pomodoro_sessions').default(0),
+  jobStats: jsonb('job_stats').default({}),
+  liviaHunger: integer('livia_hunger').default(100),
+  liviaEnergy: integer('livia_energy').default(100),
+  liviaHydration: integer('livia_hydration').default(100),
+  liviaCycleAnchor: timestamp('livia_cycle_anchor').defaultNow(),
+  liviaStatsUpdatedAt: timestamp('livia_stats_updated_at').defaultNow(),
   lastSeen: timestamp('last_seen').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
 });

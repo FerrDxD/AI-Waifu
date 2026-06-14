@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MessageSquare, Clock, BookOpen, Briefcase, Gift, MapPin, Wallet, Shirt, Menu, X, Heart } from 'lucide-react';
+import { MessageSquare, Clock, BookOpen, Briefcase, Gift, MapPin, Wallet, Shirt, Menu, X, Heart, Moon, Utensils, Battery, Droplet } from 'lucide-react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
 import AffectionBar from '@/components/livia/AffectionBar';
 import { LiviaExpression } from '@/lib/gemini';
 import { getAffectionLevel } from '@/lib/livia/affection';
+import { ITEMS } from '@/lib/livia/items';
 
 interface HomeClientProps {
   initialAffection: number;
@@ -15,25 +16,51 @@ interface HomeClientProps {
   initialOutfit: string;
 }
 
-function getGreeting(affection: number, itemsBrought: string[]): { text: string; expression: LiviaExpression; isInvitingOut?: boolean } {
+function calculateCycleDay(anchorString: string): number {
+  if (!anchorString) return 1;
+  const anchorDate = new Date(anchorString);
+  anchorDate.setHours(0, 0, 0, 0);
+  const nowDate = new Date();
+  nowDate.setHours(0, 0, 0, 0);
+  const daysDiff = Math.floor((nowDate.getTime() - anchorDate.getTime()) / (1000 * 60 * 60 * 24));
+  return (daysDiff % 28 + 28) % 28 + 1; // 1 to 28
+}
+
+function getGreeting(affection: number, itemsBrought: string[], stats: {hunger: number, energy: number, hydration: number, cyclePhase: string}, userName: string): { text: string; expression: LiviaExpression; isInvitingOut?: boolean } {
   const hour = new Date().getHours();
   
   if (affection >= 40 && (itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses'))) {
     const randomChance = Math.random();
-    if (randomChance > 0.6) {
+    if (randomChance > 0.6 && stats.energy > 50 && stats.cyclePhase !== 'Menstruasi') {
       const places = ['supermarket', 'perpustakaan kota'];
       const place = places[Math.floor(Math.random() * places.length)];
       return { 
-        text: `Hei... kebetulan aku mau ke ${place}. Karena kamu udah beliin kacamata ini... y-yah, kamu boleh ikut kalau mau.`, 
+        text: `Hei... kebetulan aku mau ke ${place}. Karena ${userName} udah beliin kacamata ini... y-yah, ${userName} boleh ikut kalau mau.`, 
         expression: 'blushing',
         isInvitingOut: true
       };
     }
   }
 
+  // Priority overrides based on extreme physical conditions
+  if (stats.hunger < 25) {
+    return { text: `A-aku laper banget... ${userName} nggak peka banget sih, aku belum makan daritadi!`, expression: 'angry' };
+  }
+  if (stats.hydration < 25) {
+    return { text: 'Haus... kerongkonganku kering banget. Jangan ajak ngobrol dulu.', expression: 'normal' }; // using normal as tired
+  }
+  if (stats.energy < 25) {
+    return { text: 'Aku capek banget... mataku berat... jangan berisik ya.', expression: 'normal' };
+  }
+  if (stats.cyclePhase === 'Menstruasi') {
+    return { text: 'Perutku sakit... jangan banyak tingkah hari ini, aku lagi sensitif!', expression: 'angry' };
+  } else if (stats.cyclePhase === 'Luteal') {
+    return { text: `Nggak tau kenapa aku gampang bete hari ini. Mending ${userName} jangan bikin ulah.`, expression: 'angry' };
+  }
+
   if (hour >= 5 && hour < 12) {
     return affection < 40
-      ? { text: 'Kamu lagi, ngapain pagi-pagi?', expression: 'normal' }
+      ? { text: `${userName} lagi ngapain pagi-pagi?`, expression: 'normal' }
       : { text: 'Pagi. Udah sarapan belum?', expression: 'happy' };
   } else if (hour >= 12 && hour < 18) {
     return affection < 40
@@ -42,11 +69,11 @@ function getGreeting(affection: number, itemsBrought: string[]): { text: string;
   } else if (hour >= 18 && hour < 22) {
     return affection < 40
       ? { text: 'Malam.', expression: 'normal' }
-      : { text: 'Eh, kamu masih di sini juga.', expression: 'happy' };
+      : { text: `Eh, ${userName} masih di sini juga.`, expression: 'happy' };
   } else {
     return affection < 40
-      ? { text: 'Kamu nggak tidur?', expression: 'angry' }
-      : { text: 'Tengah malam begini... kamu nggak ada kerjaan lain?', expression: 'clingy' };
+      ? { text: `${userName} nggak tidur?`, expression: 'angry' }
+      : { text: `Tengah malam begini... ${userName} nggak ada kerjaan lain?`, expression: 'clingy' };
   }
 }
 
@@ -60,15 +87,37 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
     text: '...', expression: 'normal'
   });
   const [interactionOverride, setInteractionOverride] = useState<{text: string, expression: LiviaExpression} | null>(null);
+  const [liviaStats, setLiviaStats] = useState({ hunger: 100, energy: 100, hydration: 100, cycleAnchor: new Date().toISOString() });
   
   useEffect(() => {
-    setGreetingData(getGreeting(affection, itemsBrought));
+    // Only fetch cyclePhase once based on liviaStats anchor
+    const getCycleInfoTemp = () => {
+      const dayOfCycle = calculateCycleDay(liviaStats.cycleAnchor);
+      if (dayOfCycle <= 5) return 'Menstruasi';
+      if (dayOfCycle <= 14) return 'Folikuler';
+      if (dayOfCycle <= 17) return 'Ovulasi';
+      return 'Luteal';
+    };
+
+    setGreetingData(getGreeting(affection, itemsBrought, { ...liviaStats, cyclePhase: getCycleInfoTemp() }, userName));
     
     // Fetch fresh user data
     fetch(`/api/affection?t=${Date.now()}`).then(r => r.ok && r.json()).then(d => {
       if (d) {
         setMoney(d.money || 0);
         if (d.activeOutfit) setOutfit(d.activeOutfit);
+        if (d.liviaStats) {
+           setLiviaStats(d.liviaStats);
+           // Recompute greeting if stats changed drastically from defaults
+           const newCyclePhase = (() => {
+             const dayOfCycle = calculateCycleDay(d.liviaStats.cycleAnchor);
+             if (dayOfCycle <= 5) return 'Menstruasi';
+             if (dayOfCycle <= 14) return 'Folikuler';
+             if (dayOfCycle <= 17) return 'Ovulasi';
+             return 'Luteal';
+           })();
+           setGreetingData(getGreeting(affection, itemsBrought, { ...d.liviaStats, cyclePhase: newCyclePhase }, userName));
+        }
       }
     }).catch(console.error);
   }, [affection, itemsBrought]);
@@ -77,6 +126,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
   const levelInfo = getAffectionLevel(affection);
   const [showEvent, setShowEvent] = useState(false);
   const [showMoreModal, setShowMoreModal] = useState(false);
+  const [showMobileStats, setShowMobileStats] = useState(false);
 
   const displayGreeting = interactionOverride ? interactionOverride.text : greeting;
   const displayExpression = interactionOverride ? interactionOverride.expression : expression;
@@ -92,7 +142,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
       const texts = [
         "E-eh?! Jangan elus-elus kepalaku dong...",
         "A-apa sih... tanganmu hangat...",
-        "Jangan mikir aku suka diginiin ya!",
+        `Jangan mikir aku suka diginiin ya, ${userName}!`,
         "R-rambutku berantakan tau..."
       ];
       newText = texts[Math.floor(Math.random() * texts.length)];
@@ -102,7 +152,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
       const texts = [
         "H-hei! Dasar mesum! Tanganmu mau kupatahkan?!",
         "M-mata dan tanganmu itu dijaga ya!",
-        "K-kamu mau mati sekarang juga?!",
+        `${userName} mau mati sekarang juga?!`,
         "K-kyyaa! Jangan sentuh dadaku bodoh!"
       ];
       newText = texts[Math.floor(Math.random() * texts.length)];
@@ -111,7 +161,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
       affectionChange = -1;
       const texts = [
         "Geli tau! Jauhkan tanganmu dari perutku!",
-        "Kamu ngapain sih?! Dasar aneh!",
+        `${userName} ngapain sih?! Dasar aneh!`,
         "A-aku nggak gemuk kok! Jangan pegang-pegang!",
         "Hentikan! Atau aku beneran panggil polisi!"
       ];
@@ -122,7 +172,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
       const texts = [
         "T-tanganmu nyentuh pahaku! Dasar cabul!",
         "M-mau kutendang wajahmu?!",
-        "Jangan coba-coba meraba-raba ke bawah ya!",
+        `Jangan coba-coba meraba-raba ke bawah ya, ${userName}!`,
         "K-kotor! Jauhkan tanganmu!"
       ];
       newText = texts[Math.floor(Math.random() * texts.length)];
@@ -183,6 +233,16 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
     if (hour >= 15 && hour < 18) return '/bg/home screen/home_afternoon.png';
     return '/bg/home screen/home_night.png';
   };
+
+  const getCycleInfo = () => {
+    const dayOfCycle = calculateCycleDay(liviaStats.cycleAnchor);
+    
+    if (dayOfCycle <= 5) return { phase: 'Menstruasi', color: 'text-red-500 bg-red-50 border-red-200', day: dayOfCycle };
+    if (dayOfCycle <= 14) return { phase: 'Folikuler', color: 'text-pink-500 bg-pink-50 border-pink-200', day: dayOfCycle };
+    if (dayOfCycle <= 17) return { phase: 'Ovulasi', color: 'text-purple-500 bg-purple-50 border-purple-200', day: dayOfCycle };
+    return { phase: 'Luteal', color: 'text-amber-500 bg-amber-50 border-amber-200', day: dayOfCycle };
+  };
+  const cycle = getCycleInfo();
 
   return (
     <div className="min-h-screen relative flex flex-col overflow-hidden bg-[#fdfbf7] select-none font-sans">
@@ -284,10 +344,13 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
         </div>
 
         {/* TOP ROW (Mobile - Ultra Compact) */}
-        <div className="flex md:hidden flex-col gap-2">
+        <div className="flex md:hidden flex-col gap-2 pointer-events-auto">
             <div className="absolute top-4 left-4 flex gap-2 z-50">
               {/* Minimal Affection Pill */}
-            <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-pink-100 shadow-sm flex items-center gap-2">
+            <div 
+              onClick={() => setShowMobileStats(true)}
+              className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-pink-100 shadow-sm flex items-center gap-2 active:scale-95 transition-transform"
+            >
               <Heart size={14} className="fill-amber-400 text-amber-400" />
               <span className="text-xs font-display font-bold text-amber-600">Lv.{levelInfo.level} {levelInfo.name}</span>
               <div className="w-12 h-1.5 bg-pink-100 rounded-full overflow-hidden ml-1">
@@ -306,20 +369,102 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
         {/* BOTTOM ROW */}
         <div className="flex flex-col-reverse md:flex-row justify-between items-end md:items-end flex-1 pb-4 md:pb-8 pointer-events-auto gap-6 md:gap-8 w-full mt-10 md:mt-0 relative">
           
-          {/* Bottom Left: Chat Bubble */}
-          <div className="absolute bottom-[4.5rem] left-4 right-4 md:bottom-8 md:left-10 md:right-auto md:w-[400px] drop-shadow-lg md:drop-shadow-2xl origin-bottom-left hover:scale-[1.02] transition-transform z-50">
-            <div className="bg-white/95 backdrop-blur-2xl px-4 py-3 md:px-8 md:py-6 rounded-2xl md:rounded-[2.5rem] md:rounded-bl-xl border md:border-2 border-pink-100/50 shadow-xl relative z-10 transition-all duration-300">
-              <p className={`font-display font-semibold md:font-bold text-sm md:text-xl leading-tight md:leading-snug transition-colors duration-300 ${interactionOverride?.expression === 'angry' ? 'text-red-500' : 'text-gray-800'}`}>
-                "{displayGreeting}"
-              </p>
-              {isInvitingOut && !interactionOverride && (
-                <button 
-                  onClick={() => setShowEvent(true)}
-                  className="mt-2 md:mt-6 w-full py-2 md:py-3 bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-bold md:font-black text-sm md:text-lg rounded-xl md:rounded-2xl shadow-md hover:-translate-y-1 transition-all flex items-center justify-center gap-2 md:gap-3"
-                >
-                  <span className="text-base md:text-2xl">🕶️</span> Boleh, ayo!
-                </button>
-              )}
+          {/* Bottom Left: Island UI & Chat Bubble */}
+          <div className="absolute bottom-[4.5rem] left-4 right-4 md:bottom-8 md:left-10 md:right-auto md:w-[400px] z-50 flex flex-col gap-3">
+            
+            {/* Onboarding Items Vault (Horizontal Full Width) */}
+            {itemsBrought.filter(id => ITEMS.some(i => i.id === id)).length > 0 && (
+              <div className="hidden md:grid grid-cols-5 gap-2 w-full">
+                {itemsBrought.filter(id => ITEMS.some(i => i.id === id)).map(id => {
+                  const item = ITEMS.find(i => i.id === id)!;
+                  return (
+                    <div key={id} className="group relative bg-white/60 backdrop-blur-md rounded-xl aspect-square flex items-center justify-center border border-white/60 shadow-sm cursor-help hover:bg-white/90 hover:scale-[1.05] hover:shadow-md hover:border-pink-200 transition-all duration-300">
+                      <span className="text-2xl md:text-3xl drop-shadow-sm group-hover:drop-shadow-md transition-all">{item.emoji}</span>
+                      
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 md:w-64 p-3.5 bg-white/95 backdrop-blur-xl border border-pink-100 rounded-2xl shadow-[0_10px_40px_rgba(255,117,140,0.15)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[100] origin-bottom scale-95 group-hover:scale-100 pointer-events-none flex flex-col gap-2">
+                        <div className="font-display font-black text-[#5c4d47] text-sm md:text-base border-b-2 border-pink-50 pb-2 flex items-center gap-2">
+                          <span className="text-lg drop-shadow-sm">{item.emoji}</span> {item.name}
+                        </div>
+                        <p className="text-[11px] md:text-xs text-[#8b7355] font-medium leading-relaxed italic">{item.description}</p>
+                        <div className="flex flex-col pt-1">
+                          <div className="flex items-start gap-2 text-[10px] md:text-[11px] leading-snug bg-gradient-to-r from-green-50 to-emerald-50/30 p-2.5 rounded-xl border border-green-100 shadow-inner">
+                            <span className="text-emerald-500 font-black shrink-0 text-sm mt-[1px]">✦</span>
+                            <div className="flex flex-col gap-0.5">
+                              <span className="font-black text-emerald-600 uppercase tracking-wider text-[9px] md:text-[10px]">{item.buff.label}</span> 
+                              <span className="text-[#5c4d47]">{item.buff.description}</span>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Triangle arrow */}
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-[8px] border-transparent border-t-pink-100 drop-shadow-sm" />
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-[7px] border-transparent border-t-white -mt-[2px]" />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Stats Island (Physiological) */}
+            <div className="hidden md:flex bg-white/80 backdrop-blur-2xl rounded-[2rem] p-4 border border-white/50 shadow-lg items-center justify-between gap-4 self-start w-auto hover:scale-[1.02] transition-transform origin-bottom-left">
+              <div className="flex items-center gap-4 md:gap-5 w-full">
+                 <div className="flex flex-col items-center gap-1.5">
+                   <div className="relative flex items-center justify-center w-10 h-10 md:w-12 md:h-12">
+                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-orange-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.hunger/100)*100.53} strokeLinecap="round" />
+                     </svg>
+                     <div className="absolute flex items-center justify-center"><Utensils size={14} className="text-orange-500 drop-shadow-sm" /></div>
+                   </div>
+                   <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">{liviaStats.hunger}%</span>
+                 </div>
+
+                 <div className="flex flex-col items-center gap-1.5">
+                   <div className="relative flex items-center justify-center w-10 h-10 md:w-12 md:h-12">
+                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-yellow-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.energy/100)*100.53} strokeLinecap="round" />
+                     </svg>
+                     <div className="absolute flex items-center justify-center"><Battery size={14} className="text-yellow-500 drop-shadow-sm" /></div>
+                   </div>
+                   <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">{liviaStats.energy}%</span>
+                 </div>
+
+                 <div className="flex flex-col items-center gap-1.5">
+                   <div className="relative flex items-center justify-center w-10 h-10 md:w-12 md:h-12">
+                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-blue-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.hydration/100)*100.53} strokeLinecap="round" />
+                     </svg>
+                     <div className="absolute flex items-center justify-center"><Droplet size={14} className="text-blue-500 drop-shadow-sm" /></div>
+                   </div>
+                   <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">{liviaStats.hydration}%</span>
+                 </div>
+              </div>
+              <div className="w-px h-10 md:h-12 bg-gray-200 mx-1 md:mx-2" />
+              <div className={`flex flex-col items-center justify-center text-center min-w-[70px] md:min-w-[90px] gap-1 px-1`}>
+                <Moon size={16} className={`${cycle.color.split(' ')[0]} drop-shadow-sm`} />
+                <span className={`text-[9px] md:text-[11px] font-bold leading-tight ${cycle.color.split(' ')[0]}`}>{cycle.phase}</span>
+                <span className="text-[8px] md:text-[9px] font-bold text-gray-400">Hari {cycle.day}</span>
+              </div>
+            </div>
+
+            {/* Chat Bubble */}
+            <div className="drop-shadow-lg md:drop-shadow-2xl origin-bottom-left hover:scale-[1.02] transition-transform">
+              <div className="bg-white/95 backdrop-blur-2xl px-4 py-3 md:px-8 md:py-6 rounded-2xl md:rounded-[2.5rem] md:rounded-bl-xl border md:border-2 border-pink-100/50 shadow-xl relative z-10 transition-all duration-300">
+                <p className={`font-display font-semibold md:font-bold text-sm md:text-xl leading-tight md:leading-snug transition-colors duration-300 ${interactionOverride?.expression === 'angry' ? 'text-red-500' : 'text-gray-800'}`}>
+                  "{displayGreeting}"
+                </p>
+                {isInvitingOut && !interactionOverride && (
+                  <button 
+                    onClick={() => setShowEvent(true)}
+                    className="mt-2 md:mt-6 w-full py-2 md:py-3 bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-bold md:font-black text-sm md:text-lg rounded-xl md:rounded-2xl shadow-md hover:-translate-y-1 transition-all flex items-center justify-center gap-2 md:gap-3"
+                  >
+                    <span className="text-base md:text-2xl">🕶️</span> Boleh, ayo!
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -420,6 +565,115 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
           </div>
         </div>
       )}
+      {/* Custom Mobile Modal for Stats & Inventory */}
+      {showMobileStats && (
+        <div className="md:hidden fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out] pointer-events-auto">
+          <div className="bg-white/95 backdrop-blur-xl w-full max-w-[340px] rounded-[2rem] p-6 shadow-2xl border border-pink-100 flex flex-col gap-6 animate-[slideUp_0.3s_ease-out]">
+            
+            {/* Header & Close Button */}
+            <div className="flex justify-between items-center border-b border-pink-50 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center text-pink-500 font-black font-display text-xl">{userName.charAt(0)}</div>
+                <div className="flex flex-col">
+                  <span className="font-display font-black text-[#5c4d47] text-lg leading-none">{userName}</span>
+                  <span className="text-[10px] font-bold text-pink-400">{levelInfo.name}</span>
+                </div>
+              </div>
+              <button onClick={() => setShowMobileStats(false)} className="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-500 rounded-full active:scale-95 transition-transform">
+                <X size={16} strokeWidth={3} />
+              </button>
+            </div>
+
+            {/* Affection Details */}
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-between items-end mb-1">
+                <div className="flex items-center gap-1.5">
+                  <Heart size={16} className="fill-pink-500 text-pink-500" />
+                  <span className="font-bold text-[#5c4d47] text-sm">Afeksi</span>
+                </div>
+                <span className="text-xs font-bold text-pink-500 bg-pink-50 px-2 py-0.5 rounded-full">Lv.{levelInfo.level} {levelInfo.name}</span>
+              </div>
+              <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden shadow-inner relative">
+                <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-pink-400 to-pink-500 transition-all duration-1000" style={{ width: `${Math.max(0, Math.min(100, affection))}%` }} />
+              </div>
+            </div>
+
+            {/* Inventory Vault */}
+            {itemsBrought.filter(id => ITEMS.some(i => i.id === id)).length > 0 && (
+              <div className="flex flex-col gap-2">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Barang Bawaan</span>
+                <div className="grid grid-cols-5 gap-2 w-full">
+                  {itemsBrought.filter(id => ITEMS.some(i => i.id === id)).map(id => {
+                    const item = ITEMS.find(i => i.id === id)!;
+                    return (
+                      <div key={id} className="relative bg-pink-50/50 rounded-xl aspect-square flex items-center justify-center border border-pink-100 shadow-sm cursor-help active:scale-95 transition-transform group">
+                        <span className="text-2xl drop-shadow-sm">{item.emoji}</span>
+                        {/* Tooltip for Mobile (appears on click/hold) */}
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-3 bg-white border border-pink-100 rounded-2xl shadow-2xl opacity-0 invisible group-active:opacity-100 group-active:visible transition-all z-[100] origin-bottom scale-95 group-active:scale-100 pointer-events-none flex flex-col gap-1.5">
+                          <div className="font-display font-black text-[#5c4d47] text-sm border-b-2 border-pink-50 pb-1.5 flex items-center gap-2">
+                            <span>{item.emoji}</span> {item.name}
+                          </div>
+                          <div className="flex items-start gap-1.5 text-[10px] leading-snug bg-gradient-to-r from-green-50 to-emerald-50/30 p-2 rounded-xl border border-green-100 shadow-inner mt-1">
+                            <span className="text-emerald-500 font-black shrink-0 mt-[1px]">✦</span>
+                            <span className="text-[#5c4d47]"><span className="font-black text-emerald-600 uppercase text-[9px] block mb-0.5">{item.buff.label}</span>{item.buff.description}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Physiological Stats */}
+            <div className="flex flex-col gap-3 bg-gray-50/80 p-4 rounded-2xl border border-gray-100">
+              <div className="flex justify-between items-center border-b border-gray-200/60 pb-2">
+                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Kondisi Livia</span>
+                <div className={`text-[9px] font-bold px-2 py-0.5 rounded-full border shadow-sm flex items-center gap-1 ${cycle.color}`}>
+                  <Moon size={10} /> Siklus: {cycle.phase} (Hari {cycle.day})
+                </div>
+              </div>
+              
+              <div className="flex justify-between items-center gap-4 mt-1">
+                 <div className="flex flex-col items-center gap-1 flex-1">
+                   <div className="relative flex items-center justify-center w-12 h-12">
+                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-orange-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.hunger/100)*100.53} strokeLinecap="round" />
+                     </svg>
+                     <div className="absolute flex items-center justify-center"><Utensils size={14} className="text-orange-500" /></div>
+                   </div>
+                   <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.hunger}%</span>
+                 </div>
+
+                 <div className="flex flex-col items-center gap-1 flex-1">
+                   <div className="relative flex items-center justify-center w-12 h-12">
+                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-yellow-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.energy/100)*100.53} strokeLinecap="round" />
+                     </svg>
+                     <div className="absolute flex items-center justify-center"><Battery size={14} className="text-yellow-500" /></div>
+                   </div>
+                   <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.energy}%</span>
+                 </div>
+
+                 <div className="flex flex-col items-center gap-1 flex-1">
+                   <div className="relative flex items-center justify-center w-12 h-12">
+                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-blue-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.hydration/100)*100.53} strokeLinecap="round" />
+                     </svg>
+                     <div className="absolute flex items-center justify-center"><Droplet size={14} className="text-blue-500" /></div>
+                   </div>
+                   <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.hydration}%</span>
+                 </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

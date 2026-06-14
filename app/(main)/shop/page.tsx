@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
-import { Wallet, Heart, Gift, ShoppingBag, Sparkles, Shirt, Box, Home } from 'lucide-react';
+import { Wallet, Heart, Gift, ShoppingBag, Sparkles, Shirt, Box, Home, Utensils, Coffee } from 'lucide-react';
 import Link from 'next/link';
 
-type CategoryId = 'gift' | 'outfit' | 'item' | 'furniture';
+type CategoryId = 'gift' | 'outfit' | 'item' | 'furniture' | 'food' | 'drink';
 
 interface ShopItem {
   id: string;
@@ -20,6 +20,8 @@ interface ShopItem {
 
 const CATEGORIES: { id: CategoryId; name: string; icon: React.ReactNode }[] = [
   { id: 'gift', name: 'Hadiah', icon: <Gift size={20} /> },
+  { id: 'food', name: 'Makanan', icon: <Utensils size={20} /> },
+  { id: 'drink', name: 'Minuman', icon: <Coffee size={20} /> },
   { id: 'outfit', name: 'Pakaian', icon: <Shirt size={20} /> },
   { id: 'item', name: 'Barang', icon: <Box size={20} /> },
   { id: 'furniture', name: 'Perabotan', icon: <Home size={20} /> },
@@ -32,15 +34,36 @@ const ITEMS: ShopItem[] = [
   { id: 'novel', category: 'gift', name: 'Buku Novel', emoji: '📖', cost: 1200, affectionDelta: 7, color: 'from-blue-100 to-blue-200', desc: 'Novel romansa remaja.' },
   { id: 'bear', category: 'gift', name: 'Boneka Beruang', emoji: '🧸', cost: 2000, affectionDelta: 12, color: 'from-orange-100 to-orange-200', desc: 'Sangat empuk dan nyaman dipeluk.' },
   { id: 'necklace', category: 'gift', name: 'Kalung Cantik', emoji: '✨', cost: 5000, affectionDelta: 15, color: 'from-purple-100 to-purple-200', desc: 'Perhiasan mahal dan berkilau.' },
+  { id: 'cincin_nikah', category: 'gift', name: 'Cincin Nikah', emoji: '💍', cost: 30000, affectionDelta: 200, color: 'from-blue-200 to-blue-400', desc: 'Sebuah janji seumur hidup.' },
   
+  // Makanan
+  { id: 'onigiri', category: 'food', name: 'Onigiri', emoji: '🍙', cost: 50, affectionDelta: 1, color: 'from-gray-100 to-gray-200', desc: 'Nasi kepal penghilang lapar (+Lapar, +Energi).' },
+  { id: 'yakitori', category: 'food', name: 'Yakitori', emoji: '🍢', cost: 150, affectionDelta: 2, color: 'from-orange-100 to-orange-200', desc: 'Sate ayam khas Jepang (+Lapar, +Energi).' },
+  { id: 'takoyaki', category: 'food', name: 'Takoyaki', emoji: '🍘', cost: 200, affectionDelta: 3, color: 'from-amber-100 to-amber-200', desc: 'Bola gurita panas (+Lapar, +Energi).' },
+  { id: 'dango', category: 'food', name: 'Dango', emoji: '🍡', cost: 120, affectionDelta: 2, color: 'from-pink-100 to-pink-200', desc: 'Kue beras manis (+Lapar, +Energi).' },
+  { id: 'katsudon', category: 'food', name: 'Katsudon', emoji: '🍛', cost: 400, affectionDelta: 5, color: 'from-yellow-100 to-yellow-200', desc: 'Porsi besar (+Lapar Banyak, +Energi).' },
+  { id: 'sushi', category: 'food', name: 'Sushi', emoji: '🍣', cost: 800, affectionDelta: 10, color: 'from-red-100 to-red-200', desc: 'Premium & lezat (+Lapar, +Energi).' },
+  { id: 'katering', category: 'food', name: 'Katering Pernikahan', emoji: '🍱', cost: 15000, affectionDelta: 50, color: 'from-orange-200 to-orange-400', desc: 'Pesanan katering untuk resepsi.' },
+
+  // Minuman
+  { id: 'air_putih', category: 'drink', name: 'Air Putih', emoji: '💧', cost: 20, affectionDelta: 0, color: 'from-blue-50 to-blue-100', desc: 'Air mineral biasa (+Hidrasi).' },
+  { id: 'teh_hijau', category: 'drink', name: 'Teh Hijau', emoji: '🍵', cost: 80, affectionDelta: 1, color: 'from-green-100 to-green-200', desc: 'Menenangkan (+Hidrasi, +Energi).' },
+  { id: 'teh_hitam', category: 'drink', name: 'Teh Hitam', emoji: '☕', cost: 100, affectionDelta: 1, color: 'from-orange-100 to-orange-200', desc: 'Teh pekat (+Hidrasi, +Energi).' },
+  { id: 'kopi_hitam', category: 'drink', name: 'Kopi Hitam', emoji: '☕', cost: 150, affectionDelta: 2, color: 'from-stone-700 to-stone-900', desc: 'Penambah energi (+Hidrasi, +Energi).' },
+  { id: 'jus_buah', category: 'drink', name: 'Jus Buah', emoji: '🧃', cost: 200, affectionDelta: 3, color: 'from-yellow-100 to-orange-200', desc: 'Kaya vitamin (+Hidrasi, +Energi).' },
+  { id: 'susu', category: 'drink', name: 'Susu', emoji: '🥛', cost: 150, affectionDelta: 2, color: 'from-gray-50 to-gray-200', desc: 'Susu sapi murni (+Hidrasi, +Lapar).' },
+
   // Pakaian
   { id: 'outfit_casual', category: 'outfit', name: 'Baju Santai', emoji: '👚', cost: 8000, affectionDelta: 5, color: 'from-teal-100 to-teal-200', desc: 'Pakaian ganti untuk bersantai di kamar.' },
+  { id: 'trench_coat', category: 'outfit', name: 'Trench Coat', emoji: '🧥', cost: 15000, affectionDelta: 10, color: 'from-amber-200 to-amber-400', desc: 'Sempurna untuk musim dingin atau pulang kampung.' },
   { id: 'outfit_school', category: 'outfit', name: 'Seragam SMA', emoji: '🎀', cost: 12000, affectionDelta: 8, color: 'from-blue-100 to-blue-300', desc: 'Seragam sekolah bergaya pelaut.' },
   { id: 'outfit_yukata', category: 'outfit', name: 'Yukata Festival', emoji: '👘', cost: 25000, affectionDelta: 20, color: 'from-rose-100 to-rose-300', desc: 'Pakaian tradisional untuk pergi ke festival.' },
   
   // Item
   { id: 'kacamata_hitam', category: 'item', name: 'Kacamata Hitam', emoji: '🕶️', cost: 9500, affectionDelta: 20, color: 'from-gray-700 to-gray-900', desc: 'Item wajib untuk jalan-jalan keluar.' },
   { id: 'tiket_konser', category: 'item', name: 'Tiket Konser', emoji: '🎫', cost: 25000, affectionDelta: 30, color: 'from-indigo-100 to-purple-300', desc: 'Tiket konser band favorit Livia.' },
+  { id: 'berkas_kua', category: 'item', name: 'Berkas KUA', emoji: '📄', cost: 2000, affectionDelta: 50, color: 'from-green-100 to-green-300', desc: 'Persiapan administrasi pernikahan.' },
+  { id: 'gedung_resepsi', category: 'item', name: 'Sewa Gedung Resepsi', emoji: '🏛️', cost: 50000, affectionDelta: 100, color: 'from-purple-200 to-purple-400', desc: 'Booking gedung impian Livia.' },
   
   // Perabotan
   { id: 'furni_poster', category: 'furniture', name: 'Poster Anime', emoji: '🖼️', cost: 3000, affectionDelta: 2, color: 'from-indigo-100 to-indigo-200', desc: 'Hiasan dinding untuk mempercantik kamar.' },
@@ -81,7 +104,7 @@ export default function ShopPage() {
       return;
     }
 
-    if (inventory.includes(item.id) && item.category !== 'gift') {
+    if (inventory.includes(item.id) && item.category !== 'gift' && item.category !== 'food' && item.category !== 'drink') {
       setLiviaExpression('angry');
       setMessage(`Kamu sudah punya ${item.name}! Beli yang lain sana.`);
       return;
@@ -107,6 +130,12 @@ export default function ShopPage() {
         } else if (item.category === 'furniture') {
           setLiviaExpression('happy');
           setMessage(`Wah, kamar ini jadi lebih bagus karena ${item.name}. Makasih!`);
+        } else if (item.category === 'food') {
+          setLiviaExpression('happy');
+          setMessage(`Nyam... ${item.name} ini enak banget! Makasih makanannya, perutku jadi lebih kenyang.`);
+        } else if (item.category === 'drink') {
+          setLiviaExpression('happy');
+          setMessage(`Gluk gluk... Ah! Segarnya. Tenggorokanku udah mendingan sekarang.`);
         } else if (item.id === 'kacamata_hitam') {
           setLiviaExpression('blushing');
           setMessage(`I-ini kacamata hitam?! Keren banget... Cocok buat jalan-jalan! Makasih ya!`);
@@ -135,7 +164,7 @@ export default function ShopPage() {
   const filteredItems = ITEMS.filter(i => i.category === activeCategory);
 
   return (
-    <div className="min-h-screen bg-[#fdfbf7] relative overflow-hidden flex flex-col font-sans select-none">
+    <div className="h-[100dvh] w-full bg-[#fdfbf7] relative overflow-hidden flex flex-col font-sans select-none">
       
       {/* Background Decor */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-transparent pointer-events-none z-0" />
@@ -167,7 +196,7 @@ export default function ShopPage() {
         </div>
       </div>
 
-      <div className="flex-1 w-full mx-auto flex flex-col lg:flex-row pt-16 md:pt-24 px-4 md:px-6 z-10 relative h-screen">
+      <div className="flex-1 w-full mx-auto flex flex-col lg:flex-row pt-16 md:pt-24 px-4 md:px-6 z-10 relative overflow-hidden">
         
         {/* Mobile Message Bubble */}
         <div className="lg:hidden w-full mt-4 bg-white/95 backdrop-blur-xl rounded-2xl p-4 shadow-md border-l-4 border-[#ff758c] z-20">
@@ -202,7 +231,8 @@ export default function ShopPage() {
         <div className="flex-1 p-2 md:p-6 overflow-y-auto hide-scrollbar pb-32 z-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full max-w-4xl mx-auto">
             {filteredItems.map(item => {
-              const owned = inventory.includes(item.id) && item.category !== 'gift';
+              const isConsumable = item.category === 'gift' || item.category === 'food' || item.category === 'drink';
+              const owned = inventory.includes(item.id) && !isConsumable;
               return (
                 <div 
                   key={item.id}

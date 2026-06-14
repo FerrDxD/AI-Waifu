@@ -3,11 +3,24 @@
 import { useState, useEffect } from 'react';
 import DialogBox from '@/components/livia/DialogBox';
 import LiviaSprite from '@/components/livia/LiviaSprite';
-import { Lock } from 'lucide-react';
+import { Lock, Package, Sparkles, Loader2 } from 'lucide-react';
+import { ITEMS } from '@/lib/livia/items';
 
 type Choice = {
   text: string;
   nextIndex: number;
+};
+
+type UserStatsData = {
+  affection: number;
+  accountDays: number;
+  screenTimeHours: number;
+  itemsBrought: string[];
+};
+
+type ReqCheck = {
+  label: string;
+  met: boolean;
 };
 
 interface Chapter {
@@ -15,6 +28,7 @@ interface Chapter {
   title: string;
   reqAffection: number;
   reqLevel: number;
+  getRequirements?: (data: UserStatsData) => ReqCheck[];
   content: { 
     speaker: string; 
     text: string; 
@@ -189,6 +203,82 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Livia", text: "Terima kasih... karena selalu sabar menghadapiku. Terima kasih sudah jadi 'rumah' baruku.", expression: "happy" },
       { speaker: "Livia", text: "Mulai sekarang, tolong terus berada di sisiku ya. Janji?", expression: "blushing" }
     ]
+  },
+  {
+    id: 6,
+    title: "Sebuah Kebiasaan",
+    reqAffection: 100,
+    reqLevel: 5,
+    getRequirements: (data) => [
+      { label: "Umur akun minimal 7 Hari", met: data.accountDays >= 7 },
+      { label: "Screen time minimal 50 Jam", met: data.screenTimeHours >= 50 }
+    ],
+    content: [
+      { speaker: "Narator", text: "Kamu sudah terbiasa dengan kehadiran Livia di kehidupanmu.", expression: "normal" },
+      { speaker: "Livia", text: "Ayo bangun! Hari ini kita harus lebih produktif!", expression: "happy" }
+    ]
+  },
+  {
+    id: 7,
+    title: "Kencan Akhir Pekan",
+    reqAffection: 100,
+    reqLevel: 5,
+    getRequirements: (data) => [
+      { label: "Umur akun minimal 14 Hari", met: data.accountDays >= 14 },
+      { label: "Screen time minimal 70 Jam", met: data.screenTimeHours >= 70 },
+      { label: "Memiliki Baju Kasual", met: data.itemsBrought.includes('outfit_casual') }
+    ],
+    content: [
+      { speaker: "Livia", text: "Gimana penampilanku dengan baju ini? B-bukan berarti aku dandan cuma buat kencan ini ya!", expression: "blushing" },
+      { speaker: "Narator", text: "Kamu menggenggam tangannya sambil tersenyum.", expression: "normal" }
+    ]
+  },
+  {
+    id: 8,
+    title: "Pulang Kampung",
+    reqAffection: 100,
+    reqLevel: 5,
+    getRequirements: (data) => [
+      { label: "Umur akun minimal 21 Hari", met: data.accountDays >= 21 },
+      { label: "Screen time minimal 120 Jam", met: data.screenTimeHours >= 120 },
+      { label: "Sudah pernah ke Festival", met: data.itemsBrought.includes('visited_festival') },
+      { label: "Memiliki Trench Coat", met: data.itemsBrought.includes('trench_coat') }
+    ],
+    content: [
+      { speaker: "Livia", text: "Pakaian tebal ini hangat... tapi tanganmu lebih hangat.", expression: "happy" },
+      { speaker: "Livia", text: "Ibu pasti kaget kalau tahu aku pulang bawa calon mantu.", expression: "blushing" }
+    ]
+  },
+  {
+    id: 9,
+    title: "Sebuah Janji",
+    reqAffection: 100,
+    reqLevel: 5,
+    getRequirements: (data) => [
+      { label: "Umur akun minimal 30 Hari", met: data.accountDays >= 30 },
+      { label: "Screen time minimal 150 Jam", met: data.screenTimeHours >= 150 }
+    ],
+    content: [
+      { speaker: "Narator", text: "Malam itu, di bawah langit penuh bintang, kamu memberikan sebuah kotak kecil kepadanya.", expression: "normal" },
+      { speaker: "Livia", text: "I-ini beneran? Kamu mau menikah denganku?", expression: "blushing" },
+      { speaker: "Livia", text: "Tentu saja aku mau, bodoh! Cepat pasangkan cincinnya!", expression: "angry" }
+    ]
+  },
+  {
+    id: 10,
+    title: "Persiapan Pernikahan",
+    reqAffection: 100,
+    reqLevel: 5,
+    getRequirements: (data) => [
+      { label: "Memiliki Cincin Nikah", met: data.itemsBrought.includes('cincin_nikah') },
+      { label: "Mengurus Berkas KUA", met: data.itemsBrought.includes('berkas_kua') },
+      { label: "Memesan Gedung Resepsi", met: data.itemsBrought.includes('gedung_resepsi') },
+      { label: "Memesan Katering", met: data.itemsBrought.includes('katering') }
+    ],
+    content: [
+      { speaker: "Livia", text: "Akhirnya... semua sudah siap. Terima kasih karena sudah bertahan denganku selama ini.", expression: "happy" },
+      { speaker: "Narator", text: "Kalian berdua tersenyum memandang masa depan.", expression: "normal" }
+    ]
   }
 ];
 
@@ -198,6 +288,13 @@ export default function StoryPage() {
   const [sceneIndex, setSceneIndex] = useState(0);
   const [hoveredChapterId, setHoveredChapterId] = useState<number>(0);
   const [affectionLevel, setAffectionLevel] = useState<number>(0);
+  const [lockedChapterReqs, setLockedChapterReqs] = useState<Chapter | null>(null);
+  
+  const [showHometownPicker, setShowHometownPicker] = useState(false);
+  const [selectedHometownItems, setSelectedHometownItems] = useState<string[]>([]);
+  const [isSubmittingHometown, setIsSubmittingHometown] = useState(false);
+
+  const [userStats, setUserStats] = useState<UserStatsData | null>(null);
 
   useEffect(() => {
     const fetchProgress = async () => {
@@ -211,6 +308,12 @@ export default function StoryPage() {
           if (data.affection !== undefined) {
             setAffectionLevel(data.affection);
           }
+          setUserStats({
+            affection: data.affection || 0,
+            accountDays: data.accountDays || 0,
+            screenTimeHours: data.screenTimeHours || 0,
+            itemsBrought: data.itemsBrought || []
+          });
         }
       } catch (e) {
         console.error('Failed to fetch story progress', e);
@@ -233,12 +336,45 @@ export default function StoryPage() {
     if (nextIdx < activeChapter.content.length) {
       setSceneIndex(nextIdx);
     } else {
+      if (activeChapter.id === 8 && userStats) {
+        const onboardingItemsCount = userStats.itemsBrought.filter(id => ITEMS.some(item => item.id === id)).length;
+        if (onboardingItemsCount < 8) { // 5 initial + 3 hometown
+          setShowHometownPicker(true);
+          return;
+        }
+      }
       setActiveChapter(null); // Close VN reader
     }
   };
 
   const handleChoice = (nextIdx: number) => {
     setSceneIndex(nextIdx);
+  };
+
+  const handleHometownSubmit = async () => {
+    if (selectedHometownItems.length !== 3) return;
+    setIsSubmittingHometown(true);
+    try {
+      const res = await fetch('/api/hometown-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemsBrought: selectedHometownItems })
+      });
+      if (res.ok) {
+        if (userStats) {
+          setUserStats({
+            ...userStats,
+            itemsBrought: [...userStats.itemsBrought, ...selectedHometownItems]
+          });
+        }
+        setShowHometownPicker(false);
+        setActiveChapter(null); // Close VN reader after picking
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSubmittingHometown(false);
+    }
   };
 
   const getExpressionForHover = (id: number) => {
@@ -313,9 +449,9 @@ export default function StoryPage() {
             </button>
           </div>
 
-          {/* Right Side - Giant Livia */}
-          <div className="absolute right-0 bottom-0 w-full md:w-[65%] h-full flex justify-end items-end pointer-events-none z-10 overflow-hidden">
-            <div className="relative z-10 w-[150%] md:w-full h-[80vh] md:h-[110vh] max-w-[800px] translate-x-[30%] md:translate-x-[15%] translate-y-[5%] md:translate-y-[5%] opacity-30 md:opacity-100 blur-[2px] md:blur-none">
+          {/* Right Side - Giant Livia (Hidden on Mobile) */}
+          <div className="absolute right-0 bottom-0 hidden md:flex md:w-[65%] h-full justify-end items-end pointer-events-none z-10 overflow-hidden">
+            <div className="relative z-10 md:w-full md:h-[110vh] max-w-[800px] md:translate-x-[15%] md:translate-y-[5%] md:opacity-100 md:blur-none">
               <LiviaSprite 
                 expression={getExpressionForHover(hoveredChapterId)} 
                 className="w-full h-full object-cover object-top filter drop-shadow-[-10px_0_30px_rgba(255,154,158,0.2)] transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]" 
@@ -336,18 +472,26 @@ export default function StoryPage() {
 
             <div className="flex flex-col gap-2 w-full max-w-[450px] max-h-[65vh] overflow-y-auto overflow-x-hidden pr-4 pb-20 scrollbar-thin scrollbar-thumb-pink-200 scrollbar-track-transparent">
               {CHAPTERS.map(chap => {
-                const isUnlocked = affectionLevel >= chap.reqAffection;
+                let isUnlocked = affectionLevel >= chap.reqAffection;
+                let reqs: ReqCheck[] = [];
+                
+                if (chap.getRequirements && userStats) {
+                  reqs = chap.getRequirements(userStats);
+                  const allMet = reqs.every(r => r.met);
+                  isUnlocked = isUnlocked && allMet;
+                }
+
                 const isHovered = hoveredChapterId === chap.id;
 
                 return (
                   <div 
                     key={chap.id}
                     onMouseEnter={() => setHoveredChapterId(chap.id)}
-                    onClick={() => isUnlocked && openChapter(chap)}
+                    onClick={() => isUnlocked ? openChapter(chap) : setLockedChapterReqs(chap)}
                     className={`relative py-4 px-6 cursor-pointer transition-all duration-300 ease-out flex flex-col justify-center border-l-[6px] ${
                       isUnlocked 
                         ? (isHovered ? 'border-[#ff758c] bg-gradient-to-r from-[#ff758c]/10 to-transparent translate-x-4' : 'border-transparent hover:bg-white/40') 
-                        : 'border-transparent opacity-40'
+                        : 'border-transparent opacity-40 hover:opacity-60'
                     }`}
                   >
                     <div className="relative z-10 flex flex-col">
@@ -362,12 +506,13 @@ export default function StoryPage() {
                         {chap.title}
                       </h3>
                       
-                      <p className={`text-sm md:text-[15px] mt-1 transition-colors duration-300 line-clamp-1 ${isHovered && isUnlocked ? 'text-[#5c4d47]' : 'text-gray-400'}`}>
-                        {isUnlocked 
-                          ? chap.content[0].text 
-                          : <span className="font-semibold">Butuh afeksi {chap.reqAffection}</span>
-                        }
-                      </p>
+                      <div className={`text-sm md:text-[15px] mt-1 transition-colors duration-300 ${isHovered && isUnlocked ? 'text-[#5c4d47]' : 'text-gray-500'}`}>
+                        {isUnlocked ? (
+                          <p className="line-clamp-1">{chap.content[0].text}</p>
+                        ) : (
+                          <p className="font-semibold italic text-[#8C7B6B]">Belum Terbuka</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -377,6 +522,128 @@ export default function StoryPage() {
           </div>
         </div>
       )}
+
+      {/* Locked Chapter Modal */}
+      {lockedChapterReqs && (
+        <div className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-md flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-white/95 backdrop-blur-xl w-full max-w-sm rounded-[2rem] p-6 md:p-8 shadow-2xl border border-pink-100 flex flex-col gap-6 animate-[slideUp_0.3s_ease-out]">
+            <div className="flex flex-col items-center text-center gap-2">
+              <div className="w-12 h-12 bg-pink-50 rounded-full flex items-center justify-center mb-2">
+                <Lock className="w-6 h-6 text-pink-400" />
+              </div>
+              <h3 className="font-display font-black text-2xl text-[#5c4d47] leading-none">{lockedChapterReqs.title}</h3>
+              <p className="text-sm text-gray-500">Penuhi semua syarat berikut untuk membuka bab ini.</p>
+            </div>
+            
+            <div className="flex flex-col gap-3 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+              <div className="flex items-center gap-3 text-sm font-medium">
+                <span className={`flex items-center justify-center w-5 h-5 rounded-full ${affectionLevel >= lockedChapterReqs.reqAffection ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"}`}>
+                  {affectionLevel >= lockedChapterReqs.reqAffection ? "✓" : "✗"}
+                </span>
+                <span className={affectionLevel >= lockedChapterReqs.reqAffection ? "text-gray-800" : "text-gray-500"}>Afeksi {lockedChapterReqs.reqAffection}</span>
+              </div>
+              
+              {lockedChapterReqs.getRequirements && userStats && lockedChapterReqs.getRequirements(userStats).map((r, idx) => (
+                <div key={idx} className="flex items-center gap-3 text-sm font-medium">
+                  <span className={`flex items-center justify-center w-5 h-5 rounded-full ${r.met ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"}`}>
+                    {r.met ? "✓" : "✗"}
+                  </span>
+                  <span className={r.met ? "text-gray-800" : "text-gray-500"}>{r.label}</span>
+                </div>
+              ))}
+            </div>
+
+            <button 
+              onClick={() => setLockedChapterReqs(null)}
+              className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-xl transition-colors mt-2"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Hometown Picker Modal */}
+      {showHometownPicker && userStats && (
+        <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-[fadeIn_0.3s_ease-out]">
+          <div className="bg-[#fdfbf7] w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="bg-gradient-to-r from-[#ff758c] to-[#ff0844] p-6 text-center shadow-md relative z-10">
+              <h2 className="text-2xl md:text-3xl font-display font-black text-white flex items-center justify-center gap-2">
+                <Package size={28} /> Kunjungan ke Kamar Livia
+              </h2>
+              <p className="text-pink-100 font-medium mt-1">Pilih 3 barang yang ingin kamu bawa kembali ke kos.</p>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-white/50">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+                {ITEMS.filter(i => !userStats.itemsBrought.includes(i.id)).map(item => {
+                  const isSelected = selectedHometownItems.includes(item.id);
+                  const isMaxed = selectedHometownItems.length >= 3 && !isSelected;
+                  
+                  return (
+                    <div 
+                      key={item.id}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedHometownItems(prev => prev.filter(id => id !== item.id));
+                        } else if (!isMaxed) {
+                          setSelectedHometownItems(prev => [...prev, item.id]);
+                        }
+                      }}
+                      className={`relative p-3 md:p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col gap-2 ${
+                        isSelected 
+                          ? 'border-[#ff758c] bg-pink-50 shadow-[0_4px_15px_rgba(255,117,140,0.2)] -translate-y-1' 
+                          : isMaxed
+                          ? 'border-gray-100 bg-gray-50 opacity-50 grayscale cursor-not-allowed'
+                          : 'border-pink-100 bg-white hover:border-pink-300 hover:shadow-md'
+                      }`}
+                    >
+                      {isSelected && (
+                        <div className="absolute -top-3 -right-3 bg-[#ff758c] text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-sm">
+                          ✓
+                        </div>
+                      )}
+                      <div className="text-3xl md:text-4xl text-center bg-gray-50/50 rounded-xl py-2">{item.emoji}</div>
+                      <h3 className="font-bold text-[#5c4d47] text-sm leading-tight line-clamp-2 text-center">{item.name}</h3>
+                      <p className="text-[10px] md:text-xs text-gray-500 line-clamp-2 text-center hidden md:block">{item.description}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="p-4 md:p-6 bg-white border-t border-pink-100 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start">
+                <span className="font-bold text-gray-500">Terpilih:</span>
+                <div className="flex gap-2">
+                  {[0, 1, 2].map(idx => (
+                    <div key={idx} className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
+                      idx < selectedHometownItems.length 
+                        ? 'bg-pink-100 border-2 border-pink-300' 
+                        : 'bg-gray-100 border-2 border-dashed border-gray-300'
+                    }`}>
+                      {idx < selectedHometownItems.length ? ITEMS.find(i => i.id === selectedHometownItems[idx])?.emoji : '?'}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <button
+                disabled={selectedHometownItems.length !== 3 || isSubmittingHometown}
+                onClick={handleHometownSubmit}
+                className={`w-full md:w-auto px-8 py-3.5 rounded-2xl font-black text-lg flex items-center justify-center gap-2 transition-all ${
+                  selectedHometownItems.length === 3 && !isSubmittingHometown
+                    ? 'bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white shadow-[0_5px_15px_rgba(255,117,140,0.3)] hover:-translate-y-0.5'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {isSubmittingHometown ? <Loader2 className="animate-spin" /> : <><Sparkles size={20} /> Bawa Pulang</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

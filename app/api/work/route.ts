@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     
     const userId = session.user.id;
     const body = await req.json();
-    const { earnedRv } = body;
+    const { earnedRv, jobId } = body;
     
     if (typeof earnedRv !== 'number') {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
@@ -26,11 +26,16 @@ export async function POST(req: Request) {
 
     const newMoney = (profile.money || 0) + earnedRv;
     
+    const jobStats = (profile.jobStats as Record<string, number>) || {};
+    if (earnedRv > 0 && jobId) {
+      jobStats[jobId] = (jobStats[jobId] || 0) + 1;
+    }
+    
     await db.update(userProfiles)
-      .set({ money: newMoney })
+      .set({ money: newMoney, jobStats })
       .where(eq(userProfiles.userId, userId));
 
-    return NextResponse.json({ success: true, newMoney });
+    return NextResponse.json({ success: true, newMoney, jobStats });
   } catch (error) {
     console.error('Work API Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

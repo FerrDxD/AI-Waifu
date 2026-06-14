@@ -49,12 +49,28 @@ export async function POST(req: Request) {
 
     const personalityContext = generatePersonalityContext(profile.itemsBrought || []);
 
+    const now = new Date();
+    const anchor = profile.liviaCycleAnchor ? new Date(profile.liviaCycleAnchor).getTime() : now.getTime();
+    const daysDiff = Math.floor((now.getTime() - anchor) / (1000 * 60 * 60 * 24));
+    const dayOfCycle = (daysDiff % 28 + 28) % 28 + 1;
+    let cyclePhase = 'Luteal';
+    if (dayOfCycle <= 5) cyclePhase = 'Menstruasi';
+    else if (dayOfCycle <= 14) cyclePhase = 'Folikuler';
+    else if (dayOfCycle <= 17) cyclePhase = 'Ovulasi';
+
     const { reply, affectionDelta, expression } = await generateLiviaResponse(
       message,
       chatHistory,
       personalityContext,
       profile.affection || 0,
-      profile.itemsBrought || []
+      profile.itemsBrought || [],
+      { 
+        hunger: profile.liviaHunger ?? 100, 
+        energy: profile.liviaEnergy ?? 100, 
+        hydration: profile.liviaHydration ?? 100, 
+        cyclePhase, 
+        cycleDay: dayOfCycle 
+      }
     );
 
     // ✅ FIX: Simpan user message dan reply dalam satu transaksi

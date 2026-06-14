@@ -5,6 +5,21 @@ import { auth } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
 import { shouldUnlockChapter } from '@/lib/livia/affection';
 
+const RECOVERY_STATS: Record<string, {hunger?: number, energy?: number, hydration?: number}> = {
+  onigiri: { hunger: 15, energy: 5 },
+  yakitori: { hunger: 20, energy: 10 },
+  takoyaki: { hunger: 25, energy: 15 },
+  dango: { hunger: 15, energy: 10 },
+  katsudon: { hunger: 50, energy: 30 },
+  sushi: { hunger: 40, energy: 20 },
+  air_putih: { hydration: 30 },
+  teh_hijau: { hydration: 25, energy: 10 },
+  teh_hitam: { hydration: 20, energy: 15 },
+  kopi_hitam: { hydration: 15, energy: 25 },
+  jus_buah: { hydration: 30, energy: 10 },
+  susu: { hydration: 30, hunger: 10 },
+};
+
 export async function POST(req: Request) {
   try {
     const session = await auth();
@@ -29,8 +44,18 @@ export async function POST(req: Request) {
 
     const currentItems = profile.itemsBrought || [];
     let newItems = [...currentItems];
-    if (body.id && !currentItems.includes(body.id)) {
+    if (body.id && !currentItems.includes(body.id) && !RECOVERY_STATS[body.id]) {
       newItems.push(body.id);
+    }
+
+    let newHunger = profile.liviaHunger ?? 100;
+    let newEnergy = profile.liviaEnergy ?? 100;
+    let newHydration = profile.liviaHydration ?? 100;
+
+    if (body.id && RECOVERY_STATS[body.id]) {
+      newHunger = Math.min(100, newHunger + (RECOVERY_STATS[body.id].hunger || 0));
+      newEnergy = Math.min(100, newEnergy + (RECOVERY_STATS[body.id].energy || 0));
+      newHydration = Math.min(100, newHydration + (RECOVERY_STATS[body.id].hydration || 0));
     }
 
     await db.update(userProfiles)
@@ -38,7 +63,10 @@ export async function POST(req: Request) {
         money: newMoney, 
         affection: newAffection,
         affectionLevel: newLevel,
-        itemsBrought: newItems
+        itemsBrought: newItems,
+        liviaHunger: newHunger,
+        liviaEnergy: newEnergy,
+        liviaHydration: newHydration
       })
       .where(eq(userProfiles.userId, userId));
 

@@ -13,7 +13,8 @@ export async function generateLiviaResponse(
   chatHistory: { role: 'user' | 'livia', content: string }[],
   personalityContext: string,
   affectionLevel: number,
-  itemsBrought: string[]
+  itemsBrought: string[],
+  stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number }
 ): Promise<{ reply: string, affectionDelta: number, expression: LiviaExpression }> {
   
   const affectionLevelName = affectionLevel < 20 ? 'Orang Asing' :
@@ -24,6 +25,23 @@ export async function generateLiviaResponse(
                              
   const levelStage = affectionLevel < 40 ? '0-1' : affectionLevel < 80 ? '2-3' : '4-5';
 
+  let physiologicalContext = '';
+  if (stats) {
+    let hungerState = stats.hunger < 20 ? 'SANGAT KELAPARAN' : stats.hunger < 50 ? 'Lapar' : 'Kenyang';
+    let energyState = stats.energy < 20 ? 'SANGAT KELELAHAN' : stats.energy < 50 ? 'Capek' : 'Berenergi';
+    let hydrationState = stats.hydration < 20 ? 'SANGAT DEHIDRASI/HAUS' : stats.hydration < 50 ? 'Haus' : 'Cukup Minum';
+    let cycleState = stats.cyclePhase === 'Menstruasi' ? 'Sedang HAID (perut kram, mood sangat buruk, mudah marah)' :
+                     stats.cyclePhase === 'Luteal' ? 'Sedang PMS (sensitif, mood swing parah, gampang emosi)' :
+                     stats.cyclePhase === 'Ovulasi' ? 'Masa Ovulasi (lebih clingy dan cari perhatian)' : 'Siklus Normal';
+
+    physiologicalContext = `\nKondisi Fisik & Biologis Livia Saat Ini:
+- Siklus Menstruasi: ${cycleState} (Hari ke-${stats.cycleDay})
+- Tingkat Lapar: ${hungerState} (${stats.hunger}/100)
+- Tingkat Energi: ${energyState} (${stats.energy}/100)
+- Tingkat Hidrasi: ${hydrationState} (${stats.hydration}/100)
+PENTING: Kondisi fisik ini HARUS sangat mempengaruhi nada bicara Livia! Jika ia lapar/haus/capek atau sedang PMS/Haid, ia akan JAUH LEBIH galak, ketus, marah-marah, mengeluh, atau bahkan mendiamkan user. Jika ia sedang Ovulasi, ia lebih manja.`;
+  }
+
   const systemPrompt = `Kamu adalah Livia Einhart, gadis 19 tahun yang baru pindah kos di kota besar atas perintah ibunya. Kamu tsundere, temperamen, tapi sangat manja di dalam hati — walaupun kamu tidak akan pernah mengakuinya secara langsung.
 
 Kepribadian spesifik berdasarkan barang bawaanmu:
@@ -33,6 +51,7 @@ Level kedekatan saat ini: ${affectionLevelName} (level ${levelStage}/5)
 - Level 0-1: Kamu dingin, sering menjawab singkat, mudah tersinggung
 - Level 2-3: Kamu mulai terbuka tapi masih sering tsundere
 - Level 4-5: Kamu sangat manja dan protektif, tapi tetap tidak mau ngaku
+${physiologicalContext}
 
 Aturan berbicara:
 - Gunakan Bahasa Indonesia yang natural dan sehari-hari
@@ -115,9 +134,22 @@ Livia:`;
 export async function generateDateDialogue(
   location: string,
   affectionLevel: number,
-  userName: string
+  userName: string,
+  stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number }
 ): Promise<{ speaker: string, text: string, expression?: LiviaExpression }[]> {
-  const systemPrompt = `Kamu adalah Livia Einhart, gadis 19 tahun tsundere. Kamu dan ${userName} sedang jalan-jalan ke: ${location}. Level afeksi: ${affectionLevel}/100.
+  let physiologicalContext = '';
+  if (stats) {
+    let hungerState = stats.hunger < 20 ? 'SANGAT KELAPARAN' : stats.hunger < 50 ? 'Lapar' : 'Kenyang';
+    let energyState = stats.energy < 20 ? 'SANGAT KELELAHAN' : stats.energy < 50 ? 'Capek' : 'Berenergi';
+    let hydrationState = stats.hydration < 20 ? 'SANGAT DEHIDRASI/HAUS' : stats.hydration < 50 ? 'Haus' : 'Cukup Minum';
+    let cycleState = stats.cyclePhase === 'Menstruasi' ? 'Sedang HAID (perut kram, mood sangat buruk, mudah marah)' :
+                     stats.cyclePhase === 'Luteal' ? 'Sedang PMS (sensitif, mood swing parah, gampang emosi)' :
+                     stats.cyclePhase === 'Ovulasi' ? 'Masa Ovulasi (lebih clingy dan cari perhatian)' : 'Siklus Normal';
+
+    physiologicalContext = `\nKondisi Fisik & Biologis Livia Saat Ini:\n- Siklus Menstruasi: ${cycleState}\n- Tingkat Lapar: ${hungerState}\n- Tingkat Energi: ${energyState}\n- Tingkat Hidrasi: ${hydrationState}\nPENTING: Sesuaikan respon Livia dengan kondisi fisiknya! Jika dia lelah/lapar, dia akan mengeluh minta pulang atau makan.`;
+  }
+
+  const systemPrompt = `Kamu adalah Livia Einhart, gadis 19 tahun tsundere. Kamu dan ${userName} sedang jalan-jalan ke: ${location}. Level afeksi: ${affectionLevel}/100. ${physiologicalContext}
 Buat dialog Visual Novel singkat (5-7 baris) di lokasi tersebut. 
 User berbicara sebagai "${userName}", Livia sebagai "Livia". Narator sebagai "Narator".
 Kembalikan HANYA array JSON valid dengan format:
@@ -147,7 +179,8 @@ export async function generateDateResponse(
   userMessage: string,
   chatHistory: { role: 'user' | 'livia' | 'narator', content: string }[],
   affectionLevel: number,
-  userName: string
+  userName: string,
+  stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number }
 ): Promise<{ reply: string, expression: LiviaExpression, affectionDelta: number }> {
   
   const affectionLevelName = affectionLevel < 20 ? 'Orang Asing' :
@@ -156,8 +189,20 @@ export async function generateDateResponse(
                              affectionLevel < 80 ? 'Teman' :
                              affectionLevel < 100 ? 'Sahabat' : 'Rumah';
                              
+  let physiologicalContext = '';
+  if (stats) {
+    let hungerState = stats.hunger < 20 ? 'SANGAT KELAPARAN' : stats.hunger < 50 ? 'Lapar' : 'Kenyang';
+    let energyState = stats.energy < 20 ? 'SANGAT KELELAHAN' : stats.energy < 50 ? 'Capek' : 'Berenergi';
+    let hydrationState = stats.hydration < 20 ? 'SANGAT DEHIDRASI/HAUS' : stats.hydration < 50 ? 'Haus' : 'Cukup Minum';
+    let cycleState = stats.cyclePhase === 'Menstruasi' ? 'Sedang HAID (perut kram, mood sangat buruk, mudah marah)' :
+                     stats.cyclePhase === 'Luteal' ? 'Sedang PMS (sensitif, mood swing parah, gampang emosi)' :
+                     stats.cyclePhase === 'Ovulasi' ? 'Masa Ovulasi (lebih clingy dan cari perhatian)' : 'Siklus Normal';
+
+    physiologicalContext = `\nKondisi Fisik & Biologis Livia: Siklus ${cycleState}, Lapar: ${hungerState}, Energi: ${energyState}, Hidrasi: ${hydrationState}.\nPENTING: Sesuaikan respon dengan kondisi ini. Jika lapar/capek/haid, dia akan jutek/ngambek minta pulang/makan.`;
+  }
+
   const systemPrompt = `Kamu adalah Livia Einhart, gadis 19 tahun tsundere. Kamu sedang jalan-jalan (kencan) dengan ${userName} di: ${location}. 
-Level kedekatan saat ini: ${affectionLevelName} (${affectionLevel}/100).
+Level kedekatan saat ini: ${affectionLevelName} (${affectionLevel}/100). ${physiologicalContext}
 - Jika affection < 40: Kamu agak jaga jarak, tsundere, sering malu-malu tapi ketus.
 - Jika affection >= 40: Kamu mulai nyaman, kadang keceplosan bilang hal manis, tapi langsung ditarik lagi (tsundere).
 - Jika affection >= 80: Kamu sangat protektif, manja, dan terang-terangan suka kencan ini (meski masih sok jual mahal sedikit).
