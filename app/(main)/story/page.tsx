@@ -680,7 +680,7 @@ export default function StoryPage() {
                       
                       <div className={`text-sm md:text-[15px] mt-1 transition-colors duration-300 ${isHovered && isUnlocked ? 'text-[#5c4d47]' : 'text-gray-500'}`}>
                         {isUnlocked ? (
-                          <p className="line-clamp-1">{chap.content[0].text}</p>
+                          <p className="line-clamp-1">{chap.content?.[0]?.text || ""}</p>
                         ) : (
                           <p className="font-semibold italic text-[#8C7B6B]">Belum Terbuka</p>
                         )}
@@ -802,7 +802,7 @@ export default function StoryPage() {
               
               <button
                 disabled={selectedHometownItems.length !== 3 || isSubmittingHometown}
-                onClick={handleHometownSubmit}
+                onClick={submitHometownItems}
                 className={`w-full md:w-auto px-8 py-3.5 rounded-2xl font-black text-lg flex items-center justify-center gap-2 transition-all ${
                   selectedHometownItems.length === 3 && !isSubmittingHometown
                     ? 'bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white shadow-[0_5px_15px_rgba(255,117,140,0.3)] hover:-translate-y-0.5'
