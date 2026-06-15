@@ -229,9 +229,9 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
 
   const getBackgroundImage = () => {
     const hour = new Date().getHours();
-    if (hour >= 5 && hour < 15) return '/bg/home screen/home_morning.png';
-    if (hour >= 15 && hour < 18) return '/bg/home screen/home_afternoon.png';
-    return '/bg/home screen/home_night.png';
+    if (hour >= 5 && hour < 15) return '/bg/home screen/home_morning.webp';
+    if (hour >= 15 && hour < 18) return '/bg/home screen/home_afternoon.webp';
+    return '/bg/home screen/home_night.webp';
   };
 
   const getCycleInfo = () => {

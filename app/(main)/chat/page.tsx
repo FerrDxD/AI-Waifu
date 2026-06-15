@@ -138,7 +138,7 @@ export default function ChatPage() {
       {/* Global Background */}
       <div 
         className="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none"
-        style={{ backgroundImage: "url('/bg/chat_bg.png')" }}
+        style={{ backgroundImage: "url('/bg/chat_bg.webp')" }}
       />
       
       {/* Panel kiri — Livia (Desktop Only) */}
@@ -146,7 +146,7 @@ export default function ChatPage() {
         {/* Immersive Background just for Livia */}
         <div 
           className="absolute inset-0 bg-cover bg-center transition-all duration-1000 z-0 opacity-40 mix-blend-multiply blur-[1px]"
-          style={{ backgroundImage: "url('/bg/chat_bg.png')" }}
+          style={{ backgroundImage: "url('/bg/chat_bg.webp')" }}
         />
 
         {/* Sweet Background glow */}

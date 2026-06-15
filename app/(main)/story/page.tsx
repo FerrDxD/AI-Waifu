@@ -606,7 +606,7 @@ export default function StoryPage() {
         <div className="absolute inset-0 flex">
           <div 
             className="absolute inset-0 bg-cover bg-[60%_center] md:bg-center opacity-40 transition-all duration-1000 z-0"
-            style={{ backgroundImage: `url('/bg/story-bg.png')` }} 
+            style={{ backgroundImage: `url('/bg/story-bg.webp')` }} 
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#fdfbf7] via-transparent to-black/10 pointer-events-none z-0" />
           
@@ -614,10 +614,10 @@ export default function StoryPage() {
           <div className="absolute inset-0 hidden md:flex items-center justify-center pointer-events-none z-10 overflow-hidden">
             <img 
               src={`/livia/story page/${
-                userStats?.activeOutfit === 'outfit_casual' ? 'casual.png' :
-                userStats?.activeOutfit === 'outfit_school' ? 'uniform.png' :
-                userStats?.activeOutfit === 'outfit_yukata' ? 'yukata.png' :
-                'default.png'
+                userStats?.activeOutfit === 'outfit_casual' ? 'casual.webp' :
+                userStats?.activeOutfit === 'outfit_school' ? 'uniform.webp' :
+                userStats?.activeOutfit === 'outfit_yukata' ? 'yukata.webp' :
+                'default.webp'
               }`} 
               alt="Livia Story"
               className="w-full h-full object-cover object-center"

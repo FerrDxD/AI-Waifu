@@ -100,7 +100,7 @@ export default function WardrobePage() {
       {/* Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-[30%_center] md:bg-center opacity-40 transition-all duration-1000"
-        style={{ backgroundImage: "url('/bg/wardrobe-bg.png')" }} 
+        style={{ backgroundImage: "url('/bg/wardrobe-bg.webp')" }} 
       />
 
       {/* Screen VFX Overlays */}

@@ -49,7 +49,7 @@ export default function LiviaSprite({ expression, outfit = 'default', className,
     folderPath = 'home-screen/yukata';
   }
 
-  let src = `/livia/${folderPath}/${fileName}.png`;
+  let src = `/livia/${folderPath}/${fileName}.webp`;
 
   if (variant === 'wardrobe') {
     let wardrobeFileName = 'default';
@@ -57,14 +57,14 @@ export default function LiviaSprite({ expression, outfit = 'default', className,
     else if (outfit === 'outfit_school' || outfit === 'school') wardrobeFileName = 'uniform';
     else if (outfit === 'outfit_yukata' || outfit === 'yukata') wardrobeFileName = 'yukata';
     
-    src = `/livia/wardrobe/${wardrobeFileName}.png`;
+    src = `/livia/wardrobe/${wardrobeFileName}.webp`;
   } else if (variant === 'focus') {
     let focusFileName = 'default';
     if (outfit === 'outfit_casual' || outfit === 'casual') focusFileName = 'casual';
     else if (outfit === 'outfit_school' || outfit === 'school') focusFileName = 'uniform';
     else if (outfit === 'outfit_yukata' || outfit === 'yukata') focusFileName = 'yukata';
     
-    src = `/livia/focus-page/${focusFileName}.png`;
+    src = `/livia/focus-page/${focusFileName}.webp`;
   }
 
   return (

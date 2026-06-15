@@ -118,7 +118,7 @@ export default function VNScene({ onComplete }: VNSceneProps) {
           "absolute inset-0 bg-cover bg-center transition-all duration-[3000ms] ease-out",
           scene.speaker === 'Narator' ? "scale-105 blur-[2px] opacity-80" : "scale-100 blur-0 opacity-100"
         )}
-        style={{ backgroundImage: "url('/bg/bedroom.png')" }} 
+        style={{ backgroundImage: "url('/bg/bedroom.webp')" }} 
       />
 
       {/* Cheerful Sun-kissed Vignette */}

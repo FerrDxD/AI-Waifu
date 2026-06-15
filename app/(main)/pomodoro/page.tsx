@@ -85,7 +85,7 @@ export default function PomodoroPage() {
       else if (hour >= 15 && hour < 19) timeStr = 'afternoon';
       else timeStr = 'night';
       
-      setBgImg(`/bg/focus/${outfitFolder}/${timeStr}.png`);
+      setBgImg(`/bg/focus/${outfitFolder}/${timeStr}.webp`);
     }).catch(console.error);
   }, []);
 

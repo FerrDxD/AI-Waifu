@@ -134,7 +134,7 @@ export default function PackingGame({ onComplete }: PackingGameProps) {
         <div className="relative w-full max-w-5xl aspect-[3/4] sm:aspect-[16/9] md:aspect-[21/9] bg-[#EAE5D9] rounded-lg sm:rounded-sm shadow-2xl border-4 sm:border-8 border-[#5c4d47] overflow-hidden">
           
           {/* Floor Texture/Grid */}
-          <div className="absolute inset-0 opacity-10 bg-[url('/bg/grid.png')] pointer-events-none" />
+          <div className="absolute inset-0 opacity-10 bg-[url('/bg/grid.webp')] pointer-events-none" />
           <div className="absolute inset-0 bg-gradient-to-br from-black/5 to-black/20 pointer-events-none" />
 
           {/* Furniture Elements (Top-Down CSS) */}

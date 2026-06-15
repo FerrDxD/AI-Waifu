@@ -8,7 +8,7 @@ export default function LandingPage() {
       {/* Background Image (Slightly blurred/dimmed) */}
       <div 
         className="absolute inset-0 bg-cover bg-center opacity-50 mix-blend-multiply transition-transform duration-[20s] ease-linear hover:scale-105"
-        style={{ backgroundImage: "url('/bg/bedroom.png')" }} 
+        style={{ backgroundImage: "url('/bg/bedroom.webp')" }} 
       />
       
       {/* UI Frost / Gradient Layers */}
