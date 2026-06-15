@@ -16,7 +16,7 @@ def make_white_transparent(image_path):
     new_img.save(image_path, "PNG")
     print(f"Processed: {image_path}")
 
-target_dir = r"C:\Users\Hype GLK\teman-kost\public\livia\story page"
+target_dir = r"C:\Users\Hype GLK\teman-kost\public\livia\wardrobe"
 for root, dirs, files in os.walk(target_dir):
     for filename in files:
         if filename.endswith(".png"):
