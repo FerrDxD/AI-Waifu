@@ -13,13 +13,13 @@ def make_white_transparent(image_path):
     data[white_areas, 3] = 0 # set alpha to 0 for white areas
     
     new_img = Image.fromarray(data)
-    new_img.save(image_path, "PNG")
+    new_img.save(image_path, "WEBP")
     print(f"Processed: {image_path}")
 
-target_dir = r"C:\Users\Hype GLK\teman-kost\public\livia\wardrobe"
+target_dir = r"C:\Users\Hype GLK\teman-kost\public\livia\shop\default"
 for root, dirs, files in os.walk(target_dir):
     for filename in files:
-        if filename.endswith(".png"):
+        if filename.endswith(".webp") or filename.endswith(".png"):
             file_path = os.path.join(root, filename)
             try:
                 make_white_transparent(file_path)

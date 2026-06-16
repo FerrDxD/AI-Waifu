@@ -374,12 +374,16 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
             
             {/* Onboarding Items Vault (Horizontal Full Width) */}
             {itemsBrought.filter(id => ITEMS.some(i => i.id === id)).length > 0 && (
-              <div className="hidden md:grid grid-cols-5 gap-2 w-full">
+              <div className="hidden md:flex bg-white/70 backdrop-blur-2xl border border-white/60 p-3 rounded-[2rem] shadow-sm w-fit max-w-full gap-3 flex-wrap items-center">
+                <div className="pl-2 flex items-center justify-center">
+                  <Gift size={20} className="text-pink-400 drop-shadow-sm" />
+                </div>
+                <div className="w-px h-6 bg-pink-200/50" />
                 {itemsBrought.filter(id => ITEMS.some(i => i.id === id)).map(id => {
                   const item = ITEMS.find(i => i.id === id)!;
                   return (
-                    <div key={id} className="group relative bg-white/60 backdrop-blur-md rounded-xl aspect-square flex items-center justify-center border border-white/60 shadow-sm cursor-help hover:bg-white/90 hover:scale-[1.05] hover:shadow-md hover:border-pink-200 transition-all duration-300">
-                      <span className="text-2xl md:text-3xl drop-shadow-sm group-hover:drop-shadow-md transition-all">{item.emoji}</span>
+                    <div key={id} className="w-12 h-12 shrink-0 group relative bg-white/90 rounded-[1rem] flex items-center justify-center border border-pink-50 shadow-sm cursor-help hover:bg-white hover:scale-110 hover:shadow-md hover:border-pink-300 transition-all duration-300">
+                      <span className="text-2xl drop-shadow-sm group-hover:drop-shadow-md transition-all">{item.emoji}</span>
                       
                       {/* Tooltip */}
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 md:w-64 p-3.5 bg-white/95 backdrop-blur-xl border border-pink-100 rounded-2xl shadow-[0_10px_40px_rgba(255,117,140,0.15)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[100] origin-bottom scale-95 group-hover:scale-100 pointer-events-none flex flex-col gap-2">
@@ -600,13 +604,16 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
 
             {/* Inventory Vault */}
             {itemsBrought.filter(id => ITEMS.some(i => i.id === id)).length > 0 && (
-              <div className="flex flex-col gap-2">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Barang Bawaan</span>
-                <div className="grid grid-cols-5 gap-2 w-full">
+              <div className="flex flex-col gap-2 bg-pink-50/40 p-3.5 rounded-[1.5rem] border border-pink-100/50 shadow-sm">
+                <div className="flex items-center gap-1.5 mb-1 px-1">
+                  <Gift size={14} className="text-pink-400" />
+                  <span className="text-[10px] font-black text-[#5c4d47] uppercase tracking-widest opacity-80">Barang Bawaan</span>
+                </div>
+                <div className="flex flex-wrap gap-2.5 w-full">
                   {itemsBrought.filter(id => ITEMS.some(i => i.id === id)).map(id => {
                     const item = ITEMS.find(i => i.id === id)!;
                     return (
-                      <div key={id} className="relative bg-pink-50/50 rounded-xl aspect-square flex items-center justify-center border border-pink-100 shadow-sm cursor-help active:scale-95 transition-transform group">
+                      <div key={id} className="w-[3rem] h-[3rem] shrink-0 relative bg-white/90 backdrop-blur-md rounded-xl flex items-center justify-center border border-pink-100 shadow-sm cursor-help active:scale-95 transition-transform group">
                         <span className="text-2xl drop-shadow-sm">{item.emoji}</span>
                         {/* Tooltip for Mobile (appears on click/hold) */}
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-3 bg-white border border-pink-100 rounded-2xl shadow-2xl opacity-0 invisible group-active:opacity-100 group-active:visible transition-all z-[100] origin-bottom scale-95 group-active:scale-100 pointer-events-none flex flex-col gap-1.5">

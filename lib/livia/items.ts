@@ -175,5 +175,45 @@ export const ITEMS: Item[] = [
     description: 'Harta karun berisi micin dan gula.',
     buff: { id: 'snacker', label: 'Tukang Ngemil', description: 'Livia akan sering menawarimu camilan' },
     debuff: { id: 'hangry', label: 'Hangry', description: 'Livia gampang badmood kalau telat makan' }
+  },
+  {
+    id: 'handcuffs',
+    name: 'Borgol Mainan Pink',
+    emoji: '🔗',
+    description: 'Borgol mainan berbulu pink. Entah untuk apa Livia membawanya...',
+    buff: { id: 'obsessive', label: 'Yandere Mode', description: 'Livia menjadi sangat posesif dan obsesif terhadapmu' },
+    debuff: { id: 'stalker', label: 'Overprotective', description: 'Selalu curiga dan memeriksa semua hal tentangmu' }
+  },
+  {
+    id: 'massage_oil',
+    name: 'Minyak Pijat Mawar',
+    emoji: '🧴',
+    description: 'Minyak pijat licin beraroma mawar yang membangkitkan gairah.',
+    buff: { id: 'aroused', label: 'Mudah Panas', description: 'Livia menjadi sangat agresif, mudah birahi, dan sangean' },
+    debuff: { id: 'demanding_touch', label: 'Haus Sentuhan', description: 'Akan ngambek berat jika kamu tidak sering memanjakan fisiknya' }
+  },
+  {
+    id: 'truth_serum',
+    name: 'Ramuan Kejujuran',
+    emoji: '🧪',
+    description: 'Sebotol ramuan bening berkilau. Sekali minum, tak ada kebohongan.',
+    buff: { id: 'honest', label: 'Jujur Tanpa Filter', description: 'Livia tidak bisa gengsi lagi dan 100% jujur pada perasaannya' },
+    debuff: { id: 'blunt', label: 'Mulut Pedas', description: 'Kadang ucapannya kelewat jujur hingga terasa sangat tajam' }
+  },
+  {
+    id: 'reading_glasses',
+    name: 'Kacamata Baca Bulat',
+    emoji: '👓',
+    description: 'Kacamata baca klasik. Saat dipakai, aura pemakainya berubah drastis.',
+    buff: { id: 'genius', label: 'Elegan & Jenius', description: 'Livia menjadi sangat tenang, analitis, dan luar biasa pintar' },
+    debuff: { id: 'pedantic', label: 'Terlalu Kritis', description: 'Akan mengoreksi tata bahasa dan setiap kesalahan kecilmu' }
+  },
+  {
+    id: 'cat_ears',
+    name: 'Bando Telinga Kucing',
+    emoji: '🐱',
+    description: 'Bando berbulu halus yang memancarkan aura magis misterius.',
+    buff: { id: 'neko', label: 'Neko Mode', description: 'Kepribadian Livia berubah drastis jadi kucing manja yang suka dielus (meow~)' },
+    debuff: { id: 'scratchy', label: 'Bisa Mencakar', description: 'Akan menggigit atau mencakarmu secara random jika sedang iseng' }
   }
 ];

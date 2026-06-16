@@ -11,8 +11,8 @@ export async function POST(req: Request) {
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { itemsBrought } = await req.json();
-    if (!Array.isArray(itemsBrought) || itemsBrought.length !== 3) {
-      return NextResponse.json({ error: 'Invalid items. Must be exactly 3.' }, { status: 400 });
+    if (!Array.isArray(itemsBrought) || itemsBrought.length === 0) {
+      return NextResponse.json({ error: 'Invalid items array.' }, { status: 400 });
     }
 
     const userId = session.user.id;

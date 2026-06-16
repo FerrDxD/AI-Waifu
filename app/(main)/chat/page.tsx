@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import LiviaSprite from '@/components/livia/LiviaSprite';
-import { LiviaExpression } from '@/lib/gemini';
-import { Send, ArrowLeft, Heart } from 'lucide-react';
+import { Send, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface ChatMessage {
@@ -31,20 +29,12 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [expression, setExpression] = useState<LiviaExpression>('normal');
-  const [toast, setToast] = useState('');
   const [historyLoaded, setHistoryLoaded] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const lastScrollTop = useRef(0);
-  const lastScrollTime = useRef(0);
-  const toastTimeout = useRef<NodeJS.Timeout>();
 
-  // Load expression + chat history on mount
+  // Load chat history on mount
   useEffect(() => {
-    const savedExpr = localStorage.getItem('liviaExpression') as LiviaExpression;
-    if (savedExpr) setExpression(savedExpr);
-
     const fetchHistory = async () => {
       try {
         const res = await fetch('/api/chat/history');
@@ -71,29 +61,6 @@ export default function ChatPage() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, loading]);
-
-  // Doom scroll detector
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const currentTop = e.currentTarget.scrollTop;
-    const now = Date.now();
-
-    if (
-      currentTop < lastScrollTop.current - 500 &&
-      now - lastScrollTime.current < 2000
-    ) {
-      showToast('Eh, kamu ngapain scroll terus? Ngobrol sama aku aja.');
-      setExpression('angry');
-    }
-
-    lastScrollTop.current = currentTop;
-    lastScrollTime.current = now;
-  };
-
-  const showToast = (text: string) => {
-    setToast(text);
-    if (toastTimeout.current) clearTimeout(toastTimeout.current);
-    toastTimeout.current = setTimeout(() => setToast(''), 4000);
-  };
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
@@ -123,8 +90,6 @@ export default function ChatPage() {
           content: data.reply,
           isNew: true,
         }]);
-        setExpression(data.expression);
-        localStorage.setItem('liviaExpression', data.expression);
       }
     } catch (e) {
       console.error(e);
@@ -134,108 +99,31 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-row w-full h-screen overflow-hidden bg-[#fdfbf7] relative">
-      {/* Global Background */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none"
-        style={{ backgroundImage: "url('/bg/chat_bg.webp')" }}
-      />
+    <div className="flex justify-center w-full h-[100dvh] overflow-hidden bg-[#f4f2ee] relative font-sans">
       
-      {/* Panel kiri — Livia (Desktop Only) */}
-      <div className="hidden md:flex md:w-[35%] h-full flex-col items-center justify-end relative z-10 bg-[#fdfbf7] shadow-[5px_0_15px_rgba(0,0,0,0.03)] border-r border-pink-100">
-        {/* Immersive Background just for Livia */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center transition-all duration-1000 z-0 opacity-40 mix-blend-multiply blur-[1px]"
-          style={{ backgroundImage: "url('/bg/chat_bg.webp')" }}
-        />
-
-        {/* Sweet Background glow */}
-        <div className="absolute inset-0 pointer-events-none transition-all duration-1000 mix-blend-screen z-0"
-          style={{
-            background: expression === 'angry'
-              ? 'radial-gradient(ellipse at 50% 100%, rgba(255,100,100,0.3) 0%, transparent 70%)'
-              : expression === 'blushing'
-              ? 'radial-gradient(ellipse at 50% 100%, rgba(255,150,180,0.4) 0%, transparent 70%)'
-              : expression === 'happy'
-              ? 'radial-gradient(ellipse at 50% 100%, rgba(255,220,150,0.4) 0%, transparent 70%)'
-              : expression === 'clingy'
-              ? 'radial-gradient(ellipse at 50% 100%, rgba(200,150,255,0.3) 0%, transparent 70%)'
-              : 'radial-gradient(ellipse at 50% 100%, rgba(255,255,255,0.2) 0%, transparent 70%)'
-          }}
-        />
-
-        {/* Back button & Name Label (Desktop) */}
-        <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-20">
-          <Link href="/home"
-            className="flex items-center gap-2 font-display font-bold text-sm bg-white/70 backdrop-blur-md px-4 py-2 rounded-full text-pink-500 shadow-sm hover:shadow-md hover:text-[#ff758c] transition-all"
-          >
-            <ArrowLeft size={16} />
-            Kembali
+      {/* Panel Chat Fullscreen */}
+      <div className="w-full h-full flex flex-col relative z-10 bg-white">
+        
+        {/* Header Area */}
+        <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-100 flex items-center gap-3 bg-white/95 backdrop-blur-xl z-20 shadow-sm">
+          <Link href="/home" className="p-2 -ml-2 text-gray-400 hover:text-pink-500 hover:bg-pink-50 rounded-full transition-all">
+            <ArrowLeft size={20} />
           </Link>
-          <div className="bg-white/80 backdrop-blur-md px-6 py-2 rounded-full shadow-sm border border-pink-100">
-            <span className="font-display font-bold text-base text-[#ff758c] tracking-wide">L I V I A</span>
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#ff758c] to-[#ff9a9e] flex items-center justify-center text-white shadow-sm font-bold text-lg shrink-0">
+            L
           </div>
-        </div>
-
-        {/* Toast doom scroll */}
-        {toast && (
-          <div
-            className="absolute top-20 left-8 right-8 z-30 px-6 py-4 rounded-2xl text-sm font-sans animate-[bounceIn_0.4s_ease]"
-            style={{
-              background: 'rgba(255,255,255,0.95)',
-              border: '2px solid #fecfef',
-              boxShadow: '0 10px 25px rgba(255,154,158,0.3)',
-              color: '#5c4d47',
-            }}
-          >
-            <span style={{ color: '#ff758c', fontSize: '13px', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
-              Livia
+          <div className="flex-1">
+            <h2 className="font-display font-bold text-lg text-gray-800 leading-tight">Livia Einhart</h2>
+            <span className="text-[11px] text-green-500 font-medium flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Online
             </span>
-            {toast}
           </div>
-        )}
-
-        {/* Sprite */}
-        <div className="relative z-10 w-full flex justify-center items-end h-[90%]">
-          <LiviaSprite
-            expression={expression}
-            className="h-full w-auto max-w-[90%] object-contain object-bottom drop-shadow-[0_20px_40px_rgba(255,154,158,0.4)]"
-          />
         </div>
-      </div>
-
-      {/* Panel kanan — Chat */}
-      <div className="flex-1 w-full md:w-[65%] h-full flex flex-col relative z-10 bg-white/70 md:bg-transparent backdrop-blur-sm">
-        {/* Mobile Background (Livia portrait subtly blended behind chat) */}
-        <div className="md:hidden absolute inset-0 z-0 opacity-10 pointer-events-none overflow-hidden">
-          <LiviaSprite
-            expression={expression}
-            className="h-full w-auto object-cover object-top filter blur-sm scale-110 opacity-40"
-          />
-        </div>
-
-        <div className="w-full h-full flex flex-col relative z-10">
-          
-          {/* Header Area */}
-          <div className="px-4 md:px-8 py-3 md:py-4 border-b border-pink-50 flex items-center gap-3 bg-white/95 backdrop-blur-xl z-20 shadow-sm">
-            {/* Mobile Back Button */}
-            <Link href="/home" className="md:hidden p-2 -ml-2 text-pink-400 hover:text-pink-500 transition-colors">
-              <ArrowLeft size={20} />
-            </Link>
-            <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-[#ff758c] to-[#ff9a9e] flex items-center justify-center text-white shadow-sm font-bold text-sm md:text-base">
-              L
-            </div>
-            <div className="flex-1">
-              <h2 className="font-display font-bold text-base md:text-lg text-[#ff758c] leading-tight">Livia Einhart</h2>
-              <span className="text-[10px] md:text-xs text-amber-500 font-medium italic">Sedang online</span>
-            </div>
-          </div>
 
           {/* Messages area */}
           <div
             ref={scrollRef}
-            onScroll={handleScroll}
-            className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6 space-y-4 md:space-y-5"
+            className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6 bg-[#f0f2f5]"
             style={{ scrollbarWidth: 'none' }}
           >
             {!historyLoaded && (
@@ -260,30 +148,40 @@ export default function ChatPage() {
                 className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.role === 'livia' && (
-                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-pink-100 border border-white shrink-0 mr-2 md:mr-3 mt-auto mb-1 flex items-center justify-center shadow-sm z-10">
-                    <span className="text-pink-400 text-[10px] md:text-xs font-bold">L</span>
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-[#ff758c] to-[#ff9a9e] shrink-0 mr-2 md:mr-3 mt-0.5 flex items-center justify-center shadow-sm z-10">
+                    <span className="text-white text-[12px] md:text-[14px] font-bold">L</span>
                   </div>
                 )}
+
+                {msg.role === 'user' && (
+                  <div className="flex flex-col justify-end items-end mr-2 mb-0.5">
+                    <span className="text-[10px] text-gray-500 font-medium leading-tight">Read</span>
+                    <span className="text-[10px] text-gray-400 font-medium leading-tight mt-0.5">Now</span>
+                  </div>
+                )}
+
                 <div
-                  className="max-w-[85%] md:max-w-[70%] px-4 py-3 md:px-5 md:py-3.5 text-sm md:text-[15px] leading-relaxed shadow-md"
+                  className="max-w-[75%] md:max-w-[60%] px-4 py-2.5 md:px-5 md:py-3 text-[14px] md:text-[15px] leading-relaxed shadow-sm relative break-words"
                   style={msg.role === 'livia' ? {
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid #f9ecec',
-                    borderLeft: '4px solid #ff758c',
-                    borderRadius: '4px 20px 20px 20px',
-                    color: '#5c4d47',
+                    background: '#ffffff',
+                    borderRadius: '4px 18px 18px 18px',
+                    color: '#333333',
                     fontWeight: 500
                   } : {
-                    background: 'linear-gradient(135deg, #ffb199 0%, #ff0844 100%)',
-                    borderRadius: '20px 4px 20px 20px',
+                    background: '#ff758c',
+                    borderRadius: '18px 4px 18px 18px',
                     color: '#ffffff',
-                    fontWeight: 500,
-                    boxShadow: '0 4px 10px rgba(255,8,68,0.2)'
+                    fontWeight: 500
                   }}
                 >
                   {msg.role === 'livia' && msg.isNew ? <TypewriterText text={msg.content} /> : msg.content}
                 </div>
+
+                {msg.role === 'livia' && (
+                  <div className="flex flex-col justify-end items-start ml-2 mb-0.5">
+                    <span className="text-[10px] text-gray-400 font-medium leading-tight">Now</span>
+                  </div>
+                )}
               </div>
             ))}
 
@@ -309,8 +207,8 @@ export default function ChatPage() {
             )}
           </div>
 
-          {/* Input area */}
-          <div className="px-3 md:px-8 py-3 md:py-6 bg-white/95 backdrop-blur-xl border-t border-pink-100 flex items-end gap-2 md:gap-3 z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
+            {/* Input area */}
+          <div className="px-4 md:px-6 py-2 md:py-3 bg-[#f0f2f5] flex items-end gap-2 md:gap-3 z-20 border-t border-gray-200">
             <textarea
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -323,33 +221,27 @@ export default function ChatPage() {
               placeholder="Ketik balasan..."
               rows={1}
               disabled={loading}
-              className="flex-1 resize-none py-3 md:py-3.5 px-4 md:px-6 text-[15px] focus:outline-none transition-all placeholder:text-gray-400"
+              className="flex-1 resize-none py-3 md:py-3.5 px-5 md:px-6 text-[15px] focus:outline-none transition-all placeholder:text-gray-400 bg-white rounded-3xl border border-transparent focus:border-gray-300 shadow-sm"
               style={{
-                background: '#f8f9fa',
-                border: '1px solid #e9ecef',
-                borderRadius: '24px',
-                color: '#5c4d47',
-                maxHeight: '100px',
-                fontWeight: 500,
+                color: '#333',
+                maxHeight: '120px',
+                minHeight: '50px',
               }}
-              onFocus={e => (e.currentTarget.style.borderColor = '#ff758c')}
-              onBlur={e => (e.currentTarget.style.borderColor = '#e9ecef')}
             />
             <button
               onClick={handleSend}
               disabled={loading || !input.trim()}
-              className="shrink-0 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all shadow-md"
+              className="shrink-0 w-12 h-12 flex items-center justify-center rounded-full transition-all shadow-sm"
               style={{
-                background: input.trim() && !loading ? 'linear-gradient(135deg, #ff0844, #ffb199)' : '#f1f3f5',
-                color: input.trim() && !loading ? '#ffffff' : '#adb5bd',
+                background: input.trim() && !loading ? '#ff758c' : '#e4e6eb',
+                color: input.trim() && !loading ? '#ffffff' : '#b0b3b8',
                 transform: input.trim() && !loading ? 'scale(1)' : 'scale(0.95)'
               }}
             >
-              <Send size={16} className={`md:w-5 md:h-5 ${input.trim() && !loading ? "ml-1" : ""}`} />
+              <Send size={18} className={`${input.trim() && !loading ? "ml-1" : ""}`} />
             </button>
           </div>
         </div>
-      </div>
     </div>
   );
 }

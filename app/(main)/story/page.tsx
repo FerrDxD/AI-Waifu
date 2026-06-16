@@ -53,13 +53,16 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Livia", text: "Kecil banget. Tapi ya sudahlah, namanya juga ngekos.", expression: "angry" },
       { speaker: "Livia", text: "Makasih udah bantu beresin barang-barangku. A-aku nggak nyuruh loh ya, kamu yang nawarin diri.", expression: "blushing",
         choices: [
-          { text: "Nggak apa-apa, kan kita tetanggaan.", nextIndex: 3 },
-          { text: "Lain kali bayar ya pakai traktiran.", nextIndex: 4 }
+          { text: "Sama-sama. Kalau butuh bantuan lagi bilang aja ya.", nextIndex: 3 },
+          { text: "Iya deh si paling mandiri. Awas nangis cari ibunya.", nextIndex: 4 },
+          { text: "Jangankan beresin barang, beresin hatimu juga aku siap.", nextIndex: 5 },
+          { text: "Secara teknis, koper seberat itu berbahaya kalau diangkat sendirian.", nextIndex: 6 }
         ]
       },
-      { speaker: "Narator", text: "Kamu tersenyum melihatnya salah tingkah mengatur barang.", expression: "normal", nextIndex: 5 },
-      { speaker: "Livia", text: "Hah?! Pelit banget sih! Yaudah, nanti aku traktir es krim. Puas?!", expression: "angry", nextIndex: 6 },
-      { speaker: "Livia", text: "Apa senyum-senyum?! Jangan mikir macem-macem!", expression: "angry", nextIndex: 6 },
+      { speaker: "Narator", text: "Kamu tersenyum ramah. Livia mengalihkan pandangannya malu-malu.", expression: "normal", nextIndex: 7 },
+      { speaker: "Livia", text: "Enak aja! Siapa yang mau nangis?! Nyebelin banget sih!", expression: "angry", nextIndex: 7 },
+      { speaker: "Livia", text: "H-hah?! Jangan ngaco deh! Jaga ucapanmu!", expression: "blushing", nextIndex: 7 },
+      { speaker: "Livia", text: "Hmph, bilang aja kamu ngeremehin tenagaku kan?!", expression: "angry", nextIndex: 7 },
       { speaker: "Livia", text: "Mending kamu balik ke kamarmu sana. Aku mau istirahat.", expression: "normal" },
       { speaker: "Narator", text: "Kamu mengangguk dan berbalik pergi ke kamarmu yang terletak persis di sebelahnya.", expression: "normal" },
       { speaker: "Livia", text: "...Hei.", expression: "normal" },
@@ -79,12 +82,16 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Livia", text: "Lagipula... lingkungan di sini lumayan. Nggak seburuk yang kubayangkan.", expression: "blushing" },
       { speaker: "Livia", text: "Dan, eh... kamu lumayan bisa diandalkan juga sebagai tetangga.", expression: "happy",
         choices: [
-          { text: "Makasih. Kamu juga tetangga yang baik.", nextIndex: 6 },
-          { text: "Tumben kamu muji? Ada maunya ya?", nextIndex: 7 }
+          { text: "Makasih. Senang bisa membantu tetangga.", nextIndex: 6 },
+          { text: "Wah, matahari terbit dari barat nih? Tumben muji.", nextIndex: 7 },
+          { text: "Aduh, dipuji gadis manis begini jadi deg-degan.", nextIndex: 8 },
+          { text: "Statistik menunjukkan gotong royong meningkatkan kenyamanan kos.", nextIndex: 9 }
         ]
       },
-      { speaker: "Livia", text: "J-jangan dibalas serius gitu dong! Bikin malu aja!", expression: "blushing", nextIndex: 8 },
-      { speaker: "Livia", text: "Enak aja! Aku kan cuma jujur! Udah ah, males ngomong sama kamu!", expression: "angry", nextIndex: 8 },
+      { speaker: "Livia", text: "Y-ya makanya jangan geer! Ini cuma pengakuan objektif!", expression: "blushing", nextIndex: 10 },
+      { speaker: "Livia", text: "Nggak bisa dibilangin baik dikit ya?! Nyesel aku muji kamu!", expression: "angry", nextIndex: 10 },
+      { speaker: "Livia", text: "B-bisa nggak sih gausah godain terus?! Dasar buaya!", expression: "blushing", nextIndex: 10 },
+      { speaker: "Livia", text: "Kamu ini robot atau manusia sih?! Kaku banget jawabnya!", expression: "normal", nextIndex: 10 },
       { speaker: "Narator", text: "Dia memalingkan wajahnya sedikit, pura-pura melihat ke arah koridor.", expression: "normal" },
       { speaker: "Livia", text: "Sudahlah, aku mau masak mi instan.", expression: "normal" },
       { speaker: "Livia", text: "...Kamu mau kubuatin juga nggak? Tanggung airnya sekalian direbus.", expression: "clingy" }
@@ -102,12 +109,16 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Livia", text: "Di kamarku ada kecoa besar! Aku udah coba usir, tapi dia malah terbang!", expression: "angry" },
       { speaker: "Livia", text: "A-aku nggak takut kok! Cuma jijik aja! Paham kan bedanya?!", expression: "blushing",
         choices: [
-          { text: "Iya iya, aku bantu usir.", nextIndex: 5 },
-          { text: "Biarin aja, nanti juga hilang sendiri.", nextIndex: 6 }
+          { text: "Tenang, jangan panik. Sini aku bantu tangkap.", nextIndex: 5 },
+          { text: "Katanya mandiri, sama serangga sekecil itu aja panik.", nextIndex: 6 },
+          { text: "Sini sembunyi di kamarku aja, di sini aman kok.", nextIndex: 7 },
+          { text: "Kecoa terbang kalau merasa terancam. Jangan bergerak tiba-tiba.", nextIndex: 8 }
         ]
       },
-      { speaker: "Livia", text: "Cepat ambil sapu lidi atau apalah! Kalau dia hilang di bawah kasurku, aku bakal numpang tidur di sini!", expression: "clingy", nextIndex: 7 },
-      { speaker: "Livia", text: "Jahat banget sih?! Gimana aku bisa tidur kalau ada monster itu di kamarku?!", expression: "angry", nextIndex: 7 },
+      { speaker: "Livia", text: "Cepat! Sebelum dia bertelur di kasurku!", expression: "clingy", nextIndex: 9 },
+      { speaker: "Livia", text: "Ini beda kasus tau! Cepetan bantu usir atau kupukul kamu!", expression: "angry", nextIndex: 9 },
+      { speaker: "Livia", text: "J-jangan manfaatin situasi buat cari kesempatan ya!", expression: "blushing", nextIndex: 9 },
+      { speaker: "Livia", text: "Terus aku harus diam aja sementara dia terbang ke wajahku?! Cepetan!", expression: "angry", nextIndex: 9 },
       { speaker: "Livia", text: "Ehh— tunggu, barusan aku ngomong apa?! Lupakan! Pokoknya cepat bunuh kecoanya!", expression: "angry" }
     ]
   },
@@ -121,12 +132,16 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Livia", text: "Nih. Ibu ngirim terlalu banyak kue kering dari rumah.", expression: "normal" },
       { speaker: "Livia", text: "Karena kamarku nggak muat, kamu ambil sebagian. Bukannya aku sengaja nyisihin buatmu, ya!", expression: "blushing",
         choices: [
-          { text: "Wah, makasih! Kelihatannya enak.", nextIndex: 3 },
-          { text: "Bilang aja sengaja nyisihin buatku.", nextIndex: 4 }
+          { text: "Wah, makasih banyak ya. Kelihatannya enak.", nextIndex: 3 },
+          { text: "Biar nggak muat atau emang niat ngasih dari awal?", nextIndex: 4 },
+          { text: "Pasti rasanya makin manis karena dikasih olehmu.", nextIndex: 5 },
+          { text: "Kapasitas ruang kamarmu cukup kok, ini murni rasionalisasimu saja.", nextIndex: 6 }
         ]
       },
-      { speaker: "Livia", text: "Syukurlah kalau kamu suka... Eh, maksudku, wajar kalau rasanya enak, itu buatan ibuku!", expression: "happy", nextIndex: 5 },
-      { speaker: "Livia", text: "U-udah kubilang bukan gitu! Mau dibalikin nggak nih kuenya?!", expression: "angry", nextIndex: 5 },
+      { speaker: "Livia", text: "Syukurlah kalau kamu suka... Eh, maksudku wajar dong enak, itu buatan ibuku!", expression: "happy", nextIndex: 7 },
+      { speaker: "Livia", text: "U-udah kubilang bukan gitu! Mau dibalikin nggak nih?!", expression: "angry", nextIndex: 7 },
+      { speaker: "Livia", text: "G-gombalan murahan! Jangan harap aku luluh denger itu!", expression: "blushing", nextIndex: 7 },
+      { speaker: "Livia", text: "Berisik! Tinggal terima aja susah banget sih pamer otak segala!", expression: "angry", nextIndex: 7 },
       { speaker: "Livia", text: "Kamu tahu, belakangan ini aku merasa ngekos nggak seburuk yang kukira.", expression: "normal" },
       { speaker: "Livia", text: "Awalnya aku takut sendirian. Tapi karena... karena ada seseorang yang terus memperhatikanku...", expression: "blushing" },
       { speaker: "Livia", text: "Rasanya tempat ini sedikit terasa seperti rumah kedua. Gitu deh.", expression: "clingy" }
@@ -141,12 +156,17 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Livia", text: "Kamu lagi ngerjain tugas? Fokus banget dari tadi.", expression: "normal" },
       { speaker: "Livia", text: "Aku beliin es kopi waktu keluar tadi. Satu buatku, satu buatmu. Jangan protes, minum aja.", expression: "happy",
         choices: [
-          { text: "Tumben baik banget? Makasih ya.", nextIndex: 2 },
-          { text: "Harganya dipotong dari uang kos kan?", nextIndex: 3 }
+          { text: "Wah, lagi butuh banget ini. Makasih pengertiannya.", nextIndex: 2 },
+          { text: "Awas nih, biasanya ada udang di balik batu.", nextIndex: 3 },
+          { text: "Cie, udah pinter ya ngasih perhatian ke calon pacar.", nextIndex: 4 },
+          { text: "Kafein di malam hari bisa mengganggu siklus sirkadian loh.", nextIndex: 5 }
         ]
       },
-      { speaker: "Narator", text: "Kamu menyadari belakangan ini Livia lebih sering menghabiskan waktu di area kerjamu daripada di kamarnya sendiri.", expression: "normal", nextIndex: 4 },
-      { speaker: "Livia", text: "Enak aja! Aku pakai uangku sendiri tau! Nggak tahu terima kasih banget sih!", expression: "angry", nextIndex: 4 },
+      { speaker: "Narator", text: "Livia tersenyum tipis melihatmu menikmati kopinya dengan senang.", expression: "happy", nextIndex: 6 },
+      { speaker: "Livia", text: "Pikiranmu negatif terus! Yaudah sini balikin kalau curiga!", expression: "angry", nextIndex: 6 },
+      { speaker: "Livia", text: "Hah?! S-siapa yang calon pacarmu?! Jangan ngelantur!", expression: "blushing", nextIndex: 6 },
+      { speaker: "Livia", text: "Ya ampun, orang niat baik malah diceramahi medis! Bodo amat!", expression: "angry", nextIndex: 6 },
+      { speaker: "Narator", text: "Kamu menyadari belakangan ini Livia lebih sering menghabiskan waktu di area kerjamu daripada di kamarnya sendiri.", expression: "normal" },
       { speaker: "Livia", text: "Kenapa ngeliatin gitu? Kamarku Wi-Finya lagi lambat, makanya aku duduk di sini! Jangan GR!", expression: "angry" },
       { speaker: "Livia", text: "Terserah kamu mau mikir apa... Aku cuma... merasa lebih tenang kalau ada di dekatmu. Udah, puasss?!", expression: "clingy" },
       { speaker: "Narator", text: "Kamu tersenyum sambil menyeruput es kopimu. Livia kembali fokus ke laptopnya dengan wajah memerah.", expression: "normal" }
@@ -163,12 +183,16 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Livia", text: "Dulu aku benci banget ninggalin rumah. Tapi sekarang... rasanya aku nggak mau pergi dari tempat ini.", expression: "happy" },
       { speaker: "Livia", text: "Bukan karena kamarnya ya! Kamarnya masih sempit dan atapnya kadang bocor!", expression: "angry",
         choices: [
-          { text: "Lalu karena apa dong?", nextIndex: 4 },
-          { text: "Iya, kamu nggak mau jauh dariku kan?", nextIndex: 5 }
+          { text: "Iya, aku ngerti kok. Pasti karena suasana kosnya hangat.", nextIndex: 4 },
+          { text: "Halah, ngaku aja kamu betah karena ada tukang angkat barang gratisan.", nextIndex: 5 },
+          { text: "Pasti karena tetangga sebelahmu ini terlalu tampan dan bikin kangen kan?", nextIndex: 6 },
+          { text: "Adaptasi psikologis manusia memang butuh sekitar 3 bulan untuk merasa nyaman.", nextIndex: 7 }
         ]
       },
-      { speaker: "Livia", text: "Karena... umm... karena alasan lain.", expression: "blushing", nextIndex: 6 },
-      { speaker: "Livia", text: "P-percaya diri banget sih kamu! Walaupun... ya, sedikit benar sih...", expression: "blushing", nextIndex: 6 },
+      { speaker: "Livia", text: "I-iya... suasananya. Dan... mungkin karena orang-orangnya juga.", expression: "blushing", nextIndex: 8 },
+      { speaker: "Livia", text: "Ih, kamu ngerusak suasana yang lagi syahdu tau nggak?!", expression: "angry", nextIndex: 8 },
+      { speaker: "Livia", text: "M-mana ada! Pede banget sih! ...Walaupun sedikit benar...", expression: "blushing", nextIndex: 8 },
+      { speaker: "Livia", text: "Terserah teori psikologimu deh. Intinya aku nyaman di sini!", expression: "normal", nextIndex: 8 },
       { speaker: "Narator", text: "Livia menarik ujung lengan bajumu pelan, menatap lurus ke arah matamu.", expression: "normal" },
       { speaker: "Livia", text: "Kamu tahu kan kalau kamu itu spesial buatku?", expression: "clingy" },
       { speaker: "Livia", text: "Terima kasih... karena selalu sabar menghadapiku. Terima kasih sudah jadi 'rumah' baruku.", expression: "happy" },
@@ -190,12 +214,16 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Narator", text: "Kamu menatap heran. Livia yang dulunya selalu bangun siang, kini sudah rapi dengan celemeknya.", expression: "normal" },
       { speaker: "Livia", text: "Apa liat-liat?! Nggak usah mikir macem-macem. Aku cuma kebetulan bangun kepagian dan sekalian aja bikin kopi!", expression: "angry",
         choices: [
-          { text: "Makasih ya, ini manis banget.", nextIndex: 4 },
-          { text: "Bohong, pasti sengaja kan pengen merhatiin aku?", nextIndex: 5 }
+          { text: "Ini wangi kopinya enak banget. Terima kasih banyak ya.", nextIndex: 4 },
+          { text: "Tumben? Jangan-jangan di dalamnya udah kamu masukin racun ya?", nextIndex: 5 },
+          { text: "Wah, auranya udah kayak istri idaman yang nyiapin sarapan nih.", nextIndex: 6 },
+          { text: "Peluang kamu 'kebetulan' bangun pagi sangat kecil secara empiris.", nextIndex: 7 }
         ]
       },
-      { speaker: "Livia", text: "Y-ya namanya juga tinggal serumah... kita harus saling mengandalkan kan?", expression: "blushing", nextIndex: 6 },
-      { speaker: "Livia", text: "T-tahu dari mana?! Ugh... pokoknya minum aja jangan banyak omong!", expression: "angry", nextIndex: 6 },
+      { speaker: "Livia", text: "Hehe... syukurlah kalau kamu suka. Habiskan ya.", expression: "happy", nextIndex: 8 },
+      { speaker: "Livia", text: "Biarin aja kuracun beneran biar kamu nggak bisa ngomong nyebelin lagi!", expression: "angry", nextIndex: 8 },
+      { speaker: "Livia", text: "I-istri apanya?! Nggak usah ngaco masih pagi juga!", expression: "blushing", nextIndex: 8 },
+      { speaker: "Livia", text: "Berisik ah! Suka-suka aku dong mau bangun jam berapa!", expression: "angry", nextIndex: 8 },
       { speaker: "Narator", text: "Livia duduk di kursi sebelahmu sambil membuka buku catatannya.", expression: "normal" },
       { speaker: "Livia", text: "Ngomong-ngomong, aku perhatiin belakangan ini kamu kerja terlalu keras. Jangan lupa istirahat.", expression: "clingy" },
       { speaker: "Livia", text: "Karena... kalau kamu tumbang, siapa yang mau direpotin sama kelakuan manjaku nanti?", expression: "happy" }
@@ -216,12 +244,16 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Livia", text: "Haaah... cuaca begini enaknya tiduran aja seharian pakai baju kaus kebesaran.", expression: "happy" },
       { speaker: "Livia", text: "Sini dong, temenin aku rebahan. Nggak usah mikirin tugas dan kerjaan terus.", expression: "clingy",
         choices: [
-          { text: "Nanti aku ketularan malasnya loh.", nextIndex: 4 },
-          { text: "Boleh deh, lima menit aja ya.", nextIndex: 5 }
+          { text: "Boleh deh, istirahat sebentar bareng kamu nggak ada salahnya.", nextIndex: 3 },
+          { text: "Nanti kasurnya ikutan bau malas gara-gara kamu.", nextIndex: 4 },
+          { text: "Wah, ini sih ajakan berbahaya. Yakin mau ditemenin?", nextIndex: 5 },
+          { text: "Produktivitas memang perlu diimbangi dengan istirahat yang cukup.", nextIndex: 6 }
         ]
       },
-      { speaker: "Livia", text: "Ih, bilang aja kamu nggak mau rebahan di dekatku! Dasar sok rajin!", expression: "angry", nextIndex: 6 },
-      { speaker: "Livia", text: "Hmph... bohong banget, ujung-ujungnya palingan kamu ketiduran juga di sini.", expression: "blushing", nextIndex: 6 },
+      { speaker: "Livia", text: "Nah gitu dong, dari kemarin sibuk terus sih.", expression: "happy", nextIndex: 7 },
+      { speaker: "Livia", text: "Enak aja! Aku udah mandi tau! Sini kutarik paksa kamu!", expression: "angry", nextIndex: 7 },
+      { speaker: "Livia", text: "J-jangan mikir ngeres ya! Jaraknya minimal setengah meter!", expression: "blushing", nextIndex: 7 },
+      { speaker: "Livia", text: "Iya, iya pak dosen. Sekarang praktekin istirahatnya, cepat.", expression: "normal", nextIndex: 7 },
       { speaker: "Narator", text: "Kamu akhirnya ikut berbaring santai di sebelahnya sambil mendengarkan rintik hujan.", expression: "normal" },
       { speaker: "Livia", text: "Hehe... nyaman banget kan? Sesekali jadi kaum mageran itu nggak ada salahnya tau.", expression: "happy" },
       { speaker: "Livia", text: "Ssst... udah ah, jangan banyak gerak. Biar aku bisa meluk tanganmu.", expression: "clingy" }
@@ -246,12 +278,16 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Livia", text: "Hehe... pakaian tebal ini hangat... tapi tanganmu jauh lebih hangat.", expression: "happy" },
       { speaker: "Livia", text: "Ibu pasti kaget kalau tahu aku pulang bawa... ya gitu deh.", expression: "blushing",
         choices: [
-          { text: "Bawa calon mantu idaman?", nextIndex: 7 },
-          { text: "Bawa tukang bersih-bersih kamar gratis?", nextIndex: 8 }
+          { text: "Nggak usah khawatir, aku bakal bersikap sopan ke keluargamu kok.", nextIndex: 6 },
+          { text: "Bawa beban masyarakat alias diri kamu sendiri kan?", nextIndex: 7 },
+          { text: "Bawa menantu tampan yang siap mengambil hati putrinya?", nextIndex: 8 },
+          { text: "Kunjungan ini sudah dikomunikasikan kan? Reaksi terkejut harusnya terminimalisir.", nextIndex: 9 }
         ]
       },
-      { speaker: "Livia", text: "I-iya... ibu udah lama pengen ketemu orang yang selalu kuceritain di telepon.", expression: "blushing", nextIndex: 9 },
-      { speaker: "Livia", text: "Hei! Kok kamu merusak suasana sih! Setidaknya kamu kan lebih berharga dari sekadar tukang bersih-bersih!", expression: "angry", nextIndex: 9 },
+      { speaker: "Livia", text: "Aku tahu kok kamu bisa diandalkan. Pegang tanganku lebih erat ya.", expression: "happy", nextIndex: 10 },
+      { speaker: "Livia", text: "Bisa nggak sih nggak merusak momen manis ini sedetik aja?!", expression: "angry", nextIndex: 10 },
+      { speaker: "Livia", text: "T-tampan dari mananya! Ibu pasti ketawa ngeliat gombalanmu!", expression: "blushing", nextIndex: 10 },
+      { speaker: "Livia", text: "Ini bukan presentasi proposal ya! Kamu ini kaku banget deh.", expression: "angry", nextIndex: 10 },
       { speaker: "Narator", text: "Kalian berdua berjalan menyusuri jalan kecil menuju rumah keluarganya.", expression: "normal" },
       { speaker: "Livia", text: "Di kamar lamaku nanti, aku mau ngambil beberapa barang peninggalan masa kecilku. Bantuin pilih ya nanti?", expression: "happy" }
     ]
@@ -272,12 +308,16 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Narator", text: "Kamu membuka kotak itu perlahan, memperlihatkan sebuah cincin sederhana namun elegan.", expression: "normal" },
       { speaker: "Livia", text: "E-eh...? I-ini beneran? Kamu...", expression: "blushing",
         choices: [
-          { text: "Menikahlah denganku, Livia.", nextIndex: 6 },
-          { text: "Kalau nggak mau, cincinnya buat kucing garong di bawah loh.", nextIndex: 7 }
+          { text: "Maukah kamu menghabiskan sisa hidupmu bersamaku, Livia?", nextIndex: 5 },
+          { text: "Kalau nggak mau cincinnya kulempar ke kucing garong di bawah nih.", nextIndex: 6 },
+          { text: "Hanya cincin ini yang cukup berkilau untuk menyaingi matamu. Menikahlah denganku.", nextIndex: 7 },
+          { text: "Berdasarkan durasi dan kualitas interaksi kita, pernikahan adalah langkah logis selanjutnya.", nextIndex: 8 }
         ]
       },
-      { speaker: "Livia", text: "Bodoh... kamu bikin aku cengeng tau nggak... hiks...", expression: "crying", nextIndex: 8 },
-      { speaker: "Livia", text: "Jangan merusak momen seromantis ini dong idiot! Mana sini cincinnya!!", expression: "angry", nextIndex: 8 },
+      { speaker: "Livia", text: "Bodoh... kamu bikin aku cengeng tau nggak... hiks... Tentu saja aku mau.", expression: "crying", nextIndex: 9 },
+      { speaker: "Livia", text: "JANGAN! Ih kamu tuh ngajak nikah tapi ngeselin banget! Sini pakaikan!", expression: "angry", nextIndex: 9 },
+      { speaker: "Livia", text: "B-bisa nggak gombalnya ditahan dulu?! Jantungku bisa meledak tau!", expression: "blushing", nextIndex: 9 },
+      { speaker: "Livia", text: "Cara melamarmu jelek banget! Tapi... kesimpulannya aku setuju.", expression: "blushing", nextIndex: 9 },
       { speaker: "Narator", text: "Livia menyodorkan jari manisnya ke arahmu dengan tangan sedikit gemetar.", expression: "normal" },
       { speaker: "Livia", text: "Cepat pasangkan... sebelum aku berubah pikiran malu...", expression: "blushing" },
       { speaker: "Narator", text: "Malam itu, janji untuk hidup menua bersama resmi terukir di antara kalian.", expression: "normal" }
@@ -299,12 +339,16 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Livia", text: "Huft... Coba aku cek lagi. Berkas KUA udah lengkap, DP gedung udah beres, katering juga udah test food...", expression: "normal" },
       { speaker: "Livia", text: "Ternyata nyiapin pernikahan itu capek banget ya! Punggungku sampai pegal.", expression: "angry",
         choices: [
-          { text: "Sini kupijat pundaknya.", nextIndex: 4 },
-          { text: "Tapi seru kan karena ngurusnya berdua?", nextIndex: 5 }
+          { text: "Kamu pasti lelah, sini aku pijat pundakmu perlahan.", nextIndex: 3 },
+          { text: "Makanya, siapa suruh ngotot mau resepsi yang ribet-ribet.", nextIndex: 4 },
+          { text: "Tenang aja, capeknya bakal terbayar lunas malam pertama nanti.", nextIndex: 5 },
+          { text: "Kelelahan otot ini wajar karena tingginya kadar hormon stres kortisol.", nextIndex: 6 }
         ]
       },
-      { speaker: "Livia", text: "Mmm... makasih. Pijatanmu lumayan juga. Bikin rasa capeknya langsung hilang separuh.", expression: "happy", nextIndex: 6 },
-      { speaker: "Livia", text: "I-iya sih... kalau nggak sama kamu, aku pasti udah nyerah dari kemarin-kemarin.", expression: "blushing", nextIndex: 6 },
+      { speaker: "Livia", text: "Mmm... makasih. Tanganmu selalu tahu titik yang bikin pegalku hilang.", expression: "happy", nextIndex: 7 },
+      { speaker: "Livia", text: "Ini kan momen sekali seumur hidup! Ngalah dikit kenapa sih sama istri?!", expression: "angry", nextIndex: 7 },
+      { speaker: "Livia", text: "M-malam pertama apa?! Otakmu ngeres banget! Fokus nyusun berkas!", expression: "blushing", nextIndex: 7 },
+      { speaker: "Livia", text: "Udah deh, stop pakai istilah ilmiah. Cukup pijat pundakku aja.", expression: "normal", nextIndex: 7 },
       { speaker: "Narator", text: "Livia menyenderkan kepalanya ke bahumu, menghembuskan napas lega.", expression: "normal" },
       { speaker: "Livia", text: "Akhirnya... semua sudah siap. Terima kasih karena sudah bertahan denganku dan segala kekuranganku selama ini.", expression: "clingy" },
       { speaker: "Livia", text: "Aku nggak sabar nunggu hari H-nya tiba. Mulai dari titik ini, mohon bimbingannya terus ya, Suamiku.", expression: "happy" },
@@ -324,12 +368,16 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Narator", text: "Pintu terbuka. Livia berjalan anggun dalam balutan gaun pengantin putih yang sempurna membalut tubuhnya.", expression: "normal" },
       { speaker: "Livia", text: "B-bagaimana? A-aku kelihatan aneh ya pakai gaun semahal ini?", expression: "blushing",
         choices: [
-          { text: "Kamu adalah pengantin paling cantik di dunia.", nextIndex: 6 },
-          { text: "Lumayan, sayangnya orangnya galak.", nextIndex: 7 }
+          { text: "Kamu adalah pengantin paling cantik dan sempurna di mataku.", nextIndex: 3 },
+          { text: "Lumayan, sayangnya orangnya tetep aja galak seperti biasa.", nextIndex: 4 },
+          { text: "Kamu terlihat sangat menggoda. Aku jadi ingin cepat-cepat selesai acaranya.", nextIndex: 5 },
+          { text: "Gaunnya sangat proporsional dengan rasio tinggi dan postur tubuhmu.", nextIndex: 6 }
         ]
       },
-      { speaker: "Livia", text: "Bodoh... di depan banyak orang jangan ngomong gitu... wajahku jadi panas kan...", expression: "crying", nextIndex: 8 },
-      { speaker: "Livia", text: "Di hari pernikahan kita kamu masih aja ngajak berantem?! Awas ya nanti malam!", expression: "angry", nextIndex: 8 },
+      { speaker: "Livia", text: "Makasih... Kamu juga... terlihat sangat tampan hari ini.", expression: "blushing", nextIndex: 7 },
+      { speaker: "Livia", text: "Di hari pernikahan kita kamu masih aja ngajak berantem?! Tunggu aja nanti malam!", expression: "angry", nextIndex: 7 },
+      { speaker: "Livia", text: "Mesum! Jaga sikapmu di depan pendeta dan para tamu undangan!", expression: "blushing", nextIndex: 7 },
+      { speaker: "Livia", text: "Pujian macam apa itu?! Bikin emosi aja di hari bahagia!", expression: "angry", nextIndex: 7 },
       { speaker: "Narator", text: "Sang pendeta mengucapkan janji suci. Kalian menyematkan cincin, disoraki oleh tepuk tangan meriah.", expression: "normal" },
       { speaker: "Livia", text: "Mulai detik ini, panggil aku Istrimu. Jangan berani-berani lirik perempuan lain!", expression: "clingy" }
     ]
@@ -364,26 +412,27 @@ const CHAPTERS: Chapter[] = [
     getDynamicContent: (data) => {
       const isFertility = data.itemsBrought.includes('berkah_kesuburan');
       const isHealth = data.itemsBrought.includes('berkah_kesehatan');
-      const isWealth = data.itemsBrought.includes('berkah_kekayaan');
 
       if (isFertility) {
         return [
-          { speaker: "Narator", text: "Beberapa bulan setelah menerima Berkah Kesuburan dari kuil keluargamu...", expression: "normal" },
-          { speaker: "Livia", text: "S-sayang... lihat ini...", expression: "blushing" },
-          { speaker: "Narator", text: "Livia menunjukkan sebuah test pack dengan dua garis merah yang jelas.", expression: "normal" },
-          { speaker: "Livia", text: "Aku... kita... akan jadi orang tua. Kamu bakal jadi ayah yang baik kan?", expression: "crying" }
+          { speaker: "Narator", text: "Beberapa bulan setelah kunjungan ke kuil, ada sesuatu yang berbeda pada Livia. Ia sering tersenyum sendiri di depan cermin.", expression: "normal" },
+          { speaker: "Livia", text: "Sayang... kamu harus lihat ini...", expression: "blushing" },
+          { speaker: "Narator", text: "Dengan tangan gemetar, ia menyodorkan sebuah test pack. Dua garis merah tercetak jelas di sana.", expression: "normal" },
+          { speaker: "Livia", text: "A-aku hamil... Kita akan jadi orang tua! Tolong jaga kami berdua mulai sekarang ya, Ayah~", expression: "crying" }
         ];
       } else if (isHealth) {
         return [
-          { speaker: "Narator", text: "Sejak menerima Berkah Kesehatan, fisik Livia menjadi jauh lebih bugar dan bersemangat.", expression: "normal" },
-          { speaker: "Livia", text: "Ayo lari pagi lagi! Masa suamiku kalah tenaga sama istrinya?", expression: "happy" },
-          { speaker: "Narator", text: "Kamu tersenyum pasrah mengikuti langkahnya yang lincah menembus embun pagi.", expression: "normal" }
+          { speaker: "Narator", text: "Berkah Kesehatan benar-benar membawa keajaiban. Livia yang dulunya mudah lelah kini dipenuhi energi yang meluap-luap.", expression: "normal" },
+          { speaker: "Livia", text: "Hei, pemalas! Ayo bangun! Pagi ini kita lari 10 kilometer, nggak ada penolakan!", expression: "happy" },
+          { speaker: "Narator", text: "Kamu mendesah pasrah, ditarik paksa dari kasur oleh istrimu yang kini jauh lebih bersemangat darimu.", expression: "normal" },
+          { speaker: "Livia", text: "Masa suaminya kalah stamina sama istrinya? Ayo kejar aku kalau bisa!", expression: "happy" }
         ];
       } else {
         return [
-          { speaker: "Narator", text: "Berkah Kekayaan dari kuil ternyata membuka pintu rezeki yang tak terduga untuk karir kalian berdua.", expression: "normal" },
-          { speaker: "Livia", text: "Wah... bonus bulan ini cair besar banget! Kita bisa beli rumah sendiri sekarang!", expression: "happy" },
-          { speaker: "Livia", text: "Kerja keras kita nggak sia-sia. Makasih ya udah selalu berusaha keras buat keluarga kita.", expression: "clingy" }
+          { speaker: "Narator", text: "Berkah Kekayaan membuka pintu rezeki dengan sangat deras. Karir kalian menanjak pesat dan uang mengalir seperti air.", expression: "normal" },
+          { speaker: "Livia", text: "Sayang!! Coba cek rekeningmu! Bonus akhir tahunku juga cair dua kali lipat!", expression: "happy" },
+          { speaker: "Narator", text: "Livia melompat kegirangan dan memelukmu erat. Impian-impian kalian kini tak lagi terasa mustahil.", expression: "normal" },
+          { speaker: "Livia", text: "Akhirnya kita bisa beli rumah impian kita! Ini semua berkat kerja keras kita berdua. Aku bangga banget sama kamu.", expression: "clingy" }
         ];
       }
     }
@@ -398,16 +447,30 @@ const CHAPTERS: Chapter[] = [
     ],
     getDynamicContent: (data) => {
       const isFertility = data.itemsBrought.includes('berkah_kesuburan');
+      const isHealth = data.itemsBrought.includes('berkah_kesehatan');
+      
       if (isFertility) {
         return [
-          { speaker: "Narator", text: "Masa ngidam Livia menjadi tantangan terberatmu. Malam ini, ia membangunkanmu jam 2 pagi.", expression: "normal" },
-          { speaker: "Livia", text: "Sayang... dedek bayinya pengen makan sate padang... tapi bumbunya dipisah di mangkok warna pink.", expression: "clingy" }
+          { speaker: "Narator", text: "Bulan-bulan kehamilan penuh dengan drama. Jam 2 pagi, Livia membangunkanmu sambil menahan tangis.", expression: "normal" },
+          { speaker: "Livia", text: "Sayang... dedek bayinya rewel... dia pengen nasi goreng tek-tek, tapi yang masaknya harus pakai topi merah...", expression: "crying" },
+          { speaker: "Narator", text: "Meski terdengar absurd, kamu tetap menembus dinginnya malam demi menuruti ngidamnya.", expression: "normal" },
+          { speaker: "Livia", text: "Maafin aku ya sering ngerepotin... Makasih udah jadi suami yang paling sabar sedunia.", expression: "clingy" }
+        ];
+      } else if (isHealth) {
+        return [
+          { speaker: "Narator", text: "Kalian memutuskan untuk merayakan kesehatan kalian dengan mendaki puncak Gunung Rinjani bersama.", expression: "normal" },
+          { speaker: "Livia", text: "Hah... hah... Puncaknya sedikit lagi! Ayo sayang, jangan menyerah di sini!", expression: "happy" },
+          { speaker: "Narator", text: "Angin gunung yang dingin menusuk kulit, tapi genggaman tangan Livia menyalurkan kehangatan yang tak terlukiskan.", expression: "normal" },
+          { speaker: "Livia", text: "Pemandangannya indah banget kan? Tapi tetep aja, pemandangan paling indah buatku itu kamu yang lagi ngos-ngosan begitu.", expression: "blushing" }
+        ];
+      } else {
+        return [
+          { speaker: "Narator", text: "Kesuksesan finansial membawa kesibukan yang luar biasa. Kalian jarang punya waktu untuk duduk santai berdua.", expression: "normal" },
+          { speaker: "Livia", text: "Jadwal meetingku padat banget hari ini... Kamu juga lembur lagi kan nanti malam?", expression: "normal" },
+          { speaker: "Narator", text: "Malam harinya, kamu mendapati Livia tertidur di meja kerjanya karena terlalu kelelahan.", expression: "normal" },
+          { speaker: "Livia", text: "(Mengigau pelan)... Jangan kerja terus sayang... aku kangen peluk kamu...", expression: "blushing" }
         ];
       }
-      return [
-        { speaker: "Narator", text: "Kehidupan pernikahan tidak selalu mulus, tapi kalian selalu bisa melewatinya berdua.", expression: "normal" },
-        { speaker: "Livia", text: "Jangan pernah simpan masalah sendirian. Ingat, kita udah janji buat bagi beban berdua.", expression: "normal" }
-      ];
     }
   },
   {
@@ -420,16 +483,30 @@ const CHAPTERS: Chapter[] = [
     ],
     getDynamicContent: (data) => {
       const isFertility = data.itemsBrought.includes('berkah_kesuburan');
+      const isHealth = data.itemsBrought.includes('berkah_kesehatan');
+      
       if (isFertility) {
         return [
-          { speaker: "Narator", text: "Tangisan bayi memecah keheningan malam. Keluarga kecilmu kini telah utuh.", expression: "normal" },
-          { speaker: "Livia", text: "Lihat... dia punya matamu. Dia akan tumbuh sehebat ayahnya.", expression: "happy" }
+          { speaker: "Narator", text: "Suara tangisan kencang memecah kesunyian ruang bersalin. Perjuangan panjang itu akhirnya usai.", expression: "normal" },
+          { speaker: "Livia", text: "Lihat sayang... dia cantik sekali... Hidungnya mirip banget sama kamu...", expression: "crying" },
+          { speaker: "Narator", text: "Kamu mengecup kening Livia dengan air mata yang menggenang. Keluarga kecil kalian kini telah utuh.", expression: "normal" },
+          { speaker: "Livia", text: "Terima kasih sudah memilihku untuk menjadi ibu dari anak-anakmu. Aku mencintaimu, dulu, sekarang, dan selamanya.", expression: "happy" }
+        ];
+      } else if (isHealth) {
+        return [
+          { speaker: "Narator", text: "Puluhan tahun berlalu. Rambut kalian kini telah memutih, namun tubuh kalian masih cukup bugar untuk berjalan-jalan sore.", expression: "normal" },
+          { speaker: "Livia", text: "Pelan-pelan jalannya, suamiku sayang. Ingat umur, kamu bukan anak muda lagi lho.", expression: "happy" },
+          { speaker: "Narator", text: "Livia menggenggam tanganmu yang keriput dengan erat, tersenyum dengan sorot mata yang sama seperti saat pertama kali kalian bertemu.", expression: "normal" },
+          { speaker: "Livia", text: "Ternyata menua bersamamu itu nggak buruk juga. Mari terus sehat dan saling menjaga sampai akhir waktu.", expression: "clingy" }
+        ];
+      } else {
+        return [
+          { speaker: "Narator", text: "Kalian kini berdiri di balkon penthouse mewah kalian, memandangi gemerlap lampu kota yang tak pernah tidur.", expression: "normal" },
+          { speaker: "Livia", text: "Kita berhasil ya, sayang. Semua impian liar kita dari nol... semuanya terwujud.", expression: "happy" },
+          { speaker: "Narator", text: "Livia menyandarkan kepalanya di bahumu, menikmati embusan angin malam dengan damai.", expression: "normal" },
+          { speaker: "Livia", text: "Tapi asal kamu tau... dari semua kemewahan ini, harta karun yang paling berharga buatku tetaplah kamu.", expression: "clingy" }
         ];
       }
-      return [
-        { speaker: "Narator", text: "Tahun-tahun berlalu, dan genggaman tangan kalian masih sama eratnya seperti hari pertama.", expression: "normal" },
-        { speaker: "Livia", text: "Aku nggak pernah menyesal memilihmu. Mari menua bersama, suamiku tersayang.", expression: "happy" }
-      ];
     }
   }
 ];
@@ -490,12 +567,16 @@ export default function StoryPage() {
     if (!activeChapter) return;
     
     const scenes = activeChapter.getDynamicContent ? activeChapter.getDynamicContent(userStats!) : activeChapter.content!;
-    if (sceneIndex < scenes.length - 1) {
+    const currentScene = scenes[sceneIndex];
+
+    if (currentScene.nextIndex !== undefined) {
+      setSceneIndex(currentScene.nextIndex);
+    } else if (sceneIndex < scenes.length - 1) {
       setSceneIndex(prev => prev + 1);
     } else {
-      if (activeChapter.id === 8 && userStats && !userStats.itemsBrought.some(i => i.startsWith('hometown_'))) {
+      if (activeChapter.id === 8 && userStats && !userStats.itemsBrought.includes('chapter_8_completed')) {
         setShowHometownPicker(true);
-      } else if (activeChapter.id === 12 && userStats && !userStats.itemsBrought.some(i => i.startsWith('berkah_'))) {
+      } else if (activeChapter.id === 12 && userStats && !userStats.itemsBrought.includes('chapter_12_completed')) {
         setShowBlessingPicker(true);
       } else {
         setActiveChapter(null);
@@ -519,12 +600,13 @@ export default function StoryPage() {
     if (selectedHometownItems.length !== 3) return;
     setIsSubmittingHometown(true);
     try {
+      const itemsToBring = [...selectedHometownItems, 'chapter_8_completed'];
       await fetch('/api/hometown-items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: selectedHometownItems })
+        body: JSON.stringify({ itemsBrought: itemsToBring })
       });
-      setUserStats(prev => prev ? { ...prev, itemsBrought: [...prev.itemsBrought, ...selectedHometownItems] } : null);
+      setUserStats(prev => prev ? { ...prev, itemsBrought: [...prev.itemsBrought, ...itemsToBring] } : null);
       setShowHometownPicker(false);
       setActiveChapter(null);
     } catch (e) {
@@ -537,12 +619,13 @@ export default function StoryPage() {
     if (!selectedBlessing) return;
     setIsSubmittingHometown(true);
     try {
+      const itemsToBring = [selectedBlessing, 'chapter_12_completed'];
       await fetch('/api/hometown-items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: [selectedBlessing] })
+        body: JSON.stringify({ itemsBrought: itemsToBring })
       });
-      setUserStats(prev => prev ? { ...prev, itemsBrought: [...prev.itemsBrought, selectedBlessing] } : null);
+      setUserStats(prev => prev ? { ...prev, itemsBrought: [...prev.itemsBrought, ...itemsToBring] } : null);
       setShowBlessingPicker(false);
       setActiveChapter(null);
     } catch (e) {
@@ -816,50 +899,89 @@ export default function StoryPage() {
         </div>
       )}
 
-      {/* Blessing Picker Modal */}
+      {/* Blessing Picker Modal (Genshin Spiral Abyss Inspired) */}
       {showBlessingPicker && (
-        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-2xl w-full shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-amber-300 to-yellow-500" />
+        <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-4xl flex flex-col items-center">
             
-            <div className="text-center mb-6">
-              <Sparkles className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
-              <h2 className="text-2xl md:text-3xl font-display font-black text-[#5c4d47]">Berkah Kuil Suci</h2>
-              <p className="text-gray-500 mt-2 text-sm md:text-base">Pilihlah 1 berkah dari Ibu mertuamu. Pilihan ini akan memengaruhi takdir pernikahan kalian ke depannya (Bab 13-15).</p>
+            <div className="text-center mb-8">
+              <div className="flex items-center justify-center gap-4 mb-2">
+                <div className="h-px w-12 md:w-24 bg-gradient-to-l from-yellow-400 to-transparent" />
+                <Sparkles className="w-8 h-8 text-yellow-400" />
+                <div className="h-px w-12 md:w-24 bg-gradient-to-r from-yellow-400 to-transparent" />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-display font-black text-white tracking-widest drop-shadow-[0_2px_10px_rgba(250,204,21,0.5)]">BERKAH KUIL SUCI</h2>
+              <p className="text-gray-200 mt-3 text-sm md:text-base font-medium">Pilihlah satu takdir untuk membimbing jalan kalian (Bab 13-15).</p>
             </div>
 
-            <div className="flex-1 overflow-y-auto mb-6 px-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 px-4 md:px-0 mb-10">
               {[
-                { id: 'berkah_kesuburan', name: 'Kesuburan', icon: '👶', desc: 'Membawa kehidupan baru ke dalam keluarga.' },
-                { id: 'berkah_kesehatan', name: 'Kesehatan', icon: '🏃‍♀️', desc: 'Fisik bugar dan umur yang panjang.' },
-                { id: 'berkah_kekayaan', name: 'Kekayaan', icon: '💰', desc: 'Kemudahan rezeki dan karir yang meroket.' }
+                { id: 'berkah_kesuburan', name: 'Kesuburan', icon: '👶', desc: 'Membawa kehidupan baru ke dalam keluarga. Menganugerahi kalian dengan buah hati yang manis.' },
+                { id: 'berkah_kesehatan', name: 'Kesehatan', icon: '🏃‍♀️', desc: 'Fisik bugar dan umur yang panjang. Memberikan stamina tak terbatas di setiap harinya.' },
+                { id: 'berkah_kekayaan', name: 'Kekayaan', icon: '💰', desc: 'Kemudahan rezeki dan karir yang meroket. Membuka jalan menuju kebebasan finansial.' }
               ].map(item => (
                 <button
                   key={item.id}
                   onClick={() => setSelectedBlessing(item.id)}
-                  className={`relative p-4 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-2 ${
+                  className={`group relative h-[320px] rounded-lg transition-all duration-300 flex flex-col items-center p-1 overflow-hidden ${
                     selectedBlessing === item.id 
-                      ? 'border-yellow-400 bg-yellow-50 shadow-md transform scale-105' 
-                      : 'border-gray-100 bg-gray-50 hover:border-yellow-200 hover:bg-yellow-50/50'
+                      ? 'bg-gradient-to-b from-yellow-300 to-yellow-600 shadow-[0_0_30px_rgba(250,204,21,0.5)] scale-105 z-10' 
+                      : 'bg-white/10 hover:bg-white/20 hover:scale-[1.02]'
                   }`}
                 >
-                  <span className="text-4xl">{item.icon}</span>
-                  <span className="font-bold text-[#5c4d47]">{item.name}</span>
-                  <span className="text-xs text-gray-500">{item.desc}</span>
+                  {/* Inner Card */}
+                  <div className={`w-full h-full flex flex-col items-center bg-[#fdfbf7] rounded flex-1 py-8 px-6 relative z-10 transition-colors ${
+                    selectedBlessing === item.id ? 'bg-[#fffdf0]' : ''
+                  }`}>
+                    
+                    {/* Icon Circle */}
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center border-4 mb-4 transition-all ${
+                      selectedBlessing === item.id ? 'border-yellow-400 bg-yellow-100 shadow-[0_0_15px_rgba(250,204,21,0.4)]' : 'border-gray-200 bg-white'
+                    }`}>
+                      <span className="text-4xl drop-shadow-sm">{item.icon}</span>
+                    </div>
+
+                    <h3 className={`font-display font-black text-xl mb-2 text-center uppercase tracking-wider ${
+                      selectedBlessing === item.id ? 'text-yellow-700' : 'text-[#5c4d47]'
+                    }`}>
+                      {item.name}
+                    </h3>
+
+                    {/* Decorative Divider */}
+                    <div className="flex items-center justify-center w-full my-3 opacity-60">
+                      <div className="h-px w-1/3 bg-gradient-to-l from-yellow-400 to-transparent" />
+                      <div className="w-1.5 h-1.5 rotate-45 bg-yellow-400 mx-2" />
+                      <div className="h-px w-1/3 bg-gradient-to-r from-yellow-400 to-transparent" />
+                    </div>
+
+                    <p className={`text-sm text-center leading-relaxed mt-2 ${
+                      selectedBlessing === item.id ? 'text-yellow-900 font-medium' : 'text-gray-500'
+                    }`}>
+                      {item.desc}
+                    </p>
+
+                  </div>
                 </button>
               ))}
             </div>
 
-            <div className="flex justify-center pt-4 border-t border-gray-100">
-              <button 
-                onClick={submitBlessing}
-                disabled={!selectedBlessing || isSubmittingHometown}
-                className="bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-200 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all flex items-center gap-2"
-              >
-                {isSubmittingHometown ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                Terima Berkah
-              </button>
-            </div>
+            <button 
+              onClick={submitBlessing}
+              disabled={!selectedBlessing || isSubmittingHometown}
+              className={`relative overflow-hidden group px-12 py-4 rounded-full font-black tracking-widest text-lg transition-all ${
+                selectedBlessing 
+                  ? 'bg-yellow-400 text-yellow-900 hover:bg-yellow-300 shadow-[0_0_20px_rgba(250,204,21,0.4)] hover:shadow-[0_0_30px_rgba(250,204,21,0.6)] hover:-translate-y-1' 
+                  : 'bg-gray-500/50 text-gray-300 cursor-not-allowed border border-gray-400/50'
+              }`}
+            >
+              <div className="flex items-center gap-3 relative z-10">
+                {isSubmittingHometown ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                TERIMA BERKAH
+              </div>
+              {selectedBlessing && (
+                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+              )}
+            </button>
           </div>
         </div>
       )}
