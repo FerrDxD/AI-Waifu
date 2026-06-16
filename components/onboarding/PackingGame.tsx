@@ -11,7 +11,8 @@ import {
 import LiviaSprite from '@/components/livia/LiviaSprite';
 import {
   BookOpen, ToyBrick, Gamepad2, Headphones, Sparkles, Shirt, Key, Book, Fan, Glasses,
-  Palette, Dices, Pill, Lock, Guitar, TreePine, Dumbbell, BedDouble, Camera, Cookie
+  Palette, Dices, Pill, Lock, Guitar, TreePine, Dumbbell, BedDouble, Camera, Cookie,
+  Link, Droplets, FlaskConical, Cat
 } from 'lucide-react';
 
 interface PackingGameProps {
@@ -39,6 +40,12 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   'blanket': <BedDouble size={24} strokeWidth={1.5} />,
   'camera': <Camera size={24} strokeWidth={1.5} />,
   'snacks': <Cookie size={24} strokeWidth={1.5} />,
+  // 5 New Items
+  'handcuffs': <Link size={24} strokeWidth={1.5} />,
+  'massage_oil': <Droplets size={24} strokeWidth={1.5} />,
+  'truth_serum': <FlaskConical size={24} strokeWidth={1.5} />,
+  'reading_glasses': <Glasses size={24} strokeWidth={1.5} />,
+  'cat_ears': <Cat size={24} strokeWidth={1.5} />,
 };
 
 // Adjusted positions to fit around a top-down floorplan
@@ -63,6 +70,12 @@ const ROOM_POSITIONS = [
   { top: '55%', left: '40%' },
   { top: '80%', left: '15%' }, // bottom left corner
   { top: '20%', left: '90%' },
+  // 5 New Positions
+  { top: '10%', left: '40%' },
+  { top: '30%', left: '10%' },
+  { top: '60%', left: '90%' },
+  { top: '75%', left: '60%' },
+  { top: '45%', left: '80%' },
 ];
 
 function DraggableItem({ id, name, description, isPacked, position }: { id: string, name: string, description: string, isPacked: boolean, position?: any }) {

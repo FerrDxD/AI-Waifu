@@ -58,12 +58,26 @@ export async function POST(req: Request) {
       newHydration = Math.min(100, newHydration + (RECOVERY_STATS[body.id].hydration || 0));
     }
 
+    // Recalculate buffs and debuffs based on the new items list
+    const activeBuffs = newItems.map(id => ITEMS.find(i => i.id === id)?.buff?.id).filter(Boolean) as string[];
+    let activeDebuffs = ITEMS
+      .filter(i => !newItems.includes(i.id))
+      .map(i => i.debuff.id);
+
+    // Apply keychain buff if owned
+    if (newItems.includes('keychain') && activeDebuffs.length > 0) {
+      const randomIndex = Math.floor(Math.random() * activeDebuffs.length);
+      activeDebuffs.splice(randomIndex, 1);
+    }
+
     await db.update(userProfiles)
       .set({ 
         money: newMoney, 
         affection: newAffection,
         affectionLevel: newLevel,
         itemsBrought: newItems,
+        activeBuffs,
+        activeDebuffs,
         liviaHunger: newHunger,
         liviaEnergy: newEnergy,
         liviaHydration: newHydration

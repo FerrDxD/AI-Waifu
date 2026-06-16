@@ -24,9 +24,14 @@ export async function POST(req: Request) {
     const newItems = [...currentItems, ...itemsBrought];
     
     const activeBuffs = newItems.map(id => ITEMS.find(i => i.id === id)?.buff?.id).filter(Boolean) as string[];
-    const activeDebuffs = ITEMS
+    let activeDebuffs = ITEMS
       .filter(i => !newItems.includes(i.id))
       .map(i => i.debuff.id);
+
+    if (newItems.includes('keychain') && activeDebuffs.length > 0) {
+      const randomIndex = Math.floor(Math.random() * activeDebuffs.length);
+      activeDebuffs.splice(randomIndex, 1);
+    }
 
     await db.update(userProfiles).set({
       itemsBrought: newItems,
