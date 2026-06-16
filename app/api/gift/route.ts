@@ -4,6 +4,7 @@ import { userProfiles, storyProgress } from '@/lib/db/schema';
 import { auth } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
 import { shouldUnlockChapter } from '@/lib/livia/affection';
+import { ITEMS } from '@/lib/livia/items';
 
 const RECOVERY_STATS: Record<string, {hunger?: number, energy?: number, hydration?: number}> = {
   onigiri: { hunger: 15, energy: 5 },
