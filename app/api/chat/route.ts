@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { message } = await req.json();
+    const { message, isVoiceCall } = await req.json();
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
@@ -70,7 +70,8 @@ export async function POST(req: Request) {
         hydration: profile.liviaHydration ?? 100, 
         cyclePhase, 
         cycleDay: dayOfCycle 
-      }
+      },
+      isVoiceCall
     );
 
     // ✅ FIX: Simpan user message dan reply dalam satu transaksi

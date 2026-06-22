@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MessageSquare, Clock, BookOpen, Briefcase, Gift, MapPin, Wallet, Shirt, Menu, X, Heart, Moon, Utensils, Battery, Droplet } from 'lucide-react';
+import { MessageSquare, Clock, BookOpen, Briefcase, Gift, MapPin, Wallet, Shirt, Menu, X, Heart, Moon, Utensils, Battery, Droplet, Sprout, Bed, Radio, Smartphone, Settings, Camera, Package } from 'lucide-react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
 import AffectionBar from '@/components/livia/AffectionBar';
 import { LiviaExpression } from '@/lib/gemini';
@@ -26,54 +26,238 @@ function calculateCycleDay(anchorString: string): number {
   return (daysDiff % 28 + 28) % 28 + 1; // 1 to 28
 }
 
-function getGreeting(affection: number, itemsBrought: string[], stats: {hunger: number, energy: number, hydration: number, cyclePhase: string}, userName: string): { text: string; expression: LiviaExpression; isInvitingOut?: boolean } {
+function pickRandom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function getGreeting(affection: number, itemsBrought: string[], stats: {hunger: number, energy: number, hydration: number, cyclePhase: string}, userName: string, weather: any): { text: string; expression: LiviaExpression; isInvitingOut?: boolean; invitedPlace?: string } {
   const hour = new Date().getHours();
   
+  if (weather) {
+    const randomChance = Math.random();
+    if (randomChance < 0.4) {
+      if (weather.weathercode >= 51 && weather.weathercode <= 95) {
+        return { 
+          text: `Di luar lagi hujan deras tuh. ${userName} jangan lupa bawa payung kalau mau keluar, ya.`,
+          expression: 'normal' 
+        };
+      }
+      if (weather.temperature > 32) {
+        return {
+          text: `Panas banget hari ini... sampai ${weather.temperature}°C lho! Kipas anginku berasa nggak mempan.`,
+          expression: 'normal'
+        }
+      }
+      if (weather.temperature < 22) {
+        return {
+          text: `Hari ini lumayan dingin ya... ${weather.temperature}°C. Kamu nggak pakai jaket?`,
+          expression: 'normal'
+        }
+      }
+    }
+  }
+
   if (affection >= 40 && (itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses'))) {
     const randomChance = Math.random();
     if (randomChance > 0.6 && stats.energy > 50 && stats.cyclePhase !== 'Menstruasi') {
-      const places = ['supermarket', 'perpustakaan kota'];
-      const place = places[Math.floor(Math.random() * places.length)];
+      const places = ['supermarket', 'perpustakaan', 'taman', 'cafe', 'amusement'];
+      const place = pickRandom(places);
+      const displayPlace = place === 'amusement' ? 'taman hiburan' : place;
+      const texts = [
+        `Hei... kebetulan aku mau ke ${displayPlace}. Karena ${userName} udah beliin kacamata ini... y-yah, ${userName} boleh ikut kalau mau.`,
+        `Kacamata hitamnya keren kan? A-aku mau tes jalan pakai ini ke ${displayPlace}. ${userName} harus nemenin!`,
+        `${userName}, kebetulan aku mau cari angin ke ${displayPlace}. Mau... ikut? Sekalian aku mau pakai kacamata baru ini.`
+      ];
       return { 
-        text: `Hei... kebetulan aku mau ke ${place}. Karena ${userName} udah beliin kacamata ini... y-yah, ${userName} boleh ikut kalau mau.`, 
+        text: pickRandom(texts), 
         expression: 'blushing',
-        isInvitingOut: true
+        isInvitingOut: true,
+        invitedPlace: place
       };
     }
   }
 
   // Priority overrides based on extreme physical conditions
   if (stats.hunger < 25) {
-    return { text: `A-aku laper banget... ${userName} nggak peka banget sih, aku belum makan daritadi!`, expression: 'angry' };
+    const texts = [
+      `A-aku laper banget... ${userName} nggak peka banget sih, aku belum makan daritadi!`,
+      `Perutku bunyi terus... Beliin makanan dong, ${userName}!`,
+      `Tenagaku habis... aku butuh makanan manis atau apa aja sekarang juga.`,
+      `Kalau kamu nggak beliin aku makan sekarang, aku bakal marah beneran lho!`
+    ];
+    return { text: pickRandom(texts), expression: 'angry' };
   }
   if (stats.hydration < 25) {
-    return { text: 'Haus... kerongkonganku kering banget. Jangan ajak ngobrol dulu.', expression: 'normal' }; // using normal as tired
+    const texts = [
+      'Haus... kerongkonganku kering banget. Jangan ajak ngobrol dulu.',
+      `Ambilin minum dong, ${userName}... seret banget rasanya.`,
+      `Air... aku butuh air...`,
+      `Panas banget, aku kurang minum hari ini.`
+    ];
+    return { text: pickRandom(texts), expression: 'normal' };
   }
   if (stats.energy < 25) {
-    return { text: 'Aku capek banget... mataku berat... jangan berisik ya.', expression: 'normal' };
+    const texts = [
+      'Aku capek banget... mataku berat... jangan berisik ya.',
+      `Hoaam... energinya udah limit nih, ${userName}. Mau tidur.`,
+      `Rasanya pengen rebahan seharian aja...`,
+      `Jangan kasih aku tugas atau ngajak ngobrol berat, otakku udah konslet saking capeknya.`
+    ];
+    return { text: pickRandom(texts), expression: 'normal' };
   }
   if (stats.cyclePhase === 'Menstruasi') {
-    return { text: 'Perutku sakit... jangan banyak tingkah hari ini, aku lagi sensitif!', expression: 'angry' };
+    const texts = [
+      'Perutku sakit... jangan banyak tingkah hari ini, aku lagi sensitif!',
+      `Duh, kram perut lagi... ${userName}, tolong jangan bikin aku emosi hari ini.`,
+      `Pinggangku pegel semua. Kalau kamu mau ngeselin, mending jauh-jauh deh.`,
+      `A-aku lagi dapet... bawaannya pengen marah. Jadi diem aja ya.`
+    ];
+    return { text: pickRandom(texts), expression: 'angry' };
   } else if (stats.cyclePhase === 'Luteal') {
-    return { text: `Nggak tau kenapa aku gampang bete hari ini. Mending ${userName} jangan bikin ulah.`, expression: 'angry' };
+    const texts = [
+      `Nggak tau kenapa aku gampang bete hari ini. Mending ${userName} jangan bikin ulah.`,
+      `Hawa rasanya gerah dan bawaannya pengen ngomel. Hati-hati ya kalau bicara.`,
+      `Mood aku lagi nggak karuan. Tolong pahami aja ya.`,
+      `Aku lagi PMS tau! Jangan mancing-mancing masalah!`
+    ];
+    return { text: pickRandom(texts), expression: 'angry' };
+  }
+
+  // Parallel Life / Schedule-based interactions (40% chance to trigger if there's a matching schedule)
+  const day = new Date().getDay();
+  if (Math.random() < 0.4) {
+    if (day >= 1 && day <= 5) { // Weekdays
+      if (hour >= 7 && hour <= 9) {
+        const texts = [
+          `Aduh, aku lagi siap-siap mau ke kampus nih. Nanti aja ya ngobrolnya!`,
+          `Lagi cari catetanku yang hilang... Kamu lihat nggak, ${userName}?`,
+          `Duh, hari ini dosen killer masuk pagi. Doain aku selamat ya.`
+        ];
+        return { text: pickRandom(texts), expression: 'normal' };
+      }
+      if (hour >= 14 && hour <= 16) {
+        const texts = [
+          `Baru pulang kelas... capek banget dosennya ngasih kuis dadakan.`,
+          `Huft, akhirnya sampai kos juga. Panas banget di luar!`,
+          `Tadi di kampus temenku ngeselin banget tau. Eh, a-aku malah curhat.`
+        ];
+        return { text: pickRandom(texts), expression: 'normal' };
+      }
+    }
+
+    if ((day === 3 || day === 5) && (hour >= 17 && hour <= 19)) { // Wed/Fri part-time job
+      const texts = [
+        `Aku baru pulang kerja part-time dari kafe... kaki rasanya mau copot.`,
+        `Hari ini pelanggan kafe ramai banget. Capeknya pol-polan.`,
+        `Gajiku dari kafe baru turun nih. Mau beli apa ya enaknya?`
+      ];
+      return { text: pickRandom(texts), expression: 'happy' };
+    }
+
+    if ((day === 2 || day === 4) && (hour >= 19 && hour <= 21)) { // Tue/Thu group assignment
+      const texts = [
+        `Lagi pusing ngerjain tugas kelompok nih. Kamu jangan berisik ya, ${userName}.`,
+        `Temen kelompokku masa nggak ada yang kerja satupun. Ujung-ujungnya aku yang ngerjain!`,
+        `Tugas dari dosen ini susah banget. A-aku bukan minta bantu lho ya, cuma ngeluh aja.`
+      ];
+      return { text: pickRandom(texts), expression: 'angry' };
+    }
+
+    if (day === 6) { // Saturday
+      if (hour >= 8 && hour <= 11) {
+        const texts = [
+          `Lagi nyuci baju sama beres-beres kamar nih. Hari libur harus produktif!`,
+          `Debu di kamar ini dari mana aja sih... cape nyapunya.`,
+          `Udah sarapan? Aku sekalian mau cuci piring nih mumpung libur.`
+        ];
+        return { text: pickRandom(texts), expression: 'happy' };
+      }
+    }
+
+    if (day === 0) { // Sunday
+      if (hour >= 13 && hour <= 16) {
+        const texts = [
+          `Tadi habis jalan-jalan sama temen kampus. Sekarang enaknya rebahan.`,
+          `Hari minggu rasanya cepet banget ya lewatnya... besok udah senin lagi.`,
+          `Tadi aku mampir ke mall sebentar beli barang. Lumayan buat cuci mata.`
+        ];
+        return { text: pickRandom(texts), expression: 'happy' };
+      }
+    }
   }
 
   if (hour >= 5 && hour < 12) {
-    return affection < 40
-      ? { text: `${userName} lagi ngapain pagi-pagi?`, expression: 'normal' }
-      : { text: 'Pagi. Udah sarapan belum?', expression: 'happy' };
+    if (affection < 40) {
+      const texts = [
+        `${userName} lagi ngapain pagi-pagi?`,
+        `Tumben udah bangun. Ada kelas pagi?`,
+        `Pagi. Jangan berisik, aku masih ngantuk.`,
+        `Oh, udah pagi ya. Ya udah.`
+      ];
+      return { text: pickRandom(texts), expression: 'normal' };
+    } else {
+      const texts = [
+        `Pagi, ${userName}. Udah sarapan belum? Kalau belum, sarapan bareng yuk.`,
+        `Selamat pagi! Semangat ya hari ini, jangan males-malesan!`,
+        `Hoaam... pagi. Tumben kamu bangun lebih dulu dari aku.`,
+        `Pagi~ Muka kamu masih bantal banget tuh, hehe.`
+      ];
+      return { text: pickRandom(texts), expression: 'happy' };
+    }
   } else if (hour >= 12 && hour < 18) {
-    return affection < 40
-      ? { text: 'Siang. Sibuk?', expression: 'normal' }
-      : { text: 'Siang. Jangan lupa istirahat ya... bukan karena aku peduli.', expression: 'blushing' };
+    if (affection < 40) {
+      const texts = [
+        `Siang. Sibuk?`,
+        `Panas banget hari ini. Bikin males ngapa-ngapain.`,
+        `Udah makan siang? Jangan sampai lupa waktu.`,
+        `Lagi istirahat? Ya udah sana istirahat.`
+      ];
+      return { text: pickRandom(texts), expression: 'normal' };
+    } else {
+      const texts = [
+        `Siang. Jangan lupa istirahat ya... b-bukan karena aku peduli sih!`,
+        `Capek ya habis kegiatan? Mau aku buatin teh manis?`,
+        `Hei, siang-siang gini enaknya ngemil atau rebahan kan?`,
+        `Kalau capek jangan dipaksain. Sini istirahat sebentar sama aku.`
+      ];
+      return { text: pickRandom(texts), expression: 'blushing' };
+    }
   } else if (hour >= 18 && hour < 22) {
-    return affection < 40
-      ? { text: 'Malam.', expression: 'normal' }
-      : { text: `Eh, ${userName} masih di sini juga.`, expression: 'happy' };
+    if (affection < 40) {
+      const texts = [
+        `Malam.`,
+        `Udah pulang? Bersih-bersih dulu sana.`,
+        `Malam. Jangan lupa kunci pintu kos.`,
+        `Lagi santai ya? Jangan berisik, aku mau nugas.`
+      ];
+      return { text: pickRandom(texts), expression: 'normal' };
+    } else {
+      const texts = [
+        `Eh, ${userName} masih di sini juga. Nggak jalan keluar?`,
+        `Selamat malam. Gimana harimu? Pasti melelahkan ya?`,
+        `Akhirnya bisa santai juga. Mau ngobrol bentar bareng aku?`,
+        `Malam~ Hehe, seneng deh lihat kamu santai gini.`
+      ];
+      return { text: pickRandom(texts), expression: 'happy' };
+    }
   } else {
-    return affection < 40
-      ? { text: `${userName} nggak tidur?`, expression: 'angry' }
-      : { text: `Tengah malam begini... ${userName} nggak ada kerjaan lain?`, expression: 'clingy' };
+    if (affection < 40) {
+      const texts = [
+        `${userName} nggak tidur? Besok kesiangan lho.`,
+        `Tengah malam masih melek... ngerjain apa sih?`,
+        `Bisa tolong matikan lampunya kalau udah selesai? Aku mau tidur.`,
+        `Begadang terus. Nanti sakit lho.`
+      ];
+      return { text: pickRandom(texts), expression: 'angry' };
+    } else {
+      const texts = [
+        `Tengah malam begini... ${userName} nggak ada kerjaan lain selain lihatin aku?`,
+        `Belum ngantuk ya? A-aku juga belum sih... mau ditemenin?`,
+        `Jangan begadang terlalu larut. Kalau kamu sakit, ntar aku yang repot ngurusinnya.`,
+        `Hoaam... kalau kamu belum tidur, a-aku juga mau nemenin ah.`
+      ];
+      return { text: pickRandom(texts), expression: 'clingy' };
+    }
   }
 }
 
@@ -83,46 +267,53 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
   const [itemsBrought] = useState(initialItemsBrought);
   const [outfit, setOutfit] = useState(initialOutfit);
   const [money, setMoney] = useState(0);
-  const [greetingData, setGreetingData] = useState<{text: string, expression: LiviaExpression, isInvitingOut?: boolean}>({
-    text: '...', expression: 'normal'
+  const [greetingData, setGreetingData] = useState<{text: string, expression: LiviaExpression, isInvitingOut?: boolean, invitedPlace?: string}>({
+    text: "Memuat...",
+    expression: "normal"
   });
   const [interactionOverride, setInteractionOverride] = useState<{text: string, expression: LiviaExpression} | null>(null);
   const [liviaStats, setLiviaStats] = useState({ hunger: 100, energy: 100, hydration: 100, cycleAnchor: new Date().toISOString() });
+  const [weather, setWeather] = useState<any>(null);
   
   useEffect(() => {
-    // Only fetch cyclePhase once based on liviaStats anchor
-    const getCycleInfoTemp = () => {
-      const dayOfCycle = calculateCycleDay(liviaStats.cycleAnchor);
-      if (dayOfCycle <= 5) return 'Menstruasi';
-      if (dayOfCycle <= 14) return 'Folikuler';
-      if (dayOfCycle <= 17) return 'Ovulasi';
-      return 'Luteal';
-    };
-
-    setGreetingData(getGreeting(affection, itemsBrought, { ...liviaStats, cyclePhase: getCycleInfoTemp() }, userName));
+    let w: any = null;
+    let finalStats = { hunger: 100, energy: 100, hydration: 100, cycleAnchor: new Date().toISOString() };
     
-    // Fetch fresh user data
-    fetch(`/api/affection?t=${Date.now()}`).then(r => r.ok && r.json()).then(d => {
-      if (d) {
-        setMoney(d.money || 0);
-        if (d.activeOutfit) setOutfit(d.activeOutfit);
-        if (d.liviaStats) {
-           setLiviaStats(d.liviaStats);
-           // Recompute greeting if stats changed drastically from defaults
-           const newCyclePhase = (() => {
-             const dayOfCycle = calculateCycleDay(d.liviaStats.cycleAnchor);
-             if (dayOfCycle <= 5) return 'Menstruasi';
-             if (dayOfCycle <= 14) return 'Folikuler';
-             if (dayOfCycle <= 17) return 'Ovulasi';
-             return 'Luteal';
-           })();
-           setGreetingData(getGreeting(affection, itemsBrought, { ...d.liviaStats, cyclePhase: newCyclePhase }, userName));
+    Promise.all([
+      fetch('https://api.open-meteo.com/v1/forecast?latitude=-6.2088&longitude=106.8456&current_weather=true')
+        .then(res => res.json())
+        .catch(() => null),
+      fetch(`/api/affection?t=${Date.now()}`)
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null)
+    ]).then(([weatherData, userD]) => {
+      if (weatherData && weatherData.current_weather) {
+        w = weatherData.current_weather;
+        setWeather(w);
+      }
+      
+      if (userD) {
+        setMoney(userD.money || 0);
+        if (userD.activeOutfit) setOutfit(userD.activeOutfit);
+        if (userD.liviaStats) {
+          finalStats = userD.liviaStats;
+          setLiviaStats(userD.liviaStats);
         }
       }
-    }).catch(console.error);
-  }, [affection, itemsBrought]);
 
-  const { text: greeting, expression, isInvitingOut } = greetingData;
+      const newCyclePhase = (() => {
+        const dayOfCycle = calculateCycleDay(finalStats.cycleAnchor);
+        if (dayOfCycle <= 5) return 'Menstruasi';
+        if (dayOfCycle <= 14) return 'Folikuler';
+        if (dayOfCycle <= 17) return 'Ovulasi';
+        return 'Luteal';
+      })();
+
+      setGreetingData(getGreeting(initialAffection, initialItemsBrought, { ...finalStats, cyclePhase: newCyclePhase }, userName, w));
+    });
+  }, []);
+
+  const { text: greeting, expression, isInvitingOut, invitedPlace } = greetingData;
   const levelInfo = getAffectionLevel(affection);
   const [showEvent, setShowEvent] = useState(false);
   const [showMoreModal, setShowMoreModal] = useState(false);
@@ -332,13 +523,13 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
           </div>
 
           {/* Top Right: Wallet Indicator */}
-          <div className="bg-white/80 backdrop-blur-2xl px-6 py-4 rounded-[2rem] border border-white/50 shadow-sm flex items-center gap-4 transform hover:scale-[1.02] transition-transform">
-            <div className="p-2 bg-amber-100 rounded-xl">
-              <Wallet className="w-6 h-6 text-amber-500" />
+          <div className="bg-white/80 backdrop-blur-2xl px-4 py-2.5 rounded-2xl border border-white/50 shadow-sm flex items-center gap-3 transform hover:scale-[1.02] transition-transform">
+            <div className="p-1.5 bg-amber-100 rounded-lg">
+              <Wallet className="w-5 h-5 text-amber-500" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Saldo</span>
-              <span className="font-mono font-black text-2xl text-amber-600 leading-none">{money} Rv</span>
+              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Saldo Rv</span>
+              <span className="font-mono font-black text-xl text-amber-600 leading-none">{money}</span>
             </div>
           </div>
         </div>
@@ -473,24 +664,35 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
           </div>
 
           {/* Right Side: Command Menus (Desktop Only) */}
-          <div className="hidden md:flex flex-col gap-4 md:gap-6 items-end w-full md:w-auto md:absolute md:bottom-8 md:right-10 z-40">
+          <div className="hidden md:flex flex-col gap-4 items-end w-full md:w-auto md:absolute md:bottom-2 md:right-10 z-40">
             
             {/* Primary Navigation Column (Main Menus) */}
-            <div className="flex flex-col gap-4 items-end mb-2 w-full justify-end pb-0 hide-scrollbar">
+            <div className="flex flex-col gap-2.5 items-end w-full justify-end pb-0 hide-scrollbar">
               <SideMenuCard href="/chat" icon={<MessageSquare size={24} className="w-[28px] h-[28px]" />} title="OBROLAN" />
               <SideMenuCard href="/story" icon={<BookOpen size={24} className="w-[28px] h-[28px]" />} title="CERITA" />
               
               {(isInvitingOut || (affection >= 40 && (itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses')))) && (
                 <SideMenuCard href="/date" icon={<MapPin size={24} className="w-[28px] h-[28px]" />} title="JALAN" isSpecial />
               )}
+              
+              {(itemsBrought.includes('recipe_book') || itemsBrought.includes('recipe_book_shop')) && (
+                <SideMenuCard href="/kitchen" icon={<Utensils size={24} className="w-[28px] h-[28px]" />} title="DAPUR" />
+              )}
+              <SideMenuCard href="/garden" icon={<Sprout size={24} className="w-[28px] h-[28px]" />} title="KEBUN" />
             </div>
 
             {/* Sub Navigation Row (Bottom Menus) */}
-            <div className="flex flex-row gap-4 justify-end">
-              <BottomMenuCard href="/wardrobe" icon={<Shirt size={28} className="md:w-[32px] md:h-[32px]" />} title="Lemari" />
-              <BottomMenuCard href="/pomodoro" icon={<Clock size={28} className="md:w-[32px] md:h-[32px]" />} title="Fokus" />
-              <BottomMenuCard href="/work" icon={<Briefcase size={28} className="md:w-[32px] md:h-[32px]" />} title="Kerja" />
-              <BottomMenuCard href="/shop" icon={<Gift size={28} className="md:w-[32px] md:h-[32px]" />} title="Toko" />
+            <div className="grid grid-cols-5 gap-3 justify-end w-full max-w-[420px]">
+              <BottomMenuCard href="/wardrobe" icon={<Shirt size={22} className="md:w-[24px] md:h-[24px]" />} title="Lemari" />
+              <BottomMenuCard href="/pomodoro" icon={<Clock size={22} className="md:w-[24px] md:h-[24px]" />} title="Fokus" />
+              <BottomMenuCard href="/work" icon={<Briefcase size={22} className="md:w-[24px] md:h-[24px]" />} title="Kerja" />
+              <BottomMenuCard href="/shop" icon={<Gift size={22} className="md:w-[24px] md:h-[24px]" />} title="Toko" />
+              <BottomMenuCard href="/inventory" icon={<Package size={22} className="md:w-[24px] md:h-[24px]" />} title="Tas" />
+              <BottomMenuCard href="/bedroom" icon={<Bed size={22} className="md:w-[24px] md:h-[24px]" />} title="Kamar" />
+              <BottomMenuCard href="/radio" icon={<Radio size={22} className="md:w-[24px] md:h-[24px]" />} title="Radio" />
+              <BottomMenuCard href="/phone" icon={<Smartphone size={22} className="md:w-[24px] md:h-[24px]" />} title="Ponsel" />
+              <BottomMenuCard href="/settings" icon={<Settings size={22} className="md:w-[24px] md:h-[24px]" />} title="Setelan" />
+              <BottomMenuCard href="/album" icon={<Camera size={22} className="md:w-[24px] md:h-[24px]" />} title="Album" />
             </div>
 
           </div>
@@ -527,14 +729,23 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
               </button>
             </div>
             
-            <div className="grid grid-cols-3 gap-4 md:gap-6">
-              <BottomMenuCard href="/wardrobe" icon={<Shirt size={28} className="md:w-[32px] md:h-[32px]" />} title="Lemari" />
-              <BottomMenuCard href="/shop" icon={<Gift size={28} className="md:w-[32px] md:h-[32px]" />} title="Toko" />
-              <BottomMenuCard href="/work" icon={<Briefcase size={28} className="md:w-[32px] md:h-[32px]" />} title="Kerja" />
-              <BottomMenuCard href="/story" icon={<BookOpen size={28} className="md:w-[32px] md:h-[32px]" />} title="Cerita" />
-              {(isInvitingOut || (affection >= 40 && (itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses')))) && (
-                <BottomMenuCard href="/date" icon={<MapPin size={28} className="md:w-[32px] md:h-[32px]" />} title="Jalan" />
+            <div className="grid grid-cols-4 md:grid-cols-5 gap-4 md:gap-6">
+              {itemsBrought.includes('recipe_book') && (
+                <BottomMenuCard href="/kitchen" icon={<Utensils size={26} className="md:w-[28px] md:h-[28px]" />} title="Dapur" />
               )}
+              <BottomMenuCard href="/wardrobe" icon={<Shirt size={26} className="md:w-[28px] md:h-[28px]" />} title="Lemari" />
+              <BottomMenuCard href="/shop" icon={<Gift size={26} className="md:w-[28px] md:h-[28px]" />} title="Toko" />
+              <BottomMenuCard href="/work" icon={<Briefcase size={26} className="md:w-[28px] md:h-[28px]" />} title="Kerja" />
+              <BottomMenuCard href="/story" icon={<BookOpen size={26} className="md:w-[28px] md:h-[28px]" />} title="Cerita" />
+              {(isInvitingOut || (affection >= 40 && (itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses')))) && (
+                <BottomMenuCard href="/date" icon={<MapPin size={26} className="md:w-[28px] md:h-[28px]" />} title="Jalan" />
+              )}
+              <BottomMenuCard href="/inventory" icon={<Package size={26} className="md:w-[28px] md:h-[28px]" />} title="Tas" />
+              <BottomMenuCard href="/bedroom" icon={<Bed size={26} className="md:w-[28px] md:h-[28px]" />} title="Kamar" />
+              <BottomMenuCard href="/radio" icon={<Radio size={26} className="md:w-[28px] md:h-[28px]" />} title="Radio" />
+              <BottomMenuCard href="/phone" icon={<Smartphone size={26} className="md:w-[28px] md:h-[28px]" />} title="Ponsel" />
+              <BottomMenuCard href="/settings" icon={<Settings size={26} className="md:w-[28px] md:h-[28px]" />} title="Setelan" />
+              <BottomMenuCard href="/album" icon={<Camera size={26} className="md:w-[28px] md:h-[28px]" />} title="Album" />
             </div>
           </div>
         </div>
@@ -560,7 +771,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
                 Tutup
               </button>
               <Link 
-                href="/date"
+                href={invitedPlace ? `/date?location=${encodeURIComponent(invitedPlace)}` : `/date`}
                 className="flex-[2] py-4 bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-black text-lg rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center justify-center"
               >
                 Jalan Lanjut!
@@ -689,16 +900,16 @@ function SideMenuCard({ href, icon, title, isSpecial = false }: { href: string; 
   return (
     <Link
       href={href}
-      className={`group flex items-center justify-center md:justify-end gap-2 md:gap-5 px-4 md:pl-12 md:pr-6 py-3 md:py-4 rounded-2xl md:rounded-l-full md:rounded-r-[2rem] transition-all duration-300 md:duration-500 md:hover:pr-8 border-2 md:border-r-0 whitespace-nowrap shrink-0 ${
+      className={`group flex items-center justify-center md:justify-end gap-2 md:gap-4 px-4 md:pl-10 md:pr-6 py-2 md:py-3.5 rounded-2xl md:rounded-l-full md:rounded-r-[2rem] transition-all duration-300 md:duration-500 md:hover:pr-8 border-2 md:border-r-0 whitespace-nowrap shrink-0 ${
         isSpecial 
           ? 'bg-gradient-to-l from-[#ff758c] to-[#ff0844] md:from-[#ff758c]/90 md:to-white/90 backdrop-blur-2xl border-white hover:border-pink-300 shadow-md md:shadow-[0_15px_30px_rgba(255,117,140,0.3)]' 
           : 'bg-white/90 md:bg-white/80 backdrop-blur-2xl border-white/50 hover:bg-white hover:border-pink-200 shadow-sm md:shadow-[0_10px_25px_rgba(0,0,0,0.05)]'
       }`}
     >
-      <span className={`font-display font-black text-sm md:text-3xl tracking-widest md:italic transition-colors drop-shadow-sm ${isSpecial ? 'text-white' : 'text-[#5c4d47] group-hover:text-[#ff758c]'}`}>
+      <span className={`font-display font-black text-sm md:text-[27px] tracking-widest md:italic transition-colors drop-shadow-sm ${isSpecial ? 'text-white' : 'text-[#5c4d47] group-hover:text-[#ff758c]'}`}>
         {title}
       </span>
-      <div className={`p-2 md:p-4 rounded-full shadow-inner transition-transform duration-300 md:duration-500 group-hover:rotate-12 group-hover:scale-110 hidden md:block ${isSpecial ? 'bg-white text-[#ff758c]' : 'bg-pink-50 text-[#ff758c]'}`}>
+      <div className={`p-2 md:p-3 rounded-full shadow-inner transition-transform duration-300 md:duration-500 group-hover:rotate-12 group-hover:scale-110 hidden md:block ${isSpecial ? 'bg-white text-[#ff758c]' : 'bg-pink-50 text-[#ff758c]'}`}>
         {icon}
       </div>
     </Link>
@@ -709,12 +920,12 @@ function BottomMenuCard({ href, icon, title }: { href: string; icon: React.React
   return (
     <Link
       href={href}
-      className="group flex flex-col items-center justify-center gap-1.5 md:gap-3 w-full aspect-square md:w-28 md:h-28 bg-white/90 md:bg-white/80 backdrop-blur-2xl border border-pink-100 rounded-[1.5rem] md:rounded-[2rem] shadow-sm md:shadow-[0_10px_25px_rgba(0,0,0,0.05)] hover:bg-white hover:border-[#ff758c] hover:shadow-md md:hover:-translate-y-2 transition-all duration-300 shrink-0"
+      className="group flex flex-col items-center justify-center gap-1.5 md:gap-2 w-full aspect-square md:w-18 md:h-18 bg-white/90 md:bg-white/80 backdrop-blur-2xl border border-pink-100 rounded-[1.5rem] md:rounded-2xl shadow-sm md:shadow-[0_8px_20px_rgba(0,0,0,0.05)] hover:bg-white hover:border-[#ff758c] hover:shadow-md md:hover:-translate-y-1 transition-all duration-300 shrink-0"
     >
       <div className="text-pink-300 group-hover:text-[#ff758c] transition-colors transform group-hover:scale-110 duration-300">
         {icon}
       </div>
-      <span className="font-display font-bold text-[10px] md:text-sm text-gray-500 group-hover:text-[#ff758c]">
+      <span className="font-display font-bold text-[10px] md:text-xs text-gray-500 group-hover:text-[#ff758c]">
         {title}
       </span>
     </Link>

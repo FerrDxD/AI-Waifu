@@ -38,6 +38,10 @@ export async function POST(req: Request) {
       newHunger = Math.min(100, newHunger + 35);
       newEnergy = Math.min(100, newEnergy + 15);
       await db.update(userProfiles).set({ liviaHunger: newHunger, liviaEnergy: newEnergy }).where(eq(userProfiles.userId, session.user.id));
+    } else if (location === 'Pasar Malam') {
+      newHunger = Math.min(100, newHunger + 25);
+      newEnergy = Math.min(100, newEnergy + 10);
+      await db.update(userProfiles).set({ liviaHunger: newHunger, liviaEnergy: newEnergy }).where(eq(userProfiles.userId, session.user.id));
     }
 
     if (location.toLowerCase().includes('festival')) {

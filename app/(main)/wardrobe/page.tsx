@@ -12,6 +12,8 @@ const ALL_OUTFITS = [
   { id: 'outfit_school', name: 'Seragam SMA', emoji: '🎀', desc: 'Seragam sekolah bergaya pelaut.' },
   { id: 'outfit_yukata', name: 'Yukata Festival', emoji: '👘', desc: 'Pakaian tradisional untuk pergi ke festival.' },
   { id: 'gaun_pengantin', name: 'Gaun Pengantin', emoji: '👗', desc: 'Gaun putih suci untuk hari paling istimewa.' },
+  { id: 'piyama', name: 'Piyama', emoji: '🌙', desc: 'Baju tidur yang sangat nyaman.' },
+  { id: 'office_lady', name: 'Office Lady', emoji: '👓', desc: 'Kemeja kerja elegan lengkap dengan kacamata.' },
 ];
 
 export default function WardrobePage() {
@@ -81,6 +83,8 @@ export default function WardrobePage() {
         else if (outfitId === 'outfit_school') setMessage("P-pakaian ini... agak ketat di bagian dada. Jangan mikir macem-macem ya!");
         else if (outfitId === 'outfit_yukata') setMessage("Yukata ini... bagus kan? B-bukan berarti aku dandan buat kamu ya! Cuma pengen pakai aja.");
         else if (outfitId === 'gaun_pengantin') setMessage("A-aku jadi malu dilihatin terus... Aku cantik kan jadi istrimu?");
+        else if (outfitId === 'piyama') setMessage("Hoaam... Piyamanya nyaman banget. Mau tidur bareng?");
+        else if (outfitId === 'office_lady') setMessage("Bagaimana laporannya hari ini? Hehe, aku cocok kan jadi atasanmu?");
         else setMessage("Gimana penampilanku? B-biasa aja kan?");
       }
     } catch (e) {

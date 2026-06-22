@@ -14,7 +14,8 @@ export async function generateLiviaResponse(
   personalityContext: string,
   affectionLevel: number,
   itemsBrought: string[],
-  stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number }
+  stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number },
+  isVoiceCall?: boolean
 ): Promise<{ reply: string, affectionDelta: number, expression: LiviaExpression }> {
   
   const affectionLevelName = affectionLevel < 20 ? 'Orang Asing' :
@@ -58,7 +59,7 @@ Aturan berbicara:
 - JANGAN pernah campur bahasa Jepang
 - Tidak perlu selalu formal — boleh santai, ketus, atau manja sesuai mood
 - Jangan terlalu panjang — maksimal 3-4 kalimat per respons
-- Tunjukkan emosi secara implisit melalui pilihan kata, bukan deskripsi eksplisit
+- Tunjukkan emosi secara implisit melalui pilihan kata, bukan deskripsi eksplisit${isVoiceCall ? '\n\nATURAN KHUSUS PANGGILAN TELEPON (VOICE CALL):\n- INI ADALAH PANGGILAN TELEPON SUARA, BUKAN CHAT TEKS!\n- SANGAT DILARANG menggunakan tanda bintang untuk aksi fisik atau roleplay (contoh: *tersenyum*, *mengambil barang*), karena teks ini akan dibaca oleh mesin Text-to-Speech.\n- Jika ingin menunjukkan emosi, gunakan kata-kata lisan seperti "Hahaha", "Uhm...", "Eh?!", "Ck", "Huft".\n- Buat kalimat terdengar seperti percakapan lisan yang natural.' : ''}
 
 Kembalikan HANYA JSON valid:
 {

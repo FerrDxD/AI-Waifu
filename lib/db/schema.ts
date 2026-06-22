@@ -70,3 +70,15 @@ export const storyProgress = pgTable('storyProgress', {
   lastReadChapter: integer('last_read_chapter').default(0),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+export const gardenPots = pgTable('gardenPots', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  potIndex: integer('pot_index').notNull(), // 1 to 6
+  plantId: text('plant_id'), // e.g. 'tomato', 'strawberry'
+  stage: text('stage'), // 'seed', 'sprout', 'growing', 'harvest'
+  hydration: integer('hydration').default(0),
+  lastWateredAt: timestamp('last_watered_at'),
+  plantedAt: timestamp('planted_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+});

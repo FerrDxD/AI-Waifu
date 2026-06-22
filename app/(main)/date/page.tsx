@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { MapPin, ShoppingBag, Coffee, TreePine, Book, Gamepad2, Soup, UtensilsCrossed, Landmark, Ticket, Camera, Music, Waves, Lock, Sparkles } from 'lucide-react';
+import { MapPin, ShoppingBag, Coffee, TreePine, Book, Gamepad2, Soup, UtensilsCrossed, Landmark, Ticket, Camera, Music, Waves, Lock, Sparkles, Film, Fish, Tent, Snowflake } from 'lucide-react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
 import DialogBox from '@/components/livia/DialogBox';
 import { LiviaExpression } from '@/lib/gemini';
@@ -21,11 +22,19 @@ const LOCATIONS = [
   { id: 'studio', name: 'Studio Potret', icon: <Camera size={32} />, color: 'bg-teal-50 border-teal-200 text-teal-600', hover: 'hover:bg-teal-100' },
   { id: 'konser', name: 'Konser Musik', icon: <Music size={32} />, color: 'bg-indigo-50 border-indigo-200 text-indigo-600', hover: 'hover:bg-indigo-100', requiredItem: 'tiket_konser', requirementName: 'Tiket Konser' },
   { id: 'festival', name: 'Festival Musim Panas', icon: <Sparkles size={32} />, color: 'bg-rose-50 border-rose-200 text-rose-600', hover: 'hover:bg-rose-100', requiredItem: 'outfit_yukata', requirementName: 'Yukata Festival', mustWear: true },
+  { id: 'pantai', name: 'Pantai', icon: <Waves size={32} />, color: 'bg-cyan-50 border-cyan-200 text-cyan-600', hover: 'hover:bg-cyan-100' },
+  { id: 'bioskop', name: 'Bioskop', icon: <Film size={32} />, color: 'bg-slate-50 border-slate-200 text-slate-600', hover: 'hover:bg-slate-100' },
+  { id: 'akuarium', name: 'Akuarium', icon: <Fish size={32} />, color: 'bg-blue-50 border-blue-200 text-blue-600', hover: 'hover:bg-blue-100' },
+  { id: 'pasar_malam', name: 'Pasar Malam', icon: <Tent size={32} />, color: 'bg-amber-50 border-amber-200 text-amber-600', hover: 'hover:bg-amber-100' },
+  { id: 'ice_skating', name: 'Ice Skating', icon: <Snowflake size={32} />, color: 'bg-sky-50 border-sky-200 text-sky-600', hover: 'hover:bg-sky-100' },
 ];
 
 type SceneLine = { speaker: string, text: string, expression?: LiviaExpression };
 
-export default function DatePage() {
+function DateContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
   const [selectedLoc, setSelectedLoc] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [scene, setScene] = useState<SceneLine[] | null>(null);
@@ -45,7 +54,14 @@ export default function DatePage() {
       setItemsBrought(data.itemsBrought || []);
       setActiveOutfit(data.activeOutfit || 'default');
     }).catch(console.error);
-  }, []);
+
+    const locationParam = searchParams.get('location');
+    if (locationParam && LOCATIONS.some(l => l.id === locationParam)) {
+      startJalan(locationParam);
+      // Clean up the URL so it doesn't trigger again on refresh
+      router.replace('/date');
+    }
+  }, [searchParams, router]);
 
   const startJalan = async (locName: string) => {
     setSelectedLoc(locName);
@@ -254,5 +270,13 @@ export default function DatePage() {
       )}
 
     </div>
+  );
+}
+
+export default function DatePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center text-pink-400 font-bold">Memuat...</div>}>
+      <DateContent />
+    </Suspense>
   );
 }

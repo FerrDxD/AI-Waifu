@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Send, ArrowLeft, CheckCircle2, Phone } from 'lucide-react';
 import Link from 'next/link';
 
 interface ChatMessage {
@@ -118,6 +118,9 @@ export default function ChatPage() {
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Online
             </span>
           </div>
+          <Link href="/call" className="p-2.5 bg-pink-100 text-pink-500 hover:bg-pink-500 hover:text-white rounded-full transition-all shadow-sm">
+            <Phone size={20} />
+          </Link>
         </div>
 
           {/* Messages area */}

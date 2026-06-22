@@ -62,8 +62,11 @@ const ITEMS: ShopItem[] = [
   { id: 'outfit_school', category: 'outfit', name: 'Seragam SMA', emoji: 'shirt', cost: 12000, affectionDelta: 8, color: 'from-blue-100 to-blue-300', desc: 'Seragam sekolah bergaya pelaut.' },
   { id: 'outfit_yukata', category: 'outfit', name: 'Yukata Festival', emoji: 'shirt', cost: 25000, affectionDelta: 20, color: 'from-rose-100 to-rose-300', desc: 'Pakaian tradisional untuk pergi ke festival.' },
   { id: 'gaun_pengantin', category: 'outfit', name: 'Gaun Pengantin', emoji: 'shirt', cost: 50000, affectionDelta: 500, color: 'from-white to-pink-100', desc: 'Gaun putih suci untuk hari paling istimewa.' },
+  { id: 'piyama', category: 'outfit', name: 'Piyama', emoji: 'shirt', cost: 10000, affectionDelta: 12, color: 'from-indigo-100 to-purple-200', desc: 'Baju tidur yang sangat nyaman.' },
+  { id: 'office_lady', category: 'outfit', name: 'Office Lady', emoji: 'shirt', cost: 30000, affectionDelta: 30, color: 'from-slate-200 to-gray-400', desc: 'Kemeja kerja elegan lengkap dengan kacamata.' },
   
   // Item
+  { id: 'recipe_book_shop', category: 'item', name: 'Buku Resep Masak', emoji: 'book', cost: 1500, affectionDelta: 15, color: 'from-orange-100 to-amber-200', desc: 'Panduan masakan lezat. Wajib dibeli untuk membuka Dapur!' },
   { id: 'kacamata_hitam', category: 'item', name: 'Kacamata Hitam', emoji: 'glasses', cost: 9500, affectionDelta: 20, color: 'from-gray-700 to-gray-900', desc: 'Item wajib untuk jalan-jalan keluar.' },
   { id: 'tiket_konser', category: 'item', name: 'Tiket Konser', emoji: 'ticket', cost: 25000, affectionDelta: 30, color: 'from-indigo-100 to-purple-300', desc: 'Tiket konser band favorit Livia.' },
   { id: 'berkas_kua', category: 'item', name: 'Berkas KUA', emoji: 'file', cost: 2000, affectionDelta: 50, color: 'from-green-100 to-green-300', desc: 'Persiapan administrasi pernikahan.' },
@@ -177,6 +180,9 @@ export default function ShopPage() {
     } else if (item.id === 'kacamata_hitam') {
       setLiviaExpression('happy');
       setMessage('Wih, kacamata hitam! Keren banget kan kalau aku pakai itu?');
+    } else if (item.id === 'recipe_book') {
+      setLiviaExpression('blushing');
+      setMessage('Buku resep masakan?! K-kamu mau aku masakin kamu ya?! Jangan ngarep!');
     }
   };
 
@@ -222,6 +228,9 @@ export default function ShopPage() {
         } else if (item.id === 'kacamata_hitam') {
           setLiviaExpression('blushing');
           setMessage(`I-ini kacamata hitam?! Keren banget... Cocok buat jalan-jalan! Makasih ya!`);
+        } else if (item.id === 'recipe_book') {
+          setLiviaExpression('blushing');
+          setMessage(`I-ini kan buku resep... Y-yaudah deh, karena kamu udah repot-repot beliin, sesekali aku bakal masakin kamu di dapur!`);
         } else if (item.affectionDelta >= 12) {
           setLiviaExpression('blushing');
           setMessage(`B-buat aku?! Ini kan mahal banget... T-terima kasih, bodoh!`);
