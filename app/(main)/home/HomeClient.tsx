@@ -665,7 +665,10 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
               </div>
 
               {/* MAIN MENUS */}
-              <div className="absolute bottom-[110px] right-0 flex flex-col gap-3 w-full items-end pb-0">
+              <div 
+                className="absolute bottom-[110px] right-0 flex flex-col gap-3 w-full items-end pb-0"
+                style={{ pointerEvents: isDesktopMenuOpen ? 'none' : 'auto' }}
+              >
                 {[
                   { href: "/chat", icon: <MessageSquare size={24} className="w-[28px] h-[28px]" />, title: "OBROLAN", show: true },
                   { href: "/story", icon: <BookOpen size={24} className="w-[28px] h-[28px]" />, title: "CERITA", show: true },
