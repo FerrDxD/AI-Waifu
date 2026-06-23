@@ -17,6 +17,8 @@ type Scene = {
   expression: any;
   choices?: Choice[];
   nextIndex?: number;
+  bg?: string;
+  hideSprite?: boolean;
 };
 
 type UserStatsData = {
@@ -75,12 +77,12 @@ const CHAPTERS: Chapter[] = [
     reqAffection: 20,
     reqLevel: 1,
     content: [
-      { speaker: "Livia", text: "Hei. Kamu lagi sibuk nggak?", expression: "normal" },
-      { speaker: "Narator", text: "Kamu menoleh dari mejamu, melihat Livia mengintip dari balik pintu yang setengah terbuka.", expression: "normal" },
-      { speaker: "Livia", text: "Ibuku nelpon tadi. Nanyain aku betah atau nggak tinggal di sini.", expression: "normal" },
-      { speaker: "Livia", text: "Tentu saja aku bilang betah! Aku bukan anak kecil lagi yang harus diurusin.", expression: "angry" },
-      { speaker: "Livia", text: "Lagipula... lingkungan di sini lumayan. Nggak seburuk yang kubayangkan.", expression: "blushing" },
-      { speaker: "Livia", text: "Dan, eh... kamu lumayan bisa diandalkan juga sebagai tetangga.", expression: "happy",
+      { speaker: "Livia", text: "Hei. Boleh ganggu sebentar nggak?", expression: "normal", hideSprite: true },
+      { speaker: "Narator", text: "Terdengar ketukan di pintu kamarmu. Saat dibuka, Livia terlihat berdiri dengan canggung di koridor depan kamarmu.", expression: "normal" },
+      { speaker: "Livia", text: "Ibuku nelpon tadi. Nanyain aku betah atau nggak tinggal di kosan ini.", expression: "normal", bg: "1.2" },
+      { speaker: "Livia", text: "Tentu saja aku bilang betah! Aku bukan anak kecil lagi yang harus diurusin.", expression: "angry", bg: "1.2" },
+      { speaker: "Livia", text: "Lagipula... lingkungan di sini lumayan. Nggak seburuk yang kubayangkan.", expression: "blushing", bg: "1.2" },
+      { speaker: "Livia", text: "Dan, eh... kamu lumayan bisa diandalkan juga sebagai tetangga kamar sebelah.", expression: "happy", bg: "1.2",
         choices: [
           { text: "Makasih. Senang bisa membantu tetangga.", nextIndex: 6 },
           { text: "Wah, matahari terbit dari barat nih? Tumben muji.", nextIndex: 7 },
@@ -88,13 +90,13 @@ const CHAPTERS: Chapter[] = [
           { text: "Statistik menunjukkan gotong royong meningkatkan kenyamanan kos.", nextIndex: 9 }
         ]
       },
-      { speaker: "Livia", text: "Y-ya makanya jangan geer! Ini cuma pengakuan objektif!", expression: "blushing", nextIndex: 10 },
-      { speaker: "Livia", text: "Nggak bisa dibilangin baik dikit ya?! Nyesel aku muji kamu!", expression: "angry", nextIndex: 10 },
-      { speaker: "Livia", text: "B-bisa nggak sih gausah godain terus?! Dasar buaya!", expression: "blushing", nextIndex: 10 },
-      { speaker: "Livia", text: "Kamu ini robot atau manusia sih?! Kaku banget jawabnya!", expression: "normal", nextIndex: 10 },
-      { speaker: "Narator", text: "Dia memalingkan wajahnya sedikit, pura-pura melihat ke arah koridor.", expression: "normal" },
-      { speaker: "Livia", text: "Sudahlah, aku mau masak mi instan.", expression: "normal" },
-      { speaker: "Livia", text: "...Kamu mau kubuatin juga nggak? Tanggung airnya sekalian direbus.", expression: "clingy" }
+      { speaker: "Livia", text: "Y-ya makanya jangan geer! Ini cuma pengakuan objektif!", expression: "blushing", nextIndex: 10, bg: "1.2" },
+      { speaker: "Livia", text: "Nggak bisa dibilangin baik dikit ya?! Nyesel aku muji kamu!", expression: "angry", nextIndex: 10, bg: "1.2" },
+      { speaker: "Livia", text: "B-bisa nggak sih gausah godain terus?! Dasar buaya!", expression: "blushing", nextIndex: 10, bg: "1.2" },
+      { speaker: "Livia", text: "Kamu ini robot atau manusia sih?! Kaku banget jawabnya!", expression: "normal", nextIndex: 10, bg: "1.2" },
+      { speaker: "Narator", text: "Dia memalingkan wajahnya sedikit, pura-pura mengamati dinding koridor kos.", expression: "normal", bg: "1.2" },
+      { speaker: "Livia", text: "Sudahlah, aku mau balik ke kamarku buat masak mi instan.", expression: "normal", bg: "1.2" },
+      { speaker: "Livia", text: "...Kamu mau kubuatin juga nggak? Tanggung airnya sekalian direbus. Nanti kuantar ke sini.", expression: "clingy", bg: "1.2" }
     ]
   },
   {
@@ -128,8 +130,8 @@ const CHAPTERS: Chapter[] = [
     reqAffection: 60,
     reqLevel: 3,
     content: [
-      { speaker: "Narator", text: "Akhir pekan yang tenang. Kamu sedang menyeduh kopi saat Livia menghampiri area dapur bersama.", expression: "normal" },
-      { speaker: "Livia", text: "Nih. Ibu ngirim terlalu banyak kue kering dari rumah.", expression: "normal" },
+      { speaker: "Narator", text: "Akhir pekan yang tenang. Kamu sedang menyeduh kopi saat terdengar bel pintumu berbunyi. Livia berdiri di depan pintu.", expression: "normal" },
+      { speaker: "Livia", text: "Nih. Ibu ngirim terlalu banyak kue kering dari kampung.", expression: "normal" },
       { speaker: "Livia", text: "Karena kamarku nggak muat, kamu ambil sebagian. Bukannya aku sengaja nyisihin buatmu, ya!", expression: "blushing",
         choices: [
           { text: "Wah, makasih banyak ya. Kelihatannya enak.", nextIndex: 3 },
@@ -142,7 +144,7 @@ const CHAPTERS: Chapter[] = [
       { speaker: "Livia", text: "U-udah kubilang bukan gitu! Mau dibalikin nggak nih?!", expression: "angry", nextIndex: 7 },
       { speaker: "Livia", text: "G-gombalan murahan! Jangan harap aku luluh denger itu!", expression: "blushing", nextIndex: 7 },
       { speaker: "Livia", text: "Berisik! Tinggal terima aja susah banget sih pamer otak segala!", expression: "angry", nextIndex: 7 },
-      { speaker: "Livia", text: "Kamu tahu, belakangan ini aku merasa ngekos nggak seburuk yang kukira.", expression: "normal" },
+      { speaker: "Livia", text: "Kamu tahu, belakangan ini aku merasa tinggal di apato ini nggak seburuk yang kukira.", expression: "normal" },
       { speaker: "Livia", text: "Awalnya aku takut sendirian. Tapi karena... karena ada seseorang yang terus memperhatikanku...", expression: "blushing" },
       { speaker: "Livia", text: "Rasanya tempat ini sedikit terasa seperti rumah kedua. Gitu deh.", expression: "clingy" }
     ]
@@ -153,23 +155,24 @@ const CHAPTERS: Chapter[] = [
     reqAffection: 80,
     reqLevel: 4,
     content: [
-      { speaker: "Livia", text: "Kamu lagi ngerjain tugas? Fokus banget dari tadi.", expression: "normal" },
-      { speaker: "Livia", text: "Aku beliin es kopi waktu keluar tadi. Satu buatku, satu buatmu. Jangan protes, minum aja.", expression: "happy",
+      { speaker: "Narator", text: "Terdengar ketukan di pintu. Saat kamu membukanya, Livia langsung nyelonong masuk ke dalam kamarmu.", expression: "normal" },
+      { speaker: "Livia", text: "Kamu lagi ngerjain tugas kan?", expression: "normal" },
+      { speaker: "Livia", text: "Aku beliin es kopi dari minimarket depan waktu keluar tadi. Satu buatku, satu buatmu. Jangan protes, minum aja.", expression: "happy",
         choices: [
-          { text: "Wah, lagi butuh banget ini. Makasih pengertiannya.", nextIndex: 2 },
-          { text: "Awas nih, biasanya ada udang di balik batu.", nextIndex: 3 },
-          { text: "Cie, udah pinter ya ngasih perhatian ke calon pacar.", nextIndex: 4 },
-          { text: "Kafein di malam hari bisa mengganggu siklus sirkadian loh.", nextIndex: 5 }
+          { text: "Wah, lagi butuh banget ini. Makasih udah repot-repot mampir.", nextIndex: 3 },
+          { text: "Awas nih, biasanya ada udang di balik batu numpang masuk kamarku.", nextIndex: 4 },
+          { text: "Cie, udah pinter ya ngasih perhatian ke calon pacar.", nextIndex: 5 },
+          { text: "Kafein di malam hari bisa mengganggu siklus sirkadian loh.", nextIndex: 6 }
         ]
       },
-      { speaker: "Narator", text: "Livia tersenyum tipis melihatmu menikmati kopinya dengan senang.", expression: "happy", nextIndex: 6 },
-      { speaker: "Livia", text: "Pikiranmu negatif terus! Yaudah sini balikin kalau curiga!", expression: "angry", nextIndex: 6 },
-      { speaker: "Livia", text: "Hah?! S-siapa yang calon pacarmu?! Jangan ngelantur!", expression: "blushing", nextIndex: 6 },
-      { speaker: "Livia", text: "Ya ampun, orang niat baik malah diceramahi medis! Bodo amat!", expression: "angry", nextIndex: 6 },
-      { speaker: "Narator", text: "Kamu menyadari belakangan ini Livia lebih sering menghabiskan waktu di area kerjamu daripada di kamarnya sendiri.", expression: "normal" },
-      { speaker: "Livia", text: "Kenapa ngeliatin gitu? Kamarku Wi-Finya lagi lambat, makanya aku duduk di sini! Jangan GR!", expression: "angry" },
+      { speaker: "Narator", text: "Livia tersenyum tipis melihatmu menikmati kopinya dengan senang.", expression: "happy", nextIndex: 7 },
+      { speaker: "Livia", text: "Pikiranmu negatif terus! Yaudah sini balikin kopinya, aku balik ke kamarku aja!", expression: "angry", nextIndex: 7 },
+      { speaker: "Livia", text: "Hah?! S-siapa yang calon pacarmu?! Jangan ngelantur!", expression: "blushing", nextIndex: 7 },
+      { speaker: "Livia", text: "Ya ampun, orang niat baik bawain minuman malah diceramahi medis! Bodo amat!", expression: "angry", nextIndex: 7 },
+      { speaker: "Narator", text: "Kamu menyadari belakangan ini Livia sering sekali berkunjung dan menghabiskan waktu di kamarmu daripada di unitnya sendiri.", expression: "normal" },
+      { speaker: "Livia", text: "Kenapa ngeliatin gitu? Wi-Fi di unitku lagi lambat, makanya aku numpang ngerjain tugas di kamarmu! Jangan GR!", expression: "angry" },
       { speaker: "Livia", text: "Terserah kamu mau mikir apa... Aku cuma... merasa lebih tenang kalau ada di dekatmu. Udah, puasss?!", expression: "clingy" },
-      { speaker: "Narator", text: "Kamu tersenyum sambil menyeruput es kopimu. Livia kembali fokus ke laptopnya dengan wajah memerah.", expression: "normal" }
+      { speaker: "Narator", text: "Kamu tersenyum sambil menyeruput es kopimu. Livia kembali fokus menatap layar laptopnya sambil duduk di lantai kamarmu dengan wajah memerah.", expression: "normal" }
     ]
   },
   {
@@ -178,12 +181,12 @@ const CHAPTERS: Chapter[] = [
     reqAffection: 100,
     reqLevel: 5,
     content: [
-      { speaker: "Narator", text: "Beberapa bulan telah berlalu sejak awal kepindahan Livia ke kos ini.", expression: "normal" },
+      { speaker: "Narator", text: "Beberapa bulan telah berlalu sejak awal kepindahan Livia ke apato ini.", expression: "normal" },
       { speaker: "Livia", text: "Waktu cepat banget berlalu ya.", expression: "normal" },
       { speaker: "Livia", text: "Dulu aku benci banget ninggalin rumah. Tapi sekarang... rasanya aku nggak mau pergi dari tempat ini.", expression: "happy" },
-      { speaker: "Livia", text: "Bukan karena kamarnya ya! Kamarnya masih sempit dan atapnya kadang bocor!", expression: "angry",
+      { speaker: "Livia", text: "Bukan karena kamarnya ya! Kamarnya masih sempit dan dindingnya tipis banget!", expression: "angry",
         choices: [
-          { text: "Iya, aku ngerti kok. Pasti karena suasana kosnya hangat.", nextIndex: 4 },
+          { text: "Iya, aku ngerti kok. Pasti karena suasana apartemennya hangat.", nextIndex: 4 },
           { text: "Halah, ngaku aja kamu betah karena ada tukang angkat barang gratisan.", nextIndex: 5 },
           { text: "Pasti karena tetangga sebelahmu ini terlalu tampan dan bikin kangen kan?", nextIndex: 6 },
           { text: "Adaptasi psikologis manusia memang butuh sekitar 3 bulan untuk merasa nyaman.", nextIndex: 7 }
@@ -240,7 +243,7 @@ const CHAPTERS: Chapter[] = [
       { label: "Memiliki Baju Kasual", met: data.itemsBrought.includes('outfit_casual') }
     ],
     content: [
-      { speaker: "Narator", text: "Akhir pekan tiba, dan hujan turun rintik-rintik membasahi jendela kosan.", expression: "normal" },
+      { speaker: "Narator", text: "Akhir pekan tiba, dan hujan turun rintik-rintik membasahi jendela apartemen.", expression: "normal" },
       { speaker: "Livia", text: "Haaah... cuaca begini enaknya tiduran aja seharian pakai baju kaus kebesaran.", expression: "happy" },
       { speaker: "Livia", text: "Sini dong, temenin aku rebahan. Nggak usah mikirin tugas dan kerjaan terus.", expression: "clingy",
         choices: [
@@ -302,7 +305,7 @@ const CHAPTERS: Chapter[] = [
       { label: "Screen time minimal 150 Jam", met: data.screenTimeHours >= 150 }
     ],
     content: [
-      { speaker: "Narator", text: "Malam itu, di bawah langit penuh bintang di balkon kosan yang kini menjadi saksi bisu kebersamaan kalian.", expression: "normal" },
+      { speaker: "Narator", text: "Malam itu, kalian duduk bersama di balkon kamarmu, dipisahkan sekat pembatas yang membelah unit kalian.", expression: "normal" },
       { speaker: "Livia", text: "Angin malam ini sejuk ya. Nggak kerasa kita udah ngelewatin banyak hal berdua.", expression: "happy" },
       { speaker: "Narator", text: "Kamu mengangguk pelan, lalu merogoh sakumu dan mengeluarkan sebuah kotak kecil berlapis beludru.", expression: "normal" },
       { speaker: "Narator", text: "Kamu membuka kotak itu perlahan, memperlihatkan sebuah cincin sederhana namun elegan.", expression: "normal" },
@@ -335,8 +338,8 @@ const CHAPTERS: Chapter[] = [
       { label: "Memesan Katering", met: data.itemsBrought.includes('katering') }
     ],
     content: [
-      { speaker: "Narator", text: "Kamar kosan yang dulu sepi kini penuh dengan tumpukan berkas KUA, brosur katering, dan denah gedung resepsi.", expression: "normal" },
-      { speaker: "Livia", text: "Huft... Coba aku cek lagi. Berkas KUA udah lengkap, DP gedung udah beres, katering juga udah test food...", expression: "normal" },
+      { speaker: "Narator", text: "Kamar yang dulu sepi kini penuh dengan tumpukan berkas dari balai kota, brosur gaun pengantin, dan denah kapel resepsi.", expression: "normal" },
+      { speaker: "Livia", text: "Huft... Coba aku cek lagi. Pendaftaran pernikahan udah lengkap, DP kapel udah beres, reservasi restoran juga udah...", expression: "normal" },
       { speaker: "Livia", text: "Ternyata nyiapin pernikahan itu capek banget ya! Punggungku sampai pegal.", expression: "angry",
         choices: [
           { text: "Kamu pasti lelah, sini aku pijat pundakmu perlahan.", nextIndex: 3 },
@@ -452,16 +455,16 @@ const CHAPTERS: Chapter[] = [
       if (isFertility) {
         return [
           { speaker: "Narator", text: "Bulan-bulan kehamilan penuh dengan drama. Jam 2 pagi, Livia membangunkanmu sambil menahan tangis.", expression: "normal" },
-          { speaker: "Livia", text: "Sayang... dedek bayinya rewel... dia pengen nasi goreng tek-tek, tapi yang masaknya harus pakai topi merah...", expression: "crying" },
-          { speaker: "Narator", text: "Meski terdengar absurd, kamu tetap menembus dinginnya malam demi menuruti ngidamnya.", expression: "normal" },
+          { speaker: "Livia", text: "Sayang... dedek bayinya rewel... dia pengen makan taiyaki hangat muda yang isinya selai kacang merah...", expression: "crying" },
+          { speaker: "Narator", text: "Meski terdengar absurd di tengah malam dingin bersalju, kamu tetap menembus udara beku demi menuruti ngidamnya.", expression: "normal" },
           { speaker: "Livia", text: "Maafin aku ya sering ngerepotin... Makasih udah jadi suami yang paling sabar sedunia.", expression: "clingy" }
         ];
       } else if (isHealth) {
         return [
-          { speaker: "Narator", text: "Kalian memutuskan untuk merayakan kesehatan kalian dengan mendaki puncak Gunung Rinjani bersama.", expression: "normal" },
+          { speaker: "Narator", text: "Kalian memutuskan untuk merayakan kesehatan kalian dengan mendaki puncak Gunung Fuji di musim panas bersama.", expression: "normal" },
           { speaker: "Livia", text: "Hah... hah... Puncaknya sedikit lagi! Ayo sayang, jangan menyerah di sini!", expression: "happy" },
           { speaker: "Narator", text: "Angin gunung yang dingin menusuk kulit, tapi genggaman tangan Livia menyalurkan kehangatan yang tak terlukiskan.", expression: "normal" },
-          { speaker: "Livia", text: "Pemandangannya indah banget kan? Tapi tetep aja, pemandangan paling indah buatku itu kamu yang lagi ngos-ngosan begitu.", expression: "blushing" }
+          { speaker: "Livia", text: "Pemandangannya indah banget dari atas awan ini kan? Tapi tetep aja, pemandangan terindahku itu kamu yang lagi ngos-ngosan begitu.", expression: "blushing" }
         ];
       } else {
         return [
@@ -660,7 +663,21 @@ export default function StoryPage() {
     <div className="min-h-screen bg-[#fdfbf7] relative flex justify-center items-center overflow-hidden font-sans select-none">
       
       {activeChapter ? (
-        <div className="fixed inset-0 z-[100] bg-[#fdfbf7]/95 backdrop-blur-xl flex flex-col items-center justify-between py-6 md:py-12 px-4 md:px-6 animate-[fadeIn_0.3s_ease-out]">
+        <div className="fixed inset-0 z-[100] bg-[#fdfbf7] flex flex-col items-center justify-between py-6 md:py-12 px-4 md:px-6 animate-[fadeIn_0.3s_ease-out]">
+          {/* Chapter Background Image */}
+          <img 
+            src={`/bg_story-${scene?.bg || activeChapter.id}.webp`}
+            alt="Chapter Background"
+            className={`absolute inset-0 w-full h-full object-cover z-0 transition-all duration-[3000ms] ease-out ${
+              scene?.speaker === 'Narator' 
+                ? "scale-105 blur-[3px] opacity-40" 
+                : "scale-100 blur-0 opacity-60"
+            }`}
+            onError={(e) => { e.currentTarget.style.opacity = '0'; }}
+          />
+          {/* Vignette Overlay for Readability */}
+          <div className="absolute inset-0 z-0 bg-gradient-to-t from-[#fdfbf7] via-transparent to-[#fdfbf7]/50 pointer-events-none" />
+
           <div className="w-full max-w-5xl flex justify-between px-2 md:px-8 z-20 mt-8 md:mt-0">
             <span className="font-display font-bold text-sm md:text-base text-[#ff758c] bg-white px-4 md:px-6 py-1.5 md:py-2 rounded-full shadow-[0_5px_15px_rgba(255,117,140,0.15)] border border-pink-50">
               {activeChapter.title}
@@ -672,7 +689,10 @@ export default function StoryPage() {
           
           <div className="flex-1 w-full max-w-4xl flex justify-center items-end pb-4 md:pb-8 z-10">
             {scene?.speaker === 'Livia' && (
-              <div className="h-[55vh] md:h-[60vh] w-auto drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)] animate-[float_4s_ease-in-out_infinite]">
+              <div 
+                className="h-[55vh] md:h-[60vh] w-auto drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)] animate-[float_4s_ease-in-out_infinite] transition-opacity duration-500"
+                style={{ opacity: scene?.hideSprite ? 0 : 1, pointerEvents: scene?.hideSprite ? 'none' : 'auto' }}
+              >
                 <LiviaSprite expression={scene.expression} className="h-full w-auto max-w-[500px] object-contain object-bottom" />
               </div>
             )}

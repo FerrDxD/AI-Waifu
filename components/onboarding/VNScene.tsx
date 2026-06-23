@@ -43,30 +43,46 @@ const SCENES: Scene[] = [
     expression: 'angry',
     choices: [
       { text: "Sama-sama. Senang bisa bantu tetangga baru.", nextIndex: 3 },
-      { text: "Kelihatannya kamu memang repot banget.", nextIndex: 4 }
+      { text: "Tumben orang sepertimu bisa bilang terima kasih.", nextIndex: 4 },
+      { text: "Buat cewek manis sepertimu, apa sih yang enggak.", nextIndex: 5 },
+      { text: "Secara fisik, bawa barang pindahan sendirian memang tidak efisien.", nextIndex: 6 }
     ]
   },
-  // 3 (Branch A)
+  // 3 (Branch Normal)
   {
     speaker: 'Livia',
-    text: 'J-jangan sok akrab deh! Ini cuma formalitas aja! Ayo cepetan beres-beres sebelum aku berubah pikiran.',
+    text: 'B-baguslah kalau kamu paham! Ayo cepetan beres-beres sebelum aku berubah pikiran.',
     expression: 'blushing',
-    nextIndex: 5
+    nextIndex: 7
   },
-  // 4 (Branch B)
+  // 4 (Branch Satire)
   {
     speaker: 'Livia',
-    text: 'Ya emang repot! Ini semua kan gara-gara ibuku yang maksa aku pindah ke sini. Udah, jangan banyak tanya, bantuin aja!',
+    text: 'Ya ampun! Nyesel aku bilang gitu. Mending kutarik lagi aja ucapan terima kasihnya!',
     expression: 'angry',
-    nextIndex: 5
+    nextIndex: 7
   },
-  // 5
+  // 5 (Branch Flirty)
+  {
+    speaker: 'Livia',
+    text: 'J-jangan ngomong yang aneh-aneh deh! I-ini cuma formalitas aja tau! Dasar aneh...',
+    expression: 'blushing',
+    nextIndex: 7
+  },
+  // 6 (Branch Logic)
+  {
+    speaker: 'Livia',
+    text: 'Terserah dengan teori efisiensimu itu! Intinya cepetan bantu aku angkat barangnya!',
+    expression: 'angry',
+    nextIndex: 7
+  },
+  // 7
   { 
     speaker: 'Narator', 
     text: 'Begitulah pertama kali kamu mengenal Livia Einhart. Gadis yang akan jadi teman kosmu.', 
     expression: 'normal' 
   },
-  // 6
+  // 8
   { 
     speaker: 'Livia', 
     text: 'Oke, kita mulai dari barang-barangku. Aku nggak bisa bawa semuanya — koper aku cuma muat lima barang. Bantu aku milih, ya.', 
@@ -113,12 +129,13 @@ export default function VNScene({ onComplete }: VNSceneProps) {
   return (
     <div className="relative w-full h-screen flex flex-col overflow-hidden bg-pink-50">
       {/* Visual Novel Bright Background */}
-      <div 
+      <img 
+        src="/bg_onboarding.webp"
+        alt="Room Background"
         className={cn(
-          "absolute inset-0 bg-cover bg-center transition-all duration-[3000ms] ease-out",
+          "absolute inset-0 w-full h-full object-cover transition-all duration-[3000ms] ease-out",
           scene.speaker === 'Narator' ? "scale-105 blur-[2px] opacity-80" : "scale-100 blur-0 opacity-100"
         )}
-        style={{ backgroundImage: "url('/bg/bedroom.webp')" }} 
       />
 
       {/* Cheerful Sun-kissed Vignette */}
@@ -143,13 +160,6 @@ export default function VNScene({ onComplete }: VNSceneProps) {
             : 'radial-gradient(ellipse at 50% 80%, rgba(255,255,255,0.2) 0%, transparent 70%)'
         }}
       />
-
-      {/* Scene counter (Progress dots) */}
-      <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-        <div className="bg-white/50 backdrop-blur-md px-4 py-1.5 rounded-full shadow-sm text-xs font-mono font-bold text-[#ff758c]">
-          {currentScene + 1} / {SCENES.length}
-        </div>
-      </div>
 
       {/* Skip button */}
       <div className="absolute top-6 right-4 md:right-8 z-30">

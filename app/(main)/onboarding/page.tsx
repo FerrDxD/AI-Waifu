@@ -65,9 +65,10 @@ export default function OnboardingPage() {
       {/* Background Layer for final dialog */}
       {stage === 'dialog' && (
         <div className="absolute inset-0 z-0 animate-[fadeIn_1s_ease-out_forwards]">
-          <div 
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-[20s] ease-linear hover:scale-110"
-            style={{ backgroundImage: "url('/vn_bg_messy_room.webp')" }} 
+          <img 
+            src="/bg_onboarding.webp"
+            alt="Room Background Final"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] ease-linear hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1c1816] via-[#1c1816]/40 to-transparent" />
           {/* Subtle GF2-style grid or vignette */}
