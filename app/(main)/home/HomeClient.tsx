@@ -627,7 +627,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
           </div>
 
           {/* Right Side: Command Menus (Desktop Only) */}
-          <div className="hidden md:flex flex-col items-end w-[300px] absolute bottom-2 right-10 z-40 h-[600px] justify-end">
+          <div className="hidden md:flex flex-col items-end w-[300px] absolute bottom-2 right-10 z-40 h-[600px] justify-end pointer-events-auto">
             <div className="relative w-full h-full flex flex-col justify-end">
               
               {/* LAINNYA SUB-MENUS (DRAWER) */}
