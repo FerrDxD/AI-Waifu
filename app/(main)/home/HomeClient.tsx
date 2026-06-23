@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MessageSquare, Clock, BookOpen, Briefcase, Gift, MapPin, Wallet, Shirt, Menu, X, Heart, Moon, Utensils, Battery, Droplet, Sprout, Bed, Radio, Smartphone, Settings, Camera, Package } from 'lucide-react';
+import { MessageSquare, Clock, BookOpen, Briefcase, Gift, MapPin, Wallet, Shirt, Menu, X, Heart, Moon, Utensils, Battery, Droplet, Sprout, Bed, Radio, Smartphone, Settings, Camera, Package, Calendar } from 'lucide-react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
 import AffectionBar from '@/components/livia/AffectionBar';
 import { LiviaExpression } from '@/lib/gemini';
@@ -563,44 +563,6 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
           {/* Bottom Left: Island UI & Chat Bubble */}
           <div className="absolute bottom-[4.5rem] left-4 right-4 md:bottom-8 md:left-10 md:right-auto md:w-[400px] z-50 flex flex-col gap-3">
             
-            {/* Onboarding Items Vault (Horizontal Full Width) */}
-            {itemsBrought.filter(id => ITEMS.some(i => i.id === id)).length > 0 && (
-              <div className="hidden md:flex bg-white/70 backdrop-blur-2xl border border-white/60 p-3 rounded-[2rem] shadow-sm w-fit max-w-full gap-3 flex-wrap items-center">
-                <div className="pl-2 flex items-center justify-center">
-                  <Gift size={20} className="text-pink-400 drop-shadow-sm" />
-                </div>
-                <div className="w-px h-6 bg-pink-200/50" />
-                {itemsBrought.filter(id => ITEMS.some(i => i.id === id)).map(id => {
-                  const item = ITEMS.find(i => i.id === id)!;
-                  return (
-                    <div key={id} className="w-12 h-12 shrink-0 group relative bg-white/90 rounded-[1rem] flex items-center justify-center border border-pink-50 shadow-sm cursor-help hover:bg-white hover:scale-110 hover:shadow-md hover:border-pink-300 transition-all duration-300">
-                      <span className="text-2xl drop-shadow-sm group-hover:drop-shadow-md transition-all">{item.emoji}</span>
-                      
-                      {/* Tooltip */}
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 md:w-64 p-3.5 bg-white/95 backdrop-blur-xl border border-pink-100 rounded-2xl shadow-[0_10px_40px_rgba(255,117,140,0.15)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[100] origin-bottom scale-95 group-hover:scale-100 pointer-events-none flex flex-col gap-2">
-                        <div className="font-display font-black text-[#5c4d47] text-sm md:text-base border-b-2 border-pink-50 pb-2 flex items-center gap-2">
-                          <span className="text-lg drop-shadow-sm">{item.emoji}</span> {item.name}
-                        </div>
-                        <p className="text-[11px] md:text-xs text-[#8b7355] font-medium leading-relaxed italic">{item.description}</p>
-                        <div className="flex flex-col pt-1">
-                          <div className="flex items-start gap-2 text-[10px] md:text-[11px] leading-snug bg-gradient-to-r from-green-50 to-emerald-50/30 p-2.5 rounded-xl border border-green-100 shadow-inner">
-                            <span className="text-emerald-500 font-black shrink-0 text-sm mt-[1px]">✦</span>
-                            <div className="flex flex-col gap-0.5">
-                              <span className="font-black text-emerald-600 uppercase tracking-wider text-[9px] md:text-[10px]">{item.buff.label}</span> 
-                              <span className="text-[#5c4d47]">{item.buff.description}</span>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Triangle arrow */}
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-[8px] border-transparent border-t-pink-100 drop-shadow-sm" />
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-[7px] border-transparent border-t-white -mt-[2px]" />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
             {/* Stats Island (Physiological) */}
             <div className="hidden md:flex bg-white/80 backdrop-blur-2xl rounded-[2rem] p-4 border border-white/50 shadow-lg items-center justify-between gap-4 self-start w-auto hover:scale-[1.02] transition-transform origin-bottom-left">
               <div className="flex items-center gap-4 md:gap-5 w-full">
@@ -690,7 +652,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
               <BottomMenuCard href="/inventory" icon={<Package size={22} className="md:w-[24px] md:h-[24px]" />} title="Tas" />
               <BottomMenuCard href="/bedroom" icon={<Bed size={22} className="md:w-[24px] md:h-[24px]" />} title="Kamar" />
               <BottomMenuCard href="/radio" icon={<Radio size={22} className="md:w-[24px] md:h-[24px]" />} title="Radio" />
-              <BottomMenuCard href="/phone" icon={<Smartphone size={22} className="md:w-[24px] md:h-[24px]" />} title="Ponsel" />
+              <BottomMenuCard href="/schedule" icon={<Calendar size={22} className="md:w-[24px] md:h-[24px]" />} title="Jadwal" />
               <BottomMenuCard href="/settings" icon={<Settings size={22} className="md:w-[24px] md:h-[24px]" />} title="Setelan" />
               <BottomMenuCard href="/album" icon={<Camera size={22} className="md:w-[24px] md:h-[24px]" />} title="Album" />
             </div>
@@ -743,7 +705,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
               <BottomMenuCard href="/inventory" icon={<Package size={26} className="md:w-[28px] md:h-[28px]" />} title="Tas" />
               <BottomMenuCard href="/bedroom" icon={<Bed size={26} className="md:w-[28px] md:h-[28px]" />} title="Kamar" />
               <BottomMenuCard href="/radio" icon={<Radio size={26} className="md:w-[28px] md:h-[28px]" />} title="Radio" />
-              <BottomMenuCard href="/phone" icon={<Smartphone size={26} className="md:w-[28px] md:h-[28px]" />} title="Ponsel" />
+              <BottomMenuCard href="/schedule" icon={<Calendar size={26} className="md:w-[28px] md:h-[28px]" />} title="Jadwal" />
               <BottomMenuCard href="/settings" icon={<Settings size={26} className="md:w-[28px] md:h-[28px]" />} title="Setelan" />
               <BottomMenuCard href="/album" icon={<Camera size={26} className="md:w-[28px] md:h-[28px]" />} title="Album" />
             </div>
@@ -812,36 +774,6 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
                 <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-pink-400 to-pink-500 transition-all duration-1000" style={{ width: `${Math.max(0, Math.min(100, affection))}%` }} />
               </div>
             </div>
-
-            {/* Inventory Vault */}
-            {itemsBrought.filter(id => ITEMS.some(i => i.id === id)).length > 0 && (
-              <div className="flex flex-col gap-2 bg-pink-50/40 p-3.5 rounded-[1.5rem] border border-pink-100/50 shadow-sm">
-                <div className="flex items-center gap-1.5 mb-1 px-1">
-                  <Gift size={14} className="text-pink-400" />
-                  <span className="text-[10px] font-black text-[#5c4d47] uppercase tracking-widest opacity-80">Barang Bawaan</span>
-                </div>
-                <div className="flex flex-wrap gap-2.5 w-full">
-                  {itemsBrought.filter(id => ITEMS.some(i => i.id === id)).map(id => {
-                    const item = ITEMS.find(i => i.id === id)!;
-                    return (
-                      <div key={id} className="w-[3rem] h-[3rem] shrink-0 relative bg-white/90 backdrop-blur-md rounded-xl flex items-center justify-center border border-pink-100 shadow-sm cursor-help active:scale-95 transition-transform group">
-                        <span className="text-2xl drop-shadow-sm">{item.emoji}</span>
-                        {/* Tooltip for Mobile (appears on click/hold) */}
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-3 bg-white border border-pink-100 rounded-2xl shadow-2xl opacity-0 invisible group-active:opacity-100 group-active:visible transition-all z-[100] origin-bottom scale-95 group-active:scale-100 pointer-events-none flex flex-col gap-1.5">
-                          <div className="font-display font-black text-[#5c4d47] text-sm border-b-2 border-pink-50 pb-1.5 flex items-center gap-2">
-                            <span>{item.emoji}</span> {item.name}
-                          </div>
-                          <div className="flex items-start gap-1.5 text-[10px] leading-snug bg-gradient-to-r from-green-50 to-emerald-50/30 p-2 rounded-xl border border-green-100 shadow-inner mt-1">
-                            <span className="text-emerald-500 font-black shrink-0 mt-[1px]">✦</span>
-                            <span className="text-[#5c4d47]"><span className="font-black text-emerald-600 uppercase text-[9px] block mb-0.5">{item.buff.label}</span>{item.buff.description}</span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             {/* Physiological Stats */}
             <div className="flex flex-col gap-3 bg-gray-50/80 p-4 rounded-2xl border border-gray-100">

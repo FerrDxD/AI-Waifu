@@ -563,6 +563,23 @@ export default function StoryPage() {
     setSceneIndex(0);
   };
 
+  const finishChapter = async (chapId: number) => {
+    setActiveChapter(null);
+    try {
+      const res = await fetch('/api/story/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chapterId: chapId })
+      });
+      const data = await res.json();
+      if (data.success && data.unlockedChapters) {
+        setUnlockedChapters(data.unlockedChapters);
+      }
+    } catch (e) {
+      console.error('Failed to complete chapter', e);
+    }
+  };
+
   const handleNextScene = () => {
     if (!activeChapter) return;
     
@@ -579,7 +596,7 @@ export default function StoryPage() {
       } else if (activeChapter.id === 12 && userStats && !userStats.itemsBrought.includes('chapter_12_completed')) {
         setShowBlessingPicker(true);
       } else {
-        setActiveChapter(null);
+        finishChapter(activeChapter.id);
       }
     }
   };
@@ -608,7 +625,7 @@ export default function StoryPage() {
       });
       setUserStats(prev => prev ? { ...prev, itemsBrought: [...prev.itemsBrought, ...itemsToBring] } : null);
       setShowHometownPicker(false);
-      setActiveChapter(null);
+      finishChapter(8);
     } catch (e) {
       console.error(e);
     }
@@ -627,7 +644,7 @@ export default function StoryPage() {
       });
       setUserStats(prev => prev ? { ...prev, itemsBrought: [...prev.itemsBrought, ...itemsToBring] } : null);
       setShowBlessingPicker(false);
-      setActiveChapter(null);
+      finishChapter(12);
     } catch (e) {
       console.error(e);
     }
