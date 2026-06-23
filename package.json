@@ -16,6 +16,7 @@
     "@neondatabase/serverless": "^0.9.3",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
+    "dotenv": "^17.4.2",
     "drizzle-orm": "^0.30.10",
     "lucide-react": "^0.378.0",
     "next": "14.2.3",
