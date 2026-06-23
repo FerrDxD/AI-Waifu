@@ -180,7 +180,7 @@ export default function ShopPage() {
     } else if (item.id === 'kacamata_hitam') {
       setLiviaExpression('happy');
       setMessage('Wih, kacamata hitam! Keren banget kan kalau aku pakai itu?');
-    } else if (item.id === 'recipe_book') {
+    } else if (item.id === 'recipe_book_shop') {
       setLiviaExpression('blushing');
       setMessage('Buku resep masakan?! K-kamu mau aku masakin kamu ya?! Jangan ngarep!');
     }
@@ -228,7 +228,7 @@ export default function ShopPage() {
         } else if (item.id === 'kacamata_hitam') {
           setLiviaExpression('blushing');
           setMessage(`I-ini kacamata hitam?! Keren banget... Cocok buat jalan-jalan! Makasih ya!`);
-        } else if (item.id === 'recipe_book') {
+        } else if (item.id === 'recipe_book_shop') {
           setLiviaExpression('blushing');
           setMessage(`I-ini kan buku resep... Y-yaudah deh, karena kamu udah repot-repot beliin, sesekali aku bakal masakin kamu di dapur!`);
         } else if (item.affectionDelta >= 12) {

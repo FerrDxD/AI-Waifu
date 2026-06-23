@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { recipeId } = await req.json();
+    const { recipeId, isFailed = false } = await req.json();
     const recipe = RECIPES.find(r => r.id === recipeId);
     
     if (!recipe) {
@@ -35,9 +35,18 @@ export async function POST(req: Request) {
 
     const newMoney = currentMoney - recipe.cost;
     
-    // Increase stats
-    const newHunger = Math.min(100, (profile.liviaHunger || 100) + recipe.hungerDelta);
-    const newEnergy = Math.min(100, (profile.liviaEnergy || 100) + recipe.energyDelta);
+    // Default: increase stats
+    let newHunger = Math.min(100, (profile.liviaHunger || 100) + recipe.hungerDelta);
+    let newEnergy = Math.min(100, (profile.liviaEnergy || 100) + recipe.energyDelta);
+    let affectionChange = recipe.affectionDelta;
+
+    if (isFailed) {
+      // If failed cooking mini-game:
+      // Don't increase hunger/energy, actually she gets hungry and disappointed
+      newHunger = profile.liviaHunger || 100;
+      newEnergy = profile.liviaEnergy || 100;
+      affectionChange = -2; // Disappointed penalty
+    }
 
     await db.update(userProfiles).set({
       money: newMoney,
@@ -45,8 +54,8 @@ export async function POST(req: Request) {
       liviaEnergy: newEnergy,
     }).where(eq(userProfiles.userId, session.user.id));
 
-    // Increase Affection
-    const updateResult = await applyAffectionUpdate(session.user.id, recipe.affectionDelta);
+    // Increase (or decrease) Affection
+    const updateResult = await applyAffectionUpdate(session.user.id, affectionChange);
 
     return NextResponse.json({
       success: true,
@@ -54,7 +63,8 @@ export async function POST(req: Request) {
       newAffection: updateResult.newAffection,
       newHunger,
       newEnergy,
-      recipeName: recipe.name
+      recipeName: recipe.name,
+      isFailed
     });
 
   } catch (error) {

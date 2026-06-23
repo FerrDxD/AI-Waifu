@@ -18,6 +18,7 @@ interface PotData {
   stage: GrowthStage | null;
   hydration: number; // 0-100
   timeLeft: number; // minutes left to next stage
+  plantedAt?: string | null;
 }
 import { SEED_CATALOG } from '@/lib/livia/seeds';
 
@@ -276,7 +277,12 @@ export default function GardenPage() {
             </button>
 
             {(() => {
-              const pot = pots.find(p => p.id === selectedPot)!;
+              const pot = pots.find(p => p.id === selectedPot);
+              if (!pot) {
+                // Prevent crash if user clicks during initial load before real IDs are fetched
+                setTimeout(() => setSelectedPot(null), 0);
+                return null;
+              }
               const plant = getPlantInfo(pot.plantId);
 
               // 1. Empty Pot -> Shop UI
@@ -355,9 +361,28 @@ export default function GardenPage() {
                       <Droplet className={`w-6 h-6 ${pot.hydration < 30 ? 'text-red-500' : 'text-blue-500'}`} />
                       <span className="font-bold text-sm text-[#5c4d47]">Air: {pot.hydration}%</span>
                     </div>
-                    <div className="flex-1 bg-amber-50 p-4 rounded-2xl border border-amber-100 flex flex-col items-center justify-center gap-2">
+                    <div className="flex-1 bg-amber-50 p-4 rounded-2xl border border-amber-100 flex flex-col items-center justify-center gap-2 relative overflow-hidden">
                       <Timer className="w-6 h-6 text-amber-500" />
-                      <span className="font-bold text-sm text-[#5c4d47]">Sisa Waktu</span>
+                      <span className="font-bold text-sm text-[#5c4d47]">
+                        {(() => {
+                          if (!pot.plantedAt || !plant) return `${pot.timeLeft}m`;
+                          const plantedDate = new Date(pot.plantedAt).getTime();
+                          const targetDate = plantedDate + (plant.growTimeMinutes * 60000);
+                          const now = new Date().getTime();
+                          const diff = Math.max(0, targetDate - now);
+                          
+                          if (diff <= 0) return 'Siap Panen!';
+                          
+                          const h = Math.floor(diff / 3600000);
+                          const m = Math.floor((diff % 3600000) / 60000);
+                          const s = Math.floor((diff % 60000) / 1000);
+                          
+                          if (h > 0) return `${h}j ${m}m ${s}s`;
+                          return `${m}m ${s}s`;
+                        })()}
+                      </span>
+                      {/* We use a tiny hidden component to trigger re-renders every second inside the modal */}
+                      <CountdownTicker />
                     </div>
                   </div>
 
@@ -382,4 +407,14 @@ export default function GardenPage() {
 
     </div>
   );
+}
+
+// Helper component to trigger re-renders every second for the countdown
+function CountdownTicker() {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setTick(t => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
+  return null;
 }

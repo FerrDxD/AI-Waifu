@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Utensils, Heart, Wallet, ChefHat, Flame } from 'lucide-react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
@@ -15,9 +15,18 @@ export default function KitchenPage() {
   const [liviaExpression, setLiviaExpression] = useState<LiviaExpression>('normal');
   const [message, setMessage] = useState("Kamu ngajakin aku ke dapur... mau masakin aku sesuatu ya?");
   const [isCooking, setIsCooking] = useState(false);
+  const [showMinigame, setShowMinigame] = useState(false);
+  const [currentRecipe, setCurrentRecipe] = useState<{id: string, name: string, cost: number} | null>(null);
   const [hasRecipeBook, setHasRecipeBook] = useState(false);
   const [hasRecipeBookShop, setHasRecipeBookShop] = useState(false);
+  const [isLiviaCooking, setIsLiviaCooking] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Minigame states
+  const [sliderPos, setSliderPos] = useState(0);
+  const [sliderDir, setSliderDir] = useState(1);
+  const [minigamePhase, setMinigamePhase] = useState<'playing' | 'result'>('playing');
+  const [minigameResult, setMinigameResult] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,8 +42,14 @@ export default function KitchenPage() {
           setAffection(data.affection || 0);
           
           if (data.itemsBrought) {
-            setHasRecipeBook(data.itemsBrought.includes('recipe_book'));
-            setHasRecipeBookShop(data.itemsBrought.includes('recipe_book_shop'));
+            const hasHome = data.itemsBrought.includes('recipe_book');
+            const hasShop = data.itemsBrought.includes('recipe_book_shop');
+            setHasRecipeBook(hasHome);
+            setHasRecipeBookShop(hasShop);
+            
+            // Set default cooking mode
+            if (hasShop) setIsLiviaCooking(false);
+            else if (hasHome) setIsLiviaCooking(true);
           }
         }
         
@@ -51,41 +66,50 @@ export default function KitchenPage() {
     fetchData();
   }, []);
 
-  const isLiviaCooking = hasRecipeBook; // Jika bawa dari rumah, Livia yang masak
-
   useEffect(() => {
     if (!isLoading && (hasRecipeBook || hasRecipeBookShop)) {
       if (isLiviaCooking) {
         setMessage("Berhubung kamu bawa buku resep mamaku, aku mau masakin kamu sesuatu. Kamu mau pesen apa?");
       } else {
-        setMessage("Kamu yang beli buku resepnya, berarti kamu yang masak dong! Ayo tunjukin kemampuanmu.");
+        setMessage("Berhubung kamu beli buku resep masak di toko, berarti kamu yang masak dong! Ayo tunjukin kemampuanmu.");
       }
     }
   }, [isLoading, hasRecipeBook, hasRecipeBookShop, isLiviaCooking]);
 
-  const handleCook = async (recipeId: string, recipeName: string, cost: number) => {
-    if (money < cost) {
-      setLiviaExpression('angry');
-      setMessage(`Uangmu kurang buat beli bahan ${recipeName}! Gimana mau masak?`);
-      return;
-    }
+  // Minigame loop
+  const sliderDirRef = useRef(1);
+  const sliderPosRef = useRef(0);
 
-    setIsCooking(true);
-    setLiviaExpression('happy');
-    if (isLiviaCooking) {
-      setMessage(`Oke, aku masakin ${recipeName} ya! Tunggu sebentar, jangan ngintip!`);
-    } else {
-      setMessage(`Wah, kamu lagi masak ${recipeName}... wanginya enak banget!`);
-    }
-    
-    // Simulate cooking time
-    await new Promise(resolve => setTimeout(resolve, 2000));
+  useEffect(() => {
+    let animationFrameId: number;
+    if (showMinigame && minigamePhase === 'playing') {
+      // Reset ref state when starting minigame
+      sliderPosRef.current = 0;
+      sliderDirRef.current = 1;
 
+      const loop = () => {
+        sliderPosRef.current += sliderDirRef.current * 2.5; // speed
+        if (sliderPosRef.current >= 100) {
+          sliderPosRef.current = 100;
+          sliderDirRef.current = -1;
+        } else if (sliderPosRef.current <= 0) {
+          sliderPosRef.current = 0;
+          sliderDirRef.current = 1;
+        }
+        setSliderPos(sliderPosRef.current);
+        animationFrameId = requestAnimationFrame(loop);
+      };
+      animationFrameId = requestAnimationFrame(loop);
+    }
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [showMinigame, minigamePhase]);
+
+  const processCooking = async (recipeId: string, recipeName: string, cost: number, isFailed: boolean) => {
     try {
       const res = await fetch('/api/kitchen', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipeId }),
+        body: JSON.stringify({ recipeId, isFailed }),
       });
       
       const data = await res.json();
@@ -94,14 +118,18 @@ export default function KitchenPage() {
         setMoney(data.newMoney);
         setAffection(data.newAffection);
         
-        setLiviaExpression(isLiviaCooking ? 'happy' : 'blushing');
-        
-        if (recipeId === 'steak') {
-          setMessage(isLiviaCooking ? `Ini dia steak spesial buat kamu! Dihabisin ya, aku masaknya pakai cinta loh...` : `I-ini enak banget! Kamu belajar masak dari mana? Aku jadi pengen dimasakin tiap hari...`);
-        } else if (recipeId === 'sup_ayam') {
-          setMessage(isLiviaCooking ? `Sup ayam hangat buat kamu. Semoga capekmu hilang ya.` : `Sruput... ahh, badanku jadi hangat. Makasih ya sup ayamnya.`);
+        if (data.isFailed) {
+          setLiviaExpression('angry');
+          setMessage(`Bweeek! Nggak enak! Kamu masukin apa ke ${recipeName} ini?! Huwaa... uang buat belinya jadi sia-sia!`);
         } else {
-          setMessage(isLiviaCooking ? `Sudah matang! Ayo makan bareng. Gimana rasanya? Enak kan?` : `Nyam nyam... lumayan juga masakanmu. Besok masak lagi ya!`);
+          setLiviaExpression(isLiviaCooking ? 'happy' : 'blushing');
+          if (recipeId === 'steak') {
+            setMessage(isLiviaCooking ? `Ini dia steak spesial buat kamu! Dihabisin ya, aku masaknya pakai cinta loh...` : `I-ini enak banget! Kamu belajar masak dari mana? Aku jadi pengen dimasakin tiap hari...`);
+          } else if (recipeId === 'sup_ayam') {
+            setMessage(isLiviaCooking ? `Sup ayam hangat buat kamu. Semoga capekmu hilang ya.` : `Sruput... ahh, badanku jadi hangat. Makasih ya sup ayamnya.`);
+          } else {
+            setMessage(isLiviaCooking ? `Sudah matang! Ayo makan bareng. Gimana rasanya? Enak kan?` : `Nyam nyam... lumayan juga masakanmu. Besok masak lagi ya!`);
+          }
         }
       } else {
         setLiviaExpression('angry');
@@ -113,7 +141,64 @@ export default function KitchenPage() {
       setMessage(isLiviaCooking ? 'Aduh! Masakanku gosong... maaf ya.' : 'Apinya kegedean! Gagal masak deh.');
     } finally {
       setIsCooking(false);
+      setShowMinigame(false);
+      setCurrentRecipe(null);
     }
+  };
+
+  const handleCook = async (recipeId: string, recipeName: string, cost: number) => {
+    if (money < cost) {
+      setLiviaExpression('angry');
+      setMessage(`Uangmu kurang buat beli bahan ${recipeName}! Gimana mau masak?`);
+      return;
+    }
+
+    if (!isLiviaCooking) {
+      // Initialize Minigame
+      setCurrentRecipe({ id: recipeId, name: recipeName, cost });
+      setSliderPos(0);
+      setSliderDir(1);
+      setMinigamePhase('playing');
+      setShowMinigame(true);
+      setLiviaExpression('normal');
+      setMessage(`Kamu lagi masak ${recipeName}... klik 'Potong!' saat garisnya ada di zona hijau!`);
+      return;
+    }
+
+    // Livia is cooking (no minigame)
+    setIsCooking(true);
+    setLiviaExpression('happy');
+    setMessage(`Oke, aku masakin ${recipeName} ya! Tunggu sebentar, jangan ngintip!`);
+    
+    // Simulate cooking time
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await processCooking(recipeId, recipeName, cost, false);
+  };
+
+  const handleMinigameAction = () => {
+    if (minigamePhase !== 'playing') return;
+    
+    // Target zone is between 40 and 60
+    const currentPos = sliderPosRef.current;
+    const isSuccess = currentPos >= 40 && currentPos <= 60;
+    setMinigameResult(isSuccess);
+    setMinigamePhase('result');
+    setIsCooking(true);
+
+    if (isSuccess) {
+      setLiviaExpression('happy');
+      setMessage("Wah, potongannya rapi banget! Kelihatannya bakal enak nih...");
+    } else {
+      setLiviaExpression('angry');
+      setMessage("Awas tanganmu! Eh, kok bentuk potongannya hancur gitu sih...");
+    }
+
+    // Finish process after a short delay
+    setTimeout(() => {
+      if (currentRecipe) {
+        processCooking(currentRecipe.id, currentRecipe.name, currentRecipe.cost, !isSuccess);
+      }
+    }, 1500);
   };
 
   if (isLoading) return <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center text-pink-400 font-bold">Memanaskan wajan...</div>;
@@ -176,6 +261,24 @@ export default function KitchenPage() {
                 ? "Livia yang akan masak untukmu! Siapkan bahan-bahannya." 
                 : "Beli bahan dan tunjukkan kemampuan masakmu. Livia adalah juri yang sangat ketat soal makanan!"}
             </p>
+
+            {/* Toggle if user has BOTH books */}
+            {hasRecipeBook && hasRecipeBookShop && (
+              <div className="flex bg-orange-50 rounded-xl p-1 mt-3 border border-orange-100">
+                <button 
+                  onClick={() => setIsLiviaCooking(true)}
+                  className={`flex-1 py-2 rounded-lg font-bold text-xs md:text-sm transition-colors ${isLiviaCooking ? 'bg-orange-400 text-white shadow-md' : 'text-orange-600 hover:bg-orange-100'}`}
+                >
+                  Livia yang Masak
+                </button>
+                <button 
+                  onClick={() => setIsLiviaCooking(false)}
+                  className={`flex-1 py-2 rounded-lg font-bold text-xs md:text-sm transition-colors ${!isLiviaCooking ? 'bg-orange-400 text-white shadow-md' : 'text-orange-600 hover:bg-orange-100'}`}
+                >
+                  Kamu yang Masak
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-4">
@@ -234,6 +337,46 @@ export default function KitchenPage() {
         </div>
 
       </div>
+
+      {/* Cooking Minigame Modal */}
+      {showMinigame && currentRecipe && (
+        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2rem] w-full max-w-md p-6 md:p-8 flex flex-col gap-6 items-center text-center shadow-2xl relative overflow-hidden border-4 border-orange-200">
+            <h2 className="text-2xl font-black font-display text-[#5c4d47]">Memasak {currentRecipe.name}</h2>
+            <p className="text-gray-500 font-medium -mt-4">Klik tombol saat garisnya berada di area <span className="text-emerald-500 font-bold">HIJAU</span>!</p>
+
+            {/* Slider Track */}
+            <div className="w-full h-8 bg-gray-200 rounded-full relative overflow-hidden shadow-inner mt-4">
+              {/* Target Zone (40% to 60%) */}
+              <div className="absolute top-0 bottom-0 left-[40%] right-[40%] bg-emerald-400 opacity-50" />
+              <div className="absolute top-0 bottom-0 left-[45%] right-[45%] bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
+              
+              {/* Slider Marker */}
+              <div 
+                className="absolute top-0 bottom-0 w-2 bg-[#5c4d47] shadow-md transition-none"
+                style={{ left: `calc(${sliderPos}% - 4px)` }}
+              />
+            </div>
+
+            {minigamePhase === 'result' && (
+              <div className={`text-2xl font-black animate-bounce ${minigameResult ? 'text-emerald-500' : 'text-red-500'}`}>
+                {minigameResult ? 'SEMPURNA!' : 'GAGAL!'}
+              </div>
+            )}
+
+            <button
+              onClick={handleMinigameAction}
+              disabled={minigamePhase === 'result'}
+              className={`w-full py-4 text-white font-black text-xl rounded-2xl shadow-xl transition-transform active:scale-95 flex justify-center items-center gap-2 ${
+                minigamePhase === 'result' ? 'bg-gray-400' : 'bg-gradient-to-r from-orange-400 to-amber-500 hover:from-orange-500 hover:to-amber-600'
+              }`}
+            >
+              <Flame /> POTONG!
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

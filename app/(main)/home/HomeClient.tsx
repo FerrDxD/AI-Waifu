@@ -317,6 +317,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
   const levelInfo = getAffectionLevel(affection);
   const [showEvent, setShowEvent] = useState(false);
   const [showMoreModal, setShowMoreModal] = useState(false);
+  const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
   const [showMobileStats, setShowMobileStats] = useState(false);
 
   const displayGreeting = interactionOverride ? interactionOverride.text : greeting;
@@ -476,26 +477,26 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
         </div>
 
         {/* Invisible Hitboxes Wrapper (Aligned to Livia's body: 48%-71% width on Desktop, 10%-90% on Mobile) */}
-        <div className="absolute top-0 left-[10%] md:left-[48%] w-[80%] md:w-[24%] h-full pointer-events-auto group z-50">
+        <div className="absolute top-0 left-[10%] md:left-[48%] w-[80%] md:w-[24%] h-full pointer-events-auto z-50 flex flex-col">
           {/* Head */}
           <div 
             onClick={() => handleInteract('head')}
-            className="absolute top-[5%] left-[25%] w-[50%] h-[15%] cursor-pointer z-50 rounded-full opacity-0"
+            className="absolute top-[5%] left-[25%] w-[50%] h-[15%] cursor-pointer z-50 rounded-full transition-colors hover:bg-white/5 active:bg-pink-300/20"
           />
           {/* Chest */}
           <div 
             onClick={() => handleInteract('chest')}
-            className="absolute top-[23%] left-[25%] w-[50%] h-[12%] cursor-pointer z-50 rounded-full opacity-0"
+            className="absolute top-[23%] left-[25%] w-[50%] h-[12%] cursor-pointer z-50 rounded-[2rem] transition-colors hover:bg-white/5 active:bg-pink-300/20"
           />
           {/* Belly */}
           <div 
             onClick={() => handleInteract('belly')}
-            className="absolute top-[35%] left-[25%] w-[50%] h-[15%] cursor-pointer z-50 rounded-full opacity-0"
+            className="absolute top-[35%] left-[25%] w-[50%] h-[15%] cursor-pointer z-50 rounded-[2rem] transition-colors hover:bg-white/5 active:bg-pink-300/20"
           />
           {/* Thigh */}
           <div 
             onClick={() => handleInteract('thigh')}
-            className="absolute top-[50%] left-[15%] w-[70%] h-[35%] cursor-pointer z-50 rounded-[3rem] opacity-0"
+            className="absolute top-[50%] left-[15%] w-[70%] h-[35%] cursor-pointer z-50 rounded-[3rem] transition-colors hover:bg-white/5 active:bg-pink-300/20"
           />
         </div>
       </div>
@@ -558,15 +559,15 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
         </div>
 
         {/* BOTTOM ROW */}
-        <div className="flex flex-col-reverse md:flex-row justify-between items-end md:items-end flex-1 pb-4 md:pb-8 pointer-events-auto gap-6 md:gap-8 w-full mt-10 md:mt-0 relative">
+        <div className="flex flex-col-reverse md:flex-row justify-between items-end md:items-end flex-1 pb-4 md:pb-8 pointer-events-none gap-6 md:gap-8 w-full mt-10 md:mt-0 relative">
           
           {/* Bottom Left: Island UI & Chat Bubble */}
-          <div className="absolute bottom-[4.5rem] left-4 right-4 md:bottom-8 md:left-10 md:right-auto md:w-[400px] z-50 flex flex-col gap-3">
+          <div className="absolute bottom-[4.5rem] left-4 right-4 md:bottom-8 md:left-10 md:right-auto md:w-[400px] z-50 flex flex-col gap-3 pointer-events-auto">
             
             {/* Stats Island (Physiological) */}
             <div className="hidden md:flex bg-white/80 backdrop-blur-2xl rounded-[2rem] p-4 border border-white/50 shadow-lg items-center justify-between gap-4 self-start w-auto hover:scale-[1.02] transition-transform origin-bottom-left">
               <div className="flex items-center gap-4 md:gap-5 w-full">
-                 <div className="flex flex-col items-center gap-1.5">
+                 <div className="flex flex-col items-center gap-1.5 pointer-events-none">
                    <div className="relative flex items-center justify-center w-10 h-10 md:w-12 md:h-12">
                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
                        <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
@@ -626,37 +627,79 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
           </div>
 
           {/* Right Side: Command Menus (Desktop Only) */}
-          <div className="hidden md:flex flex-col gap-4 items-end w-full md:w-auto md:absolute md:bottom-2 md:right-10 z-40">
-            
-            {/* Primary Navigation Column (Main Menus) */}
-            <div className="flex flex-col gap-2.5 items-end w-full justify-end pb-0 hide-scrollbar">
-              <SideMenuCard href="/chat" icon={<MessageSquare size={24} className="w-[28px] h-[28px]" />} title="OBROLAN" />
-              <SideMenuCard href="/story" icon={<BookOpen size={24} className="w-[28px] h-[28px]" />} title="CERITA" />
+          <div className="hidden md:flex flex-col items-end w-[300px] absolute bottom-2 right-10 z-40 h-[600px] justify-end">
+            <div className="relative w-full h-full flex flex-col justify-end">
               
-              {(isInvitingOut || (affection >= 40 && (itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses')))) && (
-                <SideMenuCard href="/date" icon={<MapPin size={24} className="w-[28px] h-[28px]" />} title="JALAN" isSpecial />
-              )}
-              
-              {(itemsBrought.includes('recipe_book') || itemsBrought.includes('recipe_book_shop')) && (
-                <SideMenuCard href="/kitchen" icon={<Utensils size={24} className="w-[28px] h-[28px]" />} title="DAPUR" />
-              )}
-              <SideMenuCard href="/garden" icon={<Sprout size={24} className="w-[28px] h-[28px]" />} title="KEBUN" />
-            </div>
+              {/* LAINNYA SUB-MENUS (DRAWER) */}
+              <div 
+                className="absolute bottom-[110px] right-2 grid grid-cols-2 gap-2 w-[160px]"
+                style={{ pointerEvents: isDesktopMenuOpen ? 'auto' : 'none' }}
+              >
+                {[
+                  { href: "/wardrobe", icon: <Shirt size={20} className="w-[20px] h-[20px]" />, title: "Lemari" },
+                  { href: "/shop", icon: <Gift size={20} className="w-[20px] h-[20px]" />, title: "Toko" },
+                  { href: "/work", icon: <Briefcase size={20} className="w-[20px] h-[20px]" />, title: "Kerja" },
+                  { href: "/inventory", icon: <Package size={20} className="w-[20px] h-[20px]" />, title: "Tas" },
+                  { href: "/bedroom", icon: <Bed size={20} className="w-[20px] h-[20px]" />, title: "Kamar" },
+                  { href: "/radio", icon: <Radio size={20} className="w-[20px] h-[20px]" />, title: "Radio" },
+                  { href: "/schedule", icon: <Calendar size={20} className="w-[20px] h-[20px]" />, title: "Jadwal" },
+                  { href: "/pomodoro", icon: <Clock size={20} className="w-[20px] h-[20px]" />, title: "Fokus" },
+                  { href: "/settings", icon: <Settings size={20} className="w-[20px] h-[20px]" />, title: "Setelan" },
+                  { href: "/album", icon: <Camera size={20} className="w-[20px] h-[20px]" />, title: "Album" },
+                ].map((m, i) => {
+                  const row = 4 - Math.floor(i / 2); // Bottom rows slide out first
+                  return (
+                    <div
+                      key={m.title}
+                      className="w-full"
+                      style={{
+                        transform: isDesktopMenuOpen ? 'translateY(0) scale(1)' : 'translateY(150px) scale(0.8)',
+                        opacity: isDesktopMenuOpen ? 1 : 0,
+                        transition: `all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${isDesktopMenuOpen ? 300 + (row * 60) : 0}ms`
+                      }}
+                    >
+                      <BottomMenuCard href={m.href} icon={m.icon} title={m.title} />
+                    </div>
+                  )
+                })}
+              </div>
 
-            {/* Sub Navigation Row (Bottom Menus) */}
-            <div className="grid grid-cols-5 gap-3 justify-end w-full max-w-[420px]">
-              <BottomMenuCard href="/wardrobe" icon={<Shirt size={22} className="md:w-[24px] md:h-[24px]" />} title="Lemari" />
-              <BottomMenuCard href="/pomodoro" icon={<Clock size={22} className="md:w-[24px] md:h-[24px]" />} title="Fokus" />
-              <BottomMenuCard href="/work" icon={<Briefcase size={22} className="md:w-[24px] md:h-[24px]" />} title="Kerja" />
-              <BottomMenuCard href="/shop" icon={<Gift size={22} className="md:w-[24px] md:h-[24px]" />} title="Toko" />
-              <BottomMenuCard href="/inventory" icon={<Package size={22} className="md:w-[24px] md:h-[24px]" />} title="Tas" />
-              <BottomMenuCard href="/bedroom" icon={<Bed size={22} className="md:w-[24px] md:h-[24px]" />} title="Kamar" />
-              <BottomMenuCard href="/radio" icon={<Radio size={22} className="md:w-[24px] md:h-[24px]" />} title="Radio" />
-              <BottomMenuCard href="/schedule" icon={<Calendar size={22} className="md:w-[24px] md:h-[24px]" />} title="Jadwal" />
-              <BottomMenuCard href="/settings" icon={<Settings size={22} className="md:w-[24px] md:h-[24px]" />} title="Setelan" />
-              <BottomMenuCard href="/album" icon={<Camera size={22} className="md:w-[24px] md:h-[24px]" />} title="Album" />
-            </div>
+              {/* MAIN MENUS */}
+              <div className="absolute bottom-[110px] right-0 flex flex-col gap-3 w-full items-end pb-0">
+                {[
+                  { href: "/chat", icon: <MessageSquare size={24} className="w-[28px] h-[28px]" />, title: "OBROLAN", show: true },
+                  { href: "/story", icon: <BookOpen size={24} className="w-[28px] h-[28px]" />, title: "CERITA", show: true },
+                  { href: "/date", icon: <MapPin size={24} className="w-[28px] h-[28px]" />, title: "JALAN", show: isInvitingOut || (affection >= 40 && (itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses'))), isSpecial: true },
+                  { href: "/kitchen", icon: <Utensils size={24} className="w-[28px] h-[28px]" />, title: "DAPUR", show: itemsBrought.includes('recipe_book') || itemsBrought.includes('recipe_book_shop') },
+                  { href: "/garden", icon: <Sprout size={24} className="w-[28px] h-[28px]" />, title: "KEBUN", show: true }
+                ].filter(m => m.show).map((m, index, arr) => (
+                  <div 
+                    key={m.title}
+                    style={{
+                      transform: isDesktopMenuOpen ? `translateY(${(arr.length - index) * 60}px) scale(0.8)` : 'translateY(0) scale(1)',
+                      opacity: isDesktopMenuOpen ? 0 : 1,
+                      pointerEvents: isDesktopMenuOpen ? 'none' : 'auto',
+                      transition: `all 0.4s cubic-bezier(0.4, 0, 0.2, 1) ${isDesktopMenuOpen ? index * 60 : (arr.length - 1 - index) * 60 + 200}ms`
+                    }}
+                  >
+                    <SideMenuCard href={m.href} icon={m.icon} title={m.title} isSpecial={m.isSpecial} />
+                  </div>
+                ))}
+              </div>
 
+              {/* LAINNYA Button on Desktop */}
+              <button 
+                onClick={() => setIsDesktopMenuOpen(!isDesktopMenuOpen)}
+                className="absolute bottom-0 right-0 flex items-center gap-3 p-3 md:p-4 rounded-[1.5rem] md:rounded-[2rem] transition-all group w-[180px] md:w-[240px] justify-end hover:scale-[1.02] shadow-sm hover:shadow-xl overflow-hidden backdrop-blur-2xl bg-white/80 md:bg-white/90 border border-white/60 hover:border-pink-200 text-[#5c4d47] z-50"
+              >
+                <span className="font-display font-black text-xs md:text-sm tracking-widest relative z-10 transition-colors group-hover:text-[#ff758c]">
+                  {isDesktopMenuOpen ? 'KEMBALI' : 'LAINNYA'}
+                </span>
+                <div className={`bg-pink-50 p-2 md:p-3 rounded-xl md:rounded-2xl group-hover:bg-[#ff758c] group-hover:text-white transition-all duration-300 relative z-10 ${isDesktopMenuOpen ? 'text-white bg-[#ff758c] rotate-180' : 'text-gray-400'}`}>
+                  <Menu size={24} className="w-[28px] h-[28px]" />
+                </div>
+              </button>
+            </div>
           </div>
 
         </div>
