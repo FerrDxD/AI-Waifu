@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MessageSquare, Clock, BookOpen, Briefcase, Gift, MapPin, Wallet, Shirt, Menu, X, Heart, Moon, Utensils, Battery, Droplet, Sprout, Bed, Radio, Smartphone, Settings, Camera, Package, Calendar } from 'lucide-react';
+import { MessageSquare, Clock, BookOpen, Briefcase, Gift, MapPin, Wallet, Shirt, Menu, X, Heart, Moon, Utensils, Battery, Droplet, Sprout, Bed, Radio, Smartphone, Settings, Camera, Package, Calendar, Tv } from 'lucide-react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
 import AffectionBar from '@/components/livia/AffectionBar';
 import { LiviaExpression } from '@/lib/gemini';
@@ -640,7 +640,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
                   { href: "/shop", icon: <Gift size={20} className="w-[20px] h-[20px]" />, title: "Toko" },
                   { href: "/work", icon: <Briefcase size={20} className="w-[20px] h-[20px]" />, title: "Kerja" },
                   { href: "/inventory", icon: <Package size={20} className="w-[20px] h-[20px]" />, title: "Tas" },
-                  { href: "/bedroom", icon: <Bed size={20} className="w-[20px] h-[20px]" />, title: "Kamar" },
+                  { href: "/lounge", icon: <Tv size={20} className="w-[20px] h-[20px]" />, title: "Lounge" },
                   { href: "/radio", icon: <Radio size={20} className="w-[20px] h-[20px]" />, title: "Radio" },
                   { href: "/schedule", icon: <Calendar size={20} className="w-[20px] h-[20px]" />, title: "Jadwal" },
                   { href: "/pomodoro", icon: <Clock size={20} className="w-[20px] h-[20px]" />, title: "Fokus" },
