@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 // @ts-ignore
 import './globals.css';
 import ViewportManager from '@/components/ViewportManager';
+import { RadioProvider } from '@/components/RadioProvider';
 
 export const metadata: Metadata = {
   title: 'Teman Kos',
@@ -18,7 +19,9 @@ export default function RootLayout({
       <body>
         <ViewportManager />
         <main className="min-h-screen w-full relative">
-          {children}
+          <RadioProvider>
+            {children}
+          </RadioProvider>
         </main>
       </body>
     </html>

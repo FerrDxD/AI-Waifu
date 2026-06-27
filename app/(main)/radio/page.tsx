@@ -4,49 +4,20 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, Play, Pause, SkipForward, SkipBack, Volume2, ListMusic, Disc3, Radio as RadioIcon, BarChart3, FastForward, Rewind } from 'lucide-react';
 
-// Mock Playlist
-const PLAYLIST = [
-  { id: 1, title: 'Morning Coffee', artist: 'Livia Lofi Studio', duration: '3:45', color: 'from-amber-200 to-orange-300' },
-  { id: 2, title: 'Late Night Coding', artist: 'Kos Vibe Records', duration: '4:20', color: 'from-indigo-300 to-purple-400' },
-  { id: 3, title: 'Rainy Balcony', artist: 'Livia Lofi Studio', duration: '2:50', color: 'from-blue-200 to-cyan-300' },
-  { id: 4, title: 'Sunday Cleaning', artist: 'Sunny Beats', duration: '3:15', color: 'from-pink-200 to-rose-300' },
-  { id: 5, title: 'Midnight Ramen', artist: 'Kos Vibe Records', duration: '5:00', color: 'from-emerald-200 to-teal-300' },
-];
+import { useRadio } from '@/components/RadioProvider';
 
 export default function RadioPage() {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTrack, setCurrentTrack] = useState(0);
-  const [progress, setProgress] = useState(0); // 0 to 100
+  const {
+    isPlaying, currentTrack, progress, durationInSeconds,
+    togglePlay, playTrack, nextTrack, prevTrack, playlist, seek
+  } = useRadio();
   
-  const track = PLAYLIST[currentTrack];
+  const track = playlist[currentTrack];
 
-  // Simulate progress
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 100) {
-            handleNext();
-            return 0;
-          }
-          return prev + 0.5;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isPlaying, currentTrack]);
-
-  const handlePlayPause = () => setIsPlaying(!isPlaying);
-  
-  const handleNext = () => {
-    setProgress(0);
-    setCurrentTrack(prev => (prev + 1) % PLAYLIST.length);
-  };
-  
-  const handlePrev = () => {
-    setProgress(0);
-    setCurrentTrack(prev => (prev === 0 ? PLAYLIST.length - 1 : prev - 1));
+  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const percent = ((e.clientX - rect.left) / rect.width) * 100;
+    seek(percent);
   };
 
   return (
@@ -141,15 +112,21 @@ export default function RadioPage() {
 
             {/* Progress Bar */}
             <div className="mt-8 flex flex-col gap-2">
-              <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden shadow-inner cursor-pointer relative">
+              <div onClick={handleProgressBarClick} className="w-full h-3 bg-gray-100 rounded-full overflow-hidden shadow-inner cursor-pointer relative">
                 <div 
                   className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#ff758c] to-[#ff0844] transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 />
               </div>
               <div className="flex justify-between items-center text-[10px] font-bold text-gray-400">
-                <span>{Math.floor((progress / 100 * parseInt(track.duration.split(':')[0]) * 60) / 60)}:{(Math.floor((progress / 100 * parseInt(track.duration.split(':')[0]) * 60) % 60)).toString().padStart(2, '0')}</span>
-                <span>{track.duration}</span>
+                <span>
+                  {Math.floor((progress / 100 * durationInSeconds) / 60) || 0}:
+                  {Math.floor((progress / 100 * durationInSeconds) % 60).toString().padStart(2, '0') || '00'}
+                </span>
+                <span>
+                  {Math.floor(durationInSeconds / 60) || 0}:
+                  {Math.floor(durationInSeconds % 60).toString().padStart(2, '0') || '00'}
+                </span>
               </div>
             </div>
 
@@ -158,16 +135,16 @@ export default function RadioPage() {
               <button className="text-gray-400 hover:text-[#ff758c] transition-colors"><Volume2 size={24} /></button>
               
               <div className="flex items-center gap-4">
-                <button onClick={handlePrev} className="w-12 h-12 flex items-center justify-center bg-orange-50 text-orange-400 rounded-full hover:bg-[#ff758c] hover:text-white transition-all active:scale-95 shadow-sm">
+                <button onClick={prevTrack} className="w-12 h-12 flex items-center justify-center bg-orange-50 text-orange-400 rounded-full hover:bg-[#ff758c] hover:text-white transition-all active:scale-95 shadow-sm">
                   <Rewind size={20} className="fill-current" />
                 </button>
                 <button 
-                  onClick={handlePlayPause}
+                  onClick={togglePlay}
                   className="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-[#ff758c] to-[#ff0844] text-white rounded-full hover:shadow-lg hover:shadow-pink-200 transition-all active:scale-95 hover:scale-105"
                 >
                   {isPlaying ? <Pause size={28} className="fill-current" /> : <Play size={28} className="fill-current ml-1" />}
                 </button>
-                <button onClick={handleNext} className="w-12 h-12 flex items-center justify-center bg-orange-50 text-orange-400 rounded-full hover:bg-[#ff758c] hover:text-white transition-all active:scale-95 shadow-sm">
+                <button onClick={nextTrack} className="w-12 h-12 flex items-center justify-center bg-orange-50 text-orange-400 rounded-full hover:bg-[#ff758c] hover:text-white transition-all active:scale-95 shadow-sm">
                   <FastForward size={20} className="fill-current" />
                 </button>
               </div>
@@ -182,16 +159,16 @@ export default function RadioPage() {
               <Disc3 size={16} className="text-[#ff758c]" /> Kaset Livia
             </h3>
             <div className="bg-white/60 backdrop-blur-md rounded-[2rem] p-3 border border-orange-100 flex flex-col gap-2 shadow-sm max-h-[220px] overflow-y-auto custom-scrollbar">
-              {PLAYLIST.map((item, idx) => (
+              {playlist.map((item, idx) => (
                 <button 
                   key={item.id}
-                  onClick={() => { setCurrentTrack(idx); setProgress(0); setIsPlaying(true); }}
+                  onClick={() => playTrack(idx)}
                   className={`flex items-center gap-4 p-3 rounded-2xl transition-all ${currentTrack === idx ? 'bg-[#ff758c]/10 border border-[#ff758c]/20' : 'hover:bg-white border border-transparent'}`}
                 >
                   <div className={`font-black text-lg ${currentTrack === idx ? 'text-[#ff758c]' : 'text-gray-300'}`}>
                     {(idx + 1).toString().padStart(2, '0')}
                   </div>
-                  <div className="flex flex-col items-start flex-1">
+                  <div className="flex flex-col items-start flex-1 text-left">
                     <span className={`font-bold text-sm ${currentTrack === idx ? 'text-[#5c4d47]' : 'text-gray-600'}`}>{item.title}</span>
                     <span className="text-[10px] font-bold text-gray-400">{item.artist}</span>
                   </div>
