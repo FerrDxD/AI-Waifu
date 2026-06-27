@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, Power, Moon, Sun, Battery } from 'lucide-react';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 import LiviaSprite from '@/components/livia/LiviaSprite';
 import { LiviaExpression } from '@/lib/gemini';
 
@@ -69,7 +70,7 @@ export default function BedroomPage() {
   };
 
   if (loading) {
-    return <div className="min-h-[100dvh] w-full bg-[#fdfbf7] flex items-center justify-center">Memuat...</div>;
+    return <LoadingScreen text="Memasuki Kamar Livia..." />;
   }
 
   const energy = stats?.liviaEnergy || 0;

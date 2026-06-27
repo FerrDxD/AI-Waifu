@@ -6,7 +6,7 @@ if (!process.env.GEMINI_API_KEY) {
 
 export const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-export type LiviaExpression = 'normal' | 'angry' | 'blushing' | 'clingy' | 'happy';
+export type LiviaExpression = 'normal' | 'angry' | 'blushing' | 'clingy' | 'happy' | 'confused' | 'flirty' | 'pain' | 'pleased' | 'scared' | 'serious' | 'silly';
 
 export async function generateLiviaResponse(
   userMessage: string,

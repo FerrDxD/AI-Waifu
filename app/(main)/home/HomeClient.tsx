@@ -627,7 +627,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
           </div>
 
           {/* Right Side: Command Menus (Desktop Only) */}
-          <div className="hidden md:flex flex-col items-end w-[300px] absolute bottom-2 right-10 z-40 h-[600px] justify-end pointer-events-auto">
+          <div className="hidden md:flex flex-col items-end w-[300px] absolute bottom-2 right-10 z-40 h-[600px] justify-end pointer-events-auto origin-bottom-right [@media(max-height:700px)]:scale-[0.8] [@media(max-height:550px)]:scale-[0.6]">
             <div className="relative w-full h-full flex flex-col justify-end">
               
               {/* LAINNYA SUB-MENUS (DRAWER) */}
@@ -816,8 +816,11 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
                 </div>
                 <span className="text-xs font-bold text-pink-500 bg-pink-50 px-2 py-0.5 rounded-full">Lv.{levelInfo.level} {levelInfo.name}</span>
               </div>
-              <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden shadow-inner relative">
+              <div className="relative w-full max-w-sm h-6 bg-pink-50 rounded-full border border-pink-100 overflow-hidden shadow-inner cursor-help" title={`Afeksi: ${affection} / 100`}>
                 <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-pink-400 to-pink-500 transition-all duration-1000" style={{ width: `${Math.max(0, Math.min(100, affection))}%` }} />
+                <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-md z-10 font-mono">
+                  {affection} / 100
+                </div>
               </div>
             </div>
 

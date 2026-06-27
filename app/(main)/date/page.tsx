@@ -205,23 +205,30 @@ function DateContent() {
         // Location Selection Mode (GeForce NOW Style Carousel)
         <div className="flex-1 max-w-[1400px] w-full mx-auto flex flex-col justify-center pt-20 md:pt-24 px-4 md:px-8 z-10 relative">
           
-          <div className="mb-6 md:mb-10 pl-2 md:pl-4">
-            <h1 className="text-3xl md:text-5xl font-display font-black text-[#5c4d47] mb-2 md:mb-3 drop-shadow-sm flex items-center gap-2 md:gap-4">
-              <MapPin className="w-8 h-8 md:w-10 md:h-10 text-[#ff758c]" />
+          <div className="mb-6 md:mb-12 flex flex-col items-center text-center animate-[fadeIn_0.5s_ease-out]">
+            <div className="inline-flex items-center justify-center gap-2 bg-pink-50 text-[#ff758c] px-4 md:px-5 py-2 md:py-2.5 rounded-full font-bold text-xs md:text-sm mb-4 border border-pink-100 shadow-sm">
+               <MapPin size={16} className="w-4 h-4 md:w-5 md:h-5 animate-bounce" /> PILIHAN DESTINASI
+            </div>
+            <h1 className="text-4xl md:text-6xl font-display font-black text-[#5c4d47] mb-3 md:mb-4 tracking-tight drop-shadow-sm">
               Pilih Destinasi
             </h1>
-            <p className="text-[#8C7B6B] font-medium text-sm md:text-xl">
-              Ke mana kamu ingin mengajak Livia pergi hari ini?
+            <p className="text-[#8C7B6B] font-medium text-sm md:text-xl max-w-lg mx-auto px-4">
+              Geser untuk memilih tempat yang akan jadi kenangan manis kalian hari ini.
             </p>
           </div>
 
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center gap-4 py-24 animate-pulse bg-white/40 rounded-[3rem] backdrop-blur-sm border-4 border-white/60 mx-4">
-              <div className="w-20 h-20 border-4 border-pink-200 border-t-[#ff758c] rounded-full animate-spin" />
-              <p className="text-[#8C7B6B] font-bold font-display text-2xl">Livia sedang bersiap...</p>
+            <div className="fixed inset-0 z-50 bg-[#fdfbf7]/90 backdrop-blur-2xl flex flex-col items-center justify-center animate-[fadeIn_0.3s_ease-out]">
+              <div className="relative flex items-center justify-center w-32 h-32 md:w-40 md:h-40 mb-8">
+                <div className="absolute inset-0 border-4 border-pink-100 rounded-full" />
+                <div className="absolute inset-0 border-4 border-[#ff758c] rounded-full border-t-transparent animate-[spin_1.5s_linear_infinite]" />
+                <MapPin className="w-12 h-12 md:w-16 md:h-16 text-[#ff758c] animate-pulse" />
+              </div>
+              <h2 className="text-3xl md:text-5xl font-display font-black text-[#5c4d47] tracking-wider mb-3">Menuju {selectedLoc}...</h2>
+              <p className="text-[#8C7B6B] font-medium text-base md:text-xl px-4 text-center">Livia sedang berdandan dan memilih baju yang pas!</p>
             </div>
           ) : (
-            <div className="flex gap-4 md:gap-6 pb-8 md:pb-12 overflow-x-auto snap-x snap-mandatory hide-scrollbar md:scrollbar-thin md:scrollbar-thumb-pink-200 md:scrollbar-track-transparent pr-4 md:pr-8 -mx-4 md:-mx-8 px-6 md:px-12">
+            <div className="flex gap-4 md:gap-8 pb-8 md:pb-16 overflow-x-auto snap-x snap-mandatory hide-scrollbar md:scrollbar-thin md:scrollbar-thumb-pink-200 md:scrollbar-track-transparent pr-4 md:pr-8 -mx-4 md:-mx-8 px-6 md:px-12 items-center">
               {LOCATIONS.map(loc => {
                 const notOwned = loc.requiredItem && !itemsBrought.includes(loc.requiredItem);
                 const notWearing = loc.mustWear && activeOutfit !== loc.requiredItem && activeOutfit !== loc.requiredItem.replace('outfit_', '');
@@ -233,33 +240,61 @@ function DateContent() {
                   key={loc.id}
                   onClick={() => !isLocked && startJalan(loc.name)}
                   disabled={!!isLocked}
-                  className={`relative group flex-shrink-0 w-[240px] md:w-[280px] sm:w-[320px] h-[360px] md:h-[450px] rounded-[2rem] md:rounded-[2.5rem] border-4 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] snap-center overflow-hidden flex flex-col justify-end p-6 md:p-8 text-left ${
-                    isLocked ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed grayscale' : `${loc.color} ${loc.hover} hover:-translate-y-2 md:hover:-translate-y-4 hover:shadow-[0_25px_50px_rgba(255,117,140,0.2)] hover:border-pink-200 border-white/50`
+                  className={`group relative flex-shrink-0 w-[260px] md:w-[320px] h-[380px] md:h-[480px] rounded-[2.5rem] md:rounded-[3rem] transition-all duration-700 ease-out snap-center overflow-hidden flex flex-col justify-end p-6 md:p-8 text-left border-[6px] md:border-8 ${
+                    isLocked 
+                      ? 'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed grayscale' 
+                      : `bg-white border-white hover:border-[#ff758c]/20 hover:-translate-y-4 hover:shadow-[0_40px_80px_rgba(255,117,140,0.15)]`
                   }`}
                 >
-                  <div className={`absolute inset-0 bg-white/40 transition-colors z-0 duration-500 ${isLocked ? '' : 'group-hover:bg-transparent'}`} />
+                  {/* Subtle Colored Background that grows on hover */}
+                  <div className={`absolute inset-0 transition-all duration-700 z-0 ${
+                    isLocked ? 'bg-gray-100/50' : `${loc.color.split(' ')[0]} opacity-0 group-hover:opacity-100`
+                  }`} />
                   
-                  {/* Big Icon Background */}
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[200px] opacity-[0.07] transition-all duration-500 z-0 pointer-events-none group-hover:scale-110">
+                  {/* Giant Blurred Icon Backdrop */}
+                  <div className={`absolute -right-8 -top-8 text-[240px] opacity-5 transition-all duration-700 z-0 pointer-events-none ${
+                    isLocked ? 'text-gray-900' : `${loc.color.split(' ')[2]} group-hover:scale-110 group-hover:rotate-12 group-hover:opacity-[0.08]`
+                  }`}>
                     {loc.icon}
                   </div>
                   
-                  <div className={`relative z-10 transition-transform duration-500 ease-out ${isLocked ? '' : 'translate-y-4 md:translate-y-6 group-hover:translate-y-0'}`}>
-                    <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg mb-4 md:mb-6 transition-transform duration-500 ${isLocked ? 'bg-gray-200 text-gray-400' : 'bg-white/90 backdrop-blur-md text-[#ff758c] group-hover:scale-110'}`}>
-                      {isLocked ? <Lock size={24} className="w-5 h-5 md:w-7 md:h-7" /> : loc.icon}
+                  {/* Gradient Overlay for Text Readability */}
+                  <div className={`absolute inset-0 bg-gradient-to-t ${isLocked ? 'from-gray-200/90' : 'from-white via-white/80 group-hover:from-white/40 group-hover:via-transparent'} to-transparent z-0 transition-all duration-500`} />
+
+                  <div className={`relative z-10 transition-transform duration-500 ease-out flex flex-col h-full justify-between ${isLocked ? '' : 'translate-y-4 md:translate-y-6 group-hover:translate-y-0'}`}>
+                    
+                    {/* Top Section - Icon */}
+                    <div className="flex justify-between items-start w-full">
+                      <div className={`w-14 h-14 md:w-16 md:h-16 rounded-[1.2rem] md:rounded-2xl flex items-center justify-center shadow-sm border transition-all duration-500 ${
+                        isLocked ? 'bg-gray-200 text-gray-400 border-gray-300' : `${loc.color} group-hover:scale-110 group-hover:shadow-xl`
+                      }`}>
+                        {isLocked ? <Lock size={24} className="w-6 h-6 md:w-7 md:h-7" /> : loc.icon}
+                      </div>
+                      
+                      {!isLocked && (
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-white/80 backdrop-blur-sm px-3 md:px-4 py-1.5 md:py-2 rounded-full shadow-sm text-[10px] md:text-xs font-bold text-[#ff758c] flex items-center gap-1">
+                          Ajak Livia <span>✧</span>
+                        </div>
+                      )}
                     </div>
-                    <h3 className={`font-black font-display text-2xl md:text-3xl leading-tight mb-2 md:mb-3 ${isLocked && 'text-gray-500'}`}>
-                      {loc.name}
-                    </h3>
-                    {isLocked ? (
-                      <p className="text-[10px] md:text-sm font-bold flex items-center gap-1.5 md:gap-2 text-red-400 bg-red-50/80 px-2 md:px-3 py-1 md:py-1.5 rounded-lg inline-flex w-max">
-                        <Lock size={12} className="md:w-3.5 md:h-3.5" /> {lockedReason}
-                      </p>
-                    ) : (
-                      <p className="text-xs md:text-base font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 flex items-center gap-1.5 md:gap-2">
-                        Ayo Berangkat <span className="animate-bounce-x">→</span>
-                      </p>
-                    )}
+                    
+                    {/* Bottom Section - Text */}
+                    <div>
+                      <h3 className={`font-black font-display text-2xl md:text-[32px] leading-[1.1] mb-3 md:mb-4 tracking-tight ${
+                        isLocked ? 'text-gray-400' : 'text-[#5c4d47] group-hover:text-[#ff758c]'
+                      } transition-colors duration-300`}>
+                        {loc.name}
+                      </h3>
+                      {isLocked ? (
+                        <p className="text-[10px] md:text-sm font-bold flex items-center gap-1.5 md:gap-2 text-red-500 bg-white/90 backdrop-blur-md px-3 md:px-4 py-2 rounded-xl inline-flex w-max shadow-sm border border-red-100">
+                          <Lock size={14} className="md:w-4 md:h-4" /> {lockedReason}
+                        </p>
+                      ) : (
+                        <p className="text-xs md:text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 flex items-center gap-2 text-[#8C7B6B]">
+                          Berangkat sekarang <span className="animate-bounce-x text-[#ff758c]">→</span>
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </button>
               )})}

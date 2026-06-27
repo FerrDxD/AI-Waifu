@@ -42,6 +42,23 @@ export default function DialogBox({ text, speaker, onNext }: DialogBoxProps) {
     }
   };
 
+  const clickHandlerRef = useRef(handleClick);
+  useEffect(() => {
+    clickHandlerRef.current = handleClick;
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        clickHandlerRef.current();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const isNarrator = !speaker || speaker === '' || speaker === 'Narator';
 
   return (
@@ -63,7 +80,7 @@ export default function DialogBox({ text, speaker, onNext }: DialogBoxProps) {
             boxShadow: '0 8px 15px rgba(255, 117, 140, 0.3)'
           }}
         >
-          <span className="font-display font-black text-xl tracking-wider text-white drop-shadow-sm">
+          <span className="font-display font-black text-lg md:text-xl tracking-wider text-white drop-shadow-sm">
             {speaker}
           </span>
         </div>
@@ -72,8 +89,8 @@ export default function DialogBox({ text, speaker, onNext }: DialogBoxProps) {
       {/* Main Text Container */}
       <div
         className={cn(
-          "w-full px-12 relative overflow-hidden",
-          isNarrator ? "py-8 rounded-[2rem]" : "pt-12 pb-8 rounded-[2.5rem]"
+          "w-full px-6 md:px-12 relative overflow-hidden",
+          isNarrator ? "py-4 md:py-8 rounded-[1.5rem] md:rounded-[2rem]" : "pt-8 md:pt-12 pb-4 md:pb-8 rounded-[1.5rem] md:rounded-[2.5rem]"
         )}
         style={{
           background: isNarrator
@@ -93,16 +110,15 @@ export default function DialogBox({ text, speaker, onNext }: DialogBoxProps) {
         {/* Text */}
         <p
           className={cn(
-            "leading-relaxed min-h-[72px] relative z-10"
+            "leading-relaxed min-h-[3rem] md:min-h-[72px] relative z-10",
+            isNarrator ? "text-base md:text-lg italic" : "text-lg md:text-[1.3rem]"
           )}
           style={{
             fontFamily: isNarrator
               ? "'Nunito', sans-serif"
               : "'Quicksand', 'Nunito', sans-serif",
-            fontSize: isNarrator ? '1.15rem' : '1.3rem',
             fontWeight: 600,
             color: isNarrator ? '#8a7e7a' : '#5c4d47',
-            fontStyle: isNarrator ? 'italic' : 'normal',
           }}
         >
           {displayedText}

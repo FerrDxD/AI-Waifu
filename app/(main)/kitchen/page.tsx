@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Utensils, Heart, Wallet, ChefHat, Flame } from 'lucide-react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 import { LiviaExpression } from '@/lib/gemini';
 
 import { RECIPES } from '@/lib/livia/recipes';
@@ -201,7 +202,7 @@ export default function KitchenPage() {
     }, 1500);
   };
 
-  if (isLoading) return <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center text-pink-400 font-bold">Memanaskan wajan...</div>;
+  if (isLoading) return <LoadingScreen text="Memanaskan wajan..." />;
 
   if (!hasRecipeBook && !hasRecipeBookShop) {
     return (

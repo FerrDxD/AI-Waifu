@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
 import { Shirt, CheckCircle2, Lock } from 'lucide-react';
 import Link from 'next/link';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 const ALL_OUTFITS = [
   { id: 'default', name: 'Baju Biasa', emoji: '👕', desc: 'Pakaian sehari-hari Livia.' },
@@ -92,7 +93,7 @@ export default function WardrobePage() {
     }
   };
 
-  if (isLoading) return <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center font-display font-bold text-pink-400">Membuka Lemari...</div>;
+  if (isLoading) return <LoadingScreen text="Membuka Lemari..." />;
 
   return (
     <div 

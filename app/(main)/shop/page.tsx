@@ -193,6 +193,12 @@ export default function ShopPage() {
       return;
     }
 
+    if (affection >= 100 && item.category === 'gift') {
+      setLiviaExpression('blushing');
+      setMessage(`B-bukan berarti aku nolak dikasih hadiah... tapi afeksiku ke kamu udah maksimal (100)! Mending uangnya ditabung aja.`);
+      return;
+    }
+
     if (inventory.includes(item.id) && item.category !== 'gift' && item.category !== 'food' && item.category !== 'drink') {
       setLiviaExpression('angry');
       setMessage(`Kamu sudah punya ${item.name}! Beli yang lain sana.`);

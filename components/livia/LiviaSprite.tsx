@@ -16,7 +16,7 @@ interface LiviaSpriteProps {
   imgClassName?: string;
   disableFloat?: boolean;
   mixBlendMultiply?: boolean;
-  variant?: 'home' | 'wardrobe' | 'focus' | 'shop';
+  variant?: 'home' | 'wardrobe' | 'focus' | 'shop' | 'story';
 }
 
 const glowStyles: Record<LiviaExpression, string> = {
@@ -25,6 +25,13 @@ const glowStyles: Record<LiviaExpression, string> = {
   blushing: 'drop-shadow-[0_0_25px_rgba(255,182,193,0.5)]',
   clingy: 'drop-shadow-[0_0_20px_rgba(180,130,250,0.4)]',
   happy: 'drop-shadow-[0_0_20px_rgba(196,149,106,0.5)]',
+  confused: 'drop-shadow-[0_0_20px_rgba(200,200,200,0.3)]',
+  flirty: 'drop-shadow-[0_0_25px_rgba(255,105,180,0.5)]',
+  pain: 'drop-shadow-[0_0_20px_rgba(150,150,150,0.4)]',
+  pleased: 'drop-shadow-[0_0_20px_rgba(255,200,100,0.4)]',
+  scared: 'drop-shadow-[0_0_20px_rgba(100,100,200,0.4)]',
+  serious: 'drop-shadow-[0_0_20px_rgba(100,150,200,0.4)]',
+  silly: 'drop-shadow-[0_0_20px_rgba(255,150,50,0.4)]',
 };
 
 export default function LiviaSprite({ expression, outfit = 'default', className, imgClassName, disableFloat = false, mixBlendMultiply = false, variant = 'home' }: LiviaSpriteProps) {
@@ -56,6 +63,7 @@ export default function LiviaSprite({ expression, outfit = 'default', className,
     if (outfit === 'outfit_casual' || outfit === 'casual') wardrobeFileName = 'casual';
     else if (outfit === 'outfit_school' || outfit === 'school') wardrobeFileName = 'uniform';
     else if (outfit === 'outfit_yukata' || outfit === 'yukata') wardrobeFileName = 'yukata';
+    else if (outfit === 'trench_coat') wardrobeFileName = 'trench_coat';
     
     src = `/livia/wardrobe/${wardrobeFileName}.webp`;
   } else if (variant === 'focus') {
@@ -72,6 +80,8 @@ export default function LiviaSprite({ expression, outfit = 'default', className,
     else if (outfit === 'outfit_yukata' || outfit === 'yukata') shopFolder = 'yukata';
     
     src = `/livia/shop/${shopFolder}/${fileName}.webp`;
+  } else if (variant === 'story') {
+    src = `/livia/Story-bab/${expression}.webp`;
   }
 
   return (
@@ -100,7 +110,7 @@ export default function LiviaSprite({ expression, outfit = 'default', className,
           className={cn(
             "w-full h-full transition-all duration-300",
             imgClassName || "object-contain object-bottom",
-            glowStyles[expression],
+            variant === 'story' ? '' : (glowStyles[expression as keyof typeof glowStyles] || ''),
             mixBlendMultiply && "mix-blend-multiply"
           )}
           style={{ 

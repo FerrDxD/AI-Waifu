@@ -1,6 +1,6 @@
 {
   "name": "teman-kos",
-  "version": "2.2.6",
+  "version": "2.4.6",
   "private": true,
   "scripts": {
     "dev": "next dev",
