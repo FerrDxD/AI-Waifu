@@ -955,76 +955,76 @@ const CHAPTERS: Chapter[] = [
     ],
     content: [
       // Bg 12.1: Dalam mobil/Perjalanan menuju gunung (Pagi)
-      { speaker: "Narator", text: "Mobil melaju perlahan menyusuri jalan berkelok di lereng pegunungan. Pepohonan bambu yang rindang mengapit jalan masuk menuju kawasan kuil keluargamu.", expression: "normal", "bg": "12.1" },
-      { speaker: "Livia", text: "Udaranya makin dingin ya... untung aku pakai trench coat ini. Kelihatannya pantes kan buat ketemu keluargamu?", expression: "blushing", "bg": "12.1" },
-      { speaker: "Livia", text: "Aku jujur deg-degan banget... Kuil keluargamu itu terkenal sakral kan? Nanti kalau aku salah tingkah gimana?", expression: "scared", "bg": "12.1",
+      { speaker: "Narator", text: "Mobil melaju perlahan menyusuri jalan berkelok di lereng pegunungan. Pepohonan bambu yang rindang mengapit jalan masuk menuju kawasan kuil keluargamu.", expression: "normal-8", "bg": "12.1" },
+      { speaker: "Livia", text: "Udaranya makin dingin ya... untung aku pakai trench coat ini. Kelihatannya pantes kan buat ketemu keluargamu?", expression: "blushing-8", "bg": "12.1" },
+      { speaker: "Livia", text: "Aku jujur deg-degan banget... Kuil keluargamu itu terkenal sakral kan? Nanti kalau aku salah tingkah gimana?", expression: "scared-8", "bg": "12.1",
         choices: [
           { text: "Tenang saja, mereka pasti menyukaimu.", nextIndex: 3 },
           { text: "Pegang tanganku, aku akan selalu di sampingmu.", nextIndex: 4 },
           { text: "Jangan bertingkah aneh-aneh seperti biasa ya.", nextIndex: 5 }
         ]
       },
-      { speaker: "Livia", text: "Semoga saja ya... aku nggak mau bikin kamu malu di depan keluargamu.", expression: "sad", "bg": "12.1", nextIndex: 6 },
-      { speaker: "Livia", text: "Iya... makasih ya. Tanganmu selalu berhasil bikin aku merasa aman.", expression: "happy", "bg": "12.1", nextIndex: 6 },
-      { speaker: "Livia", text: "Iiih! Aku bisa anggun kok kalau lagi mode serius!", expression: "angry", "bg": "12.1", nextIndex: 6 },
+      { speaker: "Livia", text: "Semoga saja ya... aku nggak mau bikin kamu malu di depan keluargamu.", expression: "sad-8", "bg": "12.1", nextIndex: 6 },
+      { speaker: "Livia", text: "Iya... makasih ya. Tanganmu selalu berhasil bikin aku merasa aman.", expression: "happy-8", "bg": "12.1", nextIndex: 6 },
+      { speaker: "Livia", text: "Iiih! Aku bisa anggun kok kalau lagi mode serius!", expression: "angry-8", "bg": "12.1", nextIndex: 6 },
       
       // Bg 12.2: Gerbang Torii dan Tangga Batu
-      { speaker: "Narator", text: "Mobil berhenti di pelataran parkir bawah. Di hadapan kalian, menjulang Gerbang Torii raksasa berwarna merah pudar, dijaga oleh patung komainu kuno.", expression: "normal", "bg": "12.2" },
-      { speaker: "Livia", text: "Wah... g-gede banget... Ini semua area keluarga kamu?", expression: "scared", "bg": "12.2" },
-      { speaker: "Narator", text: "Kalian menapaki ratusan anak tangga batu. Livia tampak terengah-engah namun berusaha menutupi kelelahannya.", expression: "normal", "bg": "12.2" },
-      { speaker: "Livia", text: "Hah... hah... aku kuat kok... demi ketemu Ibu mertua... hah...", expression: "pain", "bg": "12.2" },
+      { speaker: "Narator", text: "Mobil berhenti di pelataran parkir bawah. Di hadapan kalian, menjulang Gerbang Torii raksasa berwarna merah pudar, dijaga oleh patung komainu kuno.", expression: "normal-8", "bg": "12.2" },
+      { speaker: "Livia", text: "Wah... g-gede banget... Ini semua area keluarga kamu?", expression: "scared-8", "bg": "12.2" },
+      { speaker: "Narator", text: "Kalian menapaki ratusan anak tangga batu. Livia tampak terengah-engah namun berusaha menutupi kelelahannya.", expression: "normal-8", "bg": "12.2" },
+      { speaker: "Livia", text: "Hah... hah... aku kuat kok... demi ketemu Ibu mertua... hah...", expression: "pain-8", "bg": "12.2" },
       
       // Bg 12.3: Pelataran Kuil / Bertemu Ibu
       { speaker: "Narator", text: "Begitu sampai di pelataran utama, aroma dupa yang menenangkan seketika menyambut kalian.", expression: "normal", "bg": "12.3" },
       { speaker: "Narator", text: "Di pendopo utama, seorang wanita paruh baya berbalut kimono formal menatap tajam ke arah kalian. Itu ibumu.", expression: "normal", "bg": "12.3" },
-      { speaker: "Ibu", text: "Akhirnya kamu pulang. Dan... membawa tamu yang sangat berharga rupanya.", expression: "normal", "bg": "12.3" },
-      { speaker: "Livia", text: "S-selamat pagi, Nyonya... eh, M-maksud saya... I-Ibu... S-saya Livia...", expression: "scared", "bg": "12.3" },
+      { speaker: "Ayame", text: "Akhirnya kamu pulang. Dan... membawa tamu yang sangat berharga rupanya.", expression: "normal", "bg": "12.3" },
+      { speaker: "Livia", text: "S-selamat pagi, Nyonya... eh, M-maksud saya... I-Ibu... S-saya Livia...", expression: "scared-8", "bg": "12.3" },
       { speaker: "Narator", text: "Livia membungkuk begitu dalam hingga hampir kehilangan keseimbangan. Ibumu hanya diam menatapnya dari ujung rambut hingga ujung kaki.", expression: "normal", "bg": "12.3" },
-      { speaker: "Ibu", text: "Trench coat yang elegan. Pemilihan pakaian yang sopan untuk mengunjungi kuil di musim sedingin ini. Pilihan bagus.", expression: "normal", "bg": "12.3" },
-      { speaker: "Livia", text: "T-terima kasih, Ibu...", expression: "blushing", "bg": "12.3" },
-      { speaker: "Ibu", text: "Jangan terlalu kaku. Masuklah, ayahmu sudah menunggu di ruang teh. Dia ingin melihat wanita yang berhasil menaklukkan hati putra kesayangannya.", expression: "normal", "bg": "12.3" },
+      { speaker: "Ayame", text: "Trench coat yang elegan. Pemilihan pakaian yang sopan untuk mengunjungi kuil di musim sedingin ini. Pilihan bagus.", expression: "normal", "bg": "12.3" },
+      { speaker: "Livia", text: "T-terima kasih, Ibu...", expression: "blushing-8", "bg": "12.3" },
+      { speaker: "Ayame", text: "Jangan terlalu kaku. Masuklah, ayahmu sudah menunggu di ruang teh. Dia ingin melihat wanita yang berhasil menaklukkan hati putra kesayangannya.", expression: "normal", "bg": "12.3" },
       
       // Bg 12.4: Ruang Teh / Bertemu Ayah
       { speaker: "Narator", text: "Kalian dipersilakan masuk ke ruang tatami yang hangat. Di tengah ruangan, seorang pria dengan jubah pendeta Shinto (Kannushi) sedang menyeduh teh matcha.", expression: "normal", "bg": "12.4" },
-      { speaker: "Ayah", text: "Duduklah. Tehnya baru saja siap.", expression: "normal", "bg": "12.4" },
-      { speaker: "Livia", text: "P-permisi... terima kasih banyak...", expression: "scared", "bg": "12.4" },
+      { speaker: "Rikuto", text: "Duduklah. Tehnya baru saja siap.", expression: "normal", "bg": "12.4" },
+      { speaker: "Livia", text: "P-permisi... terima kasih banyak...", expression: "scared-8", "bg": "12.4" },
       { speaker: "Narator", text: "Ayahmu menyodorkan secangkir teh pada Livia. Tatapannya sangat tenang, namun memancarkan wibawa yang luar biasa.", expression: "normal", "bg": "12.4" },
-      { speaker: "Ayah", text: "Jadi, Livia-san... Apakah putraku ini sering merepotkanmu di sana?", expression: "normal", "bg": "12.4",
+      { speaker: "Rikuto", text: "Jadi, Livia-san... Apakah putraku ini sering merepotkanmu di sana?", expression: "normal", "bg": "12.4",
         choices: [
           { text: "Tentu saja tidak, Yah.", nextIndex: 23 },
           { text: "Biar Livia yang menjawabnya, Yah.", nextIndex: 25 },
           { text: "Sedikit, tapi aku selalu memperlakukannya dengan baik.", nextIndex: 27 }
         ]
       },
-      { speaker: "Ayah", text: "Hahaha, aku tidak bertanya padamu, Nak.", expression: "normal", "bg": "12.4", nextIndex: 24 },
-      { speaker: "Livia", text: "D-dia sangat baik! Dia selalu menjagaku dan membantuku saat aku kesulitan...", expression: "blushing", "bg": "12.4", nextIndex: 29 },
+      { speaker: "Rikuto", text: "Hahaha, aku tidak bertanya padamu, Nak.", expression: "normal", "bg": "12.4", nextIndex: 24 },
+      { speaker: "Livia", text: "D-dia sangat baik! Dia selalu menjagaku dan membantuku saat aku kesulitan...", expression: "blushing-8", "bg": "12.4", nextIndex: 29 },
       
-      { speaker: "Livia", text: "Ah... b-banyak hal yang kami lalui bersama... tapi dia selalu bisa kuandalkan.", expression: "blushing", "bg": "12.4", nextIndex: 26 },
-      { speaker: "Ayah", text: "Begitu ya. Syukurlah kalau dia bisa menjadi pilar yang kuat untukmu.", expression: "normal", "bg": "12.4", nextIndex: 29 },
+      { speaker: "Livia", text: "Ah... b-banyak hal yang kami lalui bersama... tapi dia selalu bisa kuandalkan.", expression: "blushing-8", "bg": "12.4", nextIndex: 26 },
+      { speaker: "Rikuto", text: "Begitu ya. Syukurlah kalau dia bisa menjadi pilar yang kuat untukmu.", expression: "normal", "bg": "12.4", nextIndex: 29 },
       
-      { speaker: "Ayah", text: "Kepercayaan dirimu cukup tinggi juga. Bagaimana menurutmu, Livia?", expression: "normal", "bg": "12.4", nextIndex: 28 },
-      { speaker: "Livia", text: "Iya, dia memang sangat perhatian. Kadang terlalu perhatian sampai bikin aku deg-degan...", expression: "blushing", "bg": "12.4", nextIndex: 29 },
+      { speaker: "Rikuto", text: "Kepercayaan dirimu cukup tinggi juga. Bagaimana menurutmu, Livia?", expression: "normal", "bg": "12.4", nextIndex: 28 },
+      { speaker: "Livia", text: "Iya, dia memang sangat perhatian. Kadang terlalu perhatian sampai bikin aku deg-degan...", expression: "blushing-8", "bg": "12.4", nextIndex: 29 },
       
       { speaker: "Narator", text: "Mendengar jawaban Livia, wajah tegas ayahmu perlahan melembut.", expression: "normal", "bg": "12.4" },
-      { speaker: "Ayah", text: "Gadis yang jujur dan hangat. Kau memilih pasangan yang tepat. Keluarga ini akan selalu menyambutmu, Livia.", expression: "normal", "bg": "12.4" },
-      { speaker: "Livia", text: "T-terima kasih banyak, Ayah... Aku akan berusaha menjadi pendamping yang baik untuknya.", expression: "crying", "bg": "12.4" },
+      { speaker: "Rikuto", text: "Gadis yang jujur dan hangat. Kau memilih pasangan yang tepat. Keluarga ini akan selalu menyambutmu, Livia.", expression: "normal", "bg": "12.4" },
+      { speaker: "Livia", text: "T-terima kasih banyak, Ayah... Aku akan berusaha menjadi pendamping yang baik untuknya.", expression: "crying-8", "bg": "12.4" },
       
       // Bg 12.5: Kuil Utama (Honden)
       { speaker: "Narator", text: "Setelah berbincang hangat, ayahmu meminta kalian berdua untuk pergi ke Honden (aula utama) guna memberikan penghormatan kepada leluhur.", expression: "normal", "bg": "12.5" },
       { speaker: "Narator", text: "Di depan altar yang megah, kalian membunyikan lonceng, membungkuk dua kali, menepuk tangan dua kali, dan berdoa dalam diam.", expression: "normal", "bg": "12.5" },
-      { speaker: "Livia", text: "...", expression: "serious", "bg": "12.5" },
+      { speaker: "Livia", text: "...", expression: "serious-8", "bg": "12.5" },
       { speaker: "Narator", text: "Kamu melirik Livia yang sedang menutup matanya erat-erat. Wajahnya tampak begitu tulus dan damai.", expression: "normal", "bg": "12.5" },
-      { speaker: "Livia", text: "Fiuh... sudah selesai.", expression: "happy", "bg": "12.5" },
+      { speaker: "Livia", text: "Fiuh... sudah selesai.", expression: "happy-8", "bg": "12.5" },
       { speaker: "Narator", text: "Kamu tersenyum dan bertanya doa apa yang ia panjatkan barusan.", expression: "normal", "bg": "12.5" },
-      { speaker: "Livia", text: "Rahasia dong! Kalau dikasih tau nanti doanya nggak terkabul.", expression: "silly", "bg": "12.5" },
-      { speaker: "Livia", text: "Tapi yang pasti... doanya menyangkut masa depan kita berdua.", expression: "blushing", "bg": "12.5" },
+      { speaker: "Livia", text: "Rahasia dong! Kalau dikasih tau nanti doanya nggak terkabul.", expression: "silly-8", "bg": "12.5" },
+      { speaker: "Livia", text: "Tapi yang pasti... doanya menyangkut masa depan kita berdua.", expression: "blushing-8", "bg": "12.5" },
       
       // Bg 12.6: Halaman Belakang / Sore Hari
       { speaker: "Narator", text: "Sore harinya, kalian berjalan-jalan di taman belakang kuil. Sinar matahari jingga menembus dedaunan musim gugur, menciptakan pemandangan yang magis.", expression: "normal", "bg": "12.6" },
-      { speaker: "Livia", text: "Keluargamu... ternyata nggak seseram yang kubayangkan. Ibumu sangat perhatian, dan ayahmu juga bijaksana.", expression: "happy", "bg": "12.6" },
-      { speaker: "Livia", text: "Rasanya aku semakin yakin kalau aku nggak salah memilihmu.", expression: "clingy", "bg": "12.6" },
+      { speaker: "Livia", text: "Keluargamu... ternyata nggak seseram yang kubayangkan. Ibumu sangat perhatian, dan ayahmu juga bijaksana.", expression: "happy-8", "bg": "12.6" },
+      { speaker: "Livia", text: "Rasanya aku semakin yakin kalau aku nggak salah memilihmu.", expression: "clingy-8", "bg": "12.6" },
       { speaker: "Narator", text: "Livia memeluk lenganmu erat, menyandarkan kepalanya di bahumu sambil memandangi matahari terbenam.", expression: "normal", "bg": "12.6" },
-      { speaker: "Livia", text: "Terima kasih sudah membawaku ke sini... ke tempat di mana kamu tumbuh dan belajar menjadi pria sehebat ini.", expression: "happy", "bg": "12.6" },
+      { speaker: "Livia", text: "Terima kasih sudah membawaku ke sini... ke tempat di mana kamu tumbuh dan belajar menjadi pria sehebat ini.", expression: "happy-8", "bg": "12.6" },
       { speaker: "Narator", text: "Di bawah langit senja dan naungan kuil leluhur, ikatan kalian kini telah direstui sepenuhnya oleh masa lalu dan masa depan.", expression: "normal", "bg": "12.6" }
     ]
   },
@@ -1278,73 +1278,120 @@ export default function StoryPage() {
             </button>
           </div>
           
-          <div className="flex-1 w-full max-w-4xl flex justify-center items-end z-10 min-h-[40vh] md:min-h-0">
-            {scene?.speaker === 'Livia' && (
-              <div 
-                className="h-[55vh] md:h-[60vh] landscape:h-[70vh] aspect-[2/3] drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)] animate-[float_4s_ease-in-out_infinite] transition-opacity duration-500"
-                style={{ opacity: scene?.hideSprite ? 0 : 1, pointerEvents: scene?.hideSprite ? 'none' : 'auto' }}
-              >
-                <LiviaSprite 
-                  expression={scene.expression} 
-                  variant={activeChapter.id <= 15 ? 'story' : 'home'}
-                  chapterId={activeChapter.id}
-                  className="h-full w-full max-w-[600px]" 
-                  imgClassName="object-contain object-bottom scale-[1.5] md:scale-[1.75] translate-y-[25%] md:translate-y-[35%]"
+          <div className="flex-1 w-full max-w-4xl grid grid-cols-1 grid-rows-1 justify-items-center items-end z-10 min-h-[40vh] md:min-h-0">
+            {/* Livia */}
+            <div 
+              className="col-start-1 row-start-1 h-[55vh] md:h-[60vh] landscape:h-[70vh] aspect-[2/3] drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)] animate-[float_4s_ease-in-out_infinite]"
+              style={{ opacity: (scene?.speaker === 'Livia' && !scene?.hideSprite) ? 1 : 0, pointerEvents: (scene?.speaker === 'Livia' && !scene?.hideSprite) ? 'auto' : 'none' }}
+            >
+              <LiviaSprite 
+                expression={scene?.speaker === 'Livia' ? scene.expression : 'normal'} 
+                variant={activeChapter.id <= 15 ? 'story' : 'home'}
+                chapterId={activeChapter.id}
+                className="h-full w-full max-w-[600px]" 
+                imgClassName="object-contain object-bottom scale-[1.5] md:scale-[1.75] translate-y-[25%] md:translate-y-[35%]"
+              />
+            </div>
+            
+            {/* Laura */}
+            <div 
+              className="col-start-1 row-start-1 h-[55vh] md:h-[60vh] landscape:h-[70vh] aspect-[2/3] drop-shadow-[0_20px_40px_rgba(150,150,200,0.3)]"
+              style={{ opacity: (scene?.speaker === 'Laura' && !scene?.hideSprite) ? 1 : 0, pointerEvents: (scene?.speaker === 'Laura' && !scene?.hideSprite) ? 'auto' : 'none' }}
+            >
+              <div className="relative flex items-end justify-center h-full w-full max-w-[600px] animate-[float_3s_ease-in-out_infinite]">
+                <style>{`
+                  @keyframes float {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-10px); }
+                  }
+                `}</style>
+                <img 
+                  src={`/laura/story-bab/${scene?.speaker === 'Laura' ? scene.expression.replace(/-[0-9]+$/, '') : 'normal'}.webp`}
+                  alt="Laura"
+                  className="absolute inset-0 w-full h-full object-contain object-bottom scale-[1.9] md:scale-[2.1] translate-y-[12%] md:translate-y-[15%] transition-all duration-300"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (!target.src.includes('normal.webp')) {
+                      target.src = '/laura/story-bab/normal.webp';
+                    }
+                  }}
                 />
               </div>
-            )}
-            {scene?.speaker === 'Laura' && (
-              <div 
-                className="h-[55vh] md:h-[60vh] landscape:h-[70vh] aspect-[2/3] drop-shadow-[0_20px_40px_rgba(150,150,200,0.3)] transition-opacity duration-500"
-                style={{ opacity: scene?.hideSprite ? 0 : 1, pointerEvents: scene?.hideSprite ? 'none' : 'auto' }}
-              >
-                <div className="relative flex items-end justify-center h-full w-full max-w-[600px] animate-[float_3s_ease-in-out_infinite]">
-                  <style>{`
-                    @keyframes float {
-                      0%, 100% { transform: translateY(0px); }
-                      50% { transform: translateY(-10px); }
+            </div>
+
+            {/* Enji */}
+            <div 
+              className="col-start-1 row-start-1 h-[55vh] md:h-[60vh] landscape:h-[70vh] aspect-[2/3] drop-shadow-[0_20px_40px_rgba(100,120,150,0.3)]"
+              style={{ opacity: (scene?.speaker === 'Enji' && !scene?.hideSprite) ? 1 : 0, pointerEvents: (scene?.speaker === 'Enji' && !scene?.hideSprite) ? 'auto' : 'none' }}
+            >
+              <div className="relative flex items-end justify-center h-full w-full max-w-[600px] animate-[float_3s_ease-in-out_infinite]">
+                <style>{`
+                  @keyframes float {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-10px); }
+                  }
+                `}</style>
+                <img 
+                  src={`/enji/${scene?.speaker === 'Enji' ? scene.expression.replace(/-[0-9]+$/, '') : 'normal'}.webp`}
+                  alt="Enji"
+                  className="absolute inset-0 w-full h-full object-contain object-bottom scale-[1.75] md:scale-[1.95] translate-y-[8%] md:translate-y-[11%] transition-all duration-300"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (!target.src.includes('normal.webp')) {
+                      target.src = '/enji/normal.webp';
                     }
-                  `}</style>
-                  <img 
-                    src={`/laura/story-bab/${scene.expression.replace(/-[0-9]+$/, '')}.webp`}
-                    alt="Laura"
-                    className="absolute inset-0 w-full h-full object-contain object-bottom scale-[1.9] md:scale-[2.1] translate-y-[12%] md:translate-y-[15%] transition-all duration-300"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      if (!target.src.includes('normal.webp')) {
-                        target.src = '/laura/story-bab/normal.webp';
-                      }
-                    }}
-                  />
-                </div>
+                  }}
+                />
               </div>
-            )}
-            {scene?.speaker === 'Enji' && (
-              <div 
-                className="h-[55vh] md:h-[60vh] landscape:h-[70vh] aspect-[2/3] drop-shadow-[0_20px_40px_rgba(100,120,150,0.3)] transition-opacity duration-500"
-                style={{ opacity: scene?.hideSprite ? 0 : 1, pointerEvents: scene?.hideSprite ? 'none' : 'auto' }}
-              >
-                <div className="relative flex items-end justify-center h-full w-full max-w-[600px] animate-[float_3s_ease-in-out_infinite]">
-                  <style>{`
-                    @keyframes float {
-                      0%, 100% { transform: translateY(0px); }
-                      50% { transform: translateY(-10px); }
-                    }
-                  `}</style>
-                  <img 
-                    src={`/enji/${scene.expression.replace(/-[0-9]+$/, '')}.webp`}
-                    alt="Enji"
-                    className="absolute inset-0 w-full h-full object-contain object-bottom scale-[1.75] md:scale-[1.95] translate-y-[8%] md:translate-y-[11%] transition-all duration-300"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      if (!target.src.includes('normal.webp')) {
-                        target.src = '/enji/normal.webp';
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-            )}
+            </div>
+
+            {/* Ayame */}
+            <div 
+              className="col-start-1 row-start-1 absolute inset-0 w-full h-full z-10 animate-[float_3s_ease-in-out_infinite]"
+              style={{ opacity: (scene?.speaker === 'Ayame' && !scene?.hideSprite) ? 1 : 0, pointerEvents: (scene?.speaker === 'Ayame' && !scene?.hideSprite) ? 'auto' : 'none' }}
+            >
+              <style>{`
+                @keyframes float {
+                  0%, 100% { transform: translateY(0px); }
+                  50% { transform: translateY(-10px); }
+                }
+              `}</style>
+              <img 
+                src={`/ayame/${scene?.speaker === 'Ayame' ? scene.expression.replace(/-[0-9]+$/, '') : 'normal'}.webp`}
+                alt="Ayame"
+                className="w-full h-full object-cover md:object-contain scale-[1.55] md:scale-[1.65] translate-y-[25%] md:translate-y-[30%] transition-all duration-300"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.src.includes('normal.webp')) {
+                    target.src = '/ayame/normal.webp';
+                  }
+                }}
+              />
+            </div>
+
+            {/* Rikuto */}
+            <div 
+              className="col-start-1 row-start-1 absolute inset-0 w-full h-full z-10 animate-[float_3s_ease-in-out_infinite]"
+              style={{ opacity: (scene?.speaker === 'Rikuto' && !scene?.hideSprite) ? 1 : 0, pointerEvents: (scene?.speaker === 'Rikuto' && !scene?.hideSprite) ? 'auto' : 'none' }}
+            >
+              <style>{`
+                @keyframes float {
+                  0%, 100% { transform: translateY(0px); }
+                  50% { transform: translateY(-10px); }
+                }
+              `}</style>
+              <img 
+                src={`/ayame/rikuto.webp`}
+                alt="Rikuto"
+                className="w-full h-full object-cover md:object-contain scale-[1.55] md:scale-[1.65] translate-y-[25%] md:translate-y-[30%] transition-all duration-300"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.src.includes('rikuto.webp')) {
+                    target.src = '/ayame/rikuto.webp';
+                  }
+                }}
+              />
+            </div>
           </div>
           
           <div className="w-full max-w-4xl z-20 drop-shadow-2xl relative flex flex-col items-center">
