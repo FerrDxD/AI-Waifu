@@ -74,10 +74,8 @@ export default function PomodoroPage() {
       const outfit = data.activeOutfit || 'default';
       setActiveOutfit(outfit);
       
-      let outfitFolder = 'default';
-      if (outfit === 'outfit_casual' || outfit === 'casual') outfitFolder = 'casual';
-      else if (outfit === 'outfit_school' || outfit === 'school') outfitFolder = 'uniform';
-      else if (outfit === 'outfit_yukata' || outfit === 'yukata') outfitFolder = 'yukata';
+      let outfitFolder = outfit.replace(/^outfit_/, '').replace(/_/g, '-');
+      if (outfitFolder === 'school') outfitFolder = 'uniform';
       
       const hour = new Date().getHours();
       let timeStr = 'morning';

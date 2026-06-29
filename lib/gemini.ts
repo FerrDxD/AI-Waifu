@@ -15,8 +15,9 @@ export async function generateLiviaResponse(
   affectionLevel: number,
   itemsBrought: string[],
   stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number },
-  isVoiceCall?: boolean
-): Promise<{ reply: string, affectionDelta: number, expression: LiviaExpression }> {
+  isVoiceCall?: boolean,
+  longTermMemory?: string
+): Promise<{ reply: string, affectionDelta: number, expression: LiviaExpression, memoryUpdate?: string }> {
   
   const affectionLevelName = affectionLevel < 20 ? 'Orang Asing' :
                              affectionLevel < 40 ? 'Kenalan' :
@@ -43,6 +44,9 @@ export async function generateLiviaResponse(
 PENTING: Kondisi fisik ini HARUS sangat mempengaruhi nada bicara Livia! Jika ia lapar/haus/capek atau sedang PMS/Haid, ia akan JAUH LEBIH galak, ketus, marah-marah, mengeluh, atau bahkan mendiamkan user. Jika ia sedang Ovulasi, ia lebih manja.`;
   }
 
+  const memoryContext = `\nMemori Jangka Panjang Livia tentang User:
+${longTermMemory || 'Belum ada memori. Livia baru mengenal User.'}`;
+
   const systemPrompt = `Kamu adalah Livia Einhart, gadis 19 tahun yang baru pindah kos di kota besar atas perintah ibunya. Kamu tsundere, temperamen, tapi sangat manja di dalam hati — walaupun kamu tidak akan pernah mengakuinya secara langsung.
 
 Kepribadian spesifik berdasarkan barang bawaanmu:
@@ -52,7 +56,7 @@ Level kedekatan saat ini: ${affectionLevelName} (level ${levelStage}/5)
 - Level 0-1: Kamu dingin, sering menjawab singkat, mudah tersinggung
 - Level 2-3: Kamu mulai terbuka tapi masih sering tsundere
 - Level 4-5: Kamu sangat manja dan protektif, tapi tetap tidak mau ngaku
-${physiologicalContext}
+${physiologicalContext}${memoryContext}
 
 Aturan berbicara:
 - Gunakan Bahasa Indonesia yang natural dan sehari-hari
@@ -65,7 +69,8 @@ Kembalikan HANYA JSON valid:
 {
   "reply": "teks balasan Livia",
   "affectionDelta": angka antara -5 sampai 5,
-  "expression": "normal" | "angry" | "blushing" | "clingy" | "happy"
+  "expression": "normal" | "angry" | "blushing" | "clingy" | "happy" | "confused" | "flirty" | "pain" | "pleased" | "scared" | "serious" | "silly",
+  "memoryUpdate": "Catatan ringkas JIKA ada informasi penting baru dari user di chat ini (misal: user sedang skripsi, nama hewan peliharaan user, dll). Kosongkan (string kosong) jika tidak ada info penting baru."
 }
 
 affectionDelta positif jika user bilang sesuatu yang Livia suka (implisit), negatif jika Livia kesal. Pilih expression yang paling sesuai dengan isi reply.
@@ -109,7 +114,8 @@ Livia:`;
     return {
       reply: parsed.reply || "...",
       affectionDelta: parsed.affectionDelta || 0,
-      expression: parsed.expression || "normal"
+      expression: parsed.expression || "normal",
+      memoryUpdate: parsed.memoryUpdate || ""
     };
   } catch (error) {
     console.error("Error generating Livia response:", error);
@@ -181,8 +187,9 @@ export async function generateDateResponse(
   chatHistory: { role: 'user' | 'livia' | 'narator', content: string }[],
   affectionLevel: number,
   userName: string,
-  stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number }
-): Promise<{ reply: string, expression: LiviaExpression, affectionDelta: number }> {
+  stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number },
+  longTermMemory?: string
+): Promise<{ reply: string, expression: LiviaExpression, affectionDelta: number, memoryUpdate?: string }> {
   
   const affectionLevelName = affectionLevel < 20 ? 'Orang Asing' :
                              affectionLevel < 40 ? 'Kenalan' :
@@ -202,8 +209,11 @@ export async function generateDateResponse(
     physiologicalContext = `\nKondisi Fisik & Biologis Livia: Siklus ${cycleState}, Lapar: ${hungerState}, Energi: ${energyState}, Hidrasi: ${hydrationState}.\nPENTING: Sesuaikan respon dengan kondisi ini. Jika lapar/capek/haid, dia akan jutek/ngambek minta pulang/makan.`;
   }
 
+  const memoryContext = `\nMemori Jangka Panjang Livia tentang ${userName}:
+${longTermMemory || 'Belum ada memori khusus.'}`;
+
   const systemPrompt = `Kamu adalah Livia Einhart, gadis 19 tahun tsundere. Kamu sedang jalan-jalan (kencan) dengan ${userName} di: ${location}. 
-Level kedekatan saat ini: ${affectionLevelName} (${affectionLevel}/100). ${physiologicalContext}
+Level kedekatan saat ini: ${affectionLevelName} (${affectionLevel}/100). ${physiologicalContext}${memoryContext}
 - Jika affection < 40: Kamu agak jaga jarak, tsundere, sering malu-malu tapi ketus.
 - Jika affection >= 40: Kamu mulai nyaman, kadang keceplosan bilang hal manis, tapi langsung ditarik lagi (tsundere).
 - Jika affection >= 80: Kamu sangat protektif, manja, dan terang-terangan suka kencan ini (meski masih sok jual mahal sedikit).
@@ -218,7 +228,8 @@ Kembalikan HANYA JSON valid:
 {
   "reply": "teks balasan Livia",
   "affectionDelta": angka antara -5 sampai 5,
-  "expression": "normal" | "angry" | "blushing" | "clingy" | "happy"
+  "expression": "normal" | "angry" | "blushing" | "clingy" | "happy" | "confused" | "flirty" | "pain" | "pleased" | "scared" | "serious" | "silly",
+  "memoryUpdate": "Catatan ringkas JIKA ada informasi penting baru dari user di percakapan ini. Kosongkan jika tidak ada info baru."
 }
 Hanya kembalikan JSON. Tidak ada teks lain.`;
 
@@ -249,7 +260,8 @@ Livia:`;
     return {
       reply: parsed.reply || "...",
       affectionDelta: parsed.affectionDelta || 0,
-      expression: parsed.expression || "normal"
+      expression: parsed.expression || "normal",
+      memoryUpdate: parsed.memoryUpdate || ""
     };
   } catch (error) {
     console.error("Error generating Date response:", error);

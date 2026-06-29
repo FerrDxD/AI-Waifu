@@ -7,6 +7,8 @@ import { RadioProvider } from '@/components/RadioProvider';
 export const metadata: Metadata = {
   title: 'Teman Kos',
   description: 'Productivity web app with an AI companion',
+  manifest: '/manifest.json',
+  themeColor: '#ff758c',
 };
 
 export default function RootLayout({

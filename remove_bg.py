@@ -13,17 +13,24 @@ def make_bg_transparent(image_path):
         with Image.open(image_path) as img:
             img = img.convert("RGBA")
             
+            # Cek apakah gambar sudah memiliki pixel transparan
+            alpha = img.getchannel("A")
+            min_alpha, max_alpha = alpha.getextrema()
+            if min_alpha < 255:
+                print(f"[SKIP] Latar sudah transparan: {os.path.basename(image_path)}")
+                return
+            
             # Gunakan rembg untuk menghapus background dengan AI (sangat presisi)
             output = remove(img)
             
             # Simpan kembali menimpa file asli
             output.save(image_path, "WEBP")
-            print(f"[BERHASIL] memproses: {image_path}")
+            print(f"[BERHASIL] memproses: {os.path.basename(image_path)}")
     except Exception as e:
-        print(f"[GAGAL] memproses {image_path}: {e}")
+        print(f"[GAGAL] memproses {os.path.basename(image_path)}: {e}")
 
 if __name__ == "__main__":
-    target_dir = r"C:\Users\Hype GLK\teman-kost\public\livia\Story-bab"
+    target_dir = r"C:\Users\Hype GLK\teman-kost\public\enji"
     
     print("=== Memulai proses pembersihan Background dengan AI (Rembg) ===")
     count = 0

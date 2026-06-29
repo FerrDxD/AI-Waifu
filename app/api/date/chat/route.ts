@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     else if (dayOfCycle <= 14) cyclePhase = 'Folikuler';
     else if (dayOfCycle <= 17) cyclePhase = 'Ovulasi';
 
-    const { reply, expression, affectionDelta } = await generateDateResponse(
+    const { reply, expression, affectionDelta, memoryUpdate } = await generateDateResponse(
       location, 
       message,
       history || [],
@@ -40,13 +40,25 @@ export async function POST(req: Request) {
         hydration: profile?.liviaHydration ?? 100,
         cyclePhase,
         cycleDay: dayOfCycle
-      }
+      },
+      profile?.longTermMemory || undefined
     );
 
-    // Update affection if there is a delta
+    // Update affection if there is a delta, and update memory
     let updateResult: { newAffection: number | undefined | null; affectionLevel?: number; unlockedChapter: number | null } = { newAffection: profile?.affection, unlockedChapter: null };
-    if (affectionDelta !== 0 && profile) {
-      updateResult = await applyAffectionUpdate(session.user.id, affectionDelta);
+    
+    if (profile) {
+      const updateData: any = { lastSeen: new Date() };
+      if (memoryUpdate && memoryUpdate.trim() !== '') {
+        updateData.longTermMemory = profile.longTermMemory ? profile.longTermMemory + '\n- ' + memoryUpdate : '- ' + memoryUpdate;
+      }
+      
+      if (affectionDelta !== 0) {
+        updateResult = await applyAffectionUpdate(session.user.id, affectionDelta);
+        await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, session.user.id));
+      } else {
+        await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, session.user.id));
+      }
     }
 
     return NextResponse.json({ reply, expression, affectionDelta, newAffection: updateResult.newAffection, unlockedChapter: updateResult.unlockedChapter });

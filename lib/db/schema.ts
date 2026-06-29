@@ -31,6 +31,7 @@ export const userProfiles = pgTable('userProfiles', {
   liviaHydration: integer('livia_hydration').default(100),
   liviaCycleAnchor: timestamp('livia_cycle_anchor').defaultNow(),
   liviaStatsUpdatedAt: timestamp('livia_stats_updated_at').defaultNow(),
+  longTermMemory: text('long_term_memory').default(''),
   lastSeen: timestamp('last_seen').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
 });

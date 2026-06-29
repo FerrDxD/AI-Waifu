@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     else if (dayOfCycle <= 14) cyclePhase = 'Folikuler';
     else if (dayOfCycle <= 17) cyclePhase = 'Ovulasi';
 
-    const { reply, affectionDelta, expression } = await generateLiviaResponse(
+    const { reply, affectionDelta, expression, memoryUpdate } = await generateLiviaResponse(
       message,
       chatHistory,
       personalityContext,
@@ -71,7 +71,8 @@ export async function POST(req: Request) {
         cyclePhase, 
         cycleDay: dayOfCycle 
       },
-      isVoiceCall
+      isVoiceCall,
+      profile.longTermMemory || undefined
     );
 
     // ✅ FIX: Simpan user message dan reply dalam satu transaksi
@@ -91,10 +92,19 @@ export async function POST(req: Request) {
     ]);
 
     let updateResult = { newAffection: profile.affection, affectionLevel: profile.affectionLevel, unlockedChapter: null as number | null };
+    
+    // Update profil user (affection, lastSeen, dan memory)
+    const updateData: any = { lastSeen: new Date() };
+    if (memoryUpdate && memoryUpdate.trim() !== '') {
+      updateData.longTermMemory = profile.longTermMemory ? profile.longTermMemory + '\n- ' + memoryUpdate : '- ' + memoryUpdate;
+    }
+
     if (affectionDelta !== 0) {
       updateResult = await applyAffectionUpdate(userId, affectionDelta);
+      // Jika ada affection update, kita tetap perlu update lastSeen dan memory
+      await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, userId));
     } else {
-      await db.update(userProfiles).set({ lastSeen: new Date() }).where(eq(userProfiles.userId, userId));
+      await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, userId));
     }
 
     return NextResponse.json({

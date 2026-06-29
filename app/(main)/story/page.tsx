@@ -516,84 +516,84 @@ const CHAPTERS: Chapter[] = [
       { label: "Memiliki Baju Kasual", met: data.itemsBrought.includes('outfit_casual') }
     ],
     content: [
-      { speaker: "Narator", text: "Akhir pekan tiba. Hujan turun rintik-rintik sejak pagi, menciptakan hawa dingin yang menusuk tulang.", expression: "normal","bg":"7.1" },
-      { speaker: "Narator", text: "Di ruang tengah, kamu mendapati Livia sedang menggulung dirinya di dalam selimut tebal, terlihat seperti kepompong besar di atas karpet.", expression: "normal","bg":"7.1" },
-      { speaker: "Livia", text: "Haaah... cuaca begini emang paling enak buat tiduran aja seharian. Nggak ngapa-ngapain.", expression: "happy","bg":"7.1" },
-      { speaker: "Livia", text: "Hei, kamu ngapain masih duduk di meja kerja? Sini dong, temenin aku rebahan.", expression: "clingy","bg":"7.1" },
-      { speaker: "Livia", text: "Nggak usah mikirin tugas dan kerjaan terus untuk hari ini. Otakmu butuh liburan tau.", expression: "normal","bg":"7.1",
+      { speaker: "Narator", text: "Akhir pekan tiba. Hujan turun rintik-rintik sejak pagi, menciptakan hawa dingin yang menusuk tulang.", expression: "normal-7","bg":"7.1" },
+      { speaker: "Narator", text: "Di ruang tengah, kamu mendapati Livia sedang menggulung dirinya di dalam selimut tebal, terlihat seperti kepompong besar di atas karpet.", expression: "normal-7","bg":"7.1" },
+      { speaker: "Livia", text: "Haaah... cuaca begini emang paling enak buat tiduran aja seharian. Nggak ngapa-ngapain.", expression: "happy-7","bg":"7.1" },
+      { speaker: "Livia", text: "Hei, kamu ngapain masih duduk di meja kerja? Sini dong, temenin aku rebahan.", expression: "clingy-7","bg":"7.1" },
+      { speaker: "Livia", text: "Nggak usah mikirin tugas dan kerjaan terus untuk hari ini. Otakmu butuh liburan tau.", expression: "normal-7","bg":"7.1",
         choices: [
           { text: "Boleh deh, lima menit aja.", nextIndex: 5 },
           { text: "Nanti aku ketularan virus malasmu.", nextIndex: 6 },
           { text: "Wah, ajakan yang sulit ditolak.", nextIndex: 7 }
         ]
       },
-      { speaker: "Livia", text: "Mana ada lima menit! Minimal lima jam!", expression: "angry","bg":"7.1", nextIndex: 8 },
-      { speaker: "Livia", text: "Biarin! Biar kita jadi duo pemalas sejati!", expression: "happy","bg":"7.1", nextIndex: 8 },
-      { speaker: "Livia", text: "Makanya buruan sini, selimutnya masih muat kok buat berdua.", expression: "pleased", nextIndex: 8 },
-      { speaker: "Narator", text: "Kamu akhirnya mengalah. Meninggalkan mejamu, kamu ikut berbaring di sebelah Livia.", expression: "normal","bg":"7.1" },
-      { speaker: "Narator", text: "Livia dengan cepat menarik ujung selimutnya dan menutupi tubuhmu juga. Kehangatan langsung menjalar.", expression: "normal","bg":"7.1" },
-      { speaker: "Livia", text: "Hehe... nyaman banget kan? Sesekali jadi kaum rebahan itu nggak ada salahnya.", expression: "happy","bg":"7.1" },
-      { speaker: "Livia", text: "Ngomong-ngomong, karena kita lagi santai... mau order makanan ringan nggak? Aku pengen ngunyah sesuatu.", expression: "normal","bg":"7.1",
+      { speaker: "Livia", text: "Mana ada lima menit! Minimal lima jam!", expression: "angry-7","bg":"7.1", nextIndex: 8 },
+      { speaker: "Livia", text: "Biarin! Biar kita jadi duo pemalas sejati!", expression: "happy-7","bg":"7.1", nextIndex: 8 },
+      { speaker: "Livia", text: "Makanya buruan sini, selimutnya masih muat kok buat berdua.", expression: "pleased-7", nextIndex: 8 },
+      { speaker: "Narator", text: "Kamu akhirnya mengalah. Meninggalkan mejamu, kamu ikut berbaring di sebelah Livia.", expression: "normal-7","bg":"7.1" },
+      { speaker: "Narator", text: "Livia dengan cepat menarik ujung selimutnya dan menutupi tubuhmu juga. Kehangatan langsung menjalar.", expression: "normal-7","bg":"7.1" },
+      { speaker: "Livia", text: "Hehe... nyaman banget kan? Sesekali jadi kaum rebahan itu nggak ada salahnya.", expression: "happy-7","bg":"7.1" },
+      { speaker: "Livia", text: "Ngomong-ngomong, karena kita lagi santai... mau order makanan ringan nggak? Aku pengen ngunyah sesuatu.", expression: "normal-7","bg":"7.1",
         choices: [
           { text: "Pesan pizza aja gimana?", nextIndex: 12 },
           { text: "Cemilan manis kayak martabak?", nextIndex: 13 },
           { text: "Mie instan paling mantap.", nextIndex: 14 }
         ]
       },
-      { speaker: "Livia", text: "Wah, setuju! Tambah keju mozarella ya!", expression: "happy","bg":"7.1", nextIndex: 15 },
-      { speaker: "Livia", text: "Boleh juga, yang topping coklat kacang!", expression: "pleased","bg":"7.1", nextIndex: 15 },
-      { speaker: "Livia", text: "Klasik banget, tapi boleh deh pakai telur setengah matang!", expression: "happy","bg":"7.1", nextIndex: 15 },
-      { speaker: "Narator", text: "Sambil menunggu pesanan datang, kalian memutuskan untuk menonton film dari laptop.", expression: "normal","bg":"7.1" },
-      { speaker: "Livia", text: "Pilih genre filmnya dong. Karena cuacanya lagi mendung, mending horor nggak sih?", expression: "flirty","bg":"7.1",
+      { speaker: "Livia", text: "Wah, setuju! Tambah keju mozarella ya!", expression: "happy-7","bg":"7.1", nextIndex: 15 },
+      { speaker: "Livia", text: "Boleh juga, yang topping coklat kacang!", expression: "pleased-7","bg":"7.1", nextIndex: 15 },
+      { speaker: "Livia", text: "Klasik banget, tapi boleh deh pakai telur setengah matang!", expression: "happy-7","bg":"7.1", nextIndex: 15 },
+      { speaker: "Narator", text: "Sambil menunggu pesanan datang, kalian memutuskan untuk menonton film dari laptop.", expression: "normal-7","bg":"7.1" },
+      { speaker: "Livia", text: "Pilih genre filmnya dong. Karena cuacanya lagi mendung, mending horor nggak sih?", expression: "flirty-7","bg":"7.1",
         choices: [
           { text: "Boleh, emangnya kamu berani?", nextIndex: 17 },
           { text: "Gimana kalau komedi aja?", nextIndex: 18 },
           { text: "Romance aja biar romantis.", nextIndex: 19 }
         ]
       },
-      { speaker: "Livia", text: "B-berani lah! Palingan setan bohongan!", expression: "angry","bg":"7.1", nextIndex: 20 },
-      { speaker: "Livia", text: "Huuu penakut. Ya udah deh, biar kamu nggak ketakutan.", expression: "pleased","bg":"7.1", nextIndex: 20 },
-      { speaker: "Livia", text: "R-romantis?! S-siapa juga yang mau romantis-romantisan sama kamu!", expression: "blushing","bg":"7.1", nextIndex: 20 },
-      { speaker: "Narator", text: "Tak lama kemudian makanan datang. Kalian menikmati cemilan hangat sambil menonton film pilihan.", expression: "normal","bg":"7.1" },
-      { speaker: "Narator", text: "Di luar sana, hujan semakin deras. Angin kencang sesekali menghantam jendela kaca.", expression: "normal","bg":"7.1" },
-      { speaker: "Livia", text: "Ukh... hujannya makin parah ya. Bikin merinding aja.", expression: "serious","bg":"7.1" },
-      { speaker: "Narator", text: "TIBA-TIBA...", expression: "normal","bg":"7.1" },
-      { speaker: "Narator", text: "*CTAR! JGEEERRR!!*", expression: "normal","bg":"7.2" },
-      { speaker: "Livia", text: "KYAAAAA!!!", expression: "scared","bg":"7.2" },
-      { speaker: "Narator", text: "Seiring dengan gelegar guntur yang memekakkan telinga, lampu apartemen seketika padam. Kegelapan menyelimuti ruangan.", expression: "normal","bg":"7.2" },
-      { speaker: "Livia", text: "H-hei... k-kamu di mana?! Gelap banget! Aku nggak bisa lihat apa-apa!", expression: "pain","bg":"7.2" },
-      { speaker: "Narator", text: "Dalam kepanikan, Livia meraba-raba dan langsung memeluk erat tubuhmu. Ia gemetar.", expression: "normal","bg":"7.2" },
-      { speaker: "Livia", text: "J-jangan tinggalin aku... a-aku paling takut sama gelap dan petir...", expression: "clingy", "bg":"7.2",
+      { speaker: "Livia", text: "B-berani lah! Palingan setan bohongan!", expression: "angry-7","bg":"7.1", nextIndex: 20 },
+      { speaker: "Livia", text: "Huuu penakut. Ya udah deh, biar kamu nggak ketakutan.", expression: "pleased-7","bg":"7.1", nextIndex: 20 },
+      { speaker: "Livia", text: "R-romantis?! S-siapa juga yang mau romantis-romantisan sama kamu!", expression: "blushing-7","bg":"7.1", nextIndex: 20 },
+      { speaker: "Narator", text: "Tak lama kemudian makanan datang. Kalian menikmati cemilan hangat sambil menonton film pilihan.", expression: "normal-7","bg":"7.1" },
+      { speaker: "Narator", text: "Di luar sana, hujan semakin deras. Angin kencang sesekali menghantam jendela kaca.", expression: "normal-7","bg":"7.1" },
+      { speaker: "Livia", text: "Ukh... hujannya makin parah ya. Bikin merinding aja.", expression: "serious-7","bg":"7.1" },
+      { speaker: "Narator", text: "TIBA-TIBA...", expression: "normal-7","bg":"7.1" },
+      { speaker: "Narator", text: "*CTAR! JGEEERRR!!*", expression: "normal-7","bg":"7.2" },
+      { speaker: "Livia", text: "KYAAAAA!!!", expression: "scared-7","bg":"7.2" },
+      { speaker: "Narator", text: "Seiring dengan gelegar guntur yang memekakkan telinga, lampu apartemen seketika padam. Kegelapan menyelimuti ruangan.", expression: "normal-7","bg":"7.2" },
+      { speaker: "Livia", text: "H-hei... k-kamu di mana?! Gelap banget! Aku nggak bisa lihat apa-apa!", expression: "pain-7","bg":"7.2" },
+      { speaker: "Narator", text: "Dalam kepanikan, Livia meraba-raba dan langsung memeluk erat tubuhmu. Ia gemetar.", expression: "normal-7","bg":"7.2" },
+      { speaker: "Livia", text: "J-jangan tinggalin aku... a-aku paling takut sama gelap dan petir...", expression: "clingy-7", "bg":"7.2",
         choices: [
           { text: "Tenang, aku di sini kok.", nextIndex: 30 },
           { text: "Pegang tanganku erat-erat.", nextIndex: 31 },
           { text: "(Balas memeluknya perlahan)", nextIndex: 32 }
         ]
       },
-      { speaker: "Livia", text: "B-beneran ya? Jangan pergi kemana-mana lho!", expression: "pain","bg":"7.2", nextIndex: 33 },
-      { speaker: "Livia", text: "Iya... ukh, tanganku dingin banget kan...", expression: "pain", "bg":"7.2", nextIndex: 33 },
-      { speaker: "Livia", text: "A-apa yang kamu lakuin?! T-tapi... rasanya aman. Teruslah begini...", expression: "blushing", "bg":"7.2", nextIndex: 33 },
-      { speaker: "Narator", text: "Kamu menyalakan senter dari ponselmu dan mengarahkannya ke langit-langit, memberikan penerangan remang.", expression: "normal","bg":"7.2" },
-      { speaker: "Narator", text: "Wajah Livia terlihat pucat, namun genggamannya pada bajumu perlahan mengendur seiring hadirnya cahaya.", expression: "normal","bg":"7.2" },
-      { speaker: "Livia", text: "Fuh... syukurlah ada cahaya. M-maaf ya, aku cengeng banget.", expression: "sad", "bg":"7.2" },
-      { speaker: "Livia", text: "Dari kecil, tiap kali mati lampu karena petir, aku selalu sembunyi di dalam lemari sendirian.", expression: "serious", "bg":"7.2" },
-      { speaker: "Livia", text: "Orang tuaku sering lembur kerja, jadi... aku terbiasa menghadapi ketakutanku sendirian.", expression: "normal", "bg":"7.2" },
-      { speaker: "Livia", text: "Tapi hari ini... karena ada kamu, rasanya nggak seseram dulu lagi.", expression: "happy", "bg":"7.2",
+      { speaker: "Livia", text: "B-beneran ya? Jangan pergi kemana-mana lho!", expression: "pain-7","bg":"7.2", nextIndex: 33 },
+      { speaker: "Livia", text: "Iya... ukh, tanganku dingin banget kan...", expression: "pain-7", "bg":"7.2", nextIndex: 33 },
+      { speaker: "Livia", text: "A-apa yang kamu lakuin?! T-tapi... rasanya aman. Teruslah begini...", expression: "blushing-7", "bg":"7.2", nextIndex: 33 },
+      { speaker: "Narator", text: "Kamu menyalakan senter dari ponselmu dan mengarahkannya ke langit-langit, memberikan penerangan remang.", expression: "normal-7","bg":"7.2" },
+      { speaker: "Narator", text: "Wajah Livia terlihat pucat, namun genggamannya pada bajumu perlahan mengendur seiring hadirnya cahaya.", expression: "normal-7","bg":"7.2" },
+      { speaker: "Livia", text: "Fuh... syukurlah ada cahaya. M-maaf ya, aku cengeng banget.", expression: "sad-7", "bg":"7.2" },
+      { speaker: "Livia", text: "Dari kecil, tiap kali mati lampu karena petir, aku selalu sembunyi di dalam lemari sendirian.", expression: "serious-7", "bg":"7.2" },
+      { speaker: "Livia", text: "Orang tuaku sering lembur kerja, jadi... aku terbiasa menghadapi ketakutanku sendirian.", expression: "normal-7", "bg":"7.2" },
+      { speaker: "Livia", text: "Tapi hari ini... karena ada kamu, rasanya nggak seseram dulu lagi.", expression: "happy-7", "bg":"7.2",
         choices: [
           { text: "Mulai sekarang kamu nggak sendirian lagi.", nextIndex: 39 },
           { text: "Aku bakal selalu jagain kamu.", nextIndex: 40 },
           { text: "Dasar penakut, sini dekat-dekat.", nextIndex: 41 }
         ]
       },
-      { speaker: "Livia", text: "Kamu ini... selalu tau cara bikin orang tersentuh ya.", expression: "blushing", "bg":"7.2", nextIndex: 42 },
-      { speaker: "Livia", text: "J-janji lho ya! Kalau bohong, aku kutuk jadi kecoak!", expression: "angry", "bg":"7.2", nextIndex: 42 },
-      { speaker: "Livia", text: "Biarin! Sengaja kok biar bisa modus meluk-meluk!", expression: "silly", "bg":"7.2", nextIndex: 42 },
-      { speaker: "Narator", text: "Sekitar dua puluh menit berlalu. Tiba-tiba lampu kembali menyala terang.", expression: "normal","bg":"7.1" },
-      { speaker: "Livia", text: "Ah! Nyala lagi!", expression: "happy", "bg":"7.1" },
-      { speaker: "Narator", text: "Livia segera tersadar betapa eratnya ia memelukmu. Ia langsung melompat mundur dengan wajah bersemu merah.", expression: "normal","bg":"7.1" },
-      { speaker: "Livia", text: "E-ekhem! L-lupakan kejadian barusan! Anggap aja aku lagi kesurupan!", expression: "blushing", "bg":"7.1" },
-      { speaker: "Livia", text: "Ayo lanjut nontonnya! Filmnya masih seru tau!", expression: "angry", "bg":"7.1" },
-      { speaker: "Narator", text: "Kamu hanya bisa tertawa melihat tingkah tsundere-nya yang kembali kumat. Hujan di luar sana masih turun, namun harimu terasa begitu hangat.", expression: "normal","bg":"7.1" }
+      { speaker: "Livia", text: "Kamu ini... selalu tau cara bikin orang tersentuh ya.", expression: "blushing-7", "bg":"7.2", nextIndex: 42 },
+      { speaker: "Livia", text: "J-janji lho ya! Kalau bohong, aku kutuk jadi kecoak!", expression: "angry-7", "bg":"7.2", nextIndex: 42 },
+      { speaker: "Livia", text: "Biarin! Sengaja kok biar bisa modus meluk-meluk!", expression: "silly-7", "bg":"7.2", nextIndex: 42 },
+      { speaker: "Narator", text: "Sekitar dua puluh menit berlalu. Tiba-tiba lampu kembali menyala terang.", expression: "normal-7","bg":"7.1" },
+      { speaker: "Livia", text: "Ah! Nyala lagi!", expression: "happy-7", "bg":"7.1" },
+      { speaker: "Narator", text: "Livia segera tersadar betapa eratnya ia memelukmu. Ia langsung melompat mundur dengan wajah bersemu merah.", expression: "normal-7","bg":"7.1" },
+      { speaker: "Livia", text: "E-ekhem! L-lupakan kejadian barusan! Anggap aja aku lagi kesurupan!", expression: "blushing-7", "bg":"7.1" },
+      { speaker: "Livia", text: "Ayo lanjut nontonnya! Filmnya masih seru tau!", expression: "angry-7", "bg":"7.1" },
+      { speaker: "Narator", text: "Kamu hanya bisa tertawa melihat tingkah tsundere-nya yang kembali kumat. Hujan di luar sana masih turun, namun harimu terasa begitu hangat.", expression: "normal-7","bg":"7.1" }
     ]
   },
   {
@@ -608,62 +608,155 @@ const CHAPTERS: Chapter[] = [
       { label: "Memiliki Trench Coat", met: data.itemsBrought.includes('trench_coat') }
     ],
     content: [
-      { speaker: "Narator", text: "Perjalanan menggunakan kereta yang panjang akhirnya membawa kalian ke kampung halaman Livia.", expression: "normal", "bg":"8.1" },
-      { speaker: "Livia", text: "Brrr... anginnya lumayan dingin di sini. Padahal aku udah pakai jaket tebal.", expression: "normal", "bg":"8.1" },
-      { speaker: "Livia", text: "Sini, pinjam tanganmu bentar...", expression: "clingy", "bg":"8.1" },
-      { speaker: "Narator", text: "Livia menyelipkan kedua tangannya yang dingin ke dalam saku mantelmu, menyatu dengan tanganmu.", expression: "normal", "bg":"8.1" },
-      { speaker: "Livia", text: "Hehe... pakaian tebal ini hangat... tapi tanganmu jauh lebih hangat.", expression: "happy", "bg":"8.1" },
-      { speaker: "Livia", text: "Ibu pasti kaget kalau tahu aku pulang bawa... ya gitu deh.", expression: "blushing", "bg":"8.1",
+      // Bg 8.1: Train Journey (Subuh -> Pagi)
+      { speaker: "Narator", text: "Kereta melaju membelah kegelapan malam. Kalian sengaja mengambil jadwal keberangkatan pukul 3 dini hari agar tiba di kampung halaman Livia pagi ini.", expression: "normal-8", "bg": "8.1" },
+      { speaker: "Narator", text: "Suasana gerbong masih sangat sepi. Sebagian besar penumpang masih terlelap, termasuk Livia yang duduk di sebelahmu.", expression: "normal-8", "bg": "8.1" },
+      { speaker: "Livia", text: "Nghh... jam berapa sekarang...?", expression: "pain-8", "bg": "8.1" },
+      { speaker: "Livia", text: "Hoam... mataku masih berat banget. Padahal di kereta susah tidur nyenyak.", expression: "sad-8", "bg": "8.1",
         choices: [
-          { text: "Nggak usah khawatir, aku bakal bersikap sopan ke keluargamu kok.", nextIndex: 6 },
-          { text: "Bawa beban masyarakat alias diri kamu sendiri kan?", nextIndex: 7 },
-          { text: "Bawa menantu tampan yang siap mengambil hati putrinya?", nextIndex: 8 },
-          { text: "Kunjungan ini sudah dikomunikasikan kan? Reaksi terkejut harusnya terminimalisir.", nextIndex: 9 }
+          { text: "Tidur lagi aja, perjalanan masih panjang kok.", nextIndex: 4 },
+          { text: "Pundakku kosong nih kalau kamu mau nyender.", nextIndex: 5 },
+          { text: "Makanya, siapa suruh milih tiket jam 3 pagi?", nextIndex: 6 }
         ]
       },
-      { speaker: "Livia", text: "Aku tahu kok kamu bisa diandalkan. Pegang tanganku lebih erat ya.", expression: "happy", nextIndex: 10 },
-      { speaker: "Livia", text: "Bisa nggak sih nggak merusak momen manis ini sedetik aja?!", expression: "angry", nextIndex: 10 },
-      { speaker: "Livia", text: "T-tampan dari mananya! Ibu pasti ketawa ngeliat gombalanmu!", expression: "blushing", nextIndex: 10 },
-      { speaker: "Livia", text: "Ini bukan presentasi proposal ya! Kamu ini kaku banget deh.", expression: "angry", nextIndex: 10 },
-      { speaker: "Narator", text: "Kalian berdua berjalan menyusuri jalan kecil menuju rumah keluarganya.", expression: "normal" },
-      { speaker: "Livia", text: "Di kamar lamaku nanti, aku mau ngambil beberapa barang peninggalan masa kecilku. Bantuin pilih ya nanti?", expression: "happy" },
-      { speaker: "Narator", text: "Tak lama kemudian, sebuah rumah sederhana yang asri mulai terlihat.", expression: "normal" },
-      { speaker: "Narator", text: "Livia mengetuk pintu. Tak butuh waktu lama hingga seorang wanita paruh baya dengan senyum hangat membukakannya.", expression: "normal" },
-      { speaker: "Laura", text: "Ya ampun! Livia, sayangku! Kenapa pulang nggak bilang-bilang dulu?", expression: "normal" },
-      { speaker: "Livia", text: "K-kejutan dong, Bu! Livia kangen sama Ibu...", expression: "blushing" },
-      { speaker: "Narator", text: "Laura memeluk erat putrinya. Setelah itu, pandangannya beralih padamu. Ia tampak sedikit memicingkan mata.", expression: "normal" },
-      { speaker: "Laura", text: "Lho? Wajahmu sepertinya tidak asing... Tunggu, kamu pemuda yang Tante titipi untuk bantu Livia pindahan waktu itu, kan?", expression: "normal" },
-      { speaker: "Livia", text: "Iya, Bu. D-dia nemenin aku pulang...", expression: "blushing" },
-      { speaker: "Laura", text: "Astaga, akhirnya kita bisa bertemu langsung! Dulu kita cuma ngobrol lewat chat dan telepon ya.", expression: "normal",
+      { speaker: "Livia", text: "Iya deh... bangunin aku kalau langitnya udah terang ya.", expression: "sad-8", "bg": "8.1", nextIndex: 7 },
+      { speaker: "Livia", text: "M-modus! ...tapi boleh deh, lagi ngantuk banget soalnya.", expression: "blushing-8", "bg": "8.1", nextIndex: 7 },
+      { speaker: "Livia", text: "Kan biar tiketnya lebih murah! Kamu ini nggak tau cara berhemat ya?!", expression: "angry-8", "bg": "8.1", nextIndex: 7 },
+      { speaker: "Narator", text: "Livia menyandarkan kepalanya di pundakmu dan kembali terlelap. Kamu pun ikut menikmati sisa perjalanan sambil melihat fajar perlahan menyingsing.", expression: "normal-8", "bg": "8.1" },
+      { speaker: "Narator", text: "Semburat warna jingga keemasan mulai menghiasi langit di luar jendela. Pemandangan hamparan sawah yang terkena sinar matahari pagi tampak begitu indah.", expression: "normal-8", "bg": "8.2" },
+      { speaker: "Livia", text: "Nghh... udah pagi ya... wah, mataharinya cantik banget...", expression: "happy-8", "bg": "8.2" },
+      { speaker: "Livia", text: "Aku selalu suka lihat sunrise dari kereta. Sebentar lagi kita sampai nih.", expression: "pleased-8", "bg": "8.2" },
+      { speaker: "Narator", text: "Suara pengumuman dari pengeras suara bergema, menandakan bahwa kereta akan segera tiba di stasiun tujuan.", expression: "normal-8", "bg": "8.2" },
+      
+      // Bg 8.2: Train Station (Pagi)
+      { speaker: "Narator", text: "Kalian melangkah turun dari kereta tepat pukul delapan pagi. Udara pagi yang sejuk namun cukup menusuk langsung menyapa kulit.", expression: "normal-8", "bg": "8.3" },
+      { speaker: "Livia", text: "Brrr... ternyata udara pagi di sini lebih dingin dari dugaanku.", expression: "scared-8", "bg": "8.3" },
+      { speaker: "Livia", text: "Untung kita pakai mantel yang tebal. Kalau nggak, kita berdua udah jadi es serut sekarang.", expression: "happy-8", "bg": "8.3" },
+      { speaker: "Narator", text: "Livia menggosok-gosokkan kedua tangannya, mencoba mencari kehangatan. Ia melirikmu dengan pandangan penuh harap.", expression: "normal-8", "bg": "8.3" },
+      { speaker: "Livia", text: "Sini, tanganku masukin ke sakumu dong... biar anget barengan.", expression: "clingy-8", "bg": "8.3" },
+      { speaker: "Narator", text: "Kamu membiarkan Livia menyelipkan tangannya ke dalam saku mantelmu, saling menggenggam satu sama lain.", expression: "normal-8", "bg": "8.3" },
+      { speaker: "Livia", text: "Hehe... saku ini hangat... tapi genggamanmu jauh lebih hangat.", expression: "blushing-8", "bg": "8.3" },
+      
+      // Bg 8.3: Town Streets (Pagi)
+      { speaker: "Narator", text: "Kalian berjalan keluar dari stasiun, menyusuri jalanan desa yang mulai diwarnai aktivitas warga di pagi hari.", expression: "normal-8", "bg": "8.4" },
+      { speaker: "Livia", text: "Udara pagi di sini seger banget kan? Beda jauh sama udara kota yang isinya polusi.", expression: "happy-8", "bg": "8.4" },
+      { speaker: "Livia", text: "Dulu waktu SD, jam segini aku biasanya lagi lari-larian ngejar layangan di lapangan dekat sini.", expression: "silly-8", "bg": "8.4" },
+      { speaker: "Livia", text: "Tapi lapangannya sekarang udah jadi bangunan... agak sayang sih.", expression: "sad-8", "bg": "8.4" },
+      { speaker: "Narator", text: "Livia memandang sekeliling dengan mata yang berbinar, memancarkan rindu yang tertahan selama ini.", expression: "normal-8", "bg": "8.4" },
+      { speaker: "Livia", text: "Aku senang bisa ngajak kamu jalan-jalan pagi di tempat masa kecilku.", expression: "flirty-8", "bg": "8.4" },
+      
+      // Bg 8.4: Passing by Shops (Pagi, Toko Buka)
+      { speaker: "Narator", text: "Sepanjang jalan, beberapa ruko dan toko kue tua baru saja membuka pintunya. Aroma roti yang baru dipanggang semerbak di udara.", expression: "normal-8", "bg": "8.5" },
+      { speaker: "Livia", text: "Eh, cium baunya nggak? Itu toko roti langgananku dari kecil!", expression: "happy-8", "bg": "8.5" },
+      { speaker: "Livia", text: "Rotinya masih panas karena baru matang! Kita mampir beli dulu yuk buat oleh-oleh Ibu dan Papa?", expression: "clingy-8", "bg": "8.5" },
+      { speaker: "Narator", text: "Kalian mampir sejenak, membeli sekantong roti hangat yang aromanya sangat menggoda selera.", expression: "normal-8", "bg": "8.5" },
+      
+      // Bg 8.5: Nature / Near House (Pagi cerah)
+      { speaker: "Narator", text: "Kalian melanjutkan perjalanan. Perlahan, jalanan berubah menjadi jalan berbatu dengan pepohonan rindang yang masih berembun.", expression: "normal-8", "bg": "8.6" },
+      { speaker: "Livia", text: "Nah, kita udah hampir sampai. Lewati turunan ini, terus belok kanan.", expression: "normal-8", "bg": "8.6" },
+      { speaker: "Livia", text: "Duh... Ibu pasti kaget banget kita nyampe sepagi ini.", expression: "scared-8", "bg": "8.6",
         choices: [
-          { text: "Senang bisa bertemu langsung, Tante Laura.", nextIndex: 20 },
-          { text: "Sesuai janji, 'paket' anak Tante sudah saya antarkan dengan selamat.", nextIndex: 21 },
-          { text: "Senang bertemu dengan calon Ibu Mertua.", nextIndex: 22 }
+          { text: "Nggak usah khawatir, aku bakal bersikap sangat sopan kok.", nextIndex: 32 },
+          { text: "Asal kita bawa roti hangat ini, pasti mereka senang.", nextIndex: 33 },
+          { text: "Bawa calon menantu tampan di pagi hari, siapa yang nggak kaget?", nextIndex: 34 }
         ]
       },
-      { speaker: "Laura", text: "Tante juga senang! Ayo masuk, di luar pasti dingin.", expression: "normal", nextIndex: 23 },
-      { speaker: "Livia", text: "P-paket apanya?! Enak aja nyamain aku sama paket ekspedisi!", expression: "angry", nextIndex: 23 },
-      { speaker: "Livia", text: "I-I-Ibu M-mertua?! J-jangan asal sebut dong! Bikin jantungan aja!", expression: "scared", nextIndex: 23 },
-      { speaker: "Narator", text: "Laura tertawa riang melihat kedekatan kalian berdua.", expression: "normal" },
-      { speaker: "Laura", text: "Pasti repot ya ngadepin Livia. Tante tahu anak ini memang sedikit manja dan keras kepala.", expression: "normal" },
-      { speaker: "Livia", text: "Ibuuu! Kenapa sih malah jelek-jelekin anak sendiri di depan dia?!", expression: "pain" },
-      { speaker: "Laura", text: "Hahaha. Tapi Tante mau berterima kasih banyak padamu.", expression: "normal" },
-      { speaker: "Laura", text: "Livia sering banget nyebut-nyebut namamu kalau lagi teleponan sama Tante. Katanya kamu sangat sabar membantunya beradaptasi.", expression: "normal" },
-      { speaker: "Livia", text: "E-eh?! Ibu! Kan aku udah bilang jangan bilang-bilang dia!", expression: "blushing" },
-      { speaker: "Laura", text: "Terima kasih banyak ya sudah jadi tetangga sekaligus teman yang baik untuk Livia.", expression: "normal",
+      { speaker: "Livia", text: "Aku tahu kok kamu bisa diandalkan. Pegang tanganku lebih erat ya.", expression: "happy-8", "bg": "8.6", nextIndex: 35 },
+      { speaker: "Livia", text: "Bener juga! Apalagi Papaku suka banget sarapan pakai roti ini.", expression: "pleased-8", "bg": "8.6", nextIndex: 35 },
+      { speaker: "Livia", text: "T-tampan dari mananya! Nanti Ibu malah ketawa ngeliat gombalanmu!", expression: "angry-8", "bg": "8.6", nextIndex: 35 },
+      
+      // Bg 8.6: Outside House (Pagi)
+      { speaker: "Narator", text: "Tak lama kemudian, sebuah rumah kayu dua lantai yang tampak asri diterangi sinar matahari pagi mulai terlihat.", expression: "normal-8", "bg": "8.7" },
+      { speaker: "Narator", text: "Jendelanya terbuka lebar, membiarkan udara pagi masuk dengan leluasa.", expression: "normal-8", "bg": "8.7" },
+      { speaker: "Livia", text: "Huuft... oke. Ini dia rumahnya.", expression: "serious-8", "bg": "8.7" },
+      { speaker: "Livia", text: "Siap-siap ya, jangan malu-malu.", expression: "flirty-8", "bg": "8.7" },
+      { speaker: "Narator", text: "Livia melangkah maju dan mengetuk pintu kayu tebal itu sebanyak tiga kali.", expression: "normal-8", "bg": "8.8" },
+      { speaker: "Narator", text: "Terdengar suara langkah kaki yang cukup berat menghampiri dari dalam.", expression: "normal-8", "bg": "8.8" },
+      
+      // Bg 8.7: Inside House, Meeting Laura (Pagi)
+      { speaker: "Laura", text: "Iya, iya, sebentar... eh?!", expression: "confused-8", "bg": "8.9" },
+      { speaker: "Laura", text: "Ya ampun! Livia, sayangku! Kalian berangkat jam berapa dari kota?! Kok pagi-pagi buta begini sudah sampai?", expression: "happy-8", "bg": "8.9" },
+      { speaker: "Livia", text: "Kita sengaja ambil kereta jam 3 pagi, Bu. K-kejutan dong!", expression: "blushing-8", "bg": "8.9" },
+      { speaker: "Narator", text: "Laura memeluk putrinya yang masih tercium aroma embun pagi. Setelah itu, pandangannya beralih padamu.", expression: "normal-8", "bg": "8.9" },
+      { speaker: "Laura", text: "Tunggu... wajahmu sepertinya tidak asing. Kamu pemuda yang Tante titipi untuk bantu Livia pindahan waktu itu, kan?", expression: "confused-8", "bg": "8.9" },
+      { speaker: "Livia", text: "Iya, Bu. D-dia nemenin aku pulang...", expression: "blushing-8", "bg": "8.9" },
+      { speaker: "Laura", text: "Astaga, akhirnya kita bisa bertemu langsung! Padahal Tante baru mau mulai masak buat sarapan lho.", expression: "happy-8", "bg": "8.9",
         choices: [
-          { text: "Sama-sama Tante, Livia juga banyak menemani saya.", nextIndex: 30 },
-          { text: "Tentu saja, sudah jadi tugas saya menjaganya.", nextIndex: 31 },
-          { text: "Livia anak yang baik kok, walau kadang galak.", nextIndex: 32 }
+          { text: "Senang bisa bertemu langsung, Tante Laura.", nextIndex: 48 },
+          { text: "Sesuai janji, anak Tante sudah saya antarkan pagi-pagi buta.", nextIndex: 49 },
+          { text: "Senang bertemu dengan calon Ibu Mertua di pagi yang cerah ini.", nextIndex: 50 }
         ]
       },
-      { speaker: "Laura", text: "Syukurlah kalau kalian saling melengkapi. Kalian memang cocok.", expression: "normal", nextIndex: 33 },
-      { speaker: "Laura", text: "Wah, bisa diandalkan sekali. Tante jadi makin tenang.", expression: "normal", nextIndex: 33 },
-      { speaker: "Laura", text: "Hahaha, benar kan? Pokoknya tegur saja kalau dia mulai bandel.", expression: "normal", nextIndex: 33 },
-      { speaker: "Livia", text: "Uuugh... Ibu sama dia sama aja! Suka banget mojokin aku!", expression: "pain" },
-      { speaker: "Narator", text: "Kalian pun masuk ke dalam rumah. Suasana hangat keluarga langsung menyambutmu, menghapus hawa dingin dari luar.", expression: "normal" },
-      { speaker: "Livia", text: "Yaudah, ayo ke kamarku sekarang! Aku udah nggak sabar nunjukin koleksi masa kecilku!", expression: "happy" },
-      { speaker: "Narator", text: "Livia menarik tanganmu menuju kamarnya. Liburan kali ini sepertinya akan menjadi kenangan manis yang tak terlupakan.", expression: "normal" }
+      { speaker: "Laura", text: "Tante juga sangat senang! Ayo masuk, udaranya dingin kan?", expression: "pleased-8", "bg": "8.9", nextIndex: 51 },
+      { speaker: "Laura", text: "Hahaha, kamu ini kaku amat. Santai aja sama Tante mah.", expression: "flirty-8", "bg": "8.9", nextIndex: 51 },
+      { speaker: "Livia", text: "I-I-Ibu M-mertua?! M-masih pagi lho ini, udah ngelantur aja!", expression: "angry-8", "bg": "8.9", nextIndex: 51 },
+      { speaker: "Narator", text: "Laura tertawa riang, tawanya menghangatkan suasana di ruang tamu.", expression: "normal-8", "bg": "8.9" },
+      { speaker: "Laura", text: "Pasti repot ya ngadepin Livia. Tante tahu anak ini memang keras kepala kalau disuruh bangun pagi.", expression: "flirty-8", "bg": "8.9" },
+      { speaker: "Livia", text: "Ibuuu! Jangan ngerusak citra ku di depan dia dong!", expression: "pain-8", "bg": "8.9" },
+      { speaker: "Laura", text: "Hahaha, bercanda sayang. Ngomong-ngomong, Papa lagi minum kopi di ruang tengah. Kalian temui dia dulu gih sambil Tante bikinin sarapan.", expression: "pleased-8", "bg": "8.9" },
+      
+      // Bg 8.8: Living room, Meeting Enji (Pagi)
+      { speaker: "Narator", text: "Kalian berjalan menuju ruang tengah. Sinar mentari masuk melalui jendela besar, menyinari ruangan yang rapi.", expression: "normal-8", "bg": "8.10" },
+      { speaker: "Narator", text: "Di sofa tunggal, duduk seorang pria paruh baya berkacamata yang memancarkan aura ketenangan. Di mejanya terdapat secangkir kopi hitam dan koran pagi.", expression: "normal-8", "bg": "8.10" },
+      { speaker: "Enji", text: "Oh... kalian sudah sampai.", expression: "normal-8", "bg": "8.10" },
+      { speaker: "Livia", text: "Papa! Livia pulang...", expression: "happy-8", "bg": "8.10" },
+      { speaker: "Enji", text: "Iya, Papa lihat. Kamu pasti ngantuk kan di kereta. Kantung matamu tebal begitu.", expression: "normal-8", "bg": "8.10" },
+      { speaker: "Livia", text: "Papa!! Baru juga nyampe udah dikatain mata panda! Ngeselin banget sih!", expression: "angry-8", "bg": "8.10" },
+      { speaker: "Narator", text: "Pria itu hanya tersenyum tipis, menyeruput kopinya sejenak sebelum pandangannya beralih menilaimu.", expression: "normal-8", "bg": "8.10" },
+      { speaker: "Enji", text: "Jadi... kamu pemuda yang sering diceritakan istriku ya.", expression: "normal-8", "bg": "8.10" },
+      { speaker: "Enji", text: "Duduklah. Jangan berdiri terus seperti patung.", expression: "normal-8", "bg": "8.10" },
+      { speaker: "Narator", text: "Kamu duduk di sofa seberang dengan sedikit gugup. Auranya terasa berwibawa, namun ia tampak sama sekali tak berniat mengintimidasimu.", expression: "normal-8", "bg": "8.10" },
+      { speaker: "Enji", text: "Dengar, anak muda. Saya bukan tipikal ayah yang akan menodongkan senapan pada pacar anak perempuannya.", expression: "serious-8", "bg": "8.10" },
+      { speaker: "Enji", text: "Apalagi di pagi hari yang cerah ini. Saya sudah terlalu tua untuk hal dramatis semacam itu. Mengurus anak muda itu melelahkan.", expression: "normal-8", "bg": "8.10" },
+      { speaker: "Livia", text: "Papa ngomong apa sih... kita belum pacaran tau...", expression: "blushing-8", "bg": "8.10" },
+      { speaker: "Enji", text: "Belum? Ah, sudahlah. Saya hanya punya satu aturan mutlak di rumah ini.", expression: "normal-8", "bg": "8.10",
+        choices: [
+          { text: "Apa itu, Om?", nextIndex: 69 },
+          { text: "Jangan menyakiti Livia?", nextIndex: 70 },
+          { text: "Harus bangun pagi setiap hari?", nextIndex: 71 }
+        ]
+      },
+      { speaker: "Enji", text: "Aturannya sangat sederhana.", expression: "normal-8", "bg": "8.10", nextIndex: 72 },
+      { speaker: "Enji", text: "Bukan itu. Itu terlalu klise.", expression: "normal-8", "bg": "8.10", nextIndex: 72 },
+      { speaker: "Enji", text: "Saya memang bangun jam 4 pagi, tapi aturannya bukan itu.", expression: "normal-8", "bg": "8.10", nextIndex: 72 },
+      { speaker: "Enji", text: "Aturannya adalah: Jangan pernah membuat Laura marah. Hidup dan ketenangan saya sangat bergantung pada senyumnya.", expression: "serious-8", "bg": "8.10" },
+      { speaker: "Laura", text: "Papa ngomong apa sih ke anak orang?! Bantuin siapin piring sini!", expression: "angry-8", "bg": "8.10" },
+      { speaker: "Enji", text: "Tuh kan... baru saja dibilang. Saya pamit ke dapur dulu.", expression: "scared-8", "bg": "8.10" },
+      { speaker: "Narator", text: "Kamu tak kuasa menahan senyum. Terlepas dari aura seriusnya, ternyata Enji hanyalah seorang ayah yang sangat menyayangi kedamaian keluarganya.", expression: "normal-8", "bg": "8.10" },
+      { speaker: "Livia", text: "Hahaha, Papa emang nggak pernah berubah. Cuma Ibu pawangnya.", expression: "silly-8", "bg": "8.10" },
+      
+      // Bg 8.9: Breakfast/Brunch
+      { speaker: "Narator", text: "Tak lama kemudian, kalian berkumpul di ruang makan. Tersaji hidangan sarapan yang hangat, dilengkapi dengan roti yang kalian beli tadi.", expression: "normal-8", "bg": "8.11" },
+      { speaker: "Laura", text: "Ayo sarapan, kalian pasti kelaparan dari subuh belum makan kan?", expression: "happy-8", "bg": "8.11" },
+      { speaker: "Enji", text: "Biasanya Laura hanya membuatkan saya roti bakar kosong. Kamu benar-benar beruntung, Nak.", expression: "normal-8", "bg": "8.11" },
+      { speaker: "Laura", text: "Pa! Lauknya dikurangin lho nanti siangnya!", expression: "angry-8", "bg": "8.11" },
+      { speaker: "Enji", text: "Iya, iya, saya makan dalam diam.", expression: "scared-8", "bg": "8.11" },
+      { speaker: "Narator", text: "Sarapan berlangsung dengan riang. Gelak tawa sesekali pecah berkat respons datar Enji yang tanpa ampun ditepis oleh Laura.", expression: "normal-8", "bg": "8.11" },
+      { speaker: "Laura", text: "Habis sarapan, kalian istirahat ya. Pasti capek banget perjalanan semalaman.", expression: "pleased-8", "bg": "8.11" },
+      { speaker: "Livia", text: "Iya, Bu. Aku juga rasanya udah mau pingsan saking ngantuknya.", expression: "pain-8", "bg": "8.11" },
+      { speaker: "Enji", text: "Baguslah. Pemuda memang butuh banyak istirahat biar otak dan hatinya berfungsi dengan baik.", expression: "normal-8", "bg": "8.11" },
+      
+      // Bg 8.10: Livia's Room (Siang/Pagi menjelang siang)
+      { speaker: "Narator", text: "Selesai sarapan, Livia mengantarmu menaiki tangga menuju kamarnya di lantai dua untuk beristirahat.", expression: "normal-8", "bg": "8.12" },
+      { speaker: "Narator", text: "Sinar matahari pagi menjelang siang masuk melalui celah gorden kamarnya yang dipenuhi aroma lavender.", expression: "normal-8", "bg": "8.12" },
+      { speaker: "Livia", text: "Tadaa! Selamat datang di markas rahasiaku!", expression: "happy-8", "bg": "8.12" },
+      { speaker: "Narator", text: "Kamarnya tertata rapi. Di dinding terdapat poster usang, dan di rak buku tersusun komik-komik masa kecilnya.", expression: "normal-8", "bg": "8.12" },
+      { speaker: "Livia", text: "Agak sedikit berdebu sih, soalnya lama nggak kutempatin. Tapi semua kenanganku ada di sini.", expression: "blushing-8", "bg": "8.12" },
+      { speaker: "Livia", text: "Jujur, dari dulu aku udah bayangin momen ini...", expression: "serious-8", "bg": "8.12" },
+      { speaker: "Livia", text: "Membawa seseorang yang spesial buat ngeliat kamar masa kecilku.", expression: "happy-8", "bg": "8.12" },
+      { speaker: "Livia", text: "Jadi... gimana rasanya ketemu keluargaku pagi-pagi begini?", expression: "flirty-8", "bg": "8.12",
+        choices: [
+          { text: "Sangat menyenangkan, sambutan yang luar biasa hangat.", nextIndex: 94 },
+          { text: "Papamu lucu sekali, aku sangat menyukainya.", nextIndex: 95 },
+          { text: "Pantas kamu tumbuh jadi anak yang hangat dan penyayang.", nextIndex: 96 }
+        ]
+      },
+      { speaker: "Livia", text: "Syukurlah kalau kamu nyaman. Sempet takut kamu bakal risih sama mereka.", expression: "pleased-8", "bg": "8.12", nextIndex: 97 },
+      { speaker: "Livia", text: "Hahaha! Baru kali ini ada yang bilang Papa lucu. Biasanya orang-orang takut duluan.", expression: "happy-8", "bg": "8.12", nextIndex: 97 },
+      { speaker: "Livia", text: "Gombal di pagi hari! Udah mending kita istirahat aja deh!", expression: "blushing-8", "bg": "8.12", nextIndex: 97 },
+      { speaker: "Narator", text: "Livia duduk di tepi tempat tidurnya sambil menguap lebar, pertahanan dirinya melawan kantuk akhirnya runtuh.", expression: "normal-8", "bg": "8.12" },
+      { speaker: "Livia", text: "Kamu istirahat di kasur tambahan yang disiapin Ibu di bawah ya... aku mau tidur dulu...", expression: "clingy-8", "bg": "8.12" },
+      { speaker: "Narator", text: "Hanya dalam beberapa menit, Livia tertidur lelap. Hari pertamamu di kampung halamannya dimulai dengan pagi yang manis dan menenangkan.", expression: "normal-8", "bg": "8.12" }
     ]
   },
   {
@@ -861,12 +954,78 @@ const CHAPTERS: Chapter[] = [
       { label: "Umur akun minimal 70 Hari", met: data.accountDays >= 70 }
     ],
     content: [
-      { speaker: "Narator", text: "Mobil melaju memasuki pelataran kuil tua yang megah. Ini adalah rumah masa kecilmu, keluarga pengurus kuil dengan tradisi yang sangat ketat.", expression: "normal" },
-      { speaker: "Livia", text: "J-jadi ini rumah orang tuamu? Gede banget... aku jadi deg-degan.", expression: "blushing" },
-      { speaker: "Narator", text: "Ibumu yang berwajah tegas menyambut kalian di pintu utama.", expression: "normal" },
-      { speaker: "Livia", text: "S-selamat siang, Ibu mertua... S-saya Livia...", expression: "blushing" },
-      { speaker: "Narator", text: "Ketegangan mencair saat ibumu tersenyum hangat dan memeluk Livia. Tradisi kuil mengharuskan ibumu memberikan satu berkah suci untuk sang pengantin baru.", expression: "normal" },
-      { speaker: "Narator", text: "Pilihlah satu berkah dengan bijak, karena itu akan menentukan masa depan kalian.", expression: "normal" }
+      // Bg 12.1: Dalam mobil/Perjalanan menuju gunung (Pagi)
+      { speaker: "Narator", text: "Mobil melaju perlahan menyusuri jalan berkelok di lereng pegunungan. Pepohonan bambu yang rindang mengapit jalan masuk menuju kawasan kuil keluargamu.", expression: "normal", "bg": "12.1" },
+      { speaker: "Livia", text: "Udaranya makin dingin ya... untung aku pakai trench coat ini. Kelihatannya pantes kan buat ketemu keluargamu?", expression: "blushing", "bg": "12.1" },
+      { speaker: "Livia", text: "Aku jujur deg-degan banget... Kuil keluargamu itu terkenal sakral kan? Nanti kalau aku salah tingkah gimana?", expression: "scared", "bg": "12.1",
+        choices: [
+          { text: "Tenang saja, mereka pasti menyukaimu.", nextIndex: 3 },
+          { text: "Pegang tanganku, aku akan selalu di sampingmu.", nextIndex: 4 },
+          { text: "Jangan bertingkah aneh-aneh seperti biasa ya.", nextIndex: 5 }
+        ]
+      },
+      { speaker: "Livia", text: "Semoga saja ya... aku nggak mau bikin kamu malu di depan keluargamu.", expression: "sad", "bg": "12.1", nextIndex: 6 },
+      { speaker: "Livia", text: "Iya... makasih ya. Tanganmu selalu berhasil bikin aku merasa aman.", expression: "happy", "bg": "12.1", nextIndex: 6 },
+      { speaker: "Livia", text: "Iiih! Aku bisa anggun kok kalau lagi mode serius!", expression: "angry", "bg": "12.1", nextIndex: 6 },
+      
+      // Bg 12.2: Gerbang Torii dan Tangga Batu
+      { speaker: "Narator", text: "Mobil berhenti di pelataran parkir bawah. Di hadapan kalian, menjulang Gerbang Torii raksasa berwarna merah pudar, dijaga oleh patung komainu kuno.", expression: "normal", "bg": "12.2" },
+      { speaker: "Livia", text: "Wah... g-gede banget... Ini semua area keluarga kamu?", expression: "scared", "bg": "12.2" },
+      { speaker: "Narator", text: "Kalian menapaki ratusan anak tangga batu. Livia tampak terengah-engah namun berusaha menutupi kelelahannya.", expression: "normal", "bg": "12.2" },
+      { speaker: "Livia", text: "Hah... hah... aku kuat kok... demi ketemu Ibu mertua... hah...", expression: "pain", "bg": "12.2" },
+      
+      // Bg 12.3: Pelataran Kuil / Bertemu Ibu
+      { speaker: "Narator", text: "Begitu sampai di pelataran utama, aroma dupa yang menenangkan seketika menyambut kalian.", expression: "normal", "bg": "12.3" },
+      { speaker: "Narator", text: "Di pendopo utama, seorang wanita paruh baya berbalut kimono formal menatap tajam ke arah kalian. Itu ibumu.", expression: "normal", "bg": "12.3" },
+      { speaker: "Ibu", text: "Akhirnya kamu pulang. Dan... membawa tamu yang sangat berharga rupanya.", expression: "normal", "bg": "12.3" },
+      { speaker: "Livia", text: "S-selamat pagi, Nyonya... eh, M-maksud saya... I-Ibu... S-saya Livia...", expression: "scared", "bg": "12.3" },
+      { speaker: "Narator", text: "Livia membungkuk begitu dalam hingga hampir kehilangan keseimbangan. Ibumu hanya diam menatapnya dari ujung rambut hingga ujung kaki.", expression: "normal", "bg": "12.3" },
+      { speaker: "Ibu", text: "Trench coat yang elegan. Pemilihan pakaian yang sopan untuk mengunjungi kuil di musim sedingin ini. Pilihan bagus.", expression: "normal", "bg": "12.3" },
+      { speaker: "Livia", text: "T-terima kasih, Ibu...", expression: "blushing", "bg": "12.3" },
+      { speaker: "Ibu", text: "Jangan terlalu kaku. Masuklah, ayahmu sudah menunggu di ruang teh. Dia ingin melihat wanita yang berhasil menaklukkan hati putra kesayangannya.", expression: "normal", "bg": "12.3" },
+      
+      // Bg 12.4: Ruang Teh / Bertemu Ayah
+      { speaker: "Narator", text: "Kalian dipersilakan masuk ke ruang tatami yang hangat. Di tengah ruangan, seorang pria dengan jubah pendeta Shinto (Kannushi) sedang menyeduh teh matcha.", expression: "normal", "bg": "12.4" },
+      { speaker: "Ayah", text: "Duduklah. Tehnya baru saja siap.", expression: "normal", "bg": "12.4" },
+      { speaker: "Livia", text: "P-permisi... terima kasih banyak...", expression: "scared", "bg": "12.4" },
+      { speaker: "Narator", text: "Ayahmu menyodorkan secangkir teh pada Livia. Tatapannya sangat tenang, namun memancarkan wibawa yang luar biasa.", expression: "normal", "bg": "12.4" },
+      { speaker: "Ayah", text: "Jadi, Livia-san... Apakah putraku ini sering merepotkanmu di sana?", expression: "normal", "bg": "12.4",
+        choices: [
+          { text: "Tentu saja tidak, Yah.", nextIndex: 23 },
+          { text: "Biar Livia yang menjawabnya, Yah.", nextIndex: 25 },
+          { text: "Sedikit, tapi aku selalu memperlakukannya dengan baik.", nextIndex: 27 }
+        ]
+      },
+      { speaker: "Ayah", text: "Hahaha, aku tidak bertanya padamu, Nak.", expression: "normal", "bg": "12.4", nextIndex: 24 },
+      { speaker: "Livia", text: "D-dia sangat baik! Dia selalu menjagaku dan membantuku saat aku kesulitan...", expression: "blushing", "bg": "12.4", nextIndex: 29 },
+      
+      { speaker: "Livia", text: "Ah... b-banyak hal yang kami lalui bersama... tapi dia selalu bisa kuandalkan.", expression: "blushing", "bg": "12.4", nextIndex: 26 },
+      { speaker: "Ayah", text: "Begitu ya. Syukurlah kalau dia bisa menjadi pilar yang kuat untukmu.", expression: "normal", "bg": "12.4", nextIndex: 29 },
+      
+      { speaker: "Ayah", text: "Kepercayaan dirimu cukup tinggi juga. Bagaimana menurutmu, Livia?", expression: "normal", "bg": "12.4", nextIndex: 28 },
+      { speaker: "Livia", text: "Iya, dia memang sangat perhatian. Kadang terlalu perhatian sampai bikin aku deg-degan...", expression: "blushing", "bg": "12.4", nextIndex: 29 },
+      
+      { speaker: "Narator", text: "Mendengar jawaban Livia, wajah tegas ayahmu perlahan melembut.", expression: "normal", "bg": "12.4" },
+      { speaker: "Ayah", text: "Gadis yang jujur dan hangat. Kau memilih pasangan yang tepat. Keluarga ini akan selalu menyambutmu, Livia.", expression: "normal", "bg": "12.4" },
+      { speaker: "Livia", text: "T-terima kasih banyak, Ayah... Aku akan berusaha menjadi pendamping yang baik untuknya.", expression: "crying", "bg": "12.4" },
+      
+      // Bg 12.5: Kuil Utama (Honden)
+      { speaker: "Narator", text: "Setelah berbincang hangat, ayahmu meminta kalian berdua untuk pergi ke Honden (aula utama) guna memberikan penghormatan kepada leluhur.", expression: "normal", "bg": "12.5" },
+      { speaker: "Narator", text: "Di depan altar yang megah, kalian membunyikan lonceng, membungkuk dua kali, menepuk tangan dua kali, dan berdoa dalam diam.", expression: "normal", "bg": "12.5" },
+      { speaker: "Livia", text: "...", expression: "serious", "bg": "12.5" },
+      { speaker: "Narator", text: "Kamu melirik Livia yang sedang menutup matanya erat-erat. Wajahnya tampak begitu tulus dan damai.", expression: "normal", "bg": "12.5" },
+      { speaker: "Livia", text: "Fiuh... sudah selesai.", expression: "happy", "bg": "12.5" },
+      { speaker: "Narator", text: "Kamu tersenyum dan bertanya doa apa yang ia panjatkan barusan.", expression: "normal", "bg": "12.5" },
+      { speaker: "Livia", text: "Rahasia dong! Kalau dikasih tau nanti doanya nggak terkabul.", expression: "silly", "bg": "12.5" },
+      { speaker: "Livia", text: "Tapi yang pasti... doanya menyangkut masa depan kita berdua.", expression: "blushing", "bg": "12.5" },
+      
+      // Bg 12.6: Halaman Belakang / Sore Hari
+      { speaker: "Narator", text: "Sore harinya, kalian berjalan-jalan di taman belakang kuil. Sinar matahari jingga menembus dedaunan musim gugur, menciptakan pemandangan yang magis.", expression: "normal", "bg": "12.6" },
+      { speaker: "Livia", text: "Keluargamu... ternyata nggak seseram yang kubayangkan. Ibumu sangat perhatian, dan ayahmu juga bijaksana.", expression: "happy", "bg": "12.6" },
+      { speaker: "Livia", text: "Rasanya aku semakin yakin kalau aku nggak salah memilihmu.", expression: "clingy", "bg": "12.6" },
+      { speaker: "Narator", text: "Livia memeluk lenganmu erat, menyandarkan kepalanya di bahumu sambil memandangi matahari terbenam.", expression: "normal", "bg": "12.6" },
+      { speaker: "Livia", text: "Terima kasih sudah membawaku ke sini... ke tempat di mana kamu tumbuh dan belajar menjadi pria sehebat ini.", expression: "happy", "bg": "12.6" },
+      { speaker: "Narator", text: "Di bawah langit senja dan naungan kuil leluhur, ikatan kalian kini telah direstui sepenuhnya oleh masa lalu dan masa depan.", expression: "normal", "bg": "12.6" }
     ]
   },
   {
@@ -875,35 +1034,11 @@ const CHAPTERS: Chapter[] = [
     reqAffection: 100,
     reqLevel: 5,
     getRequirements: (data) => [
-      { label: "Telah Memilih Berkah", met: data.itemsBrought.some(i => i.startsWith('berkah_')) }
+      { label: "Menyelesaikan Kunjungan Kuil", met: data.accountDays >= 70 }
     ],
-    getDynamicContent: (data) => {
-      const isFertility = data.itemsBrought.includes('berkah_kesuburan');
-      const isHealth = data.itemsBrought.includes('berkah_kesehatan');
-
-      if (isFertility) {
-        return [
-          { speaker: "Narator", text: "Beberapa bulan setelah kunjungan ke kuil, ada sesuatu yang berbeda pada Livia. Ia sering tersenyum sendiri di depan cermin.", expression: "normal" },
-          { speaker: "Livia", text: "Sayang... kamu harus lihat ini...", expression: "blushing" },
-          { speaker: "Narator", text: "Dengan tangan gemetar, ia menyodorkan sebuah test pack. Dua garis merah tercetak jelas di sana.", expression: "normal" },
-          { speaker: "Livia", text: "A-aku hamil... Kita akan jadi orang tua! Tolong jaga kami berdua mulai sekarang ya, Ayah~", expression: "crying" }
-        ];
-      } else if (isHealth) {
-        return [
-          { speaker: "Narator", text: "Berkah Kesehatan benar-benar membawa keajaiban. Livia yang dulunya mudah lelah kini dipenuhi energi yang meluap-luap.", expression: "normal" },
-          { speaker: "Livia", text: "Hei, pemalas! Ayo bangun! Pagi ini kita lari 10 kilometer, nggak ada penolakan!", expression: "happy" },
-          { speaker: "Narator", text: "Kamu mendesah pasrah, ditarik paksa dari kasur oleh istrimu yang kini jauh lebih bersemangat darimu.", expression: "normal" },
-          { speaker: "Livia", text: "Masa suaminya kalah stamina sama istrinya? Ayo kejar aku kalau bisa!", expression: "happy" }
-        ];
-      } else {
-        return [
-          { speaker: "Narator", text: "Berkah Kekayaan membuka pintu rezeki dengan sangat deras. Karir kalian menanjak pesat dan uang mengalir seperti air.", expression: "normal" },
-          { speaker: "Livia", text: "Sayang!! Coba cek rekeningmu! Bonus akhir tahunku juga cair dua kali lipat!", expression: "happy" },
-          { speaker: "Narator", text: "Livia melompat kegirangan dan memelukmu erat. Impian-impian kalian kini tak lagi terasa mustahil.", expression: "normal" },
-          { speaker: "Livia", text: "Akhirnya kita bisa beli rumah impian kita! Ini semua berkat kerja keras kita berdua. Aku bangga banget sama kamu.", expression: "clingy" }
-        ];
-      }
-    }
+    content: [
+      { speaker: "Narator", text: "[Placeholder Bab 13] Bab ini akan diatur ulang nanti sesuai alur baru.", expression: "normal", bg: "13.1" }
+    ]
   },
   {
     id: 14,
@@ -911,35 +1046,11 @@ const CHAPTERS: Chapter[] = [
     reqAffection: 100,
     reqLevel: 5,
     getRequirements: (data) => [
-      { label: "Menyelesaikan Bab Sebelumnya", met: data.itemsBrought.some(i => i.startsWith('berkah_')) }
+      { label: "Menyelesaikan Bab Sebelumnya", met: data.accountDays >= 70 }
     ],
-    getDynamicContent: (data) => {
-      const isFertility = data.itemsBrought.includes('berkah_kesuburan');
-      const isHealth = data.itemsBrought.includes('berkah_kesehatan');
-      
-      if (isFertility) {
-        return [
-          { speaker: "Narator", text: "Bulan-bulan kehamilan penuh dengan drama. Jam 2 pagi, Livia membangunkanmu sambil menahan tangis.", expression: "normal" },
-          { speaker: "Livia", text: "Sayang... dedek bayinya rewel... dia pengen makan taiyaki hangat muda yang isinya selai kacang merah...", expression: "crying" },
-          { speaker: "Narator", text: "Meski terdengar absurd di tengah malam dingin bersalju, kamu tetap menembus udara beku demi menuruti ngidamnya.", expression: "normal" },
-          { speaker: "Livia", text: "Maafin aku ya sering ngerepotin... Makasih udah jadi suami yang paling sabar sedunia.", expression: "clingy" }
-        ];
-      } else if (isHealth) {
-        return [
-          { speaker: "Narator", text: "Kalian memutuskan untuk merayakan kesehatan kalian dengan mendaki puncak Gunung Fuji di musim panas bersama.", expression: "normal" },
-          { speaker: "Livia", text: "Hah... hah... Puncaknya sedikit lagi! Ayo sayang, jangan menyerah di sini!", expression: "happy" },
-          { speaker: "Narator", text: "Angin gunung yang dingin menusuk kulit, tapi genggaman tangan Livia menyalurkan kehangatan yang tak terlukiskan.", expression: "normal" },
-          { speaker: "Livia", text: "Pemandangannya indah banget dari atas awan ini kan? Tapi tetep aja, pemandangan terindahku itu kamu yang lagi ngos-ngosan begitu.", expression: "blushing" }
-        ];
-      } else {
-        return [
-          { speaker: "Narator", text: "Kesuksesan finansial membawa kesibukan yang luar biasa. Kalian jarang punya waktu untuk duduk santai berdua.", expression: "normal" },
-          { speaker: "Livia", text: "Jadwal meetingku padat banget hari ini... Kamu juga lembur lagi kan nanti malam?", expression: "normal" },
-          { speaker: "Narator", text: "Malam harinya, kamu mendapati Livia tertidur di meja kerjanya karena terlalu kelelahan.", expression: "normal" },
-          { speaker: "Livia", text: "(Mengigau pelan)... Jangan kerja terus sayang... aku kangen peluk kamu...", expression: "blushing" }
-        ];
-      }
-    }
+    content: [
+      { speaker: "Narator", text: "[Placeholder Bab 14] Bab ini akan diatur ulang nanti sesuai alur baru.", expression: "normal", bg: "14.1" }
+    ]
   },
   {
     id: 15,
@@ -947,35 +1058,11 @@ const CHAPTERS: Chapter[] = [
     reqAffection: 100,
     reqLevel: 5,
     getRequirements: (data) => [
-      { label: "Telah Memilih Berkah", met: data.itemsBrought.some(i => i.startsWith('berkah_')) }
+      { label: "Menyelesaikan Bab Sebelumnya", met: data.accountDays >= 70 }
     ],
-    getDynamicContent: (data) => {
-      const isFertility = data.itemsBrought.includes('berkah_kesuburan');
-      const isHealth = data.itemsBrought.includes('berkah_kesehatan');
-      
-      if (isFertility) {
-        return [
-          { speaker: "Narator", text: "Suara tangisan kencang memecah kesunyian ruang bersalin. Perjuangan panjang itu akhirnya usai.", expression: "normal" },
-          { speaker: "Livia", text: "Lihat sayang... dia cantik sekali... Hidungnya mirip banget sama kamu...", expression: "crying" },
-          { speaker: "Narator", text: "Kamu mengecup kening Livia dengan air mata yang menggenang. Keluarga kecil kalian kini telah utuh.", expression: "normal" },
-          { speaker: "Livia", text: "Terima kasih sudah memilihku untuk menjadi ibu dari anak-anakmu. Aku mencintaimu, dulu, sekarang, dan selamanya.", expression: "happy" }
-        ];
-      } else if (isHealth) {
-        return [
-          { speaker: "Narator", text: "Puluhan tahun berlalu. Rambut kalian kini telah memutih, namun tubuh kalian masih cukup bugar untuk berjalan-jalan sore.", expression: "normal" },
-          { speaker: "Livia", text: "Pelan-pelan jalannya, suamiku sayang. Ingat umur, kamu bukan anak muda lagi lho.", expression: "happy" },
-          { speaker: "Narator", text: "Livia menggenggam tanganmu yang keriput dengan erat, tersenyum dengan sorot mata yang sama seperti saat pertama kali kalian bertemu.", expression: "normal" },
-          { speaker: "Livia", text: "Ternyata menua bersamamu itu nggak buruk juga. Mari terus sehat dan saling menjaga sampai akhir waktu.", expression: "clingy" }
-        ];
-      } else {
-        return [
-          { speaker: "Narator", text: "Kalian kini berdiri di balkon penthouse mewah kalian, memandangi gemerlap lampu kota yang tak pernah tidur.", expression: "normal" },
-          { speaker: "Livia", text: "Kita berhasil ya, sayang. Semua impian liar kita dari nol... semuanya terwujud.", expression: "happy" },
-          { speaker: "Narator", text: "Livia menyandarkan kepalanya di bahumu, menikmati embusan angin malam dengan damai.", expression: "normal" },
-          { speaker: "Livia", text: "Tapi asal kamu tau... dari semua kemewahan ini, harta karun yang paling berharga buatku tetaplah kamu.", expression: "clingy" }
-        ];
-      }
-    }
+    content: [
+      { speaker: "Narator", text: "[Placeholder Bab 15] Bab ini akan diatur ulang nanti sesuai alur baru.", expression: "normal", bg: "15.1" }
+    ]
   }
 ];
 
@@ -1194,15 +1281,68 @@ export default function StoryPage() {
           <div className="flex-1 w-full max-w-4xl flex justify-center items-end z-10 min-h-[40vh] md:min-h-0">
             {scene?.speaker === 'Livia' && (
               <div 
-                className="h-[55vh] md:h-[60vh] landscape:h-[70vh] w-auto drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)] animate-[float_4s_ease-in-out_infinite] transition-opacity duration-500"
+                className="h-[55vh] md:h-[60vh] landscape:h-[70vh] aspect-[2/3] drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)] animate-[float_4s_ease-in-out_infinite] transition-opacity duration-500"
                 style={{ opacity: scene?.hideSprite ? 0 : 1, pointerEvents: scene?.hideSprite ? 'none' : 'auto' }}
               >
                 <LiviaSprite 
                   expression={scene.expression} 
                   variant={activeChapter.id <= 15 ? 'story' : 'home'}
-                  className="h-full w-auto max-w-[600px]" 
+                  chapterId={activeChapter.id}
+                  className="h-full w-full max-w-[600px]" 
                   imgClassName="object-contain object-bottom scale-[1.5] md:scale-[1.75] translate-y-[25%] md:translate-y-[35%]"
                 />
+              </div>
+            )}
+            {scene?.speaker === 'Laura' && (
+              <div 
+                className="h-[55vh] md:h-[60vh] landscape:h-[70vh] aspect-[2/3] drop-shadow-[0_20px_40px_rgba(150,150,200,0.3)] transition-opacity duration-500"
+                style={{ opacity: scene?.hideSprite ? 0 : 1, pointerEvents: scene?.hideSprite ? 'none' : 'auto' }}
+              >
+                <div className="relative flex items-end justify-center h-full w-full max-w-[600px] animate-[float_3s_ease-in-out_infinite]">
+                  <style>{`
+                    @keyframes float {
+                      0%, 100% { transform: translateY(0px); }
+                      50% { transform: translateY(-10px); }
+                    }
+                  `}</style>
+                  <img 
+                    src={`/laura/story-bab/${scene.expression.replace(/-[0-9]+$/, '')}.webp`}
+                    alt="Laura"
+                    className="absolute inset-0 w-full h-full object-contain object-bottom scale-[1.9] md:scale-[2.1] translate-y-[12%] md:translate-y-[15%] transition-all duration-300"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (!target.src.includes('normal.webp')) {
+                        target.src = '/laura/story-bab/normal.webp';
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+            {scene?.speaker === 'Enji' && (
+              <div 
+                className="h-[55vh] md:h-[60vh] landscape:h-[70vh] aspect-[2/3] drop-shadow-[0_20px_40px_rgba(100,120,150,0.3)] transition-opacity duration-500"
+                style={{ opacity: scene?.hideSprite ? 0 : 1, pointerEvents: scene?.hideSprite ? 'none' : 'auto' }}
+              >
+                <div className="relative flex items-end justify-center h-full w-full max-w-[600px] animate-[float_3s_ease-in-out_infinite]">
+                  <style>{`
+                    @keyframes float {
+                      0%, 100% { transform: translateY(0px); }
+                      50% { transform: translateY(-10px); }
+                    }
+                  `}</style>
+                  <img 
+                    src={`/enji/${scene.expression.replace(/-[0-9]+$/, '')}.webp`}
+                    alt="Enji"
+                    className="absolute inset-0 w-full h-full object-contain object-bottom scale-[1.75] md:scale-[1.95] translate-y-[8%] md:translate-y-[11%] transition-all duration-300"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (!target.src.includes('normal.webp')) {
+                        target.src = '/enji/normal.webp';
+                      }
+                    }}
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -1242,12 +1382,7 @@ export default function StoryPage() {
           {/* Center Background Sprite (16:9) - Desktop Only */}
           <div className="absolute inset-0 hidden md:flex items-center justify-center pointer-events-none z-10 overflow-hidden">
             <img 
-              src={`/livia/story page/${
-                userStats?.activeOutfit === 'outfit_casual' ? 'casual.webp' :
-                userStats?.activeOutfit === 'outfit_school' ? 'uniform.webp' :
-                userStats?.activeOutfit === 'outfit_yukata' ? 'yukata.webp' :
-                'default.webp'
-              }`} 
+              src={`/livia/story page/${(userStats?.activeOutfit || 'default').replace(/^outfit_/, '').replace(/_/g, '-').replace(/^school$/, 'uniform')}.webp`} 
               alt="Livia Story"
               className="w-full h-full object-cover object-center"
             />

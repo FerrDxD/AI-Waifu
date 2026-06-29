@@ -1,0 +1,22 @@
+{
+  "name": "Teman Kos",
+  "short_name": "Teman Kos",
+  "description": "Simulasi produktivitas dan teman AI virtual.",
+  "start_url": "/home",
+  "display": "standalone",
+  "background_color": "#151b2b",
+  "theme_color": "#ff758c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/livia/casual_normal.webp",
+      "sizes": "192x192",
+      "type": "image/webp"
+    },
+    {
+      "src": "/livia/casual_normal.webp",
+      "sizes": "512x512",
+      "type": "image/webp"
+    }
+  ]
+}

@@ -2,6 +2,7 @@
 
 import { LiviaExpression } from '@/lib/gemini';
 import { useState } from 'react';
+import Image from 'next/image';
 import { twMerge } from 'tailwind-merge';
 import { clsx, type ClassValue } from 'clsx';
 
@@ -17,6 +18,7 @@ interface LiviaSpriteProps {
   disableFloat?: boolean;
   mixBlendMultiply?: boolean;
   variant?: 'home' | 'wardrobe' | 'focus' | 'shop' | 'story';
+  chapterId?: number;
 }
 
 const glowStyles: Record<LiviaExpression, string> = {
@@ -34,7 +36,13 @@ const glowStyles: Record<LiviaExpression, string> = {
   silly: 'drop-shadow-[0_0_20px_rgba(255,150,50,0.4)]',
 };
 
-export default function LiviaSprite({ expression, outfit = 'default', className, imgClassName, disableFloat = false, mixBlendMultiply = false, variant = 'home' }: LiviaSpriteProps) {
+export default function LiviaSprite({ expression, outfit = 'default', className = '',
+  imgClassName = '',
+  disableFloat = false,
+  mixBlendMultiply = false,
+  variant = 'home',
+  chapterId
+}: LiviaSpriteProps) {
   const [imgError, setImgError] = useState(false);
   
   let fileName = expression as string;
@@ -42,44 +50,36 @@ export default function LiviaSprite({ expression, outfit = 'default', className,
     fileName = 'hapyy';
   }
   
-  // Map outfit IDs to actual folder paths
-  let folderPath = 'home-screen/default'; // fallback
-  if (outfit === 'landing-page') {
-    folderPath = 'landing-page';
-  } else if (outfit === 'default') {
-    folderPath = 'home-screen/default';
-  } else if (outfit === 'outfit_casual' || outfit === 'casual') {
-    folderPath = 'home-screen/casual';
-  } else if (outfit === 'outfit_school' || outfit === 'school') {
-    folderPath = 'home-screen/hightscool uniform';
-  } else if (outfit === 'outfit_yukata' || outfit === 'yukata') {
-    folderPath = 'home-screen/yukata';
-  }
+  // Normalisasi string outfit (buang prefix "outfit_")
+  const normalizedOutfit = outfit.startsWith('outfit_') ? outfit.replace('outfit_', '') : outfit;
+
+  // Mapping khusus untuk folder home-screen (yang namanya aneh/typo dari awal)
+  const homeFolderMap: Record<string, string> = {
+    'default': 'default',
+    'school': 'hightscool uniform',
+    'trench_coat': 'trench-coat',
+    'office_lady': 'office-lady', // jaga-jaga kalau filenya pakai strip
+    // yang lain akan otomatis menggunakan normalizedOutfit
+  };
+
+  // Mapping khusus untuk wardrobe, focus, shop (jika ada perbedaan nama)
+  const generalMap: Record<string, string> = {
+    'school': 'uniform',
+  };
+
+  let folderPath = `home-screen/${homeFolderMap[normalizedOutfit] || normalizedOutfit}`;
+  if (outfit === 'landing-page') folderPath = 'landing-page';
 
   let src = `/livia/${folderPath}/${fileName}.webp`;
 
+  const mappedName = generalMap[normalizedOutfit] || normalizedOutfit;
+
   if (variant === 'wardrobe') {
-    let wardrobeFileName = 'default';
-    if (outfit === 'outfit_casual' || outfit === 'casual') wardrobeFileName = 'casual';
-    else if (outfit === 'outfit_school' || outfit === 'school') wardrobeFileName = 'uniform';
-    else if (outfit === 'outfit_yukata' || outfit === 'yukata') wardrobeFileName = 'yukata';
-    else if (outfit === 'trench_coat') wardrobeFileName = 'trench_coat';
-    
-    src = `/livia/wardrobe/${wardrobeFileName}.webp`;
+    src = `/livia/wardrobe/${mappedName}.webp`;
   } else if (variant === 'focus') {
-    let focusFileName = 'default';
-    if (outfit === 'outfit_casual' || outfit === 'casual') focusFileName = 'casual';
-    else if (outfit === 'outfit_school' || outfit === 'school') focusFileName = 'uniform';
-    else if (outfit === 'outfit_yukata' || outfit === 'yukata') focusFileName = 'yukata';
-    
-    src = `/livia/focus-page/${focusFileName}.webp`;
+    src = `/livia/focus-page/${mappedName}.webp`;
   } else if (variant === 'shop') {
-    let shopFolder = 'default';
-    if (outfit === 'outfit_casual' || outfit === 'casual') shopFolder = 'casual';
-    else if (outfit === 'outfit_school' || outfit === 'school') shopFolder = 'uniform';
-    else if (outfit === 'outfit_yukata' || outfit === 'yukata') shopFolder = 'yukata';
-    
-    src = `/livia/shop/${shopFolder}/${fileName}.webp`;
+    src = `/livia/shop/${mappedName}/${fileName}.webp`;
   } else if (variant === 'story') {
     src = `/livia/Story-bab/${expression}.webp`;
   }
@@ -104,11 +104,15 @@ export default function LiviaSprite({ expression, outfit = 'default', className,
           {outfit !== 'default' && <span className="text-pink-300 text-[10px] italic">({outfit})</span>}
         </div>
       ) : (
-        <img
+        <Image
           src={src}
           alt={`Livia - ${expression}`}
+          fill
+          priority
+          unoptimized={true}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className={cn(
-            "w-full h-full transition-all duration-300",
+            "transition-all duration-300",
             imgClassName || "object-contain object-bottom",
             variant === 'story' ? '' : (glowStyles[expression as keyof typeof glowStyles] || ''),
             mixBlendMultiply && "mix-blend-multiply"
