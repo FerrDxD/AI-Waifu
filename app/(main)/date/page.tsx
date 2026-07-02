@@ -8,6 +8,7 @@ import LiviaSprite from '@/components/livia/LiviaSprite';
 import DialogBox from '@/components/livia/DialogBox';
 import { LiviaExpression } from '@/lib/gemini';
 import { Send } from 'lucide-react';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 const LOCATIONS = [
   { id: 'supermarket', name: 'Supermarket', icon: <ShoppingBag size={32} />, color: 'bg-blue-50 border-blue-200 text-blue-600', hover: 'hover:bg-blue-100' },
@@ -310,7 +311,7 @@ function DateContent() {
 
 export default function DatePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center text-pink-400 font-bold">Memuat...</div>}>
+    <Suspense fallback={<LoadingScreen text="Memuat Kencan..." />}>
       <DateContent />
     </Suspense>
   );

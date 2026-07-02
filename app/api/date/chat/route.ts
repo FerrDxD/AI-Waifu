@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateDateResponse } from '@/lib/gemini';
+import { generateDateResponse, extractCustomApiKey } from '@/lib/gemini';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { users, userProfiles } from '@/lib/db/schema';
@@ -11,6 +11,7 @@ export async function POST(req: Request) {
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    const customApiKey = extractCustomApiKey(req);
     const { location, message, history } = await req.json();
     
     const userResults = await db.select().from(users).where(eq(users.id, session.user.id));
@@ -41,7 +42,8 @@ export async function POST(req: Request) {
         cyclePhase,
         cycleDay: dayOfCycle
       },
-      profile?.longTermMemory || undefined
+      profile?.longTermMemory || undefined,
+      customApiKey
     );
 
     // Update affection if there is a delta, and update memory

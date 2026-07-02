@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, Plus, Check, Trash2, CalendarHeart, PenTool } from 'lucide-react';
+import { playSfx } from '@/lib/sfx';
 
 interface Task {
   id: string;
@@ -37,7 +38,10 @@ export default function SchedulePage() {
       if (t.id === id) {
         const isNowCompleted = !t.completed;
         if (isNowCompleted) {
+          playSfx('chime');
           triggerLiviaReaction();
+        } else {
+          playSfx('click');
         }
         return { ...t, completed: isNowCompleted };
       }
@@ -48,6 +52,7 @@ export default function SchedulePage() {
   const addTask = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTask.trim()) return;
+    playSfx('paper');
     const t: Task = {
       id: Date.now().toString(),
       text: newTask,
@@ -58,10 +63,12 @@ export default function SchedulePage() {
   };
 
   const deleteTask = (id: string) => {
+    playSfx('click');
     setTasks(tasks.filter(t => t.id !== id));
   };
 
   const triggerLiviaReaction = () => {
+    playSfx('pop');
     const randomComment = LIVIA_REACTIONS[Math.floor(Math.random() * LIVIA_REACTIONS.length)];
     setLiviaComment(randomComment);
     setShowComment(true);
@@ -219,20 +226,27 @@ export default function SchedulePage() {
 
       </div>
 
-      {/* Livia Reaction Dialogue */}
-      <div className={`fixed bottom-0 right-4 md:right-12 z-[100] transition-all duration-500 flex items-end gap-2 ${showComment ? 'translate-y-0 opacity-100' : 'translate-y-48 opacity-0 pointer-events-none'}`}>
+      {/* Livia Chibi & Dialogue */}
+      <div className="fixed bottom-4 right-4 md:right-12 z-[100] flex items-end gap-3 pointer-events-auto">
         
         {/* Chat Bubble */}
-        <div className="bg-white px-6 py-4 rounded-3xl rounded-br-sm shadow-[0_10px_25px_rgba(0,0,0,0.15)] border-2 border-pink-100 mb-20 max-w-[250px] animate-[pulse_3s_infinite]">
-          <p className="font-bold text-[#5c4d47] text-[15px] leading-snug">"{liviaComment}"</p>
+        <div className={`bg-white px-6 py-4 rounded-3xl rounded-br-sm shadow-[0_10px_25px_rgba(0,0,0,0.15)] border-2 border-pink-100 mb-16 max-w-[260px] transition-all duration-300 ${
+          showComment ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-90 translate-y-4 pointer-events-none'
+        }`}>
+          <p className="font-bold text-[#5c4d47] text-[14px] md:text-[15px] leading-snug">"{liviaComment}"</p>
         </div>
         
-        {/* Livia Peeking Head */}
-        <div className="w-32 h-40 bg-transparent relative overflow-hidden rounded-t-full">
+        {/* Livia Chibi Sprite */}
+        <div 
+          onClick={triggerLiviaReaction}
+          className="w-28 h-28 md:w-36 md:h-36 relative cursor-pointer hover:scale-105 active:scale-95 transition-transform drop-shadow-[0_10px_20px_rgba(255,117,140,0.2)] group"
+          title="Klik Chibi Livia untuk ngobrol!"
+        >
            <img 
-             src="/livia/home-screen/default/blushing.webp" 
-             alt="Livia" 
-             className="w-[200%] max-w-none h-auto absolute top-0 left-1/2 -translate-x-1/2 object-top"
+             src="/livia/chibi-livia.webp" 
+             alt="Chibi Livia" 
+             className="w-full h-full object-contain animate-bounce"
+             style={{ animationDuration: '2.5s' }}
            />
         </div>
       </div>

@@ -30,7 +30,7 @@ def make_bg_transparent(image_path):
         print(f"[GAGAL] memproses {os.path.basename(image_path)}: {e}")
 
 if __name__ == "__main__":
-    target_dir = r"C:\Users\Hype GLK\teman-kost\public\enji"
+    target_dir = r"C:\Users\Hype GLK\teman-kost\public\livia"
     
     print("=== Memulai proses pembersihan Background dengan AI (Rembg) ===")
     count = 0

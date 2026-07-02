@@ -26,14 +26,15 @@ export default function OnboardingPage() {
     const dialogs: { text: string, expression: LiviaExpression }[] = [];
     
     if (itemsBrought.includes('teddy_bear')) {
-      dialogs.push({ text: "Eh, kamu masukin boneka itu? ...Jangan salah paham. Aku cuma penasaran aja.", expression: 'clingy' });
+      dialogs.push({ text: "Eh, kamu masukin boneka beruang itu? ...Jangan salah paham! Aku cuma bawa karena udah kebiasaan dari kecil.", expression: 'clingy' });
     } else if (itemsBrought.includes('makeup')) {
-      dialogs.push({ text: "Set make up? Tentu saja aku bawa itu. Penampilan itu penting.", expression: 'normal' });
+      dialogs.push({ text: "Set make up? Tentu saja aku harus bawa itu. Penampilan di kampus kota besar itu penting.", expression: 'normal' });
     } else {
-      dialogs.push({ text: "Oke. Pilihan yang... lumayan. Ayo berangkat.", expression: 'normal' });
+      dialogs.push({ text: "Oke. Pilihan barang yang... lumayan. Koperku udah ditutup rapi sekarang.", expression: 'normal' });
     }
     
-    dialogs.push({ text: "Rumah baruku... Aku nggak bakal menyesal, kan?", expression: 'normal' });
+    dialogs.push({ text: "Maaf ya tadi sempat bawel. Makasih udah bantuin packing... Ayo kita pamit ke Ibu dan berangkat ke stasiun.", expression: 'pleased' });
+    dialogs.push({ text: "Kota besar dan kamar kos baru kita... Semoga semuanya berjalan lancar ya, tetangga.", expression: 'happy' });
     
     return dialogs;
   };
@@ -66,7 +67,7 @@ export default function OnboardingPage() {
       {stage === 'dialog' && (
         <div className="absolute inset-0 z-0 animate-[fadeIn_1s_ease-out_forwards]">
           <img 
-            src="/bg_onboarding.webp"
+            src="/bg_story-8.12.webp"
             alt="Room Background Final"
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] ease-linear hover:scale-110"
           />
@@ -92,11 +93,14 @@ export default function OnboardingPage() {
         {stage === 'dialog' && (
           <div className="relative w-full h-screen flex flex-col justify-end pb-12 px-8 overflow-hidden animate-[fadeIn_0.5s_ease-out_forwards]">
             {/* Livia Sprite */}
-            <div className="absolute inset-0 flex items-end justify-center pointer-events-none z-10">
-              <div className="relative h-[85vh] w-auto animate-[float_6s_ease-in-out_infinite]">
+            <div className="absolute inset-0 flex items-end justify-center pointer-events-none z-10 pb-0">
+              <div className="h-[55vh] md:h-[60vh] landscape:h-[70vh] aspect-[2/3] w-full max-w-[600px] animate-[float_4s_ease-in-out_infinite] drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)]">
                 <LiviaSprite 
                   expression={dialogs[dialogIndex].expression} 
-                  className="h-full w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(255,117,140,0.3)] transition-opacity duration-300"
+                  variant="story"
+                  chapterId={0}
+                  className="h-full w-full max-w-[600px]"
+                  imgClassName="object-contain object-bottom scale-[1.5] md:scale-[1.75] translate-y-[10%] md:translate-y-[15%] transition-opacity duration-300"
                 />
               </div>
             </div>

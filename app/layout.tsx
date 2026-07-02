@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import ViewportManager from '@/components/ViewportManager';
 import { RadioProvider } from '@/components/RadioProvider';
+import AchievementToast from '@/components/ui/AchievementToast';
+import CustomAlertModal from '@/components/ui/CustomAlertModal';
 
 export const metadata: Metadata = {
   title: 'Teman Kos',
@@ -22,6 +24,8 @@ export default function RootLayout({
         <ViewportManager />
         <main className="min-h-screen w-full relative">
           <RadioProvider>
+            <AchievementToast />
+            <CustomAlertModal />
             {children}
           </RadioProvider>
         </main>

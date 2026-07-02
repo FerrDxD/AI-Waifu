@@ -6,6 +6,35 @@ if (!process.env.GEMINI_API_KEY) {
 
 export const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+export function getAIClient(customApiKey?: string) {
+  if (customApiKey && customApiKey.trim().length > 0) {
+    try {
+      return new GoogleGenerativeAI(customApiKey.trim());
+    } catch (e) {
+      console.error("Invalid custom API key, falling back to default:", e);
+    }
+  }
+  return genAI;
+}
+
+export function extractCustomApiKey(req: Request): string | undefined {
+  const headerKey = req.headers.get('x-custom-api-key');
+  if (headerKey && headerKey.trim().length > 0) return headerKey.trim();
+
+  const cookieHeader = req.headers.get('cookie');
+  if (!cookieHeader) return undefined;
+  const match = cookieHeader.match(/(?:^|;\s*)custom_gemini_api_key=([^;]*)/);
+  if (match && match[1]) {
+    try {
+      const decoded = decodeURIComponent(match[1]);
+      if (decoded.trim().length > 0) return decoded.trim();
+    } catch (e) {
+      return match[1].trim();
+    }
+  }
+  return undefined;
+}
+
 export type LiviaExpression = 'normal' | 'angry' | 'blushing' | 'clingy' | 'happy' | 'confused' | 'flirty' | 'pain' | 'pleased' | 'scared' | 'serious' | 'silly';
 
 export async function generateLiviaResponse(
@@ -16,7 +45,8 @@ export async function generateLiviaResponse(
   itemsBrought: string[],
   stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number },
   isVoiceCall?: boolean,
-  longTermMemory?: string
+  longTermMemory?: string,
+  customApiKey?: string
 ): Promise<{ reply: string, affectionDelta: number, expression: LiviaExpression, memoryUpdate?: string }> {
   
   const affectionLevelName = affectionLevel < 20 ? 'Orang Asing' :
@@ -76,12 +106,13 @@ Kembalikan HANYA JSON valid:
 affectionDelta positif jika user bilang sesuatu yang Livia suka (implisit), negatif jika Livia kesal. Pilih expression yang paling sesuai dengan isi reply.
 Hanya kembalikan JSON. Tidak ada teks lain.`;
 
-  const model = genAI.getGenerativeModel({ 
-  model: "gemini-flash-latest",
-  generationConfig: {
-    temperature: 0.8,
-  }
-});
+  const client = getAIClient(customApiKey);
+  const model = client.getGenerativeModel({ 
+    model: "gemini-flash-latest",
+    generationConfig: {
+      temperature: 0.8,
+    }
+  });
 
   // Format history manually into the prompt to avoid chat history role conflicts
   const formattedHistory = chatHistory.map(msg => 
@@ -142,7 +173,8 @@ export async function generateDateDialogue(
   location: string,
   affectionLevel: number,
   userName: string,
-  stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number }
+  stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number },
+  customApiKey?: string
 ): Promise<{ speaker: string, text: string, expression?: LiviaExpression }[]> {
   let physiologicalContext = '';
   if (stats) {
@@ -165,7 +197,8 @@ Kembalikan HANYA array JSON valid dengan format:
 ]
 Jangan tambahkan teks lain di luar JSON.`;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+  const client = getAIClient(customApiKey);
+  const model = client.getGenerativeModel({ model: "gemini-flash-latest" });
 
   try {
     const result = await model.generateContent(systemPrompt);
@@ -188,7 +221,8 @@ export async function generateDateResponse(
   affectionLevel: number,
   userName: string,
   stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number },
-  longTermMemory?: string
+  longTermMemory?: string,
+  customApiKey?: string
 ): Promise<{ reply: string, expression: LiviaExpression, affectionDelta: number, memoryUpdate?: string }> {
   
   const affectionLevelName = affectionLevel < 20 ? 'Orang Asing' :
@@ -233,7 +267,8 @@ Kembalikan HANYA JSON valid:
 }
 Hanya kembalikan JSON. Tidak ada teks lain.`;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-flash-latest", generationConfig: { temperature: 0.8 } });
+  const client = getAIClient(customApiKey);
+  const model = client.getGenerativeModel({ model: "gemini-flash-latest", generationConfig: { temperature: 0.8 } });
 
   const formattedHistory = chatHistory.map(msg => 
     `${msg.role === 'livia' ? 'Livia' : msg.role === 'narator' ? 'Narator' : 'User'}: ${msg.content}`

@@ -37,9 +37,46 @@ export function RadioProvider({ children }: { children: React.ReactNode }) {
     // Only initialize once on client
     if (!audioRef.current) {
       const audio = new Audio(`/radio/${PLAYLIST[currentTrack].file}`);
-      audio.loop = true; // Unconditional looping as requested
+      audio.loop = true;
+
+      // Baca bgm_volume dari localStorage
+      const savedBgm = localStorage.getItem('bgm_volume');
+      audio.volume = savedBgm !== null ? parseInt(savedBgm, 10) / 100 : 0.5;
+
       audioRef.current = audio;
+
+      // Coba putar otomatis saat aplikasi pertama kali dibuka
+      audio.play().then(() => {
+        setIsPlaying(true);
+      }).catch((e) => {
+        console.warn("Autoplay browser diblokir, menunggu interaksi pertama user...", e);
+        const handleFirstInteraction = () => {
+          if (audioRef.current && audioRef.current.paused) {
+            audioRef.current.play().then(() => {
+              setIsPlaying(true);
+            }).catch(console.error);
+          }
+          window.removeEventListener('click', handleFirstInteraction);
+          window.removeEventListener('keydown', handleFirstInteraction);
+          window.removeEventListener('pointerdown', handleFirstInteraction);
+        };
+        window.addEventListener('click', handleFirstInteraction);
+        window.addEventListener('keydown', handleFirstInteraction);
+        window.addEventListener('pointerdown', handleFirstInteraction);
+      });
     }
+
+    // Listen untuk perubahan volume BGM real-time dari Settings
+    const handleBgmVolumeChange = (e: Event) => {
+      const val = (e as CustomEvent).detail as number;
+      if (audioRef.current) {
+        audioRef.current.volume = val / 100;
+      }
+    };
+    window.addEventListener('bgm_volume_change', handleBgmVolumeChange);
+    return () => {
+      window.removeEventListener('bgm_volume_change', handleBgmVolumeChange);
+    };
   }, []);
 
   useEffect(() => {

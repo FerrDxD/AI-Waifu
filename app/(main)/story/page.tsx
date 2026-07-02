@@ -1030,38 +1030,276 @@ const CHAPTERS: Chapter[] = [
   },
   {
     id: 13,
-    title: "Babak Baru",
+    title: "Pengurus Kuil",
     reqAffection: 100,
     reqLevel: 5,
     getRequirements: (data) => [
       { label: "Menyelesaikan Kunjungan Kuil", met: data.accountDays >= 70 }
     ],
     content: [
-      { speaker: "Narator", text: "[Placeholder Bab 13] Bab ini akan diatur ulang nanti sesuai alur baru.", expression: "normal", bg: "13.1" }
+      // 0
+      { speaker: "Narator", text: "Malam pergantian tahun tiba. Udara musim dingin yang menusuk tulang sama sekali tak menyurutkan lautan manusia yang memadati kuil.", expression: "normal", "bg": "13.1" },
+      { speaker: "Livia", text: "Gimana? P-pakaian ini... nggak aneh kan di aku?", expression: "blushing-13", "bg": "13.1",
+        choices: [
+          { text: "Sangat cantik, seperti bidadari kuil.", nextIndex: 2 },
+          { text: "Sedikit kebesaran, tapi menggemaskan.", nextIndex: 4 },
+          { text: "Terlihat profesional. Ayo mulai bekerja!", nextIndex: 6 }
+        ]
+      },
+      // 2
+      { speaker: "Livia", text: "B-bidadari?! Jangan berlebihan ah, nanti aku besar kepala lho...", expression: "blushing-13", "bg": "13.1", nextIndex: 8 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "13.1", nextIndex: 8 },
+      // 4
+      { speaker: "Livia", text: "Ugh, ini ukuran terkecil yang ibumu temukan! Jangan diledek dong...", expression: "angry-13", "bg": "13.1", nextIndex: 8 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "13.1", nextIndex: 8 },
+      // 6
+      { speaker: "Livia", text: "Wah, bos kita galak banget! Siap laksanakan, Komandan!", expression: "silly-13", "bg": "13.1", nextIndex: 8 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "13.1", nextIndex: 8 },
+      // 8
+      { speaker: "Narator", text: "Setelah merapikan chihaya putih dan hakama merahnya, kalian berjalan menuju stan Omamori di tengah hiruk-pikuk Hatsumode.", expression: "normal", "bg": "13.1" },
+      { speaker: "Livia", text: "S-selamat datang! Jimat keselamatan, kesuksesan, dan jodoh ada di sebelah sini!", expression: "happy-13", "bg": "13.2" },
+      // 10
+      { speaker: "Livia", text: "Jimat untuk ujian masuk Universitas? Ada! Yang ini paling ampuh!", expression: "happy-13", "bg": "13.2" },
+      { speaker: "Narator", text: "Livia beradaptasi dengan sangat cepat. Senyum ramahnya mengundang kerumunan tak henti di stan kalian.", expression: "normal", "bg": "13.2" },
+      { speaker: "Narator", text: "Namun tak lama, sekelompok gadis remaja menghampiri stan sambil berbisik-bisik dan melirikmu dengan genit.", expression: "normal", "bg": "13.2" },
+      { speaker: "Livia", text: "Eh? Ada yang bisa saya bantu, Kak?", expression: "scared-13", "bg": "13.2" },
+      { speaker: "Narator", text: "Salah satu gadis itu menyenggol temannya lalu bertanya kepadamu, 'Kakak pengurus kuil ganteng banget, sendirian aja kah? Mau tukeran kontak?'", expression: "normal", "bg": "13.2",
+        choices: [
+          { text: "Lirik Livia yang mulai cemberut.", nextIndex: 15 },
+          { text: "Tolak dengan senyum halus.", nextIndex: 17 },
+          { text: "Tarik tangan Livia dan pamerkan cincin.", nextIndex: 19 }
+        ]
+      },
+      // 15
+      { speaker: "Livia", text: "E-ehem! Maaf ya Dek, 'Kakak ganteng' ini jimat jodohnya udah sold out alias udah ada yang punya!", expression: "angry-13", "bg": "13.2", nextIndex: 21 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "13.2", nextIndex: 21 },
+      // 17
+      { speaker: "Narator", text: "Kamu menolak dengan halus, beralasan bahwa kamu sedang sangat sibuk bekerja menjaga kuil bersama istrimu.", expression: "normal", "bg": "13.2", nextIndex: 21 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "13.2", nextIndex: 21 },
+      // 19
+      { speaker: "Narator", text: "Kamu menarik tangan Livia, menunjukkan cincin pernikahan kalian yang melingkar serasi di jari manis.", expression: "normal", "bg": "13.2", nextIndex: 21 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "13.2", nextIndex: 21 },
+      // 21
+      { speaker: "Narator", text: "Melihat hal itu, para gadis remaja tersebut langsung salah tingkah, meminta maaf, lalu berlari pergi.", expression: "normal", "bg": "13.2" },
+      { speaker: "Livia", text: "Huuu... untung aja tadi ada aku. Kalau ngga, pasti kamu udah digoda macem-macem.", expression: "clingy-13", "bg": "13.2" },
+      { speaker: "Livia", text: "Tapi... makasih ya. Udah ngebuktiin kalau kamu beneran cuma milikku.", expression: "blushing-13", "bg": "13.2" },
+      { speaker: "Narator", text: "Malam terus larut, pengunjung silih berganti. Livia melayani mereka dengan penuh semangat.", expression: "normal", "bg": "13.2" },
+      // 25
+      { speaker: "Livia", text: "Jimat untuk kelancaran persalinan? Oh, tentu saja! Semoga istri Anda dan bayinya sehat selalu ya, Pak!", expression: "happy-13", "bg": "13.2" },
+      { speaker: "Livia", text: "Fiuh... lumayan capek juga ya. Gimana? Aku udah kelihatan kaya penjaga kuil profesional belum?", expression: "happy-13", "bg": "13.2",
+        choices: [
+          { text: "Sangat profesional dan cekatan.", nextIndex: 27 },
+          { text: "Jangan memaksakan diri ya.", nextIndex: 29 },
+          { text: "Semangat sampai pagi!", nextIndex: 31 }
+        ]
+      },
+      // 27
+      { speaker: "Livia", text: "Hehe, tentu saja! Aku kan harus bantu meringankan beban suamiku tercinta.", expression: "blushing-13", "bg": "13.2", nextIndex: 33 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "13.2", nextIndex: 33 },
+      // 29
+      { speaker: "Livia", text: "Tenang aja, energi aku masih full kok! Apalagi kalau kerjanya bareng kamu terus.", expression: "happy-13", "bg": "13.2", nextIndex: 33 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "13.2", nextIndex: 33 },
+      // 31
+      { speaker: "Livia", text: "Uwooogh! Pantang menyerah sebelum fajar menyingsing!", expression: "silly-13", "bg": "13.2", nextIndex: 33 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "13.2", nextIndex: 33 },
+      // 33
+      { speaker: "Narator", text: "Beberapa jam berlalu. Saat pergantian shift, kalian melipir ke ruang istirahat staf yang sepi.", expression: "normal", "bg": "13.3" },
+      { speaker: "Livia", text: "Akhirnya bisa duduk juga... kakiku beneran kaya mau copot rasanya.", expression: "scared-13", "bg": "13.3" },
+      // 35
+      { speaker: "Narator", text: "Tepat saat Livia bersandar di tatami, pintu geser ruangan perlahan terbuka.", expression: "normal", "bg": "13.3" },
+      { speaker: "Ayame", text: "Kerja bagus, kalian berdua. Ibu bawakan amazake hangat dan mochi panggang.", expression: "normal", "bg": "13.3" },
+      { speaker: "Livia", text: "Ibu! T-terima kasih banyak! Ini pas banget buat ngusir dingin...", expression: "happy-13", "bg": "13.3" },
+      { speaker: "Ayame", text: "Awalnya Ibu khawatir kamu akan kewalahan, Livia. Berdiri melayani ribuan orang bukanlah hal yang mudah.", expression: "normal", "bg": "13.3" },
+      { speaker: "Ayame", text: "Ternyata kau punya kegigihan yang luar biasa. Ayahnya di Honden pasti bangga mendengarnya.", expression: "normal", "bg": "13.3" },
+      // 40
+      { speaker: "Livia", text: "A-aku cuma ingin... menjadi menantu yang bisa diandalkan oleh keluarga ini.", expression: "blushing-13", "bg": "13.3" },
+      { speaker: "Ayame", text: "Kalian sudah melakukan yang terbaik. Habiskan ini, lalu beristirahatlah. Sisa malam biar ditangani staf lain.", expression: "normal", "bg": "13.3" },
+      { speaker: "Livia", text: "Ternyata Ibumu baik banget ya... Aku bener-bener ngerasa diterima utuh di sini.", expression: "happy-13", "bg": "13.3" },
+      { speaker: "Narator", text: "Menjelang fajar, kalian melangkah keluar menuju teras belakang kuil yang sangat sunyi.", expression: "normal", "bg": "13.4" },
+      { speaker: "Livia", text: "Haaa... lelahnya... tapi ini pengalaman yang nggak akan pernah aku lupain.", expression: "clingy-13", "bg": "13.4" },
+      // 45
+      { speaker: "Narator", text: "Livia merebahkan kepalanya di bahumu. Hembusan napasnya mengepul putih, melebur dengan embun pagi.", expression: "normal", "bg": "13.4" },
+      { speaker: "Livia", text: "Tahun lalu... aku cuma bisa berdoa diam-diam supaya kita bisa terus sama-sama.", expression: "blushing-13", "bg": "13.4" },
+      { speaker: "Livia", text: "Sekarang, aku malah jualan jimat asmara buat orang lain. Lucu ya, padahal doaku sendiri udah terkabul dengan sempurna.", expression: "happy-13", "bg": "13.4" },
+      { speaker: "Narator", text: "Di ufuk timur, semburat oranye mulai memecah langit. Matahari terbit pertama (Hatsuhinode) menampakkan diri.", expression: "normal", "bg": "13.4" },
+      { speaker: "Livia", text: "Wah... cantik banget cahayanya...", expression: "happy-13", "bg": "13.4" },
+      // 50
+      { speaker: "Narator", text: "Di bawah cahaya keemasan itu, Livia menarik kerah bajumu dan mendaratkan kecupan hangat di pipimu.", expression: "normal", "bg": "13.4" },
+      { speaker: "Livia", text: "Selamat tahun baru, Suamiku. Mohon bimbingannya lagi untuk tahun ini, ya.", expression: "blushing-13", "bg": "13.4" },
+      { speaker: "Narator", text: "Hatsumode kali ini mengikat janji suci kalian dalam harmoni yang tak akan pernah pudar.", expression: "normal", "bg": "13.4" }
     ]
   },
   {
     id: 14,
-    title: "Ujian Perjalanan",
+    title: "Seporsi Kehangatan",
     reqAffection: 100,
     reqLevel: 5,
     getRequirements: (data) => [
       { label: "Menyelesaikan Bab Sebelumnya", met: data.accountDays >= 70 }
     ],
     content: [
-      { speaker: "Narator", text: "[Placeholder Bab 14] Bab ini akan diatur ulang nanti sesuai alur baru.", expression: "normal", bg: "14.1" }
+      { speaker: "Narator", text: "Siang hari setelah kesibukan panjang Hatsumode. Sinar mentari cerah menembus jendela ruang keluarga kuil.", expression: "normal", "bg": "14.1" },
+      { speaker: "Livia", text: "Skak mat! Tuh kan, aku menang lagi! Kamu beneran ngga sengaja ngalah kan?", expression: "angry", "bg": "14.1",
+        choices: [
+          { text: "Aku kelelahan habis jaga stan semalaman.", nextIndex: 2 },
+          { text: "Strategimu memang jauh lebih hebat.", nextIndex: 4 },
+          { text: "Belum! Ayo kita tanding ulang!", nextIndex: 6 }
+        ]
+      },
+      { speaker: "Livia", text: "Halah, alasan aja! Padahal tadi malam kan aku juga ikutan begadang lho.", expression: "silly", "bg": "14.1", nextIndex: 8 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "14.1", nextIndex: 8 },
+      { speaker: "Livia", text: "Hehe, tentu saja. Bidak-bidak catur ini sudah sehati denganku dari awal.", expression: "happy", "bg": "14.1", nextIndex: 8 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "14.1", nextIndex: 8 },
+      { speaker: "Livia", text: "Boleh banget! Kali ini aku bakal skak mat kamu dalam waktu kurang dari 10 langkah!", expression: "happy", "bg": "14.1", nextIndex: 8 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "14.1", nextIndex: 8 },
+      { speaker: "Narator", text: "Saat kalian asyik berdebat di depan papan catur, pintu ruang keluarga tiba-tiba bergeser terbuka.", expression: "normal", "bg": "14.1" },
+      { speaker: "Ayame", text: "Kalian berdua, maaf mengganggu waktu santai kalian di siang hari ini.", expression: "normal", "bg": "14.1" },
+      { speaker: "Livia", text: "Ah, Ibu! Ngga ganggu sama sekali kok. Ada yang bisa dibantu, Bu?", expression: "happy", "bg": "14.1" },
+      { speaker: "Ayame", text: "Sebenarnya... Ibu agak khawatir dengan Naomi. Kakak perempuanmu itu tidak pulang semalam.", expression: "normal", "bg": "14.1" },
+      { speaker: "Ayame", text: "Tolong kunjungi apartemennya dan bawakan beberapa bekal tahun baru ini. Pastikan dia setidaknya makan dengan benar.", expression: "normal", "bg": "14.1" },
+      { speaker: "Ayame", text: "Oh ya, tinggalkan saja mobil kalian di sini. Jalanan menuju pusat kota pasti sangat macet pasca-Hatsumode. Gunakan kereta saja, lebih cepat.", expression: "normal", "bg": "14.1" },
+      { speaker: "Livia", text: "Naomi-nee-san? Tentu saja, Ibu! Kami akan segera berangkat ke sana sekarang juga!", expression: "happy", "bg": "14.1" },
+      { speaker: "Narator", text: "Mengikuti saran ibumu, kalian meninggalkan mobil di kuil dan menaiki kereta menuju pusat kota tempat Naomi tinggal.", expression: "normal", "bg": "14.2" },
+      { speaker: "Livia", text: "Ngomong-ngomong, kakakmu itu orangnya seperti apa? Waktu pernikahan kita, dia cuma datang sebentar lalu buru-buru pergi.", expression: "blushing", "bg": "14.2" },
+      { speaker: "Narator", text: "Kamu menjelaskan bahwa Naomi adalah budak korporat yang sangat gila kerja, hingga hampir tidak punya waktu untuk mengurus dirinya sendiri.", expression: "normal", "bg": "14.2" },
+      { speaker: "Livia", text: "Hee... kasihan banget. Apalagi ini kan libur tahun baru. Masa iya dia masih kerja keras bagai kuda?", expression: "scared", "bg": "14.2" },
+      { speaker: "Narator", text: "Sesampainya di apartemen, kalian berdiri di depan pintu bernomor 302.", expression: "normal", "bg": "14.3" },
+      { speaker: "Livia", text: "Aku pencet belnya ya...", expression: "scared", "bg": "14.3" },
+      { speaker: "Narator", text: "Ting-tong. Tidak ada jawaban. Livia iseng memutar kenop pintu, dan mengejutkannya, pintu itu tidak dikunci sama sekali.", expression: "normal", "bg": "14.3" },
+      { speaker: "Livia", text: "Permisi... Naomi-nee-san...?", expression: "scared", "bg": "14.4" },
+      { speaker: "Narator", text: "Begitu masuk, kalian disambut oleh pemandangan yang kacau balau. Tumpukan kertas, cangkir kopi kosong, dan kaleng bir berserakan di mana-mana layaknya kapal pecah.", expression: "normal", "bg": "14.4" },
+      { speaker: "Naomi", text: "Nggghhh... 5 menit lagi, Pak Bos... laporannya hampir selesai...", expression: "tired", "bg": "14.4" },
+      { speaker: "Narator", text: "Seorang wanita berambut berantakan dengan kemeja kusut tampak tertidur pulas di lantai yang dingin, dengan laptop yang masih menyala redup.", expression: "normal", "bg": "14.4" },
+      { speaker: "Livia", text: "Ya ampun! Naomi-nee-san! Kamu ngga apa-apa?!", expression: "scared", "bg": "14.4",
+        choices: [
+          { text: "Biarkan saja dia tidur di sana.", nextIndex: 27 },
+          { text: "Ayo kita pindahkan dia ke kasur.", nextIndex: 29 },
+          { text: "Kita rapikan ruangannya pelan-pelan.", nextIndex: 31 }
+        ]
+      },
+      { speaker: "Livia", text: "Jangan gila! Masa kita biarin dia kedinginan tidur di atas tumpukan dokumen begini?!", expression: "angry", "bg": "14.4", nextIndex: 33 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "14.4", nextIndex: 33 },
+      { speaker: "Livia", text: "Iya, bantu aku angkat bahunya. Hati-hati jangan sampai dia bangun ya.", expression: "serious", "bg": "14.4", nextIndex: 33 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "14.4", nextIndex: 33 },
+      { speaker: "Livia", text: "Boleh juga, mending kita beresin ruangannya dulu sebelum bangunin dia pelan-pelan.", expression: "blushing", "bg": "14.4", nextIndex: 33 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "14.4", nextIndex: 33 },
+      { speaker: "Narator", text: "Kalian menghabiskan waktu dua jam untuk membersihkan apartemen yang kacau tersebut dan menghangatkan bekal bawaan dari Ayame.", expression: "normal", "bg": "14.4" },
+      { speaker: "Naomi", text: "Eugh... hidungku mencium bau masakan yang wangi... mungkinkah aku sudah masuk surga...?", expression: "tired", "bg": "14.4" },
+      { speaker: "Livia", text: "Ah, Naomi-nee-san udah bangun! Selamat tahun baru!", expression: "happy", "bg": "14.4" },
+      { speaker: "Naomi", text: "Eh? Livia-chan? Dan adik bodohku? S-sejak kapan kalian ada di dalam apartemenku?!", expression: "surprised", "bg": "14.4" },
+      { speaker: "Narator", text: "Naomi langsung panik gelagapan menyadari ruangannya sudah disulap menjadi sangat bersih dan rapi.", expression: "normal", "bg": "14.4" },
+      { speaker: "Naomi", text: "Aaaargh! Padahal aku niatnya mau nyelesain sisa kerjaan semalam, malah ketiduran di lantai! Maafkan kakak iparmu yang memalukan ini, Livia-chan!", expression: "crying", "bg": "14.4" },
+      { speaker: "Livia", text: "Ngga apa-apa kok, Nee-san. Ibu mertua nyuruh kami bawain bekal tahun baru karena Nee-san ngga pulang dari kemarin.", expression: "happy", "bg": "14.4" },
+      { speaker: "Naomi", text: "Ugh... Ibu memang selalu bawel ngomelin aku, tapi... hiks... masakannya memang selalu yang terbaik.", expression: "crying", "bg": "14.4" },
+      { speaker: "Narator", text: "Kalian bertiga duduk melingkar di meja kotatsu yang baru saja dibersihkan. Naomi melahap makanan itu dengan linangan air mata haru.", expression: "normal", "bg": "14.4" },
+      { speaker: "Naomi", text: "Adikku, kau benar-benar beruntung mendapatkan istri sebaik Livia-chan. Kalau kau berani menyakitinya, aku yang akan memotong gajimu!", expression: "angry", "bg": "14.4" },
+      { speaker: "Livia", text: "Ehehe... tenang aja, dia suami yang paling pengertian kok, Nee-san.", expression: "blushing", "bg": "14.4" },
+      { speaker: "Naomi", text: "Haaah... ngeliat kalian berdua yang manis dan harmonis begini, aku jadi pengen cepet-cepet nikah juga... tapi ngga ada waktu...", expression: "tired", "bg": "14.4" },
+      { speaker: "Livia", text: "Tenang! Nanti aku bantuin cari calon yang pas deh! Asalkan Nee-san janji ngga boleh memforsir diri tidur di lantai lagi ya.", expression: "silly", "bg": "14.4" },
+      { speaker: "Naomi", text: "Beneran janji lho ya? Awas kalau calonnya kalah ganteng dari adikku yang bodoh ini!", expression: "surprised", "bg": "14.4" },
+      { speaker: "Livia", text: "Hehe, tentu saja! Aku kenal beberapa pengunjung tetap kuil yang ramah dan mapan kok!", expression: "happy", "bg": "14.4" },
+      { speaker: "Narator", text: "Naomi tertawa lepas, beban kerja berat yang menumpuk di pundaknya seolah menguap untuk sesaat.", expression: "normal", "bg": "14.4" },
+      { speaker: "Naomi", text: "Ngomong-ngomong, aku dengar dari Ibu kalau kalian dalam waktu dekat ini ada rencana pindah dari kost-an ya?", expression: "normal", "bg": "14.4" },
+      { speaker: "Livia", text: "Eh? Kok Nee-san udah tau duluan dari kita?", expression: "scared", "bg": "14.4" },
+      { speaker: "Naomi", text: "Ibu yang cerita sewaktu meneleponku kemarin. Beliau sangat mendukung kalian berdua untuk hidup mandiri di tempat yang lebih layak dan luas.", expression: "normal", "bg": "14.4" },
+      { speaker: "Livia", text: "Wah... Ibu dan Nee-san bener-bener perhatian banget sama keluarga kecil kita...", expression: "blushing", "bg": "14.4" },
+      { speaker: "Naomi", text: "Tentu saja! Kita kan sudah jadi satu keluarga. Kalau kalian butuh bantuan tenaga pas pindahan nanti, telepon saja aku ya!", expression: "happy", "bg": "14.4" },
+      { speaker: "Narator", text: "Siang itu diakhiri dengan gelak tawa dan obrolan hangat, menambah satu lagi ikatan keluarga yang makin tak terpisahkan.", expression: "normal", "bg": "14.4" }
     ]
   },
   {
     id: 15,
-    title: "Selamanya",
+    title: "Pindahan ke Apartemen",
     reqAffection: 100,
     reqLevel: 5,
     getRequirements: (data) => [
       { label: "Menyelesaikan Bab Sebelumnya", met: data.accountDays >= 70 }
     ],
     content: [
-      { speaker: "Narator", text: "[Placeholder Bab 15] Bab ini akan diatur ulang nanti sesuai alur baru.", expression: "normal", bg: "15.1" }
+      // 0
+      { speaker: "Narator", text: "Akhir pekan tiba. Kamar kost yang dulu menjadi tempat awal kisah kalian kini penuh dengan tumpukan kardus barang-barang.", expression: "normal", "bg": "15.1" },
+      // 1
+      { speaker: "Livia", text: "Huhuhu... melihat kamar ini kosong rasanya agak sedih ya. Banyak banget kenangan kita di sini dari dulu.", expression: "scared", "bg": "15.1",
+        choices: [
+          { text: "Dari Teman Kost jadi Teman Hidup.", nextIndex: 2 },
+          { text: "Kita akan buat kenangan baru yang lebih indah.", nextIndex: 4 },
+          { text: "Ingat waktu kamu pertama kali pinjam panci?", nextIndex: 6 }
+        ]
+      },
+      // 2
+      { speaker: "Livia", text: "Iih, gombal banget! Tapi... bener juga sih, sekarang kamu udah resmi jadi suamiku.", expression: "blushing", "bg": "15.1", nextIndex: 8 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "15.1", nextIndex: 8 },
+      // 4
+      { speaker: "Livia", text: "Tentu saja! Di apartemen baru nanti, kita ngga perlu sungkan atau takut ketahuan ibu kost lagi.", expression: "happy", "bg": "15.1", nextIndex: 8 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "15.1", nextIndex: 8 },
+      // 6
+      { speaker: "Livia", text: "Aaaah jangan diingetin! Waktu itu aku malu banget tau karena mukaku cemong kena arang!", expression: "angry", "bg": "15.1", nextIndex: 8 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "15.1", nextIndex: 8 },
+      // 8
+      { speaker: "Livia", text: "Masih inget nggak waktu pertama kali kamu ngetok pintu kamarku gara-gara lampu lorong mati?", expression: "blushing", "bg": "15.1" },
+      { speaker: "Livia", text: "Waktu itu aku kirain kamu cowok aneh yang mau modus, eh taunya malah jadi suamiku sekarang.", expression: "silly", "bg": "15.1" },
+      { speaker: "Narator", text: "Kamu tertawa bersama Livia sembari mengunci pintu kamar kost untuk terakhir kalinya.", expression: "normal", "bg": "15.1" },
+      { speaker: "Narator", text: "Setelah merekatkan selotip pada kardus terakhir, truk pindahan yang kalian pesan tiba di depan pagar kost.", expression: "normal", "bg": "15.1" },
+      { speaker: "Livia", text: "Selamat tinggal, kamar kost kesayangan! Terima kasih sudah mempertemukan dan menyatukan kami!", expression: "happy", "bg": "15.1" },
+      // 13
+      { speaker: "Narator", text: "Beberapa jam kemudian, kalian berdiri di ruang tamu apartemen baru yang jauh lebih luas, bersih, dan terang.", expression: "normal", "bg": "15.2" },
+      { speaker: "Livia", text: "Wahhhh! Luas banget! Kasur kita kalau ditaruh di sini masih sisa banyak tempat buat jalan-jalan!", expression: "happy", "bg": "15.2" },
+      { speaker: "Livia", text: "Lihat, jendelanya juga besar banget! Kita bisa lihat pemandangan langit kota dari sini!", expression: "happy", "bg": "15.2" },
+      { speaker: "Livia", text: "Di sebelah sana ada dapur bersih yang rapi, terus di sudut sana ada balkon untuk jemur pakaian!", expression: "happy", "bg": "15.2" },
+      { speaker: "Narator", text: "Livia berlarian kecil mengelilingi ruangan kosong tersebut dengan mata berbinar-binar penuh kegembiraan.", expression: "normal", "bg": "15.2" },
+      // 18
+      { speaker: "Livia", text: "Gimana menurutmu? Kita mau tata ruang tengah yang luas ini dengan gaya seperti apa?", expression: "happy", "bg": "15.2",
+        choices: [
+          { text: "Gaya minimalis modern agar terlihat rapi.", nextIndex: 19 },
+          { text: "Gaya tradisional Jepang dengan tatami dan kotatsu.", nextIndex: 21 },
+          { text: "Gaya super nyaman yang penuh bantal dan karpet bulu.", nextIndex: 23 }
+        ]
+      },
+      // 19
+      { speaker: "Livia", text: "Setuju! Biar gampang dibersihkan kalau nanti kita udah punya anak... e-eh! Maksudku ya gitu deh!", expression: "blushing", "bg": "15.2", nextIndex: 25 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "15.2", nextIndex: 25 },
+      // 21
+      { speaker: "Livia", text: "Biar mirip seperti suasana hangat rumah Ibu di kuil ya? Wah, ide bagus tuh!", expression: "happy", "bg": "15.2", nextIndex: 25 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "15.2", nextIndex: 25 },
+      // 23
+      { speaker: "Livia", text: "Yeay! Bisa buat guling-gulingan santai bareng kamu sambil nonton film tiap malam minggu!", expression: "silly", "bg": "15.2", nextIndex: 25 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "15.2", nextIndex: 25 },
+      // 25
+      { speaker: "Narator", text: "Kalian mulai membuka satu per satu kardus dan menata perabotan bersama. Waktu berlalu dengan cepat tanpa terasa.", expression: "normal", "bg": "15.3" },
+      { speaker: "Livia", text: "Aduh... ngangkat sofa barengan ternyata lumayan berat ya. Punggungku sampai bunyi krek tadi.", expression: "tired", "bg": "15.3" },
+      { speaker: "Livia", text: "Sini, coba kamu duduk dulu di sofanya. Empuk banget kan?", expression: "happy", "bg": "15.3" },
+      { speaker: "Narator", text: "Kamu merebahkan diri di sofa baru, sementara Livia ikut menyandarkan kepalanya di bahumu.", expression: "normal", "bg": "15.3" },
+      { speaker: "Livia", text: "Hehe... nyaman banget... rasa capek ngangkat kardus langsung hilang seketika.", expression: "blushing", "bg": "15.3" },
+      { speaker: "Livia", text: "Eh, jangan tidur dulu dong! Kita masih harus masang hiasan dinding sama foto pernikahan kita tuh!", expression: "silly", "bg": "15.3" },
+      { speaker: "Narator", text: "Kalian berdua tertawa lalu kembali berdiri untuk menggantung bingkai foto pernikahan di dinding ruang tamu.", expression: "normal", "bg": "15.3" },
+      { speaker: "Livia", text: "Nah! Sekarang semua orang yang bertamu bakal langsung tahu kalau ini adalah rumah kita berdua!", expression: "happy", "bg": "15.3" },
+      { speaker: "Livia", text: "Ngelihat semuanya mulai tersusun rapi begini, rasanya puas dan bahagia banget!", expression: "happy", "bg": "15.3" },
+      { speaker: "Narator", text: "Malam pun tiba. Lampu-lampu kota mulai menyala indah di balik jendela apartemen baru kalian.", expression: "normal", "bg": "15.4" },
+      // 35
+      { speaker: "Livia", text: "Akhirnya beres juga! Perutku udah keruyukan dari tadi. Kita pesan martabak atau makan di luar malam ini?", expression: "silly", "bg": "15.4",
+        choices: [
+          { text: "Kita masak berdua di dapur baru kita!", nextIndex: 36 },
+          { text: "Pesan antar saja, kita sudah terlalu lelah.", nextIndex: 38 },
+          { text: "Makan malam romantis di balkon apartemen.", nextIndex: 40 }
+        ]
+      },
+      // 36
+      { speaker: "Livia", text: "Ide bagus! Ayo kita tes kompor baru kita dengan masak nasi goreng spesial ala Chef Livia!", expression: "happy", "bg": "15.4", nextIndex: 42 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "15.4", nextIndex: 42 },
+      // 38
+      { speaker: "Livia", text: "Hehe, kamu pengertian banget. Aku pesenin martabak telor kesukaan kita sama sate ayam ya!", expression: "happy", "bg": "15.4", nextIndex: 42 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "15.4", nextIndex: 42 },
+      // 40
+      { speaker: "Livia", text: "Uwah, romantisnya! Aku ambilin kursi sama lilin dulu ya biar suasana malam kita kaya di restoran bintang lima!", expression: "blushing", "bg": "15.4", nextIndex: 42 },
+      { speaker: "Narator", text: "", expression: "normal", "bg": "15.4", nextIndex: 42 },
+      // 42
+      { speaker: "Narator", text: "Kalian duduk berdampingan menikmati malam pertama di rumah baru dengan hati yang penuh sukacita.", expression: "normal", "bg": "15.4" },
+      { speaker: "Livia", text: "Kamu tahu nggak? Dulu waktu awal-awal ngekost, aku sering ngebayangin gimana rasanya punya rumah tangga sendiri.", expression: "blushing", "bg": "15.4" },
+      { speaker: "Livia", text: "Ternyata kenyataannya jauh lebih indah dan membahagiakan dari bayanganku... karena ada kamu di sampingku.", expression: "happy", "bg": "15.4" },
+      { speaker: "Narator", text: "Livia menggenggam tanganmu erat, menatapmu dengan senyuman yang begitu tulus dan hangat.", expression: "normal", "bg": "15.4" },
+      { speaker: "Livia", text: "Terima kasih sudah selalu bersabar dan mencintaiku apa adanya dari hari pertama kita bertemu, ya.", expression: "blushing", "bg": "15.4" },
+      { speaker: "Livia", text: "Mari kita isi rumah baru kita ini dengan ribuan tawa, kenangan, dan kebahagiaan baru ya, Suamiku tercinta.", expression: "blushing", "bg": "15.4" },
+      { speaker: "Narator", text: "Babak baru dalam kehidupan rumah tangga kalian di apartemen yang hangat ini baru saja dimulai.", expression: "normal", "bg": "15.4" }
     ]
   }
 ];
@@ -1308,7 +1546,7 @@ export default function StoryPage() {
                 <img 
                   src={`/laura/story-bab/${scene?.speaker === 'Laura' ? scene.expression.replace(/-[0-9]+$/, '') : 'normal'}.webp`}
                   alt="Laura"
-                  className="absolute inset-0 w-full h-full object-contain object-bottom scale-[1.9] md:scale-[2.1] translate-y-[12%] md:translate-y-[15%] transition-all duration-300"
+                  className="absolute inset-0 w-full h-full object-contain object-bottom origin-bottom mx-auto scale-[1.75] md:scale-[1.95] translate-y-[40%] md:translate-y-[50%] transition-all duration-300"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     if (!target.src.includes('normal.webp')) {
@@ -1388,6 +1626,29 @@ export default function StoryPage() {
                   const target = e.target as HTMLImageElement;
                   if (!target.src.includes('rikuto.webp')) {
                     target.src = '/ayame/rikuto.webp';
+                  }
+                }}
+              />
+            </div>
+            {/* Naomi */}
+            <div 
+              className="col-start-1 row-start-1 absolute inset-0 w-full h-full z-10 animate-[float_3s_ease-in-out_infinite]"
+              style={{ opacity: (scene?.speaker === 'Naomi' && !scene?.hideSprite) ? 1 : 0, pointerEvents: (scene?.speaker === 'Naomi' && !scene?.hideSprite) ? 'auto' : 'none' }}
+            >
+              <style>{`
+                @keyframes float {
+                  0%, 100% { transform: translateY(0px); }
+                  50% { transform: translateY(-10px); }
+                }
+              `}</style>
+              <img 
+                src={`/naomi/${scene?.speaker === 'Naomi' ? scene.expression.replace(/-[0-9]+$/, '') : 'normal'}.webp`}
+                alt="Naomi"
+                className="w-full h-full object-cover md:object-contain scale-[1.55] md:scale-[1.65] translate-y-[25%] md:translate-y-[30%] transition-all duration-300"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.src.includes('normal.webp')) {
+                    target.src = '/naomi/normal.webp';
                   }
                 }}
               />

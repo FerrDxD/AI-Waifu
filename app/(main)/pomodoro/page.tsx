@@ -5,6 +5,8 @@ import LiviaSprite from '@/components/livia/LiviaSprite';
 import { LiviaExpression } from '@/lib/gemini';
 import { Play, Pause, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
+import { unlockAchievement } from '@/lib/achievements';
+import { playSfx } from '@/lib/sfx';
 
 const MOTIVATIONS = [
   "Kalau kamu nyerah sekarang, aku yang malu.",
@@ -90,6 +92,8 @@ export default function PomodoroPage() {
   const handleComplete = async () => {
     setIsRunning(false);
     if (!isBreak) {
+      playSfx('chime');
+      unlockAchievement('pomo_first');
       setShowConfetti(true);
       setExpression('blushing');
       setDialog("Akhirnya selesai juga... I-iya, lumayan lah usahamu.");

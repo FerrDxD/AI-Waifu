@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import LiviaSprite from '@/components/livia/LiviaSprite';
+import ApiGuideModal from '@/components/guide/ApiGuideModal';
 
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen bg-[#fdfbf7] overflow-hidden font-sans select-none text-[#5c4d47]">
+      <ApiGuideModal showFloatingButton={true} />
       
       {/* Background Image (Slightly blurred/dimmed) */}
       <div 
@@ -31,7 +33,7 @@ export default function LandingPage() {
           expression="normal" 
           outfit="landing-page"
           disableFloat={true}
-          className="h-[110vh] md:h-[130vh] max-h-none w-auto max-w-none object-contain object-bottom drop-shadow-[0_15px_40px_rgba(255,117,140,0.15)] translate-y-[15vh] md:translate-y-[20vh] translate-x-10 md:translate-x-0"
+          className="h-[90vh] sm:h-[110vh] md:h-[130vh] w-[80vw] sm:w-[500px] md:w-[650px] drop-shadow-[0_15px_40px_rgba(255,117,140,0.15)] translate-y-[15vh] md:translate-y-[20vh] translate-x-6 md:translate-x-0"
         />
       </div>
 

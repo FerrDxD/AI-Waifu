@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateDateDialogue } from '@/lib/gemini';
+import { generateDateDialogue, extractCustomApiKey } from '@/lib/gemini';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { users, userProfiles } from '@/lib/db/schema';
@@ -10,6 +10,7 @@ export async function POST(req: Request) {
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    const customApiKey = extractCustomApiKey(req);
     const { location } = await req.json();
     
     const userResults = await db.select().from(users).where(eq(users.id, session.user.id));
@@ -61,7 +62,8 @@ export async function POST(req: Request) {
         hydration: profile?.liviaHydration ?? 100,
         cyclePhase,
         cycleDay: dayOfCycle
-      }
+      },
+      customApiKey
     );
 
     return NextResponse.json({ scene: dialogue });

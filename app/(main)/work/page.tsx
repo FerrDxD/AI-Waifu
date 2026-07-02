@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Wallet, Timer, Sparkles, Package, Map as MapIcon, BookOpen, Calculator, CheckCircle2, Mail, Carrot, Gamepad2, Pizza, FileText, Car, Briefcase, Glasses, Coffee, Laptop, ShieldAlert, Droplet, Keyboard, Edit3, Hammer, Cpu, Palette, TrendingUp, Fish, Play, MapPin } from 'lucide-react';
 import Link from 'next/link';
+import { playSfx } from '@/lib/sfx';
+import { unlockAchievement } from '@/lib/achievements';
 
 type JobCategory = 'sortir' | 'paket' | 'tutor' | 'barista' | 'cucipiring' | 'kasir' | 'dataentry' | 'parkir' | 'pelayan' | 'penulis' | 'tambang' | 'reparasi' | 'pelukis' | 'trader' | 'mancing';
 
@@ -54,14 +56,19 @@ export default function WorkPage() {
     setEarnedRv(amount);
     setGameState('gameOver');
     if (amount > 0) {
+      playSfx('coin');
+      unlockAchievement('work_first');
       try {
         const res = await fetch('/api/work', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ earnedRv: amount, jobId: selectedJob.id }) });
         if (res.ok) { 
           const data = await res.json(); 
           setMoney(data.newMoney); 
+          if (data.newMoney >= 1000) unlockAchievement('rich_1000');
           if (data.jobStats) setJobStats(data.jobStats);
         }
       } catch (e) { console.error(e); }
+    } else {
+      playSfx('error');
     }
   };
 

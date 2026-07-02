@@ -181,7 +181,9 @@ export default function CallPage() {
       const url = URL.createObjectURL(blob);
       
       const audio = new Audio(url);
-      audio.volume = speakerRef.current ? 1.0 : 0.25;
+      const savedLiviaVol = localStorage.getItem('livia_volume');
+      const liviaVol = savedLiviaVol !== null ? parseInt(savedLiviaVol, 10) / 100 : 0.8;
+      audio.volume = speakerRef.current ? liviaVol : liviaVol * 0.25;
       
       audio.onplay = () => {
         setIsSpeaking(true);

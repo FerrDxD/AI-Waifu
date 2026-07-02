@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import LiviaSprite from '@/components/livia/LiviaSprite';
+import { preloadLiviaSprites } from '@/lib/preloader';
 
 const VN_TIPS = [
   "Tip: Semakin tinggi afeksi Livia, semakin banyak fitur yang terbuka!",
@@ -24,6 +24,7 @@ export default function LoadingScreen({ text = "Now Loading...", showTip = true 
 
   useEffect(() => {
     setTipIndex(Math.floor(Math.random() * VN_TIPS.length));
+    preloadLiviaSprites();
   }, []);
 
   return (
@@ -36,9 +37,13 @@ export default function LoadingScreen({ text = "Now Loading...", showTip = true 
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center max-w-md w-full px-6 text-center">
         
-        {/* Animated Sprite Placeholder (Bounce) */}
-        <div className="w-32 h-32 md:w-40 md:h-40 mb-6 relative animate-bounce">
-          <LiviaSprite expression="happy" outfit="default" disableFloat={true} />
+        {/* Animated Chibi Sprite (Bounce) */}
+        <div className="w-36 h-36 md:w-44 md:h-44 mb-6 relative animate-bounce" style={{ animationDuration: '1.5s' }}>
+          <img 
+            src="/livia/chibi-livia.webp" 
+            alt="Loading Livia" 
+            className="w-full h-full object-contain drop-shadow-[0_15px_30px_rgba(255,117,140,0.25)]" 
+          />
         </div>
 
         {/* Loading Text */}

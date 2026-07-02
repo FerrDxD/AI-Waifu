@@ -8,6 +8,11 @@ import AffectionBar from '@/components/livia/AffectionBar';
 import { LiviaExpression } from '@/lib/gemini';
 import { getAffectionLevel } from '@/lib/livia/affection';
 import { ITEMS } from '@/lib/livia/items';
+import ApiGuideModal from '@/components/guide/ApiGuideModal';
+import { playSfx } from '@/lib/sfx';
+import { preloadLiviaSprites } from '@/lib/preloader';
+import DailyStampModal from '@/components/daily/DailyStampModal';
+import { unlockAchievement } from '@/lib/achievements';
 
 interface HomeClientProps {
   initialAffection: number;
@@ -267,6 +272,13 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
   const [itemsBrought] = useState(initialItemsBrought);
   const [outfit, setOutfit] = useState(initialOutfit);
   const [money, setMoney] = useState(0);
+
+  useEffect(() => {
+    if (affection >= 50) unlockAchievement('affection_50');
+    if (affection >= 80) unlockAchievement('affection_80');
+    if (money >= 1000) unlockAchievement('rich_1000');
+  }, [affection, money]);
+
   const [greetingData, setGreetingData] = useState<{text: string, expression: LiviaExpression, isInvitingOut?: boolean, invitedPlace?: string}>({
     text: "Memuat...",
     expression: "normal"
@@ -276,6 +288,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
   const [weather, setWeather] = useState<any>(null);
   
   useEffect(() => {
+    preloadLiviaSprites();
     let w: any = null;
     let finalStats = { hunger: 100, energy: 100, hydration: 100, cycleAnchor: new Date().toISOString() };
     
@@ -324,6 +337,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
   const displayExpression = interactionOverride ? interactionOverride.expression : expression;
 
   const handleInteract = async (part: 'head' | 'chest' | 'belly' | 'thigh') => {
+    playSfx('pop');
     let newExpr: LiviaExpression = 'normal';
     let newText = '';
     let affectionChange = 0;
@@ -438,6 +452,8 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
 
   return (
     <div className="min-h-screen relative flex flex-col overflow-hidden bg-[#fdfbf7] select-none font-sans">
+      <ApiGuideModal showFloatingButton={false} />
+      <DailyStampModal />
       
       {/* Background Image */}
       <div 
