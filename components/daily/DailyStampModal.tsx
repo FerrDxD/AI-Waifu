@@ -152,7 +152,7 @@ export default function DailyStampModal() {
             className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-display font-black text-base uppercase tracking-wider shadow-lg flex items-center justify-center gap-3 transition-all transform active:scale-95 ${
               claimedToday 
                 ? 'bg-green-500 text-white cursor-default' 
-                : 'bg-gradient-to-r from-[#ff758c] to-[#ff8fa3] text-white hover:shadow-pink-300 hover:scale-105 animate-bounce'
+                : 'bg-gradient-to-r from-[#ff758c] to-[#ff8fa3] text-white hover:shadow-pink-300 hover:scale-105'
             }`}
           >
             {claimedToday ? (

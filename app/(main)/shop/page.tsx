@@ -21,6 +21,11 @@ interface ShopItem {
   desc: string;
 }
 
+const isConsumableItem = (item: { id: string; category: CategoryId }) => {
+  if (item.id === 'cincin_nikah' || item.id === 'katering') return false;
+  return item.category === 'gift' || item.category === 'food' || item.category === 'drink';
+};
+
 const CATEGORIES: { id: CategoryId; name: string; icon: React.ReactNode }[] = [
   { id: 'gift', name: 'Hadiah', icon: <Gift size={20} /> },
   { id: 'food', name: 'Makanan', icon: <Utensils size={20} /> },
@@ -40,21 +45,21 @@ const ITEMS: ShopItem[] = [
   { id: 'cincin_nikah', category: 'gift', name: 'Cincin Nikah', emoji: 'crown', cost: 30000, affectionDelta: 200, color: 'from-blue-200 to-blue-400', desc: 'Sebuah janji seumur hidup.' },
   
   // Makanan
-  { id: 'onigiri', category: 'food', name: 'Onigiri', emoji: 'food', cost: 50, affectionDelta: 1, color: 'from-gray-100 to-gray-200', desc: 'Nasi kepal penghilang lapar (+Lapar, +Energi).' },
-  { id: 'yakitori', category: 'food', name: 'Yakitori', emoji: 'flame', cost: 150, affectionDelta: 2, color: 'from-orange-100 to-orange-200', desc: 'Sate ayam khas Jepang (+Lapar, +Energi).' },
-  { id: 'takoyaki', category: 'food', name: 'Takoyaki', emoji: 'flame', cost: 200, affectionDelta: 3, color: 'from-amber-100 to-amber-200', desc: 'Bola gurita panas (+Lapar, +Energi).' },
-  { id: 'dango', category: 'food', name: 'Dango', emoji: 'food', cost: 120, affectionDelta: 2, color: 'from-pink-100 to-pink-200', desc: 'Kue beras manis (+Lapar, +Energi).' },
-  { id: 'katsudon', category: 'food', name: 'Katsudon', emoji: 'food', cost: 400, affectionDelta: 5, color: 'from-yellow-100 to-yellow-200', desc: 'Porsi besar (+Lapar Banyak, +Energi).' },
-  { id: 'sushi', category: 'food', name: 'Sushi', emoji: 'food', cost: 800, affectionDelta: 10, color: 'from-red-100 to-red-200', desc: 'Premium & lezat (+Lapar, +Energi).' },
-  { id: 'katering', category: 'food', name: 'Katering Pernikahan', emoji: 'food', cost: 15000, affectionDelta: 50, color: 'from-orange-200 to-orange-400', desc: 'Pesanan katering untuk resepsi.' },
+  { id: 'onigiri', category: 'food', name: 'Onigiri', emoji: 'food', cost: 50, affectionDelta: 0, color: 'from-gray-100 to-gray-200', desc: 'Nasi kepal penghilang lapar (+Lapar, +Energi).' },
+  { id: 'yakitori', category: 'food', name: 'Yakitori', emoji: 'flame', cost: 150, affectionDelta: 0, color: 'from-orange-100 to-orange-200', desc: 'Sate ayam khas Jepang (+Lapar, +Energi).' },
+  { id: 'takoyaki', category: 'food', name: 'Takoyaki', emoji: 'flame', cost: 200, affectionDelta: 0, color: 'from-amber-100 to-amber-200', desc: 'Bola gurita panas (+Lapar, +Energi).' },
+  { id: 'dango', category: 'food', name: 'Dango', emoji: 'food', cost: 120, affectionDelta: 0, color: 'from-pink-100 to-pink-200', desc: 'Kue beras manis (+Lapar, +Energi).' },
+  { id: 'katsudon', category: 'food', name: 'Katsudon', emoji: 'food', cost: 400, affectionDelta: 0, color: 'from-yellow-100 to-yellow-200', desc: 'Porsi besar (+Lapar Banyak, +Energi).' },
+  { id: 'sushi', category: 'food', name: 'Sushi', emoji: 'food', cost: 800, affectionDelta: 0, color: 'from-red-100 to-red-200', desc: 'Premium & lezat (+Lapar, +Energi).' },
+  { id: 'katering', category: 'food', name: 'Katering Pernikahan', emoji: 'food', cost: 15000, affectionDelta: 0, color: 'from-orange-200 to-orange-400', desc: 'Pesanan katering untuk resepsi.' },
 
   // Minuman
   { id: 'air_putih', category: 'drink', name: 'Air Putih', emoji: 'drop', cost: 20, affectionDelta: 0, color: 'from-blue-50 to-blue-100', desc: 'Air mineral biasa (+Hidrasi).' },
-  { id: 'teh_hijau', category: 'drink', name: 'Teh Hijau', emoji: 'coffee', cost: 80, affectionDelta: 1, color: 'from-green-100 to-green-200', desc: 'Menenangkan (+Hidrasi, +Energi).' },
-  { id: 'teh_hitam', category: 'drink', name: 'Teh Hitam', emoji: 'coffee', cost: 100, affectionDelta: 1, color: 'from-orange-100 to-orange-200', desc: 'Teh pekat (+Hidrasi, +Energi).' },
-  { id: 'kopi_hitam', category: 'drink', name: 'Kopi Hitam', emoji: 'coffee', cost: 150, affectionDelta: 2, color: 'from-stone-700 to-stone-900', desc: 'Penambah energi (+Hidrasi, +Energi).' },
-  { id: 'jus_buah', category: 'drink', name: 'Jus Buah', emoji: 'drop', cost: 200, affectionDelta: 3, color: 'from-yellow-100 to-orange-200', desc: 'Kaya vitamin (+Hidrasi, +Energi).' },
-  { id: 'susu', category: 'drink', name: 'Susu', emoji: 'drop', cost: 150, affectionDelta: 2, color: 'from-gray-50 to-gray-200', desc: 'Susu sapi murni (+Hidrasi, +Lapar).' },
+  { id: 'teh_hijau', category: 'drink', name: 'Teh Hijau', emoji: 'coffee', cost: 80, affectionDelta: 0, color: 'from-green-100 to-green-200', desc: 'Menenangkan (+Hidrasi, +Energi).' },
+  { id: 'teh_hitam', category: 'drink', name: 'Teh Hitam', emoji: 'coffee', cost: 100, affectionDelta: 0, color: 'from-orange-100 to-orange-200', desc: 'Teh pekat (+Hidrasi, +Energi).' },
+  { id: 'kopi_hitam', category: 'drink', name: 'Kopi Hitam', emoji: 'coffee', cost: 150, affectionDelta: 0, color: 'from-stone-700 to-stone-900', desc: 'Penambah energi (+Hidrasi, +Energi).' },
+  { id: 'jus_buah', category: 'drink', name: 'Jus Buah', emoji: 'drop', cost: 200, affectionDelta: 0, color: 'from-yellow-100 to-orange-200', desc: 'Kaya vitamin (+Hidrasi, +Energi).' },
+  { id: 'susu', category: 'drink', name: 'Susu', emoji: 'drop', cost: 150, affectionDelta: 0, color: 'from-gray-50 to-gray-200', desc: 'Susu sapi murni (+Hidrasi, +Lapar).' },
 
   // Pakaian
   { id: 'outfit_casual', category: 'outfit', name: 'Baju Santai', emoji: 'shirt', cost: 8000, affectionDelta: 5, color: 'from-teal-100 to-teal-200', desc: 'Pakaian ganti untuk bersantai di kamar.' },
@@ -193,13 +198,13 @@ export default function ShopPage() {
       return;
     }
 
-    if (affection >= 100 && item.category === 'gift') {
+    if (affection >= 100 && item.category === 'gift' && item.id !== 'cincin_nikah') {
       setLiviaExpression('blushing');
       setMessage(`B-bukan berarti aku nolak dikasih hadiah... tapi afeksiku ke kamu udah maksimal (100)! Mending uangnya ditabung aja.`);
       return;
     }
 
-    if (inventory.includes(item.id) && item.category !== 'gift' && item.category !== 'food' && item.category !== 'drink') {
+    if (inventory.includes(item.id) && !isConsumableItem(item)) {
       setLiviaExpression('angry');
       setMessage(`Kamu sudah punya ${item.name}! Beli yang lain sana.`);
       return;
@@ -329,7 +334,7 @@ export default function ShopPage() {
         <div className="flex-1 p-2 md:p-6 overflow-y-auto hide-scrollbar pb-32 z-20">
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 w-full max-w-5xl mx-auto">
             {filteredItems.map(item => {
-              const isConsumable = item.category === 'gift' || item.category === 'food' || item.category === 'drink';
+              const isConsumable = isConsumableItem(item);
               const owned = inventory.includes(item.id) && !isConsumable;
               return (
                 <div 

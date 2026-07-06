@@ -68,16 +68,14 @@ export async function claimDailyReward(day: number): Promise<DailyStampData> {
     localStorage.setItem('daily_login_stamp', JSON.stringify(newData));
   } catch (e) {}
 
-  // Tambah reward uang ke backend/lokal
+  // Tambah reward uang ke backend/lokal tanpa memblokir UI
   const rewardObj = DAILY_REWARDS.find(r => r.day === day);
   if (rewardObj && rewardObj.rv > 0) {
-    try {
-      await fetch('/api/work', { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ earnedRv: rewardObj.rv, jobId: `daily_stamp_day_${day}` }) 
-      });
-    } catch (e) {}
+    fetch('/api/work', { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' }, 
+      body: JSON.stringify({ earnedRv: rewardObj.rv, jobId: `daily_stamp_day_${day}` }) 
+    }).catch(() => {});
   }
 
   playSfx('coin');

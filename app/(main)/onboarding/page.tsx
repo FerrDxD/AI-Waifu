@@ -100,7 +100,7 @@ export default function OnboardingPage() {
                   variant="story"
                   chapterId={0}
                   className="h-full w-full max-w-[600px]"
-                  imgClassName="object-contain object-bottom scale-[1.5] md:scale-[1.75] translate-y-[10%] md:translate-y-[15%] transition-opacity duration-300"
+                  imgClassName="object-contain object-bottom scale-[1.5] md:scale-[1.75] translate-y-[0%] md:translate-y-[5%] transition-opacity duration-300"
                 />
               </div>
             </div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, Camera, Image as ImageIcon, Heart, Calendar, BookHeart, Lock } from 'lucide-react';
 
-const EMOJIS = ["👋", "🍜", "📚", "🪴", "☕", "🎮", "🌧️", "🧳", "🎥", "🍳", "🎉", "🎁", "📝", "🎤", "🚗", "🏖️"];
+const EMOJIS = ["👋", "🍜", "📚", "🪴", "☕", "🎮", "🌧️", "🧳", "🎥", "🍳", "🎉", "🎁", "📝", "⛩️", "🍲", "🏢"];
 const GRADIENTS = [
   "from-orange-200 to-amber-300", 
   "from-pink-200 to-rose-300", 
@@ -27,31 +27,29 @@ const CAPTIONS = [
   "Ribetnya ngurus persiapan pernikahan. Tapi ngelihat antusiasmenya pilih gaun, capekku langsung hilang.", // Babak 10: Persiapan Pernikahan
   "Hari pernikahan suci kita. Ngelihat dia jalan di altar, aku beruntung banget bisa manggil dia istriku.", // Babak 11: Pernikahan Suci
   "Pulang ke kuil keluarganya sebagai suami istri. Doa kita sekarang resmi jadi satu.", // Babak 12: Pulang ke Kuil Keluarga
-  "Babak baru kehidupan. Tinggal bareng di rumah sendiri rasanya beda banget dari jaman masih anak kos.", // Babak 13: Babak Baru
-  "Masalah pasti ada, jadi ujian di perjalanan kita. Tapi asal sama dia, aku yakin kita bisa lewatin semuanya.", // Babak 14: Ujian Perjalanan
-  "Selamanya. Kata yang dulu kerasa berat, sekarang jadi janji paling gampang buat kuucapin ke dia." // Babak 15: Selamanya
+  "Menjaga stan kuil di malam pergantian tahun. Livia terlihat sangat anggun dalam balutan pakaian kuilnya.", // Babak 13: Pengurus Kuil
+  "Mengunjungi apartemen Naomi usai tahun baru. Bersama Livia, kami membawakan seporsi kehangatan untuk sang kakak.", // Babak 14: Seporsi Kehangatan
+  "Hari pindahan dari kamar kost lama ke apartemen baru. Dari sekadar Teman Kost, kini resmi menjadi Teman Hidup selamanya." // Babak 15: Pindahan ke Apartemen
 ];
 
-// Dynamic caption generator
-const getDynamicCaptions = (itemsBrought: string[]) => {
-  const captions = [...CAPTIONS]; // Copy base captions
-  
-  if (itemsBrought.includes('berkah_kesuburan')) {
-    captions[13] = "Rumah baru kita. Sempat mikir, rumah ini terlalu besar buat berdua... tunggu sebentar.";
-    captions[14] = "Mual tiap pagi, ngidam aneh-aneh jam 2 subuh. Aku siap siaga demi calon anak kita.";
-    captions[15] = "Tangis pertamanya pecah. Melihat Livia menggendong jagoan kecil kita... hidupku sudah sempurna.";
-  } else if (itemsBrought.includes('berkah_kesehatan')) {
-    captions[13] = "Pindah rumah. Kita mutusin buat lari pagi bareng tiap hari. Fisik bugar, pikiran tenang.";
-    captions[14] = "Ikut lari maraton berdua. Livia ternyata staminanya luar biasa, aku sampai kewalahan ngejarnya!";
-    captions[15] = "Menua bersama tanpa penyakit. Hari ini kita mendaki gunung bareng... selamanya sehat, selamanya bersama.";
-  } else if (itemsBrought.includes('berkah_kekayaan')) {
-    captions[13] = "Pindah ke apartemen mewah. Nggak nyangka karir kita berdua melesat secepat ini berkat kerja keras.";
-    captions[14] = "Liburan ke luar negeri sebulan penuh. Pusingnya kerjaan terbayar lunas ngelihat dia senyum sebahagia ini.";
-    captions[15] = "Kebebasan finansial di usia muda. Tapi harta paling berharga yang pernah kumiliki tetap wanita di sebelahku ini.";
-  }
-  
-  return captions;
-};
+const CHAPTER_TITLES = [
+  "Hari Pertama",
+  "Kenalan",
+  "Kecoa Malam",
+  "Rumah Kedua",
+  "Sahabat",
+  "Rumah Kita",
+  "Sebuah Kebiasaan",
+  "Akhir Pekan Pemalas",
+  "Pulang Kampung",
+  "Sebuah Janji",
+  "Persiapan Pernikahan",
+  "Pernikahan Suci",
+  "Pulang ke Kuil Keluarga",
+  "Pengurus Kuil",
+  "Seporsi Kehangatan",
+  "Pindahan ke Apartemen"
+];
 
 export default function AlbumPage() {
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
@@ -70,15 +68,13 @@ export default function AlbumPage() {
       .catch(() => setLoading(false));
   }, []);
 
-  const dynamicCaptions = getDynamicCaptions(itemsBrought);
-
   // Generate 16 Memories for the 16 chapters (Babak 0 to 15)
   const MEMORIES = Array.from({ length: 16 }, (_, i) => ({
     id: i,
     chapterNum: i,
-    title: `Memori Babak ${i}`,
+    title: CHAPTER_TITLES[i] || `Memori Babak ${i}`,
     date: `Tersimpan di Hati`,
-    caption: dynamicCaptions[i] || `Momen berharga bersama Livia dari cerita Babak ${i}.`,
+    caption: CAPTIONS[i] || `Momen berharga bersama Livia dari cerita Babak ${i}.`,
     rotation: Math.floor(Math.random() * 8) - 4,
     unlockedEmoji: EMOJIS[i] || "✨",
     unlockedGradient: GRADIENTS[i % GRADIENTS.length]

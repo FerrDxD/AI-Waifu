@@ -28,7 +28,22 @@ export function preloadLiviaSprites() {
     '/livia/chibi-livia.webp',
     ...expressions.map(expr => `/livia/home-screen/${folderName}/${expr}.webp`),
     // Preload juga outfit default kalau saat ini sedang pakai outfit lain
-    ...(activeOutfit !== 'default' ? expressions.map(expr => `/livia/home-screen/default/${expr}.webp`) : [])
+    ...(activeOutfit !== 'default' ? expressions.map(expr => `/livia/home-screen/default/${expr}.webp`) : []),
+    // Preload sprite lemari baru & sprite Naomi & story page outfit
+    '/livia/wardrobe/wedding_dress.webp',
+    '/livia/wardrobe/office_lady.webp',
+    '/livia/wardrobe/piyama.webp',
+    '/livia/story page/default.webp',
+    '/livia/story page/uniform.webp',
+    '/livia/story page/casual.webp',
+    '/livia/story page/office-lady.webp',
+    '/livia/story page/piyama.webp',
+    '/livia/story page/wedding-dress.webp',
+    '/naomi/normal.webp',
+    '/naomi/happy.webp',
+    '/naomi/confused.webp',
+    '/naomi/pleased.webp',
+    '/naomi/touched.webp',
   ];
 
   urlsToPreload.forEach(url => {

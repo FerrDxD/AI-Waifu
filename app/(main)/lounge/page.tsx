@@ -2,10 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, Tv, Power, Volume2, RefreshCw, Radio } from 'lucide-react';
+import { ChevronLeft, Tv, Power, RefreshCw, Radio } from 'lucide-react';
 import LoadingScreen from '@/components/ui/LoadingScreen';
-import LiviaSprite from '@/components/livia/LiviaSprite';
-import { LiviaExpression } from '@/lib/gemini';
 
 type NewsItem = {
   title: string;
@@ -23,7 +21,6 @@ export default function LoungePage() {
   const [currentChannel, setCurrentChannel] = useState(0);
   const [isFetchingNews, setIsFetchingNews] = useState(false);
   const [liviaComment, setLiviaComment] = useState<string>("Sofa ini empuk banget. Sini duduk!");
-  const [expression, setExpression] = useState<LiviaExpression>('happy');
 
   useEffect(() => {
     fetch('/api/affection')
@@ -41,7 +38,6 @@ export default function LoungePage() {
   const fetchNews = async () => {
     setIsFetchingNews(true);
     try {
-      // Fetching real news from Antara News RSS converted to JSON
       const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.antaranews.com%2Frss%2Fterkini.xml');
       const data = await res.json();
       
@@ -77,7 +73,6 @@ export default function LoungePage() {
     } else {
       setIsTvOn(false);
       setLiviaComment("Yah, dimatiin. Padahal lagi seru.");
-      setExpression('normal');
     }
   };
 
@@ -88,28 +83,21 @@ export default function LoungePage() {
     generateLiviaReaction(newsList[nextChannel].title);
   };
 
-  // Simple hardcoded logical responses based on keywords in real news
   const generateLiviaReaction = (headline: string) => {
     if (!headline) return;
     const lowerHeadline = headline.toLowerCase();
     if (lowerHeadline.includes('korupsi') || lowerHeadline.includes('pidana')) {
       setLiviaComment("Duh, berita kriminal lagi. Dunia emang lagi nggak baik-baik aja ya...");
-      setExpression('pain');
     } else if (lowerHeadline.includes('cuaca') || lowerHeadline.includes('hujan') || lowerHeadline.includes('gempa')) {
       setLiviaComment("Semoga semuanya aman-aman aja ya di sana.");
-      setExpression('pain');
     } else if (lowerHeadline.includes('presiden') || lowerHeadline.includes('menteri') || lowerHeadline.includes('politik')) {
       setLiviaComment("Politik terus ah pusing liatnya! Ganti channel dong!");
-      setExpression('angry');
     } else if (lowerHeadline.includes('ekonomi') || lowerHeadline.includes('harga') || lowerHeadline.includes('saham')) {
       setLiviaComment("Ekonomi naik turun... pantesan harga makanan di depan kos juga naik.");
-      setExpression('normal');
     } else if (lowerHeadline.includes('timnas') || lowerHeadline.includes('menang') || lowerHeadline.includes('olahraga')) {
       setLiviaComment("Wah! Keren banget! Kamu suka ngikutin olahraga juga nggak?");
-      setExpression('happy');
     } else {
       setLiviaComment("Oh, jadi gitu berita hari ini. Menarik juga...");
-      setExpression('normal');
     }
   };
 
@@ -230,23 +218,16 @@ export default function LoungePage() {
         </div>
       </div>
 
-      {/* Livia Sprite & Dialogue */}
-      <div className="relative z-20 flex flex-col items-center bottom-12 md:bottom-24 pointer-events-none">
-        {/* Dialogue Bubble */}
-        <div className={`absolute -top-24 md:-top-32 right-[-20px] md:right-[-100px] w-[260px] md:w-[320px] z-30 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isTvOn || !isTvOn ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-90'}`}>
-          <div className="p-4 md:p-5 rounded-[2rem] rounded-bl-sm shadow-[0_15px_30px_rgba(0,0,0,0.3)] border border-gray-700 bg-[#2a2c38]/95 backdrop-blur-xl relative">
-            <p className="font-bold text-gray-200 text-sm md:text-[15px] leading-relaxed">{liviaComment}</p>
-            {/* Tail */}
-            <div className="absolute -bottom-3 left-8 w-6 h-6 rotate-45 border-r border-b bg-[#2a2c38] border-gray-700" />
+      {/* Livia Dialogue Commentary Bar (No Sprite) */}
+      <div className="absolute bottom-24 md:bottom-28 left-1/2 -translate-x-1/2 z-30 w-[90%] max-w-xl transition-all duration-500">
+        <div className="p-4 md:p-5 rounded-2xl bg-[#2a2c38]/95 backdrop-blur-xl border border-gray-700 shadow-2xl flex items-center gap-3 md:gap-4">
+          <div className="bg-gradient-to-r from-pink-500 to-rose-400 text-white font-black text-xs px-3 py-1.5 rounded-full shadow-md shrink-0 uppercase tracking-wider">
+            Livia
           </div>
+          <p className="font-medium text-gray-200 text-xs md:text-sm leading-relaxed flex-1">
+            "{liviaComment}"
+          </p>
         </div>
-
-        {/* The Sprite itself */}
-        <LiviaSprite 
-          expression={expression} 
-          outfit={stats?.activeOutfit || 'casual'} 
-          className="w-[300px] md:w-[420px] h-auto drop-shadow-2xl" 
-        />
       </div>
 
     </div>

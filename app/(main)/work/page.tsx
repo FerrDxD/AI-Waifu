@@ -79,9 +79,10 @@ export default function WorkPage() {
   let multiplier = 1;
   let rankColor = 'text-[#d97757] border-[#d97757] bg-[#d97757]/10'; // Tembaga
   let nextTarget = 10;
-  if (completions >= 50) { rankName = 'Emas'; multiplier = 15; rankColor = 'text-yellow-500 border-yellow-500 bg-yellow-500/10'; nextTarget = 50; }
-  else if (completions >= 25) { rankName = 'Perak'; multiplier = 5; rankColor = 'text-gray-400 border-gray-400 bg-gray-400/10'; nextTarget = 50; }
-  else if (completions >= 10) { rankName = 'Perunggu'; multiplier = 2; rankColor = 'text-amber-600 border-amber-600 bg-amber-600/10'; nextTarget = 25; }
+  let rankLevel = 0;
+  if (completions >= 50) { rankName = 'Emas'; multiplier = 15; rankColor = 'text-yellow-500 border-yellow-500 bg-yellow-500/10'; nextTarget = 50; rankLevel = 3; }
+  else if (completions >= 25) { rankName = 'Perak'; multiplier = 5; rankColor = 'text-gray-400 border-gray-400 bg-gray-400/10'; nextTarget = 50; rankLevel = 2; }
+  else if (completions >= 10) { rankName = 'Perunggu'; multiplier = 2; rankColor = 'text-amber-600 border-amber-600 bg-amber-600/10'; nextTarget = 25; rankLevel = 1; }
   const finalReward = selectedJob.baseReward * multiplier;
 
   return (
@@ -178,7 +179,7 @@ export default function WorkPage() {
                   <button onClick={() => setGameState('idle')} className="absolute top-6 left-6 text-gray-400 hover:text-pink-500 font-bold text-sm flex items-center gap-1 z-50 bg-white/80 p-2 rounded-xl backdrop-blur-md">
                     ← BATALKAN
                   </button>
-                  <GameDispatcher type={selectedJob.type} onFinish={claimReward} baseReward={finalReward} />
+                  <GameDispatcher type={selectedJob.type} onFinish={claimReward} baseReward={finalReward} rank={rankLevel} rankName={rankName} />
                 </div>
               </div>
             )}
@@ -232,36 +233,62 @@ export default function WorkPage() {
 // -----------------------------------------------------------------------------
 // GAME DISPATCHER
 // -----------------------------------------------------------------------------
-function GameDispatcher({ type, onFinish, baseReward }: { type: JobCategory, onFinish: (rv: number) => void, baseReward: number }) {
+function GameDispatcher({ type, onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { type: JobCategory, onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
   switch(type) {
-    case 'sortir': return <SortirGame onFinish={onFinish} />;
-    case 'paket': return <PaketGame onFinish={onFinish} baseReward={baseReward} />;
-    case 'tutor': return <TutorGame onFinish={onFinish} baseReward={baseReward} />;
-    case 'barista': return <BaristaGame onFinish={onFinish} baseReward={baseReward} />;
-    case 'cucipiring': return <CuciPiringGame onFinish={onFinish} baseReward={baseReward} />;
-    case 'kasir': return <KasirGame onFinish={onFinish} baseReward={baseReward} />;
-    case 'dataentry': return <DataEntryGame onFinish={onFinish} baseReward={baseReward} />;
-    case 'parkir': return <ParkirGame onFinish={onFinish} baseReward={baseReward} />;
-    case 'pelayan': return <PelayanGame onFinish={onFinish} baseReward={baseReward} />;
-    case 'penulis': return <PenulisGame onFinish={onFinish} baseReward={baseReward} />;
-    case 'tambang': return <TambangGame onFinish={onFinish} baseReward={baseReward} />;
-    case 'reparasi': return <ReparasiGame onFinish={onFinish} baseReward={baseReward} />;
-    case 'pelukis': return <PelukisGame onFinish={onFinish} baseReward={baseReward} />;
-    case 'trader': return <TraderGame onFinish={onFinish} baseReward={baseReward} />;
-    case 'mancing': return <MancingGame onFinish={onFinish} baseReward={baseReward} />;
+    case 'sortir': return <SortirGame onFinish={onFinish} rank={rank} rankName={rankName} />;
+    case 'paket': return <PaketGame onFinish={onFinish} baseReward={baseReward} rank={rank} rankName={rankName} />;
+    case 'tutor': return <TutorGame onFinish={onFinish} baseReward={baseReward} rank={rank} rankName={rankName} />;
+    case 'barista': return <BaristaGame onFinish={onFinish} baseReward={baseReward} rank={rank} rankName={rankName} />;
+    case 'cucipiring': return <CuciPiringGame onFinish={onFinish} baseReward={baseReward} rank={rank} rankName={rankName} />;
+    case 'kasir': return <KasirGame onFinish={onFinish} baseReward={baseReward} rank={rank} rankName={rankName} />;
+    case 'dataentry': return <DataEntryGame onFinish={onFinish} baseReward={baseReward} rank={rank} rankName={rankName} />;
+    case 'parkir': return <ParkirGame onFinish={onFinish} baseReward={baseReward} rank={rank} rankName={rankName} />;
+    case 'pelayan': return <PelayanGame onFinish={onFinish} baseReward={baseReward} rank={rank} rankName={rankName} />;
+    case 'penulis': return <PenulisGame onFinish={onFinish} baseReward={baseReward} rank={rank} rankName={rankName} />;
+    case 'tambang': return <TambangGame onFinish={onFinish} baseReward={baseReward} rank={rank} rankName={rankName} />;
+    case 'reparasi': return <ReparasiGame onFinish={onFinish} baseReward={baseReward} rank={rank} rankName={rankName} />;
+    case 'pelukis': return <PelukisGame onFinish={onFinish} baseReward={baseReward} rank={rank} rankName={rankName} />;
+    case 'trader': return <TraderGame onFinish={onFinish} baseReward={baseReward} rank={rank} rankName={rankName} />;
+    case 'mancing': return <MancingGame onFinish={onFinish} baseReward={baseReward} rank={rank} rankName={rankName} />;
     default: return <div>Game Not Found</div>;
   }
 }
 
 // -----------------------------------------------------------------------------
-// MINIGAMES
+// DIFFICULTY BADGE HELPER
+// -----------------------------------------------------------------------------
+function DifficultyBadge({ rank, rankName }: { rank: number, rankName: string }) {
+  const label = rank === 3 ? 'Ekstrem 🔥' : rank === 2 ? 'Sulit ⚡' : rank === 1 ? 'Menengah 🔸' : 'Mudah 🟢';
+  const color = rank === 3 ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : rank === 2 ? 'bg-gray-200 text-gray-800 border-gray-400' : rank === 1 ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-orange-100 text-[#d97757] border-orange-300';
+  return (
+    <div className={`flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full border text-xs font-bold font-mono shadow-sm shrink-0 ${color}`}>
+      <span>🔥 TINGKAT KESULITAN:</span>
+      <span className="uppercase font-black">{rankName} ({label})</span>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// MINIGAMES (WITH DYNAMIC RANK DIFFICULTY SCALING)
 // -----------------------------------------------------------------------------
 
-function SortirGame({ onFinish }: { onFinish: (rv: number) => void }) {
-  const [timeLeft, setTimeLeft] = useState(15);
+function SortirGame({ onFinish, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, rank?: number, rankName?: string }) {
+  const initialTime = rank === 3 ? 8 : rank === 2 ? 10 : rank === 1 ? 12 : 15;
+  const [timeLeft, setTimeLeft] = useState(initialTime);
   const [score, setScore] = useState(0);
-  const [item, setItem] = useState<{emoji: string, color: string}>({emoji:'📚', color:'pink'});
-  const items = [{emoji:'📚', color:'pink'}, {emoji:'🍪', color:'amber'}, {emoji:'👕', color:'sage'}];
+  
+  const allItems = [
+    {emoji:'📚', color:'pink'}, 
+    {emoji:'🍪', color:'amber'}, 
+    {emoji:'👕', color:'sage'}, 
+    {emoji:'📦', color:'blue'}, 
+    {emoji:'🧸', color:'purple'}, 
+    {emoji:'🧰', color:'red'}
+  ];
+  const activeCount = rank === 3 ? 6 : rank === 2 ? 5 : rank === 1 ? 4 : 3;
+  const items = allItems.slice(0, activeCount);
+  
+  const [item, setItem] = useState(items[0]);
 
   useEffect(() => {
     if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(l => l - 1), 1000); return () => clearTimeout(t); } 
@@ -273,27 +300,48 @@ function SortirGame({ onFinish }: { onFinish: (rv: number) => void }) {
     setItem(items[Math.floor(Math.random() * items.length)]);
   };
 
+  const getColorClass = (c: string) => {
+    switch(c) {
+      case 'pink': return 'bg-pink-100 text-pink-600 border-pink-300';
+      case 'amber': return 'bg-amber-100 text-amber-600 border-amber-300';
+      case 'sage': return 'bg-green-100 text-green-600 border-green-300';
+      case 'blue': return 'bg-blue-100 text-blue-600 border-blue-300';
+      case 'purple': return 'bg-purple-100 text-purple-600 border-purple-300';
+      case 'red': return 'bg-red-100 text-red-600 border-red-300';
+      default: return 'bg-gray-100 text-gray-600';
+    }
+  };
+
   return (
     <div className="flex flex-col items-center mt-12 flex-1 w-full">
-      <div className="flex justify-between w-full mb-8">
-        <div className="bg-pink-50 px-6 py-3 rounded-2xl text-pink-600 font-black font-mono text-xl">{timeLeft}s</div>
-        <div className="bg-amber-50 px-6 py-3 rounded-2xl text-amber-600 font-black font-mono text-xl">Score: {score}</div>
+      <DifficultyBadge rank={rank} rankName={rankName} />
+      <div className="flex justify-between w-full mb-6">
+        <div className="bg-pink-50 px-6 py-2.5 rounded-2xl text-pink-600 font-black font-mono text-lg border border-pink-200">Waktu: {timeLeft}s</div>
+        <div className="bg-amber-50 px-6 py-2.5 rounded-2xl text-amber-600 font-black font-mono text-lg border border-amber-200">Skor: {score}</div>
       </div>
-      <div className="flex-1 flex items-center justify-center mb-12 text-[8rem]">{item.emoji}</div>
-      <div className="grid grid-cols-3 gap-4 w-full">
-        <button onClick={() => handleSort('pink')} className="py-8 bg-pink-100 rounded-[2rem] text-4xl shadow-md active:scale-95">📚</button>
-        <button onClick={() => handleSort('amber')} className="py-8 bg-amber-100 rounded-[2rem] text-4xl shadow-md active:scale-95">🍪</button>
-        <button onClick={() => handleSort('sage')} className="py-8 bg-green-100 rounded-[2rem] text-4xl shadow-md active:scale-95">👕</button>
+      <div className="flex-1 flex items-center justify-center mb-8 text-[7rem] animate-bounce">{item.emoji}</div>
+      <div className={`grid ${items.length > 3 ? 'grid-cols-3' : 'grid-cols-3'} gap-3 w-full`}>
+        {items.map(it => (
+          <button key={it.color} onClick={() => handleSort(it.color)} className={`py-6 rounded-[1.5rem] border-2 text-3xl font-black shadow-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-1 ${getColorClass(it.color)}`}>
+            <span>{it.emoji}</span>
+          </button>
+        ))}
       </div>
     </div>
   );
 }
 
-function PaketGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, baseReward: number }) {
+function PaketGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
   const [path, setPath] = useState([0]);
-  const obs = useRef([3, 7, 12, 16, 21]); // Static obstacles for simplicity
+  const obs = useRef(() => {
+    if (rank === 3) return [1, 2, 3, 7, 8, 12, 13, 16, 17];
+    if (rank === 2) return [1, 3, 7, 8, 12, 13, 16, 21];
+    if (rank === 1) return [3, 7, 8, 12, 16, 21];
+    return [3, 7, 12, 16, 21];
+  });
+  
   const handleTileClick = (i: number) => {
-    if (obs.current.includes(i)) return;
+    if (obs.current().includes(i)) return;
     if (path.includes(i)) { if (path[path.length - 2] === i) setPath(p => p.slice(0, -1)); return; }
     const last = path[path.length - 1];
     if ((Math.abs(last - i) === 1 && Math.floor(last / 5) === Math.floor(i / 5)) || Math.abs(last - i) === 5) {
@@ -302,144 +350,215 @@ function PaketGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, b
     }
   };
   return (
-    <div className="flex flex-col items-center mt-12 flex-1">
-      <h3 className="font-display font-black text-2xl text-gray-500 mb-8 uppercase">Hubungkan Rute!</h3>
-      <div className="grid grid-cols-5 gap-2 bg-gray-100 p-4 rounded-[2rem] w-[320px]">
+    <div className="flex flex-col items-center mt-8 flex-1">
+      <DifficultyBadge rank={rank} rankName={rankName} />
+      <h3 className="font-display font-black text-xl text-gray-500 mb-6 uppercase">Hubungkan Rute Paket! ({obs.current().length} Rintangan)</h3>
+      <div className="grid grid-cols-5 gap-2 bg-gray-100 p-4 rounded-[2rem] w-[320px] shadow-inner border-2 border-gray-200">
         {Array.from({length:25}).map((_, i) => {
-          let bg = 'bg-white cursor-pointer';
-          if (i === 0) bg = 'bg-green-400 text-white';
-          else if (i === 24) bg = 'bg-[#ff758c] text-white';
-          else if (obs.current.includes(i)) bg = 'bg-gray-800';
-          else if (path[path.length-1]===i) bg = 'bg-blue-500 scale-90 rounded-full border-4 border-white';
+          let bg = 'bg-white cursor-pointer hover:bg-pink-50';
+          if (i === 0) bg = 'bg-green-500 text-white shadow-md font-black';
+          else if (i === 24) bg = 'bg-[#ff758c] text-white shadow-md font-black animate-pulse';
+          else if (obs.current().includes(i)) bg = 'bg-gray-800 border-2 border-gray-900 cursor-not-allowed';
+          else if (path[path.length-1]===i) bg = 'bg-blue-500 scale-95 rounded-full border-4 border-white shadow-md';
           else if (path.includes(i)) bg = 'bg-blue-300';
-          return <div key={i} onClick={() => handleTileClick(i)} className={`aspect-square rounded-xl flex items-center justify-center ${bg}`}/>
+          return <div key={i} onClick={() => handleTileClick(i)} className={`aspect-square rounded-xl flex items-center justify-center transition-all ${bg}`}>
+            {i === 0 && "🚀"}
+            {i === 24 && "🏠"}
+            {obs.current().includes(i) && "🚧"}
+          </div>
         })}
       </div>
     </div>
   );
 }
 
-function TutorGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, baseReward: number }) {
-  const q = [{q:"15 + 12?", a:"27", o:["25","26","27","28"]}, {q:"7 x 8?", a:"56", o:["54","56","64","48"]}, {q:"100 / 4?", a:"25", o:["20","25","30","15"]}];
+function TutorGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
+  const getQuestions = () => {
+    if (rank === 3) return [
+      {q:"25 x 16?", a:"400", o:["380","400","420","360"]}, 
+      {q:"480 / 15?", a:"32", o:["28","30","32","34"]}, 
+      {q:"18 x 18?", a:"324", o:["314","324","334","344"]}, 
+      {q:"350 - 178?", a:"172", o:["162","172","182","192"]}, 
+      {q:"14 x 14?", a:"196", o:["186","196","206","176"]}, 
+      {q:"525 / 25?", a:"21", o:["19","21","23","25"]}
+    ];
+    if (rank === 2) return [
+      {q:"125 - 47?", a:"78", o:["76","78","82","68"]}, 
+      {q:"16 x 8?", a:"128", o:["118","128","138","124"]}, 
+      {q:"360 / 12?", a:"30", o:["25","30","35","40"]}, 
+      {q:"15 x 15?", a:"225", o:["215","225","235","245"]}, 
+      {q:"240 / 8?", a:"30", o:["20","30","40","50"]}
+    ];
+    if (rank === 1) return [
+      {q:"45 + 38?", a:"83", o:["81","82","83","85"]}, 
+      {q:"14 x 5?", a:"70", o:["60","65","70","75"]}, 
+      {q:"180 / 6?", a:"30", o:["25","30","35","40"]}, 
+      {q:"9 x 12?", a:"108", o:["98","108","118","102"]}
+    ];
+    return [
+      {q:"15 + 12?", a:"27", o:["25","26","27","28"]}, 
+      {q:"7 x 8?", a:"56", o:["54","56","64","48"]}, 
+      {q:"100 / 4?", a:"25", o:["20","25","30","15"]}
+    ];
+  };
+
+  const [q] = useState(getQuestions());
   const [idx, setIdx] = useState(0);
   const handleAnswer = (ans: string) => {
-    if (ans === q[idx].a) { if (idx === 2) onFinish(baseReward); else setIdx(idx + 1); }
+    if (ans === q[idx].a) { if (idx === q.length - 1) onFinish(baseReward); else setIdx(idx + 1); }
     else onFinish(0);
   };
   return (
-    <div className="flex flex-col items-center mt-12 flex-1 w-full max-w-lg mx-auto">
-      <div className="bg-purple-50 w-full p-10 rounded-[2rem] border-4 border-purple-200 mb-8 min-h-[160px] flex items-center justify-center text-center">
+    <div className="flex flex-col items-center mt-8 flex-1 w-full max-w-lg mx-auto">
+      <DifficultyBadge rank={rank} rankName={rankName} />
+      <div className="text-xs font-bold font-mono text-purple-600 mb-2">SOAL {idx + 1} DARI {q.length}</div>
+      <div className="bg-purple-50 w-full p-8 rounded-[2rem] border-4 border-purple-200 mb-6 min-h-[140px] flex items-center justify-center text-center shadow-sm">
         <h3 className="font-bold text-4xl text-purple-900">{q[idx].q}</h3>
       </div>
       <div className="grid grid-cols-2 gap-4 w-full">
-        {q[idx].o.map(opt => <button key={opt} onClick={() => handleAnswer(opt)} className="py-6 bg-white border-4 border-gray-200 rounded-[1.5rem] font-black text-2xl text-gray-700 hover:bg-purple-50 active:scale-95">{opt}</button>)}
+        {q[idx].o.map(opt => <button key={opt} onClick={() => handleAnswer(opt)} className="py-6 bg-white border-4 border-gray-200 rounded-[1.5rem] font-black text-2xl text-gray-700 hover:bg-purple-50 hover:border-purple-300 active:scale-95 shadow-sm transition-all">{opt}</button>)}
       </div>
     </div>
   );
 }
 
-function BaristaGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, baseReward: number }) {
-  const recipes = [ ['☕', '🥛', '🧊'], ['🍵', '🍯', '🧊'], ['☕', '🍯', '🥛'] ];
-  const [target] = useState(recipes[Math.floor(Math.random() * recipes.length)]);
+function BaristaGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
+  const options = ['☕', '🥛', '🧊', '🍯', '🍵', '🍋'];
+  const len = rank === 3 ? 6 : rank === 2 ? 5 : rank === 1 ? 4 : 3;
+  
+  const [target] = useState(() => Array.from({length: len}).map(() => options[Math.floor(Math.random() * (rank >= 2 ? 6 : 5))]));
   const [input, setInput] = useState<string[]>([]);
-  const options = ['☕', '🥛', '🧊', '🍯', '🍵'];
+  
   const handleClick = (o: string) => {
     const next = [...input, o];
     setInput(next);
     if (next[next.length-1] !== target[next.length-1]) onFinish(0);
-    else if (next.length === 3) onFinish(baseReward);
+    else if (next.length === len) onFinish(baseReward);
   };
   return (
-    <div className="flex flex-col items-center mt-12 flex-1">
-      <h3 className="font-bold text-xl mb-4 text-gray-500">Resep Pesanan:</h3>
-      <div className="flex gap-4 mb-12 text-5xl bg-gray-50 p-6 rounded-2xl border-4 border-gray-100">{target.map((t,i)=><span key={i}>{t}</span>)}</div>
-      <div className="flex flex-wrap justify-center gap-4 max-w-sm">
-        {options.map(o => <button key={o} onClick={() => handleClick(o)} className="w-20 h-20 bg-white border-4 border-amber-200 rounded-2xl text-4xl active:scale-90">{o}</button>)}
+    <div className="flex flex-col items-center mt-8 flex-1">
+      <DifficultyBadge rank={rank} rankName={rankName} />
+      <h3 className="font-bold text-lg mb-3 text-gray-500">Resep Pesanan ({len} Bahan):</h3>
+      <div className="flex flex-wrap justify-center gap-3 mb-8 text-4xl bg-gray-50 p-5 rounded-2xl border-4 border-gray-100 shadow-inner max-w-md">
+        {target.map((t,i)=><span key={i} className="animate-pulse">{t}</span>)}
       </div>
-      <div className="mt-8 flex gap-2 text-2xl">{input.map((i, idx)=><span key={idx}>{i}</span>)}</div>
+      <div className="flex flex-wrap justify-center gap-3 max-w-sm">
+        {options.slice(0, rank >= 2 ? 6 : 5).map(o => <button key={o} onClick={() => handleClick(o)} className="w-18 h-18 bg-white border-4 border-amber-200 rounded-2xl text-4xl active:scale-90 hover:bg-amber-50 shadow-sm transition-all">{o}</button>)}
+      </div>
+      <div className="mt-6 flex gap-2 text-2xl min-h-[40px] bg-amber-50/50 px-6 py-2 rounded-xl border border-amber-200/60">
+        {input.map((i, idx)=><span key={idx}>{i}</span>)}
+      </div>
     </div>
   );
 }
 
-function CuciPiringGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, baseReward: number }) {
+function CuciPiringGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
+  const targetClicks = rank === 3 ? 50 : rank === 2 ? 40 : rank === 1 ? 32 : 25;
+  const initialTime = rank === 3 ? 8 : 10;
   const [clicks, setClicks] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(10);
+  const [timeLeft, setTimeLeft] = useState(initialTime);
   useEffect(() => {
     const t = setInterval(() => setTimeLeft(l => l > 0 ? l - 1 : 0), 1000);
     return () => clearInterval(t);
   }, []);
   useEffect(() => {
-    if (clicks >= 30) onFinish(baseReward);
+    if (clicks >= targetClicks) onFinish(baseReward);
     else if (timeLeft <= 0) onFinish(0);
   }, [clicks, timeLeft]);
   return (
-    <div className="flex flex-col items-center mt-12 flex-1 w-full text-center">
-      <div className="bg-blue-50 px-6 py-3 rounded-2xl text-blue-600 font-black font-mono text-2xl mb-8">Waktu: {timeLeft}s</div>
-      <p className="text-gray-500 font-bold mb-4">Klik piring 30 kali cepat!</p>
-      <div className="w-full bg-gray-200 h-6 rounded-full mb-8 overflow-hidden"><div className="h-full bg-blue-500 transition-all" style={{width: `${(clicks/30)*100}%`}}/></div>
-      <button onClick={() => setClicks(c=>c+1)} className="w-48 h-48 bg-gray-50 rounded-full border-[12px] border-blue-200 text-[6rem] shadow-xl active:scale-90 select-none flex items-center justify-center">🍽️</button>
+    <div className="flex flex-col items-center mt-8 flex-1 w-full text-center">
+      <DifficultyBadge rank={rank} rankName={rankName} />
+      <div className="bg-blue-50 px-6 py-2.5 rounded-2xl text-blue-600 font-black font-mono text-xl mb-6 border border-blue-200">Waktu: {timeLeft}s</div>
+      <p className="text-gray-500 font-bold mb-4">Klik piring {targetClicks} kali dengan cepat!</p>
+      <div className="w-full max-w-sm bg-gray-200 h-6 rounded-full mb-8 overflow-hidden border border-gray-300 shadow-inner">
+        <div className="h-full bg-blue-500 transition-all duration-100" style={{width: `${(clicks/targetClicks)*100}%`}}/>
+      </div>
+      <button onClick={() => setClicks(c=>c+1)} className="w-44 h-44 bg-gray-50 rounded-full border-[10px] border-blue-200 text-[5.5rem] shadow-xl active:scale-90 select-none flex items-center justify-center hover:bg-blue-50 transition-all">🍽️</button>
     </div>
   );
 }
 
-function KasirGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, baseReward: number }) {
-  const [total] = useState(Math.floor(Math.random() * 5 + 3) * 10000); // 30k to 70k
-  const paid = 100000;
+function KasirGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
+  const [total] = useState(() => {
+    if (rank === 3) return Math.floor(Math.random() * 40 + 15) * 5000; // 75k - 275k
+    if (rank === 2) return Math.floor(Math.random() * 25 + 10) * 5000; // 50k - 175k
+    if (rank === 1) return Math.floor(Math.random() * 15 + 5) * 5000; // 25k - 100k
+    return Math.floor(Math.random() * 5 + 3) * 10000; // 30k - 70k
+  });
+  const paid = rank === 3 ? 300000 : rank === 2 ? 200000 : 100000;
   const change = paid - total;
   const [options] = useState([change, change + 5000, change - 10000, change + 10000].sort(() => 0.5 - Math.random()));
+  
+  const initialTime = rank === 3 ? 10 : rank === 2 ? 12 : 15;
+  const [timeLeft, setTimeLeft] = useState(initialTime);
+
+  useEffect(() => {
+    if (rank >= 1) {
+      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(l => l - 1), 1000); return () => clearTimeout(t); }
+      else onFinish(0);
+    }
+  }, [timeLeft, rank]);
+
   return (
-    <div className="flex flex-col items-center mt-12 flex-1 w-full max-w-sm mx-auto">
-      <div className="bg-green-50 p-6 w-full rounded-[2rem] border-4 border-green-200 mb-8">
-        <p className="text-green-800 font-mono font-bold">Total: Rp {total.toLocaleString('id-ID')}</p>
-        <p className="text-green-800 font-mono font-bold">Dibayar: Rp {paid.toLocaleString('id-ID')}</p>
-        <p className="text-2xl mt-4 font-black text-green-900 text-center">Kembalian?</p>
+    <div className="flex flex-col items-center mt-8 flex-1 w-full max-w-sm mx-auto">
+      <DifficultyBadge rank={rank} rankName={rankName} />
+      {rank >= 1 && <div className="text-red-500 font-mono font-black text-sm mb-2">Batas Waktu: {timeLeft}s</div>}
+      <div className="bg-green-50 p-6 w-full rounded-[2rem] border-4 border-green-200 mb-6 shadow-sm">
+        <p className="text-green-800 font-mono font-bold text-lg">Total: Rp {total.toLocaleString('id-ID')}</p>
+        <p className="text-green-800 font-mono font-bold text-lg">Dibayar: Rp {paid.toLocaleString('id-ID')}</p>
+        <p className="text-xl mt-4 font-black text-green-900 text-center border-t border-green-200 pt-3">Berapa Kembaliannya?</p>
       </div>
-      <div className="grid grid-cols-2 gap-4 w-full">
-        {options.map(opt => <button key={opt} onClick={() => onFinish(opt === change ? baseReward : 0)} className="py-6 bg-white border-4 border-gray-200 rounded-[1.5rem] font-mono font-black text-xl hover:bg-green-50 active:scale-95">Rp {opt.toLocaleString('id-ID')}</button>)}
+      <div className="grid grid-cols-2 gap-3 w-full">
+        {options.map(opt => <button key={opt} onClick={() => onFinish(opt === change ? baseReward : 0)} className="py-5 bg-white border-4 border-gray-200 rounded-[1.5rem] font-mono font-black text-lg hover:bg-green-50 hover:border-green-300 active:scale-95 shadow-sm transition-all">Rp {opt.toLocaleString('id-ID')}</button>)}
       </div>
     </div>
   );
 }
 
-function DataEntryGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, baseReward: number }) {
-  const [code] = useState(Math.random().toString(36).substring(2, 7).toUpperCase());
+function DataEntryGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
+  const len = rank === 3 ? 9 : rank === 2 ? 7 : rank === 1 ? 6 : 5;
+  const initialTime = rank === 3 ? 8 : rank === 2 ? 9 : 10;
+  const [code] = useState(Math.random().toString(36).substring(2, 2 + len).toUpperCase());
   const [input, setInput] = useState('');
-  const [timeLeft, setTimeLeft] = useState(10);
+  const [timeLeft, setTimeLeft] = useState(initialTime);
   useEffect(() => {
     if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(l => l - 1), 1000); return () => clearTimeout(t); }
     else onFinish(0);
   }, [timeLeft]);
   return (
-    <div className="flex flex-col items-center justify-center mt-12 flex-1 w-full max-w-sm mx-auto">
-      <div className="text-red-500 font-black text-2xl mb-4">{timeLeft}s</div>
-      <div className="bg-black text-green-400 font-mono font-black text-5xl tracking-[0.5em] p-8 rounded-2xl mb-8 w-full text-center select-none">{code}</div>
+    <div className="flex flex-col items-center justify-center mt-8 flex-1 w-full max-w-sm mx-auto">
+      <DifficultyBadge rank={rank} rankName={rankName} />
+      <div className="text-red-500 font-black font-mono text-xl mb-4 bg-red-50 px-4 py-1.5 rounded-xl border border-red-200">Waktu: {timeLeft}s</div>
+      <div className="bg-black text-green-400 font-mono font-black text-3xl md:text-4xl tracking-[0.3em] p-6 rounded-2xl mb-6 w-full text-center select-none shadow-lg">{code}</div>
       <input autoFocus value={input} onChange={e => {
         const val = e.target.value.toUpperCase();
         setInput(val);
         if (val === code) onFinish(baseReward);
-      }} className="w-full bg-gray-50 border-4 border-gray-200 p-6 rounded-2xl text-center text-3xl font-mono font-black uppercase outline-none focus:border-blue-400" placeholder="KETIK SINI" />
+      }} className="w-full bg-gray-50 border-4 border-gray-200 p-5 rounded-2xl text-center text-2xl font-mono font-black uppercase outline-none focus:border-blue-400 shadow-sm" placeholder="KETIK DI SINI" />
     </div>
   );
 }
 
-function ParkirGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, baseReward: number }) {
+function ParkirGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
+  const targetScore = rank === 3 ? 18 : rank === 2 ? 14 : rank === 1 ? 12 : 10;
+  const spawnRate = rank === 3 ? 400 : rank === 2 ? 550 : rank === 1 ? 680 : 800;
   const [cars, setCars] = useState<number[]>([]);
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(15);
   useEffect(() => {
     const spawn = setInterval(() => {
       setCars(prev => {
-        if (prev.length > 5) return prev;
+        if (prev.length > (rank >= 2 ? 7 : 5)) return prev;
         let p = Math.floor(Math.random() * 9);
         while (prev.includes(p)) p = Math.floor(Math.random() * 9);
         return [...prev, p];
       });
-    }, 800);
+    }, spawnRate);
     const t = setInterval(() => setTimeLeft(l => l - 1), 1000);
     return () => { clearInterval(spawn); clearInterval(t); };
-  }, []);
+  }, [spawnRate, rank]);
   useEffect(() => {
-    if (timeLeft <= 0) onFinish(score >= 10 ? baseReward : 0);
+    if (timeLeft <= 0) onFinish(score >= targetScore ? baseReward : 0);
   }, [timeLeft]);
   const clickCar = (i: number) => {
     if (cars.includes(i)) {
@@ -448,12 +567,16 @@ function ParkirGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, 
     }
   };
   return (
-    <div className="flex flex-col items-center mt-4 flex-1">
-      <div className="flex gap-8 mb-6 font-mono font-black text-2xl"><span>Waktu: {timeLeft}s</span><span>Score: {score}/10</span></div>
-      <div className="grid grid-cols-3 gap-2 bg-gray-800 p-4 rounded-xl w-[300px]">
+    <div className="flex flex-col items-center mt-6 flex-1">
+      <DifficultyBadge rank={rank} rankName={rankName} />
+      <div className="flex gap-6 mb-6 font-mono font-black text-lg bg-gray-100 px-6 py-2 rounded-2xl border border-gray-200">
+        <span>Waktu: {timeLeft}s</span>
+        <span className={score >= targetScore ? "text-green-600" : "text-gray-700"}>Skor: {score}/{targetScore}</span>
+      </div>
+      <div className="grid grid-cols-3 gap-3 bg-gray-800 p-5 rounded-2xl w-[300px] shadow-xl border-4 border-gray-700">
         {Array.from({length:9}).map((_, i) => (
-          <div key={i} onClick={() => clickCar(i)} className={`aspect-square rounded-md border-2 border-dashed border-white/20 flex items-center justify-center cursor-pointer transition-colors ${cars.includes(i) ? 'bg-red-500 scale-95 border-solid border-red-300' : 'bg-gray-700'}`}>
-            {cars.includes(i) && <span className="text-4xl pointer-events-none">🚗</span>}
+          <div key={i} onClick={() => clickCar(i)} className={`aspect-square rounded-xl border-2 border-dashed border-white/20 flex items-center justify-center cursor-pointer transition-colors ${cars.includes(i) ? 'bg-red-500 scale-95 border-solid border-red-300 shadow-md' : 'bg-gray-700 hover:bg-gray-650'}`}>
+            {cars.includes(i) && <span className="text-4xl pointer-events-none animate-pulse">🚗</span>}
           </div>
         ))}
       </div>
@@ -461,37 +584,50 @@ function ParkirGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, 
   );
 }
 
-function PelayanGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, baseReward: number }) {
+function PelayanGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
   const items = ['🍔', '🍟', '🥤', '🌭', '🍗', '🥗'];
-  const [seq] = useState(() => Array.from({length:4}).map(() => items[Math.floor(Math.random() * items.length)]));
+  const len = rank === 3 ? 7 : rank === 2 ? 6 : rank === 1 ? 5 : 4;
+  const showTime = rank === 3 ? 1800 : rank === 2 ? 2200 : rank === 1 ? 2600 : 3000;
+  
+  const [seq] = useState(() => Array.from({length: len}).map(() => items[Math.floor(Math.random() * items.length)]));
   const [input, setInput] = useState<string[]>([]);
   const [show, setShow] = useState(true);
-  useEffect(() => { const t = setTimeout(() => setShow(false), 3000); return () => clearTimeout(t); }, []);
+  useEffect(() => { const t = setTimeout(() => setShow(false), showTime); return () => clearTimeout(t); }, [showTime]);
   const handleClick = (o: string) => {
     if (show) return;
     const next = [...input, o];
     setInput(next);
     if (next[next.length-1] !== seq[next.length-1]) onFinish(0);
-    else if (next.length === 4) onFinish(baseReward);
+    else if (next.length === len) onFinish(baseReward);
   };
   return (
-    <div className="flex flex-col items-center mt-12 flex-1 w-full max-w-md mx-auto text-center">
-      <h3 className="font-bold text-xl text-gray-500 mb-6">{show ? 'Hafalkan pesanan!' : 'Apa pesanan tadi?'}</h3>
-      <div className="flex gap-4 justify-center mb-10 h-20 items-center">
-        {show ? seq.map((s,i)=><span key={i} className="text-6xl">{s}</span>) : input.map((s,i)=><span key={i} className="text-6xl">{s}</span>)}
+    <div className="flex flex-col items-center mt-8 flex-1 w-full max-w-md mx-auto text-center">
+      <DifficultyBadge rank={rank} rankName={rankName} />
+      <h3 className="font-bold text-lg text-gray-500 mb-4">{show ? `Hafalkan ${len} pesanan ini!` : `Ulangi urutan ${len} pesanan!`}</h3>
+      <div className="flex flex-wrap gap-3 justify-center mb-8 min-h-[70px] items-center bg-gray-50 p-4 rounded-2xl border-2 border-gray-100 w-full">
+        {show ? seq.map((s,i)=><span key={i} className="text-4xl md:text-5xl animate-bounce">{s}</span>) : input.map((s,i)=><span key={i} className="text-4xl md:text-5xl">{s}</span>)}
       </div>
       {!show && (
-        <div className="grid grid-cols-3 gap-4">
-          {items.map(o => <button key={o} onClick={() => handleClick(o)} className="py-6 bg-white border-4 border-gray-200 rounded-2xl text-4xl hover:bg-orange-50 active:scale-95">{o}</button>)}
+        <div className="grid grid-cols-3 gap-3 w-full">
+          {items.map(o => <button key={o} onClick={() => handleClick(o)} className="py-5 bg-white border-4 border-gray-200 rounded-2xl text-4xl hover:bg-orange-50 hover:border-orange-200 active:scale-95 shadow-sm transition-all">{o}</button>)}
         </div>
       )}
     </div>
   );
 }
 
-function PenulisGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, baseReward: number }) {
-  const words = ["KERJA", "UANG", "FOKUS", "RAVEN", "LIVIA"];
-  const [word] = useState(words[Math.floor(Math.random() * words.length)]);
+function PenulisGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
+  const getWords = () => {
+    if (rank === 3) return ["KEDISIPLINAN", "PRODUKTIVITAS", "PENYEMANGAT", "KONSISTENSI", "PERJUANGAN"];
+    if (rank === 2) return ["PRESTASI", "SEMAKIN", "EKONOMI", "HARAPAN", "MANDIRI"];
+    if (rank === 1) return ["KARIER", "RAHASIA", "KAMPUS", "SUKSES", "CERDAS"];
+    return ["KERJA", "UANG", "FOKUS", "RAVEN", "LIVIA"];
+  };
+  
+  const [word] = useState(() => {
+    const w = getWords();
+    return w[Math.floor(Math.random() * w.length)];
+  });
   const [scrambled] = useState([...word].sort(() => 0.5 - Math.random()));
   const [input, setInput] = useState<number[]>([]);
   const handleClick = (i: number) => {
@@ -503,99 +639,172 @@ function PenulisGame({ onFinish, baseReward }: { onFinish: (rv: number) => void,
     else if (curStr === word) onFinish(baseReward);
   };
   return (
-    <div className="flex flex-col items-center mt-12 flex-1">
-      <p className="text-gray-400 font-bold tracking-widest uppercase mb-8">Susun Huruf Menjadi Kata</p>
-      <div className="flex gap-2 h-16 mb-12">
+    <div className="flex flex-col items-center mt-8 flex-1">
+      <DifficultyBadge rank={rank} rankName={rankName} />
+      <p className="text-gray-400 font-bold tracking-widest uppercase mb-6 text-sm">Susun Huruf Menjadi Kata ({word.length} Huruf)</p>
+      <div className="flex flex-wrap justify-center gap-1.5 min-h-[60px] mb-8">
         {Array.from({length:word.length}).map((_, i) => (
-          <div key={i} className="w-16 h-16 border-b-4 border-gray-400 flex items-center justify-center text-4xl font-black text-gray-800">
+          <div key={i} className="w-12 h-14 md:w-14 md:h-16 border-b-4 border-gray-400 bg-gray-50 rounded-t-lg flex items-center justify-center text-2xl md:text-3xl font-black text-gray-800">
             {input[i] !== undefined ? scrambled[input[i]] : ''}
           </div>
         ))}
       </div>
-      <div className="flex gap-4">
+      <div className="flex flex-wrap justify-center gap-3 max-w-lg">
         {scrambled.map((char, i) => (
-          <button key={i} onClick={() => handleClick(i)} disabled={input.includes(i)} className="w-16 h-16 bg-white border-4 border-pink-200 rounded-xl text-3xl font-black text-pink-500 disabled:opacity-0 transition-all active:scale-90 shadow-sm">{char}</button>
+          <button key={i} onClick={() => handleClick(i)} disabled={input.includes(i)} className="w-14 h-14 md:w-16 md:h-16 bg-white border-4 border-pink-200 rounded-xl text-2xl md:text-3xl font-black text-pink-500 disabled:opacity-0 hover:bg-pink-50 active:scale-90 shadow-sm transition-all">{char}</button>
         ))}
       </div>
     </div>
   );
 }
 
-function TambangGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, baseReward: number }) {
+function TambangGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
+  const targetClicks = rank === 3 ? 65 : rank === 2 ? 55 : rank === 1 ? 45 : 35;
+  const initialTime = rank === 3 ? 9 : 10;
   const [clicks, setClicks] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(10);
+  const [timeLeft, setTimeLeft] = useState(initialTime);
   useEffect(() => {
     const t = setInterval(() => setTimeLeft(l => l > 0 ? l - 1 : 0), 1000);
     return () => clearInterval(t);
   }, []);
   useEffect(() => {
-    if (clicks >= 40) onFinish(baseReward);
+    if (clicks >= targetClicks) onFinish(baseReward);
     else if (timeLeft <= 0) onFinish(0);
   }, [clicks, timeLeft]);
   return (
-    <div className="flex flex-col items-center mt-12 flex-1 w-full text-center">
-      <div className="bg-gray-100 px-6 py-3 rounded-2xl text-gray-600 font-black font-mono text-2xl mb-8">Sisa Waktu: {timeLeft}s</div>
-      <div className="w-full max-w-sm bg-gray-200 h-6 rounded-full mb-12 overflow-hidden border-2 border-gray-300">
-        <div className="h-full bg-orange-500 transition-all" style={{width: `${(clicks/40)*100}%`}}/>
+    <div className="flex flex-col items-center mt-8 flex-1 w-full text-center">
+      <DifficultyBadge rank={rank} rankName={rankName} />
+      <div className="bg-orange-50 px-6 py-2.5 rounded-2xl text-orange-600 font-black font-mono text-xl mb-6 border border-orange-200">Sisa Waktu: {timeLeft}s</div>
+      <p className="text-gray-500 font-bold mb-4">Pukul batu tambang {targetClicks} kali dengan cepat!</p>
+      <div className="w-full max-w-sm bg-gray-200 h-6 rounded-full mb-10 overflow-hidden border border-gray-300 shadow-inner">
+        <div className="h-full bg-orange-500 transition-all duration-100" style={{width: `${(clicks/targetClicks)*100}%`}}/>
       </div>
-      <button onClick={() => setClicks(c=>c+1)} className="text-[10rem] active:scale-90 transition-transform select-none focus:outline-none filter drop-shadow-xl">🪨</button>
+      <button onClick={() => setClicks(c=>c+1)} className="text-[8rem] active:scale-90 hover:scale-105 transition-all select-none focus:outline-none filter drop-shadow-xl">🪨</button>
     </div>
   );
 }
 
-function ReparasiGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, baseReward: number }) {
-  const colors = ['red', 'blue', 'green', 'yellow'];
+function ReparasiGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
+  const allColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'cyan', 'pink'];
+  const numColors = rank === 3 ? 8 : rank === 2 ? 6 : rank === 1 ? 5 : 4;
+  const colors = allColors.slice(0, numColors);
+  
   const [left] = useState([...colors].sort(() => 0.5 - Math.random()));
   const [right] = useState([...colors].sort(() => 0.5 - Math.random()));
   const [selL, setSelL] = useState<string|null>(null);
   const [selR, setSelR] = useState<string|null>(null);
   const [matched, setMatched] = useState<string[]>([]);
+  
+  const initialTime = rank === 3 ? 12 : rank === 2 ? 15 : 999;
+  const [timeLeft, setTimeLeft] = useState(initialTime);
+
+  useEffect(() => {
+    if (rank >= 2) {
+      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(l => l - 1), 1000); return () => clearTimeout(t); }
+      else onFinish(0);
+    }
+  }, [timeLeft, rank]);
+
   useEffect(() => {
     if (selL && selR) {
       if (selL === selR) { setMatched([...matched, selL]); setSelL(null); setSelR(null); }
       else { setTimeout(() => { setSelL(null); setSelR(null); }, 300); }
     }
   }, [selL, selR]);
-  useEffect(() => { if (matched.length === 4) setTimeout(() => onFinish(baseReward), 300); }, [matched]);
-  const getColorCls = (c: string) => c==='red'?'bg-red-500':c==='blue'?'bg-blue-500':c==='green'?'bg-green-500':'bg-yellow-400';
+  useEffect(() => { if (matched.length === numColors) setTimeout(() => onFinish(baseReward), 300); }, [matched, numColors]);
+  
+  const getColorCls = (c: string) => {
+    switch(c) {
+      case 'red': return 'bg-red-500';
+      case 'blue': return 'bg-blue-500';
+      case 'green': return 'bg-green-500';
+      case 'yellow': return 'bg-yellow-400';
+      case 'purple': return 'bg-purple-600';
+      case 'orange': return 'bg-orange-500';
+      case 'cyan': return 'bg-cyan-400';
+      case 'pink': return 'bg-pink-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
   return (
-    <div className="flex justify-between items-center mt-12 flex-1 w-full max-w-sm mx-auto">
-      <div className="flex flex-col gap-6">
-        {left.map(c => <button key={c} onClick={() => !matched.includes(c) && setSelL(c)} className={`w-16 h-16 rounded-full border-4 shadow-sm transition-all ${getColorCls(c)} ${selL===c?'scale-110 border-black':'border-transparent'} ${matched.includes(c)?'opacity-20':''}`} />)}
-      </div>
-      <div className="flex flex-col gap-6">
-        {right.map(c => <button key={c} onClick={() => !matched.includes(c) && setSelR(c)} className={`w-16 h-16 rounded-full border-4 shadow-sm transition-all ${getColorCls(c)} ${selR===c?'scale-110 border-black':'border-transparent'} ${matched.includes(c)?'opacity-20':''}`} />)}
+    <div className="flex flex-col items-center mt-6 flex-1 w-full max-w-md mx-auto">
+      <DifficultyBadge rank={rank} rankName={rankName} />
+      {rank >= 2 && <div className="text-red-500 font-mono font-black text-sm mb-4">Batas Waktu: {timeLeft}s</div>}
+      <h3 className="text-sm font-bold text-gray-500 mb-6 uppercase tracking-wider">Cocokkan {numColors} Warna Kabel!</h3>
+      <div className="flex justify-between items-center w-full px-6">
+        <div className="flex flex-col gap-3">
+          {left.map(c => <button key={c} onClick={() => !matched.includes(c) && setSelL(c)} className={`w-14 h-14 rounded-full border-4 shadow-md transition-all ${getColorCls(c)} ${selL===c?'scale-110 border-black ring-4 ring-black/20':'border-transparent hover:scale-105'} ${matched.includes(c)?'opacity-20 pointer-events-none':''}`} />)}
+        </div>
+        <div className="text-2xl font-black text-gray-300">⚡</div>
+        <div className="flex flex-col gap-3">
+          {right.map(c => <button key={c} onClick={() => !matched.includes(c) && setSelR(c)} className={`w-14 h-14 rounded-full border-4 shadow-md transition-all ${getColorCls(c)} ${selR===c?'scale-110 border-black ring-4 ring-black/20':'border-transparent hover:scale-105'} ${matched.includes(c)?'opacity-20 pointer-events-none':''}`} />)}
+        </div>
       </div>
     </div>
   );
 }
 
-function PelukisGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, baseReward: number }) {
-  const targets = [{n:'Ungu', c:['merah','biru']}, {n:'Hijau', c:['kuning','biru']}, {n:'Jingga', c:['merah','kuning']}];
-  const [t] = useState(targets[Math.floor(Math.random()*3)]);
+function PelukisGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
+  const getTargets = () => {
+    if (rank >= 2) return [
+      {n:'Cokelat Ungu (3x)', c:['merah','biru','kuning']}, 
+      {n:'Hijau Zaitun (3x)', c:['kuning','kuning','biru']}, 
+      {n:'Jingga Terang (3x)', c:['merah','merah','kuning']}
+    ];
+    return [
+      {n:'Ungu (2x)', c:['merah','biru']}, 
+      {n:'Hijau (2x)', c:['kuning','biru']}, 
+      {n:'Jingga (2x)', c:['merah','kuning']}
+    ];
+  };
+  
+  const [targets] = useState(getTargets());
+  const [t] = useState(targets[Math.floor(Math.random() * targets.length)]);
   const [input, setInput] = useState<string[]>([]);
+  
+  const initialTime = rank === 3 ? 6 : rank === 2 ? 8 : rank === 1 ? 10 : 999;
+  const [timeLeft, setTimeLeft] = useState(initialTime);
+
+  useEffect(() => {
+    if (rank >= 1) {
+      if (timeLeft > 0) { const tm = setTimeout(() => setTimeLeft(l => l - 1), 1000); return () => clearTimeout(tm); }
+      else onFinish(0);
+    }
+  }, [timeLeft, rank]);
+
   const handleClick = (c: string) => {
     const next = [...input, c];
     setInput(next);
-    if (next.length === 2) {
-      if (next.includes(t.c[0]) && next.includes(t.c[1])) setTimeout(() => onFinish(baseReward), 300);
+    if (next.length === t.c.length) {
+      const isCorrect = t.c.every(val => next.includes(val)) && next.every(val => t.c.includes(val));
+      if (isCorrect) setTimeout(() => onFinish(baseReward), 300);
       else setTimeout(() => onFinish(0), 300);
     }
   };
   return (
-    <div className="flex flex-col items-center mt-12 flex-1 w-full text-center">
-      <h3 className="font-bold text-gray-500 mb-4 text-xl">Buat Warna Target:</h3>
-      <div className="text-5xl font-black mb-12 uppercase tracking-widest">{t.n}</div>
-      <div className="flex gap-6">
+    <div className="flex flex-col items-center mt-8 flex-1 w-full text-center">
+      <DifficultyBadge rank={rank} rankName={rankName} />
+      {rank >= 1 && <div className="text-red-500 font-mono font-black text-sm mb-2">Batas Waktu: {timeLeft}s</div>}
+      <h3 className="font-bold text-gray-500 mb-2 text-lg">Buat Campuran Warna ({t.c.length} Bahan):</h3>
+      <div className="text-3xl md:text-4xl font-black mb-8 uppercase tracking-wide bg-pink-50 px-6 py-4 rounded-2xl border-2 border-pink-200 text-[#5c4d47]">{t.n}</div>
+      <div className="flex gap-6 mb-8">
         {['merah','biru','kuning'].map(c => (
-          <button key={c} onClick={() => handleClick(c)} disabled={input.includes(c)} className={`w-24 h-24 rounded-full shadow-lg border-4 border-white active:scale-90 ${c==='merah'?'bg-red-500':c==='biru'?'bg-blue-500':'bg-yellow-400'} ${input.includes(c)?'opacity-30':''}`} />
+          <button key={c} onClick={() => handleClick(c)} className={`w-20 h-20 md:w-24 md:h-24 rounded-full shadow-lg border-4 border-white active:scale-90 hover:scale-105 transition-all ${c==='merah'?'bg-red-500':c==='biru'?'bg-blue-500':'bg-yellow-400'}`} />
         ))}
+      </div>
+      <div className="flex gap-2 min-h-[30px] font-mono font-bold text-gray-400">
+        Campuranmu: {input.map(i => i.toUpperCase()).join(' + ')}
       </div>
     </div>
   );
 }
 
-function TraderGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, baseReward: number }) {
+function TraderGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
+  const speed = rank === 3 ? 12 : rank === 2 ? 18 : rank === 1 ? 24 : 30;
+  const minPos = rank === 3 ? 46 : rank === 2 ? 43 : rank === 1 ? 41 : 40;
+  const maxPos = rank === 3 ? 54 : rank === 2 ? 57 : rank === 1 ? 59 : 60;
+  
   const [pos, setPos] = useState(0);
   const [dir, setDir] = useState(1);
   const ref = useRef<any>(null);
@@ -606,27 +815,29 @@ function TraderGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, 
         if (p <= 0) { setDir(1); return 2; }
         return p + dir * 3;
       });
-    }, 30);
+    }, speed);
     return () => clearInterval(ref.current);
-  }, [dir]);
+  }, [dir, speed]);
   const handleClick = () => {
     clearInterval(ref.current);
-    if (pos >= 40 && pos <= 60) onFinish(baseReward);
+    if (pos >= minPos && pos <= maxPos) onFinish(baseReward);
     else onFinish(0);
   };
   return (
-    <div className="flex flex-col items-center justify-center mt-12 flex-1 w-full text-center">
-      <h3 className="font-bold text-2xl mb-12 text-gray-600">Beli saat grafik di area hijau!</h3>
-      <div className="w-full max-w-md h-12 bg-gray-200 rounded-full relative mb-12 overflow-hidden shadow-inner border-2 border-gray-300">
-        <div className="absolute top-0 bottom-0 left-[40%] w-[20%] bg-green-400 opacity-50" />
-        <div className="absolute top-0 bottom-0 w-2 bg-red-500 shadow-md" style={{left: `${pos}%`}} />
+    <div className="flex flex-col items-center justify-center mt-8 flex-1 w-full text-center">
+      <DifficultyBadge rank={rank} rankName={rankName} />
+      <h3 className="font-bold text-xl mb-10 text-gray-600">Beli saat jarum merah tepat di zona hijau!</h3>
+      <div className="w-full max-w-md h-14 bg-gray-200 rounded-full relative mb-12 overflow-hidden shadow-inner border-2 border-gray-300">
+        <div className="absolute top-0 bottom-0 bg-green-400/80 border-x-2 border-green-600" style={{ left: `${minPos}%`, width: `${maxPos - minPos}%` }} />
+        <div className="absolute top-0 bottom-0 w-2.5 bg-red-600 shadow-md transition-all duration-75" style={{left: `${pos}%`}} />
       </div>
-      <button onClick={handleClick} className="px-12 py-6 bg-green-500 text-white font-black text-3xl rounded-[2rem] shadow-lg active:scale-95 hover:bg-green-600">BELI SEKARANG</button>
+      <button onClick={handleClick} className="px-10 py-5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-black text-2xl rounded-[2rem] shadow-lg active:scale-95 transition-all">BELI SEKARANG</button>
     </div>
   );
 }
 
-function MancingGame({ onFinish, baseReward }: { onFinish: (rv: number) => void, baseReward: number }) {
+function MancingGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
+  const maxReaction = rank === 3 ? 320 : rank === 2 ? 450 : rank === 1 ? 600 : 800;
   const [status, setStatus] = useState<'wait'|'ready'>('wait');
   const timer = useRef<any>(null);
   useEffect(() => {
@@ -641,14 +852,17 @@ function MancingGame({ onFinish, baseReward }: { onFinish: (rv: number) => void,
     if (status === 'wait') onFinish(0);
     else {
       const reaction = Date.now() - timer.current;
-      if (reaction < 800) onFinish(baseReward);
+      if (reaction < maxReaction) onFinish(baseReward);
       else onFinish(0);
     }
   };
   return (
-    <div className="flex flex-col items-center justify-center mt-12 flex-1 w-full text-center">
-      <div className="text-[8rem] h-40 mb-12">{status === 'ready' ? '❗' : '🎣'}</div>
-      <button onClick={handleClick} className="px-12 py-6 bg-blue-500 text-white font-black text-3xl rounded-[2rem] shadow-lg active:scale-95 hover:bg-blue-600">TARIK!</button>
+    <div className="flex flex-col items-center justify-center mt-8 flex-1 w-full text-center">
+      <DifficultyBadge rank={rank} rankName={rankName} />
+      <div className="text-xs font-mono font-bold text-gray-400 mb-6">Waktu Reaksi Maksimal: {maxReaction}ms</div>
+      <div className="text-[7rem] md:text-[8rem] h-36 mb-10 animate-bounce">{status === 'ready' ? '❗' : '🎣'}</div>
+      <button onClick={handleClick} className="px-12 py-5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-black text-2xl rounded-[2rem] shadow-lg active:scale-95 transition-all">TARIK!</button>
     </div>
   );
 }
+

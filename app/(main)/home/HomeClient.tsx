@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MessageSquare, Clock, BookOpen, Briefcase, Gift, MapPin, Wallet, Shirt, Menu, X, Heart, Moon, Utensils, Battery, Droplet, Sprout, Bed, Radio, Smartphone, Settings, Camera, Package, Calendar, Tv } from 'lucide-react';
+import { MessageSquare, Clock, BookOpen, Briefcase, Gift, MapPin, Wallet, Shirt, Menu, X, Heart, Moon, Utensils, Battery, Droplet, Sprout, Bed, Radio, Smartphone, Settings, Camera, Package, Calendar, Tv, Target } from 'lucide-react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
 import AffectionBar from '@/components/livia/AffectionBar';
 import { LiviaExpression } from '@/lib/gemini';
 import { getAffectionLevel } from '@/lib/livia/affection';
 import { ITEMS } from '@/lib/livia/items';
+import { recordQuestAction } from '@/lib/livia/quests';
 import ApiGuideModal from '@/components/guide/ApiGuideModal';
 import { playSfx } from '@/lib/sfx';
 import { preloadLiviaSprites } from '@/lib/preloader';
@@ -338,6 +339,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
 
   const handleInteract = async (part: 'head' | 'chest' | 'belly' | 'thigh') => {
     playSfx('pop');
+    recordQuestAction('touch_livia');
     let newExpr: LiviaExpression = 'normal';
     let newText = '';
     let affectionChange = 0;
@@ -517,7 +519,6 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
         </div>
       </div>
           
-
 
       {/* HUD UI Overlay */}
       <div className="absolute inset-0 z-20 pointer-events-none p-4 sm:p-6 md:p-10 flex flex-col justify-between">
@@ -897,6 +898,7 @@ function SideMenuCard({ href, icon, title, isSpecial = false }: { href: string; 
   return (
     <Link
       href={href}
+      prefetch={true}
       className={`group flex items-center justify-center md:justify-end gap-2 md:gap-4 px-4 md:pl-10 md:pr-6 py-2 md:py-3.5 rounded-2xl md:rounded-l-full md:rounded-r-[2rem] transition-all duration-300 md:duration-500 md:hover:pr-8 border-2 md:border-r-0 whitespace-nowrap shrink-0 ${
         isSpecial 
           ? 'bg-gradient-to-l from-[#ff758c] to-[#ff0844] md:from-[#ff758c]/90 md:to-white/90 backdrop-blur-2xl border-white hover:border-pink-300 shadow-md md:shadow-[0_15px_30px_rgba(255,117,140,0.3)]' 
@@ -917,6 +919,7 @@ function BottomMenuCard({ href, icon, title }: { href: string; icon: React.React
   return (
     <Link
       href={href}
+      prefetch={true}
       className="group flex flex-col items-center justify-center gap-1.5 md:gap-2 w-full aspect-square md:w-18 md:h-18 bg-white/90 md:bg-white/80 backdrop-blur-2xl border border-pink-100 rounded-[1.5rem] md:rounded-2xl shadow-sm md:shadow-[0_8px_20px_rgba(0,0,0,0.05)] hover:bg-white hover:border-[#ff758c] hover:shadow-md md:hover:-translate-y-1 transition-all duration-300 shrink-0"
     >
       <div className="text-pink-300 group-hover:text-[#ff758c] transition-colors transform group-hover:scale-110 duration-300">
@@ -931,7 +934,7 @@ function BottomMenuCard({ href, icon, title }: { href: string; icon: React.React
 
 function MobileNavBtn({ href, icon, label, isActive = false }: { href: string; icon: React.ReactNode; label: string; isActive?: boolean }) {
   return (
-    <Link href={href} className="flex flex-col items-center justify-center gap-1 w-14">
+    <Link href={href} prefetch={true} className="flex flex-col items-center justify-center gap-1 w-14">
       <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-pink-100 text-[#ff758c] shadow-sm' : 'text-gray-400 hover:text-[#ff758c]'}`}>
         {icon}
       </div>

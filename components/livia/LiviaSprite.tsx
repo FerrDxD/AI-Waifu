@@ -17,7 +17,7 @@ interface LiviaSpriteProps {
   imgClassName?: string;
   disableFloat?: boolean;
   mixBlendMultiply?: boolean;
-  variant?: 'home' | 'wardrobe' | 'focus' | 'shop' | 'story';
+  variant?: 'home' | 'wardrobe' | 'focus' | 'shop' | 'story' | 'story-page';
   chapterId?: number;
 }
 
@@ -33,7 +33,7 @@ const glowStyles: Record<LiviaExpression, string> = {
   pleased: 'drop-shadow-[0_0_20px_rgba(255,200,100,0.4)]',
   scared: 'drop-shadow-[0_0_20px_rgba(100,100,200,0.4)]',
   serious: 'drop-shadow-[0_0_20px_rgba(100,150,200,0.4)]',
-  silly: 'drop-shadow-[0_0_20px_rgba(255,150,50,0.4)]',
+  silly: 'drop-shadow-[0_0_25px_rgba(255,150,50,0.4)]',
 };
 
 export default function LiviaSprite({ expression, outfit = 'default', className = '',
@@ -58,13 +58,17 @@ export default function LiviaSprite({ expression, outfit = 'default', className 
     'default': 'default',
     'school': 'hightscool uniform',
     'trench_coat': 'trench-coat',
-    'office_lady': 'office-lady', // jaga-jaga kalau filenya pakai strip
-    // yang lain akan otomatis menggunakan normalizedOutfit
+    'office_lady': 'office_lady',
+    'gaun_pengantin': 'wedding_dress',
+    'piyama': 'piyama',
   };
 
   // Mapping khusus untuk wardrobe, focus, shop (jika ada perbedaan nama)
   const generalMap: Record<string, string> = {
     'school': 'uniform',
+    'gaun_pengantin': 'wedding_dress',
+    'office_lady': 'office_lady',
+    'piyama': 'piyama',
   };
 
   let folderPath = `home-screen/${homeFolderMap[normalizedOutfit] || normalizedOutfit}`;
@@ -82,6 +86,24 @@ export default function LiviaSprite({ expression, outfit = 'default', className 
     src = `/livia/shop/${mappedName}/${fileName}.webp`;
   } else if (variant === 'story') {
     src = `/livia/Story-bab/${expression}.webp`;
+  } else if (variant === 'story-page') {
+    const storyPageMap: Record<string, string> = {
+      'default': 'default',
+      'school': 'uniform',
+      'uniform': 'uniform',
+      'trench_coat': 'trench-coat',
+      'trench-coat': 'trench-coat',
+      'office_lady': 'office-lady',
+      'office-lady': 'office-lady',
+      'gaun_pengantin': 'wedding-dress',
+      'wedding_dress': 'wedding-dress',
+      'wedding-dress': 'wedding-dress',
+      'piyama': 'piyama',
+      'casual': 'casual',
+      'yukata': 'yukata',
+    };
+    const storyOutfitName = storyPageMap[normalizedOutfit] || normalizedOutfit.replace(/_/g, '-');
+    src = `/livia/story page/${storyOutfitName}.webp`;
   }
 
   return (

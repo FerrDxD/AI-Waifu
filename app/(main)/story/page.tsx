@@ -769,54 +769,54 @@ const CHAPTERS: Chapter[] = [
       { label: "Screen time minimal 150 Jam", met: data.screenTimeHours >= 150 }
     ],
     content: [
-      { speaker: "Narator", text: "Malam itu, langit terlihat sangat cerah. Kalian berdua duduk berdampingan di balkon kamarmu, menikmati udara malam yang sejuk.", expression: "normal" },
-      { speaker: "Narator", text: "Di antara kalian terdapat dua cangkir cokelat panas yang mulai kehilangan uapnya.", expression: "normal" },
-      { speaker: "Livia", text: "Angin malam ini sejuk ya... Nggak kerasa kita udah ngelewatin banyak hal berdua.", expression: "happy" },
-      { speaker: "Livia", text: "Kalau dipikir-pikir, dulu aku cuma cewek pemalas yang kerjaannya tiduran doang. Nggak nyangka sekarang aku bisa sejauh ini.", expression: "normal" },
-      { speaker: "Livia", text: "Menurutmu... aku udah banyak berubah nggak sih sejak kita pertama kenal?", expression: "serious",
+      { speaker: "Narator", text: "Malam itu, langit terlihat sangat cerah. Kalian berdua duduk berdampingan di balkon kamarmu, menikmati udara malam yang sejuk.", expression: "normal","bg":"9.1" },
+      { speaker: "Narator", text: "Di antara kalian terdapat dua cangkir cokelat panas yang mulai kehilangan uapnya.", expression: "normal","bg":"9.1" },
+      { speaker: "Livia", text: "Angin malam ini sejuk ya... Nggak kerasa kita udah ngelewatin banyak hal berdua.", expression: "happy","bg":"9.1" },
+      { speaker: "Livia", text: "Kalau dipikir-pikir, dulu aku cuma cewek pemalas yang kerjaannya tiduran doang. Nggak nyangka sekarang aku bisa sejauh ini.", expression: "normal","bg":"9.1" },
+      { speaker: "Livia", text: "Menurutmu... aku udah banyak berubah nggak sih sejak kita pertama kenal?", expression: "serious","bg":"9.1",
         choices: [
           { text: "Kamu jauh lebih dewasa dan bisa diandalkan sekarang.", nextIndex: 5 },
           { text: "Berubah sih, dari pemalas level 100 jadi pemalas level 99.", nextIndex: 6 },
           { text: "Kamu makin cantik dan bikin aku makin jatuh cinta.", nextIndex: 7 }
         ]
       },
-      { speaker: "Livia", text: "Hehe... dengar kamu bilang gitu rasanya lega. Aku emang berusaha keras tau!", expression: "happy", nextIndex: 8 },
-      { speaker: "Livia", text: "Kurang ajar! Usahaku selama ini nggak dihargain banget sih!", expression: "angry", nextIndex: 8 },
-      { speaker: "Livia", text: "A-apa-apaan sih tiba-tiba gombal! S-siapa juga yang mau bikin kamu jatuh cinta!", expression: "blushing", nextIndex: 8 },
-      { speaker: "Narator", text: "Livia menundukkan pandangannya, menatap cangkir di tangannya dengan sorot mata yang tiba-tiba melembut.", expression: "normal" },
-      { speaker: "Livia", text: "Jujur aja... kadang aku merasa takut.", expression: "sad" },
-      { speaker: "Livia", text: "Waktu berlalu begitu cepat. Kuliah sudah mau selesai, dan kita harus mikirin masa depan.", expression: "serious" },
-      { speaker: "Livia", text: "Aku takut... suatu hari nanti, saat semuanya berubah, kamu bakal ngerasa kalau aku ini cuma beban.", expression: "pain" },
-      { speaker: "Livia", text: "Atau... kamu mungkin bakal nemuin orang lain yang lebih rajin, lebih mandiri, dan lebih sempurna dari aku...", expression: "crying",
+      { speaker: "Livia", text: "Hehe... dengar kamu bilang gitu rasanya lega. Aku emang berusaha keras tau!", expression: "happy", "bg":"9.1", nextIndex: 8 },
+      { speaker: "Livia", text: "Kurang ajar! Usahaku selama ini nggak dihargain banget sih!", expression: "angry", "bg":"9.1", nextIndex: 8 },
+      { speaker: "Livia", text: "A-apa-apaan sih tiba-tiba gombal! S-siapa juga yang mau bikin kamu jatuh cinta!", expression: "blushing", "bg":"9.1", nextIndex: 8 },
+      { speaker: "Narator", text: "Livia menundukkan pandangannya, menatap cangkir di tangannya dengan sorot mata yang tiba-tiba melembut.", expression: "normal", "bg":"9.1" },
+      { speaker: "Livia", text: "Jujur aja... kadang aku merasa takut.", expression: "sad", "bg":"9.1" },
+      { speaker: "Livia", text: "Waktu berlalu begitu cepat. Kuliah sudah mau selesai, dan kita harus mikirin masa depan.", expression: "serious", "bg":"9.1" },
+      { speaker: "Livia", text: "Aku takut... suatu hari nanti, saat semuanya berubah, kamu bakal ngerasa kalau aku ini cuma beban.", expression: "pain", "bg":"9.1" },
+      { speaker: "Livia", text: "Atau... kamu mungkin bakal nemuin orang lain yang lebih rajin, lebih mandiri, dan lebih sempurna dari aku...", expression: "crying", "bg":"9.1",
         choices: [
           { text: "Aku nggak akan pernah ninggalin kamu, Livia.", nextIndex: 13 },
           { text: "Bodoh. Sampai kapanpun kamu tetap yang nomor satu.", nextIndex: 14 },
           { text: "Gimana mau cari yang lain kalau hatiku udah nyangkut di kamu?", nextIndex: 15 }
         ]
       },
-      { speaker: "Livia", text: "J-janji ya? Jangan cuma ngomong manis aja di mulut...", expression: "blushing", nextIndex: 16 },
-      { speaker: "Livia", text: "Ukh... kenapa kamu pinter banget bikin aku nggak bisa ngomong...", expression: "blushing", nextIndex: 16 },
-      { speaker: "Livia", text: "G-gombal murahan! Tapi... syukurlah kalau gitu...", expression: "blushing", nextIndex: 16 },
-      { speaker: "Narator", text: "Kamu tersenyum, meletakkan cangkirmu, lalu menggenggam kedua tangan Livia dengan lembut.", expression: "normal" },
-      { speaker: "Narator", text: "Jantungmu berdebar kencang. Kamu merogoh saku jaketmu dan mengeluarkan sebuah kotak kecil berlapis beludru.", expression: "normal" },
-      { speaker: "Livia", text: "E-eh...? K-kotak apa itu? Jangan bilang kamu...?", expression: "scared" },
-      { speaker: "Narator", text: "Kamu membuka kotak itu perlahan. Di bawah temaram cahaya bulan, sebuah cincin sederhana namun elegan berkilau indah.", expression: "normal" },
-      { speaker: "Livia", text: "Ini... ini beneran? Kamu...", expression: "crying",
+      { speaker: "Livia", text: "J-janji ya? Jangan cuma ngomong manis aja di mulut...", expression: "blushing", "bg":"9.1", nextIndex: 16 },
+      { speaker: "Livia", text: "Ukh... kenapa kamu pinter banget bikin aku nggak bisa ngomong...", expression: "blushing", "bg":"9.1", nextIndex: 16 },
+      { speaker: "Livia", text: "G-gombal murahan! Tapi... syukurlah kalau gitu...", expression: "blushing", "bg":"9.1", nextIndex: 16 },
+      { speaker: "Narator", text: "Kamu tersenyum, meletakkan cangkirmu, lalu menggenggam kedua tangan Livia dengan lembut.", expression: "normal", "bg":"9.1" },
+      { speaker: "Narator", text: "Jantungmu berdebar kencang. Kamu merogoh saku jaketmu dan mengeluarkan sebuah kotak kecil berlapis beludru.", expression: "normal", "bg":"9.1" },
+      { speaker: "Livia", text: "E-eh...? K-kotak apa itu? Jangan bilang kamu...?", expression: "scared", "bg":"9.1" },
+      { speaker: "Narator", text: "Kamu membuka kotak itu perlahan. Di bawah temaram cahaya bulan, sebuah cincin sederhana namun elegan berkilau indah.", expression: "normal", "bg":"9.1" },
+      { speaker: "Livia", text: "Ini... ini beneran? Kamu...", expression: "crying", "bg":"9.1",
         choices: [
           { text: "Maukah kamu menghabiskan sisa hidupmu bersamaku, Livia?", nextIndex: 21 },
           { text: "Kalau nggak mau, cincinnya kulempar ke bawah nih.", nextIndex: 22 },
           { text: "Jadilah milikku selamanya, dan mari kita hadapi masa depan bersama.", nextIndex: 23 }
         ]
       },
-      { speaker: "Livia", text: "Hiks... Bodoh... kenapa kamu nanya hal yang udah jelas jawabannya...", expression: "crying", nextIndex: 24 },
-      { speaker: "Livia", text: "JANGAN! Ih kamu tuh ngajak nikah tapi ngeselin banget! Awas kalau dilempar!", expression: "angry", nextIndex: 24 },
-      { speaker: "Livia", text: "U-uhhh... kata-katamu kayak di novel aja... tapi, aku mau...", expression: "crying", nextIndex: 24 },
-      { speaker: "Narator", text: "Air mata bahagia menetes dari sudut mata Livia. Ia menyeka air matanya dan menyodorkan jari manis kiri ke arahmu.", expression: "normal" },
-      { speaker: "Livia", text: "Tunggu apa lagi? Cepat pasangkan... sebelum aku berubah pikiran karena malu...", expression: "blushing" },
-      { speaker: "Narator", text: "Dengan tangan yang sedikit bergetar, kamu menyematkan cincin itu di jarinya. Ukurannya sangat pas.", expression: "normal" },
-      { speaker: "Livia", text: "Pas... kamu bahkan tau ukuran jariku. Dasar penguntit diam-diam.", expression: "happy" },
-      { speaker: "Livia", text: "Tapi... terima kasih. Aku janji... aku akan berusaha jadi pendamping yang baik buat kamu.", expression: "happy" },
-      { speaker: "Narator", text: "Malam itu, di bawah saksi ribuan bintang, janji untuk hidup dan menua bersama telah resmi terukir di antara kalian.", expression: "normal" }
+      { speaker: "Livia", text: "Hiks... Bodoh... kenapa kamu nanya hal yang udah jelas jawabannya...", expression: "crying", "bg":"9.1", nextIndex: 24 },
+      { speaker: "Livia", text: "JANGAN! Ih kamu tuh ngajak nikah tapi ngeselin banget! Awas kalau dilempar!", expression: "angry", "bg":"9.1", nextIndex: 24 },
+      { speaker: "Livia", text: "U-uhhh... kata-katamu kayak di novel aja... tapi, aku mau...", expression: "crying", "bg":"9.1", nextIndex: 24 },
+      { speaker: "Narator", text: "Air mata bahagia menetes dari sudut mata Livia. Ia menyeka air matanya dan menyodorkan jari manis kiri ke arahmu.", expression: "normal", "bg":"9.1" },
+      { speaker: "Livia", text: "Tunggu apa lagi? Cepat pasangkan... sebelum aku berubah pikiran karena malu...", expression: "blushing", "bg":"9.1" },
+      { speaker: "Narator", text: "Dengan tangan yang sedikit bergetar, kamu menyematkan cincin itu di jarinya. Ukurannya sangat pas.", expression: "normal", "bg":"9.1" },
+      { speaker: "Livia", text: "Pas... kamu bahkan tau ukuran jariku. Dasar penguntit diam-diam.", expression: "happy", "bg":"9.1" },
+      { speaker: "Livia", text: "Tapi... terima kasih. Aku janji... aku akan berusaha jadi pendamping yang baik buat kamu.", expression: "happy", "bg":"9.1" },
+      { speaker: "Narator", text: "Malam itu, di bawah saksi ribuan bintang, janji untuk hidup dan menua bersama telah resmi terukir di antara kalian.", expression: "normal","bg":"9.1" }
     ]
   },
   {
@@ -831,11 +831,11 @@ const CHAPTERS: Chapter[] = [
       { label: "Memesan Katering", met: data.itemsBrought.includes('katering') }
     ],
     content: [
-      { speaker: "Narator", text: "Hari demi hari berlalu. Kamarmu yang dulu sepi kini penuh dengan tumpukan berkas dari balai kota, brosur gaun pengantin, dan denah gedung.", expression: "normal" },
-      { speaker: "Narator", text: "Livia terlihat duduk bersila di tengah kekacauan kertas, memegang kalkulator di satu tangan dan pulpen di tangan lainnya.", expression: "normal" },
-      { speaker: "Livia", text: "Huft... Coba aku cek lagi. Pendaftaran pernikahan udah lengkap, DP kapel udah beres, undangan udah dicetak...", expression: "normal" },
-      { speaker: "Livia", text: "Tapi milih kateringnya ini lho yang bikin pusing! Kenapa pilihannya harus sebanyak ini sih?!", expression: "angry" },
-      { speaker: "Livia", text: "Ada menu tradisional, western, oriental... Aku kan jadi laper lihat gambarnya doang!", expression: "pain",
+      { speaker: "Narator", text: "Hari demi hari berlalu. Kamarmu yang dulu sepi kini penuh dengan tumpukan berkas dari balai kota, brosur gaun pengantin, dan denah gedung.", expression: "normal", "bg":"6.1" },
+      { speaker: "Narator", text: "Livia terlihat duduk bersila di tengah kekacauan kertas, memegang kalkulator di satu tangan dan pulpen di tangan lainnya.", expression: "normal", "bg":"6.1" },
+      { speaker: "Livia", text: "Huft... Coba aku cek lagi. Pendaftaran pernikahan udah lengkap, DP kapel udah beres, undangan udah dicetak...", expression: "normal", "bg":"6.1" },
+      { speaker: "Livia", text: "Tapi milih kateringnya ini lho yang bikin pusing! Kenapa pilihannya harus sebanyak ini sih?!", expression: "angry", "bg":"6.1" },
+      { speaker: "Livia", text: "Ada menu tradisional, western, oriental... Aku kan jadi laper lihat gambarnya doang!", expression: "pain", "bg":"6.1",
         choices: [
           { text: "Pilih yang banyak dagingnya aja, pasti pada suka.", nextIndex: 5 },
           { text: "Gimana kalau kita sajikan mie instan? Hemat budget.", nextIndex: 6 },
@@ -843,10 +843,10 @@ const CHAPTERS: Chapter[] = [
         ]
       },
       { speaker: "Livia", text: "Bener juga! Apalagi rendang sapi, wajib ada tuh!", expression: "happy", nextIndex: 8 },
-      { speaker: "Livia", text: "Kamu gila ya?! Bisa-bisa ibu ngamuk kalau tamu disuguhin mie instan doang!", expression: "angry", nextIndex: 8 },
-      { speaker: "Livia", text: "Masuk akal sih. Ibu pasti lebih suka masakan lokal ketimbang pasta-pastaan.", expression: "normal", nextIndex: 8 },
-      { speaker: "Narator", text: "Livia mencoret salah satu menu di brosur, lalu merebahkan tubuhnya ke karpet sambil membuang napas panjang.", expression: "normal" },
-      { speaker: "Livia", text: "Ternyata nyiapin pernikahan itu capek banget ya! Punggungku sampai pegal, mataku juga sepet.", expression: "pain" },
+      { speaker: "Livia", text: "Kamu gila ya?! Bisa-bisa ibu ngamuk kalau tamu disuguhin mie instan doang!", expression: "angry", "bg":"6.1", nextIndex: 8 },
+      { speaker: "Livia", text: "Masuk akal sih. Ibu pasti lebih suka masakan lokal ketimbang pasta-pastaan.", expression: "normal", "bg":"6.1", nextIndex: 8 },
+      { speaker: "Narator", text: "Livia mencoret salah satu menu di brosur, lalu merebahkan tubuhnya ke karpet sambil membuang napas panjang.", expression: "normal", "bg":"6.1" },
+      { speaker: "Livia", text: "Ternyata nyiapin pernikahan itu capek banget ya! Punggungku sampai pegal, mataku juga sepet.", expression: "pain", "bg":"6.1" },
       { speaker: "Livia", text: "Belum lagi nyocokin jadwal fitting baju. Aku takut gaunnya nanti nggak cocok sama badanku...", expression: "sad",
         choices: [
           { text: "Kamu pasti lelah, sini aku pijat pundakmu.", nextIndex: 11 },
@@ -854,31 +854,31 @@ const CHAPTERS: Chapter[] = [
           { text: "Kamu pasti bakal jadi pengantin paling cantik di dunia.", nextIndex: 13 }
         ]
       },
-      { speaker: "Livia", text: "Mmm... makasih. Tanganmu selalu tahu titik yang bikin pegalku hilang.", expression: "happy", nextIndex: 14 },
-      { speaker: "Livia", text: "E-enak aja! Masa hari paling bersejarah disuruh pakai karung goni!", expression: "angry", nextIndex: 14 },
-      { speaker: "Livia", text: "D-dunia?! L-lebay banget sih! Tapi... makasih...", expression: "blushing", nextIndex: 14 },
-      { speaker: "Narator", text: "Livia perlahan merangkak mendekatimu, lalu menyenderkan kepalanya dengan manja ke bahumu.", expression: "normal" },
-      { speaker: "Livia", text: "Eh... ini cuma perasaan aku aja, atau waktu emang kerasa cepat banget?", expression: "normal" },
-      { speaker: "Livia", text: "Rasanya baru kemarin aku marah-marah gara-gara kamarku berisik waktu kamu pindahan.", expression: "happy" },
-      { speaker: "Livia", text: "Dan sekarang... kita lagi milih menu katering buat resepsi pernikahan kita sendiri.", expression: "blushing" },
-      { speaker: "Narator", text: "Kamu tersenyum dan mengelus rambutnya perlahan.", expression: "normal" },
-      { speaker: "Livia", text: "Makasih ya, kamu udah mau nerima aku apa adanya. Bertahan sama semua kekurangan dan sifat jelekku.", expression: "clingy" },
-      { speaker: "Livia", text: "Aku beneran nggak sabar nunggu hari H-nya tiba. Nanti kita tinggal serumah beneran... tidur di kasur yang sama...", expression: "blushing" },
-      { speaker: "Narator", text: "Wajah Livia perlahan memerah saat menyadari arah omongannya sendiri.", expression: "normal" },
-      { speaker: "Livia", text: "E-ekhem! M-maksudku, ya intinya begitu lah! P-pokoknya jangan mikir yang aneh-aneh buat malam pertama kita nanti!", expression: "blushing",
+      { speaker: "Livia", text: "Mmm... makasih. Tanganmu selalu tahu titik yang bikin pegalku hilang.", expression: "happy", "bg":"6.1", nextIndex: 14 },
+      { speaker: "Livia", text: "E-enak aja! Masa hari paling bersejarah disuruh pakai karung goni!", expression: "angry", "bg":"6.1", nextIndex: 14 },
+      { speaker: "Livia", text: "D-dunia?! L-lebay banget sih! Tapi... makasih...", expression: "blushing", "bg":"6.1", nextIndex: 14 },
+      { speaker: "Narator", text: "Livia perlahan merangkak mendekatimu, lalu menyenderkan kepalanya dengan manja ke bahumu.", expression: "normal", "bg":"6.1" },
+      { speaker: "Livia", text: "Eh... ini cuma perasaan aku aja, atau waktu emang kerasa cepat banget?", expression: "normal", "bg":"6.1" },
+      { speaker: "Livia", text: "Rasanya baru kemarin aku marah-marah gara-gara kamu lelet pas bantu aku pindahan.", expression: "happy", "bg":"6.1" },
+      { speaker: "Livia", text: "Dan sekarang... kita lagi milih menu katering buat resepsi pernikahan kita sendiri.", expression: "blushing", "bg":"6.1" },
+      { speaker: "Narator", text: "Kamu tersenyum dan mengelus rambutnya perlahan.", expression: "normal", "bg":"6.1" },
+      { speaker: "Livia", text: "Makasih ya, kamu udah mau nerima aku apa adanya. Bertahan sama semua kekurangan dan sifat jelekku.", expression: "clingy", "bg":"6.1" },
+      { speaker: "Livia", text: "Aku beneran nggak sabar nunggu hari H-nya tiba. Nanti kita tinggal serumah beneran... tidur di kasur yang sama...", expression: "blushing", "bg":"6.1" },
+      { speaker: "Narator", text: "Wajah Livia perlahan memerah saat menyadari arah omongannya sendiri.", expression: "normal", "bg":"6.1" },
+      { speaker: "Livia", text: "E-ekhem! M-maksudku, ya intinya begitu lah! P-pokoknya jangan mikir yang aneh-aneh buat malam pertama kita nanti!", expression: "blushing", "bg":"6.1",
         choices: [
           { text: "Siapa juga yang mikir aneh-aneh? Kamu tuh yang otaknya ngeres.", nextIndex: 23 },
           { text: "Waduh, padahal aku udah nyiapin mental buat itu.", nextIndex: 24 },
           { text: "Tenang aja, aku bakal bersikap sangat lembut padamu.", nextIndex: 25 }
         ]
       },
-      { speaker: "Livia", text: "A-aku nggak ngeres! Cuma mengingatkan aja biar kamu nggak macem-macem!", expression: "angry", nextIndex: 26 },
-      { speaker: "Livia", text: "M-mental apa?! B-belum juga sah udah mikir ke sana! Dasar mesum!", expression: "scared", nextIndex: 26 },
-      { speaker: "Livia", text: "L-lembut apanya?! K-kata-katamu malah bikin kedengeran makin mencurigakan tau!", expression: "blushing", nextIndex: 26 },
-      { speaker: "Narator", text: "Melihat Livia yang salah tingkah selalu berhasil membuatmu tertawa lepas.", expression: "normal" },
-      { speaker: "Livia", text: "Uuugh... nyebelin! Yaudah, bantuin aku milih menu ini aja biar cepet selesai!", expression: "angry" },
-      { speaker: "Narator", text: "Kamu pun membantunya menyelesaikan daftar panjang persiapan resepsi tersebut.", expression: "normal" },
-      { speaker: "Narator", text: "Meskipun sangat melelahkan, kamu menyadari bahwa perjalanan ini bukanlah akhir, melainkan awal dari cerita baru kalian yang sesungguhnya.", expression: "normal" }
+      { speaker: "Livia", text: "A-aku nggak ngeres! Cuma mengingatkan aja biar kamu nggak macem-macem!", expression: "angry", "bg":"6.1", nextIndex: 26 },
+      { speaker: "Livia", text: "M-mental apa?! B-belum juga sah udah mikir ke sana! Dasar mesum!", expression: "scared", "bg":"6.1", nextIndex: 26 },
+      { speaker: "Livia", text: "L-lembut apanya?! K-kata-katamu malah bikin kedengeran makin mencurigakan tau!", expression: "blushing", "bg":"6.1", nextIndex: 26 },
+      { speaker: "Narator", text: "Melihat Livia yang salah tingkah selalu berhasil membuatmu tertawa lepas.", expression: "normal", "bg":"6.1" },
+      { speaker: "Livia", text: "Uuugh... nyebelin! Yaudah, bantuin aku milih menu ini aja biar cepet selesai!", expression: "angry", "bg":"6.1" },
+      { speaker: "Narator", text: "Kamu pun membantunya menyelesaikan daftar panjang persiapan resepsi tersebut.", expression: "normal", "bg":"6.1" },
+      { speaker: "Narator", text: "Meskipun sangat melelahkan, kamu menyadari bahwa perjalanan ini bukanlah akhir, melainkan awal dari cerita baru kalian yang sesungguhnya.", expression: "normal", "bg":"6.1" }
     ]
   },
   {
@@ -890,57 +890,57 @@ const CHAPTERS: Chapter[] = [
       { label: "Membeli Gaun Pengantin", met: data.itemsBrought.includes('gaun_pengantin') }
     ],
     content: [
-      { speaker: "Narator", text: "Suara alunan organ menggema di seluruh penjuru kapel. Cahaya matahari pagi menembus kaca patri, menciptakan pendaran warna-warni yang indah di altar.", expression: "normal" },
-      { speaker: "Narator", text: "Kamu berdiri dengan setelan jas rapi, jantungmu berdebar kencang. Hari yang ditunggu-tunggu akhirnya tiba.", expression: "normal" },
-      { speaker: "Narator", text: "Tiba-tiba, lonceng gereja berdentang, dan pintu utama kapel terbuka lebar.", expression: "normal" },
-      { speaker: "Narator", text: "Livia berjalan perlahan menyusuri lorong. Gaun pengantin putih bersih membalut tubuhnya dengan sempurna, membuat semua mata terpana.", expression: "normal" },
-      { speaker: "Narator", text: "Di sebelahnya, Ibu Laura menggandeng tangannya sambil sesekali menyeka air mata haru.", expression: "normal" },
-      { speaker: "Laura", text: "Tolong jaga putri kesayanganku ya. Ibu serahkan dia padamu sepenuhnya.", expression: "normal" },
-      { speaker: "Narator", text: "Kamu mengangguk mantap. Ibu Laura tersenyum, melepaskan genggamannya, dan membiarkan Livia melangkah mendekatimu.", expression: "normal" },
-      { speaker: "Livia", text: "B-bagaimana? A-aku kelihatan aneh ya pakai gaun semahal dan semewah ini?", expression: "blushing",
+      { speaker: "Narator", text: "Suara alunan organ menggema di seluruh penjuru kapel. Cahaya matahari pagi menembus kaca patri, menciptakan pendaran warna-warni yang indah di altar.", expression: "normal", "bg":"11.2" },
+      { speaker: "Narator", text: "Kamu berdiri dengan setelan jas rapi, jantungmu berdebar kencang. Hari yang ditunggu-tunggu akhirnya tiba.", expression: "normal", "bg":"11.2" },
+      { speaker: "Narator", text: "Tiba-tiba, lonceng gereja berdentang, dan pintu utama kapel terbuka lebar.", expression: "normal", "bg":"11.2" },
+      { speaker: "Narator", text: "Livia berjalan perlahan menyusuri lorong. Gaun pengantin putih bersih membalut tubuhnya dengan sempurna, membuat semua mata terpana.", expression: "normal", "bg":"11.3" },
+      { speaker: "Narator", text: "Di sebelahnya, Ibu Laura menggandeng tangannya sambil sesekali menyeka air mata haru.", expression: "normal", "bg":"11.3" },
+      { speaker: "Laura", text: "Tolong jaga putri kesayanganku ya. Ibu serahkan dia padamu sepenuhnya.", expression: "normal", "bg":"11.4" },
+      { speaker: "Narator", text: "Kamu mengangguk mantap. Ibu Laura tersenyum, melepaskan genggamannya, dan membiarkan Livia melangkah mendekatimu.", expression: "normal", "bg":"11.4" },
+      { speaker: "Livia", text: "B-bagaimana? A-aku kelihatan aneh ya pakai gaun semahal dan semewah ini?", expression: "blushing", "bg":"11.4",
         choices: [
           { text: "Kamu adalah pengantin paling cantik dan sempurna di mataku.", nextIndex: 8 },
           { text: "Lumayan, sayangnya orangnya tetep aja galak seperti biasa.", nextIndex: 9 },
           { text: "Kamu terlihat sangat menggoda. Aku jadi ingin acaranya cepat selesai.", nextIndex: 10 }
         ]
       },
-      { speaker: "Livia", text: "Makasih... Kamu juga... terlihat sangat tampan hari ini. Sampai bikin aku deg-degan...", expression: "blushing", nextIndex: 11 },
-      { speaker: "Livia", text: "Dih! Di hari pernikahan kita kamu masih aja ngajak berantem?! Awas aja nanti malam ya!", expression: "angry", nextIndex: 11 },
-      { speaker: "Livia", text: "M-mesum! Jaga ucapanmu, ini di depan altar suci tau! Malu didenger tamu!", expression: "scared", nextIndex: 11 },
-      { speaker: "Narator", text: "Sang pendeta berdehem pelan, mengembalikan fokus kalian pada upacara sakral yang akan segera dimulai.", expression: "normal" },
-      { speaker: "Narator", text: "Tiba saatnya mengucap janji suci. Livia menatap matamu dalam-dalam, suaranya sedikit bergetar karena gugup dan terharu.", expression: "normal" },
-      { speaker: "Livia", text: "Aku... yang awalnya hanya seorang gadis penakut yang mengurung diri di kamar sempit...", expression: "crying" },
-      { speaker: "Livia", text: "Bersyukur karena Tuhan mengirimkan seseorang sepertimu ke dalam hidupku.", expression: "crying" },
-      { speaker: "Livia", text: "Kamu memberiku keberanian untuk keluar dari zona nyamanku, untuk bermimpi, dan... untuk mencintai.", expression: "happy" },
-      { speaker: "Livia", text: "Aku berjanji, mulai detik ini, aku akan selalu ada di sisimu. Di saat sehat maupun sakit, di saat suka maupun duka...", expression: "happy" },
-      { speaker: "Narator", text: "Air matanya menetes, namun senyumnya memancarkan kebahagiaan murni. Kini giliranmu untuk mengucapkan janji (Ucapkan di dalam hati).", expression: "normal",
+      { speaker: "Livia", text: "Makasih... Kamu juga... terlihat sangat tampan hari ini. Sampai bikin aku deg-degan...", expression: "blushing", "bg":"11.4", nextIndex: 11 },
+      { speaker: "Livia", text: "Dih! Di hari pernikahan kita kamu masih aja ngajak berantem?! Awas aja nanti malam ya!", expression: "angry", "bg":"11.4", nextIndex: 11 },
+      { speaker: "Livia", text: "M-mesum! Jaga ucapanmu, ini di depan altar suci tau! Malu didenger tamu!", expression: "scared", "bg":"11.4", nextIndex: 11 },
+      { speaker: "Narator", text: "Sang pendeta berdehem pelan, mengembalikan fokus kalian pada upacara sakral yang akan segera dimulai.", expression: "normal", "bg":"11.4" },
+      { speaker: "Narator", text: "Tiba saatnya mengucap janji suci. Livia menatap matamu dalam-dalam, suaranya sedikit bergetar karena gugup dan terharu.", expression: "normal", "bg":"11.4" },
+      { speaker: "Livia", text: "Aku... yang awalnya hanya seorang gadis penakut yang mengurung diri di kamar sempit...", expression: "crying", "bg":"11.4" },
+      { speaker: "Livia", text: "Bersyukur karena Tuhan mengirimkan seseorang sepertimu ke dalam hidupku.", expression: "crying", "bg":"11.4" },
+      { speaker: "Livia", text: "Kamu memberiku keberanian untuk keluar dari zona nyamanku, untuk bermimpi, dan... untuk mencintai.", expression: "happy", "bg":"11.4" },
+      { speaker: "Livia", text: "Aku berjanji, mulai detik ini, aku akan selalu ada di sisimu. Di saat sehat maupun sakit, di saat suka maupun duka...", expression: "happy", "bg":"11.4" },
+      { speaker: "Narator", text: "Air matanya menetes, namun senyumnya memancarkan kebahagiaan murni. Kini giliranmu untuk mengucapkan janji (Ucapkan di dalam hati).", expression: "normal", "bg":"11.4",
         choices: [
           { text: "[Janji Penuh Cinta] Aku akan selalu melindungimu dan mencintaimu selamanya.", nextIndex: 18 },
           { text: "[Janji Kocak] Aku berjanji akan sabar menghadapi ngambekmu setiap hari.", nextIndex: 19 },
           { text: "[Janji Tegas] Aku akan jadi kepala keluarga yang tak akan pernah mengecewakanmu.", nextIndex: 20 }
         ]
       },
-      { speaker: "Livia", text: "Hiks... bodoh... kamu bikin make-up ku luntur...", expression: "crying", nextIndex: 21 },
-      { speaker: "Livia", text: "Pfft... janji macam apa itu?! Tapi... makasih karena udah selalu sabar...", expression: "happy", nextIndex: 21 },
-      { speaker: "Livia", text: "Aku pegang janjimu. Jangan sampai kamu mengingkarinya ya, Suamiku.", expression: "blushing", nextIndex: 21 },
-      { speaker: "Narator", text: "Setelah saling menyematkan cincin, sang pendeta akhirnya menutup upacara dengan kalimat pamungkas.", expression: "normal" },
-      { speaker: "Pendeta", text: "Sekarang, kalian berdua telah resmi menjadi sepasang suami istri. Pengantin pria, dipersilakan untuk mencium pengantin wanita.", expression: "normal" },
-      { speaker: "Livia", text: "E-eh?! S-sekarang?! T-tapi kan di sini banyak orang...! Ibu, temen-temen kos, semuanya ngeliatin!", expression: "scared",
+      { speaker: "Livia", text: "Hiks... bodoh... kamu bikin make-up ku luntur...", expression: "crying", "bg":"11.4", nextIndex: 21 },
+      { speaker: "Livia", text: "Pfft... janji macam apa itu?! Tapi... makasih karena udah selalu sabar...", expression: "happy", "bg":"11.4", nextIndex: 21 },
+      { speaker: "Livia", text: "Aku pegang janjimu. Jangan sampai kamu mengingkarinya ya, Suamiku.", expression: "blushing", "bg":"11.4", nextIndex: 21 },
+      { speaker: "Narator", text: "Setelah saling menyematkan cincin, sang pendeta akhirnya menutup upacara dengan kalimat pamungkas.", expression: "normal", "bg":"11.4" },
+      { speaker: "Pendeta", text: "Sekarang, kalian berdua telah resmi menjadi sepasang suami istri. Pengantin pria, dipersilakan untuk mencium pengantin wanita.", expression: "normal", "bg":"11.4" },
+      { speaker: "Livia", text: "E-eh?! S-sekarang?! T-tapi kan di sini banyak orang...! Ibu, temen-temen kos, semuanya ngeliatin!", expression: "scared", "bg":"11.4",
         choices: [
           { text: "Cium keningnya dengan penuh kelembutan.", nextIndex: 24 },
           { text: "Cium bibirnya perlahan dengan penuh perasaan.", nextIndex: 25 },
           { text: "Tarik pinggangnya dan berikan ciuman romantis yang dramatis (Dip Kiss).", nextIndex: 26 }
         ]
       },
-      { speaker: "Livia", text: "Mmm... syukurlah, kamu pengertian. Jantungku bisa meledak kalau lebih dari ini...", expression: "blushing", nextIndex: 27 },
-      { speaker: "Livia", text: "Nnnm... bodoh... padahal malu banget... tapi rasanya hangat...", expression: "blushing", nextIndex: 27 },
-      { speaker: "Livia", text: "Kyaa! K-kamu ngapain narik-narik! Nnnmh--! I-ini terlalu ekstrem untuk ditonton publik bodoh!", expression: "scared", nextIndex: 27 },
-      { speaker: "Narator", text: "Riuh tepuk tangan dan sorakan meriah seketika memenuhi kapel. Bunga-bunga ditaburkan ke arah kalian saat kalian berjalan keluar altar.", expression: "normal" },
-      { speaker: "Livia", text: "Akhirnya selesai juga... kakiku sampai pegal tahu, pakai hak tinggi begini.", expression: "pain" },
-      { speaker: "Narator", text: "Namun, seburuk apapun ia mengeluh, senyum tak pernah lepas dari wajahnya.", expression: "normal" },
-      { speaker: "Livia", text: "Hei... mulai detik ini, panggil aku istrimu ya. Jangan berani-berani lirik perempuan lain!", expression: "clingy" },
-      { speaker: "Livia", text: "Karena sekarang, kamu seutuhnya adalah milikku. I love you, Suamiku.", expression: "happy" },
-      { speaker: "Narator", text: "Babak baru dalam hidup kalian sebagai keluarga baru saja dimulai.", expression: "normal" }
+      { speaker: "Livia", text: "Mmm... syukurlah, kamu pengertian. Jantungku bisa meledak kalau lebih dari ini...", expression: "blushing", "bg":"11.4", nextIndex: 27 },
+      { speaker: "Livia", text: "Nnnm... bodoh... padahal malu banget... tapi rasanya hangat...", expression: "blushing", "bg":"11.4", nextIndex: 27 },
+      { speaker: "Livia", text: "Kyaa! K-kamu ngapain narik-narik! Nnnmh--! I-ini terlalu ekstrem untuk ditonton publik bodoh!", expression: "scared", "bg":"11.4", nextIndex: 27 },
+      { speaker: "Narator", text: "Riuh tepuk tangan dan sorakan meriah seketika memenuhi kapel. Bunga-bunga ditaburkan ke arah kalian saat kalian berjalan keluar altar.", expression: "normal", "bg":"11.1" },
+      { speaker: "Livia", text: "Akhirnya selesai juga... kakiku sampai pegal tahu, pakai hak tinggi begini.", expression: "pain", "bg":"11.1" },
+      { speaker: "Narator", text: "Namun, seburuk apapun ia mengeluh, senyum tak pernah lepas dari wajahnya.", expression: "normal", "bg":"11.1" },
+      { speaker: "Livia", text: "Hei... mulai detik ini, panggil aku istrimu ya. Jangan berani-berani lirik perempuan lain!", expression: "clingy", "bg":"11.1" },
+      { speaker: "Livia", text: "Karena sekarang, kamu seutuhnya adalah milikku. I love you, Suamiku.", expression: "happy", "bg":"11.1" },
+      { speaker: "Narator", text: "Babak baru dalam hidup kalian sebagai keluarga baru saja dimulai.", expression: "normal", "bg":"11.1" }
     ]
   },
   {
@@ -1304,6 +1304,22 @@ const CHAPTERS: Chapter[] = [
   }
 ];
 
+const getNaomiSpriteUrl = (expr?: string) => {
+  if (!expr) return '/naomi/normal.webp';
+  const cleanExpr = expr.replace(/-[0-9]+$/, '');
+  
+  const exactAvailable = ['normal', 'happy', 'confused', 'pleased', 'touched'];
+  if (exactAvailable.includes(cleanExpr)) {
+    return `/naomi/${cleanExpr}.webp`;
+  }
+  
+  if (cleanExpr === 'crying' || cleanExpr === 'sad' || cleanExpr === 'pain') return '/naomi/touched.webp';
+  if (cleanExpr === 'surprised' || cleanExpr === 'scared' || cleanExpr === 'angry' || cleanExpr === 'tired') return '/naomi/confused.webp';
+  if (cleanExpr === 'blushing' || cleanExpr === 'excited' || cleanExpr === 'proud' || cleanExpr === 'flirty' || cleanExpr === 'silly') return '/naomi/pleased.webp';
+  
+  return '/naomi/normal.webp';
+};
+
 export default function StoryPage() {
   const [unlockedChapters, setUnlockedChapters] = useState<number[]>([0]);
   const [activeChapter, setActiveChapter] = useState<Chapter | null>(null);
@@ -1524,6 +1540,7 @@ export default function StoryPage() {
             >
               <LiviaSprite 
                 expression={scene?.speaker === 'Livia' ? scene.expression : 'normal'} 
+                outfit={userStats?.activeOutfit || 'default'}
                 variant={activeChapter.id <= 15 ? 'story' : 'home'}
                 chapterId={activeChapter.id}
                 className="h-full w-full max-w-[600px]" 
@@ -1642,7 +1659,7 @@ export default function StoryPage() {
                 }
               `}</style>
               <img 
-                src={`/naomi/${scene?.speaker === 'Naomi' ? scene.expression.replace(/-[0-9]+$/, '') : 'normal'}.webp`}
+                src={getNaomiSpriteUrl(scene?.speaker === 'Naomi' ? scene.expression : 'normal')}
                 alt="Naomi"
                 className="w-full h-full object-cover md:object-contain scale-[1.55] md:scale-[1.65] translate-y-[25%] md:translate-y-[30%] transition-all duration-300"
                 onError={(e) => {
@@ -1687,12 +1704,15 @@ export default function StoryPage() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#fdfbf7] via-transparent to-black/10 pointer-events-none z-0" />
           
-          {/* Center Background Sprite (16:9) - Desktop Only */}
-          <div className="absolute inset-0 hidden md:flex items-center justify-center pointer-events-none z-10 overflow-hidden">
-            <img 
-              src={`/livia/story page/${(userStats?.activeOutfit || 'default').replace(/^outfit_/, '').replace(/_/g, '-').replace(/^school$/, 'uniform')}.webp`} 
-              alt="Livia Story"
-              className="w-full h-full object-cover object-center"
+          {/* Background Sprite for Story Page Menu (Mobile & Desktop) */}
+          <div className="absolute inset-0 flex items-center justify-center md:justify-end pointer-events-none z-10 overflow-hidden">
+            <LiviaSprite 
+              expression="normal"
+              outfit={userStats?.activeOutfit || 'default'}
+              variant="story-page"
+              disableFloat={true}
+              className="w-full h-full max-w-[500px] md:max-w-none md:w-full opacity-80 md:opacity-100"
+              imgClassName="object-cover object-center w-full h-full scale-105"
             />
           </div>
 

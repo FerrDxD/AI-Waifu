@@ -52,7 +52,8 @@ export default function WardrobePage() {
           const data = await res.json();
           setActiveOutfit(data.activeOutfit || 'default');
           const items = data.itemsBrought || [];
-          setOwnedOutfits(['default', ...items.filter((i: string) => i.startsWith('outfit_') || i === 'trench_coat' || i === 'gaun_pengantin')]);
+          const validOutfitIds = ALL_OUTFITS.map(o => o.id);
+          setOwnedOutfits(['default', ...items.filter((i: string) => validOutfitIds.includes(i) || i.startsWith('outfit_'))]);
         }
       } catch (e) {
         console.error(e);
