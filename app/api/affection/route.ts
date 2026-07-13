@@ -7,6 +7,16 @@ import { applyAffectionUpdate } from '@/lib/livia/affection.server';
 
 export const dynamic = 'force-dynamic';
 
+function calculateCycleDay(anchorString?: string | null): number {
+  if (!anchorString) return 1;
+  const anchorDate = new Date(anchorString);
+  anchorDate.setHours(0, 0, 0, 0);
+  const nowDate = new Date();
+  nowDate.setHours(0, 0, 0, 0);
+  const daysDiff = Math.floor((nowDate.getTime() - anchorDate.getTime()) / (1000 * 60 * 60 * 24));
+  return (daysDiff % 28 + 28) % 28 + 1;
+}
+
 export async function GET(req: Request) {
   try {
     const session = await auth();
@@ -27,9 +37,24 @@ export async function GET(req: Request) {
     const hoursPassed = Math.floor((now.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60));
 
     if (hoursPassed > 0 && profile) {
-      hunger = Math.max(0, hunger - (hoursPassed * 5));
-      energy = Math.max(0, energy - (hoursPassed * 2));
-      hydration = Math.max(0, hydration - (hoursPassed * 10));
+      const dayOfCycle = calculateCycleDay(profile.liviaCycleAnchor?.toISOString());
+      let hungerRate = 5;
+      let energyRate = 2;
+      let hydrationRate = 10;
+
+      if (dayOfCycle >= 6 && dayOfCycle <= 14) {
+        // Folikuler: konsumsi energi, lapar, dan hidrasi berkurang 100% (jadi 0)
+        hungerRate = 0;
+        energyRate = 0;
+        hydrationRate = 0;
+      } else if (dayOfCycle >= 18) {
+        // Luteal: konsumsi hunger meningkat drastis (280% = 2.8x)
+        hungerRate = Math.round(5 * 2.8);
+      }
+
+      hunger = Math.max(0, hunger - (hoursPassed * hungerRate));
+      energy = Math.max(0, energy - (hoursPassed * energyRate));
+      hydration = Math.max(0, hydration - (hoursPassed * hydrationRate));
 
       await db.update(userProfiles).set({
         liviaHunger: hunger,

@@ -7,6 +7,8 @@ import {
   BookOpen, Sparkles, Crown, Flame, Droplet, Glasses, Ticket, FileText, Building, Image as ImageIcon, Bed, Monitor
 } from 'lucide-react';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { EN_SHOP_ITEMS, EN_LIVIA_DIALOGUES } from '@/lib/i18n/content';
 
 type CategoryId = 'gift' | 'outfit' | 'item' | 'furniture' | 'food' | 'drink';
 
@@ -108,6 +110,7 @@ const renderCreativeSVG = (iconId: string) => {
 };
 
 export default function ShopPage() {
+  const { dict, language } = useLanguage();
   const [money, setMoney] = useState(0);
   const [affection, setAffection] = useState(0);
   const [activeOutfit, setActiveOutfit] = useState<string>('default');
@@ -170,43 +173,45 @@ export default function ShopPage() {
   const handleItemHover = (item: ShopItem) => {
     if (isBuying) return; // Jangan ganti ekspresi kalau lagi loading beli
 
+    const itemName = language === 'en' && EN_SHOP_ITEMS[item.id] ? EN_SHOP_ITEMS[item.id].name : item.name;
     if (item.id === 'cincin_nikah') {
       setLiviaExpression('clingy');
-      setMessage(`E-eh?! I-itu kan cincin nikah... K-kamu ngga lagi bercanda kan mau beli itu?!`);
+      setMessage(language === 'en' ? "W-what?! T-that's a wedding ring... Y-you're not joking about buying that, are you?!" : `E-eh?! I-itu kan cincin nikah... K-kamu ngga lagi bercanda kan mau beli itu?!`);
     } else if (item.cost > 15000) {
       setLiviaExpression('blushing');
-      setMessage(`M-mahal banget! K-kamu beneran yakin mau beli ${item.name} buatku?`);
+      setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.expensive(itemName) : `M-mahal banget! K-kamu beneran yakin mau beli ${item.name} buatku?`);
     } else if (item.category === 'food') {
       setLiviaExpression('happy');
-      setMessage(`Nyam... ${item.name} kelihatannya enak banget!`);
+      setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.food(itemName) : `Nyam... ${item.name} kelihatannya enak banget!`);
     } else if (item.category === 'outfit') {
       setLiviaExpression('blushing');
-      setMessage(`Kamu yakin selera fashion-mu cukup bagus buat milih ${item.name}?`);
+      setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.outfit(itemName) : `Kamu yakin selera fashion-mu cukup bagus buat milih ${item.name}?`);
     } else if (item.id === 'kacamata_hitam') {
       setLiviaExpression('happy');
-      setMessage('Wih, kacamata hitam! Keren banget kan kalau aku pakai itu?');
+      setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.sunglasses : 'Wih, kacamata hitam! Keren banget kan kalau aku pakai itu?');
     } else if (item.id === 'recipe_book_shop') {
       setLiviaExpression('blushing');
-      setMessage('Buku resep masakan?! K-kamu mau aku masakin kamu ya?! Jangan ngarep!');
+      setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.recipeBook : 'Buku resep masakan?! K-kamu mau aku masakin kamu ya?! Jangan ngarep!');
     }
   };
 
   const buyGift = async (item: ShopItem) => {
+    const itemName = language === 'en' && EN_SHOP_ITEMS[item.id] ? EN_SHOP_ITEMS[item.id].name : item.name;
     if (money < item.cost) {
       setLiviaExpression('angry');
-      setMessage(`Uangmu kurang! Jangan lihat-lihat doang kalau nggak sanggup beli ${item.name}!`);
+      setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.noMoney(itemName) : `Uangmu kurang! Jangan lihat-lihat doang kalau nggak sanggup beli ${item.name}!`);
       return;
     }
 
     if (affection >= 100 && item.category === 'gift' && item.id !== 'cincin_nikah') {
       setLiviaExpression('blushing');
-      setMessage(`B-bukan berarti aku nolak dikasih hadiah... tapi afeksiku ke kamu udah maksimal (100)! Mending uangnya ditabung aja.`);
+      setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.maxAffection : `B-bukan berarti aku nolak dikasih hadiah... tapi afeksiku ke kamu udah maksimal (100)! Mending uangnya ditabung aja.`);
       return;
     }
 
     if (inventory.includes(item.id) && !isConsumableItem(item)) {
       setLiviaExpression('angry');
-      setMessage(`Kamu sudah punya ${item.name}! Beli yang lain sana.`);
+      setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.alreadyOwned(itemName) : `Kamu sudah punya ${item.name}! Beli yang lain sana.`);
       return;
     }
 
@@ -226,36 +231,36 @@ export default function ShopPage() {
         
         if (item.category === 'outfit') {
           setLiviaExpression('blushing');
-          setMessage(`B-baju ini... kamu nyuruh aku pakai ini? T-tunggu sebentar, jangan ngintip!`);
+          setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.boughtOutfit : `B-baju ini... kamu nyuruh aku pakai ini? T-tunggu sebentar, jangan ngintip!`);
         } else if (item.category === 'furniture') {
           setLiviaExpression('happy');
-          setMessage(`Wah, kamar ini jadi lebih bagus karena ${item.name}. Makasih!`);
+          setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.boughtFurniture(itemName) : `Wah, kamar ini jadi lebih bagus karena ${item.name}. Makasih!`);
         } else if (item.category === 'food') {
           setLiviaExpression('happy');
-          setMessage(`Nyam... ${item.name} ini enak banget! Makasih makanannya, perutku jadi lebih kenyang.`);
+          setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.boughtFood(itemName) : `Nyam... ${item.name} ini enak banget! Makasih makanannya, perutku jadi lebih kenyang.`);
         } else if (item.category === 'drink') {
           setLiviaExpression('happy');
-          setMessage(`Gluk gluk... Ah! Segarnya. Tenggorokanku udah mendingan sekarang.`);
+          setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.boughtDrink(itemName) : `Gluk gluk... Ah! Segarnya. Tenggorokanku udah mendingan sekarang.`);
         } else if (item.id === 'kacamata_hitam') {
           setLiviaExpression('blushing');
-          setMessage(`I-ini kacamata hitam?! Keren banget... Cocok buat jalan-jalan! Makasih ya!`);
+          setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.boughtSunglasses : `I-ini kacamata hitam?! Keren banget... Cocok buat jalan-jalan! Makasih ya!`);
         } else if (item.id === 'recipe_book_shop') {
           setLiviaExpression('blushing');
-          setMessage(`I-ini kan buku resep... Y-yaudah deh, karena kamu udah repot-repot beliin, sesekali aku bakal masakin kamu di dapur!`);
+          setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.boughtRecipeBook : `I-ini kan buku resep... Y-yaudah deh, karena kamu udah repot-repot beliin, sesekali aku bakal masakin kamu di dapur!`);
         } else if (item.affectionDelta >= 12) {
           setLiviaExpression('blushing');
-          setMessage(`B-buat aku?! Ini kan mahal banget... T-terima kasih, bodoh!`);
+          setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.boughtExpensive : `B-buat aku?! Ini kan mahal banget... T-terima kasih, bodoh!`);
         } else if (item.affectionDelta >= 5) {
           setLiviaExpression('happy');
-          setMessage(`Wah, ${item.name}! Kebetulan aku lagi pengen. Makasih ya!`);
+          setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.boughtNice(itemName) : `Wah, ${item.name}! Kebetulan aku lagi pengen. Makasih ya!`);
         } else {
           setLiviaExpression('normal');
-          setMessage(`Oh, ${item.name}. Lumayan. Makasih.`);
+          setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.shop.boughtNormal(itemName) : `Oh, ${item.name}. Lumayan. Makasih.`);
         }
 
       } else {
         setLiviaExpression('angry');
-        setMessage('Gagal beli barangnya! Sistem error tuh.');
+        setMessage(language === 'en' ? 'Failed to buy item! System error.' : 'Gagal beli barangnya! Sistem error tuh.');
       }
     } catch (e) {
       console.error(e);
@@ -282,7 +287,7 @@ export default function ShopPage() {
           </Link>
           <div className="flex items-center gap-2 md:gap-3">
             <ShoppingBag className="text-[#ff758c] w-6 h-6 md:w-8 md:h-8" />
-            <h1 className="text-lg md:text-3xl font-display font-black text-[#5c4d47] italic tracking-tight uppercase">Toko</h1>
+            <h1 className="text-lg md:text-3xl font-display font-black text-[#5c4d47] italic tracking-tight uppercase">{dict?.pages?.shop?.title || 'Toko'}</h1>
           </div>
         </div>
         <div className="flex gap-2 md:gap-4">
@@ -306,13 +311,20 @@ export default function ShopPage() {
           <p className="text-sm font-bold text-[#5c4d47] leading-relaxed">
             <span className="text-[#ff758c] mr-2">Livia:</span>"{message}"
           </p>
-        </div>
-
-        {/* Categories (Horizontal on Mobile, Vertical Sidebar on Desktop) */}
+        </div>        {/* Categories (Horizontal on Mobile, Vertical Sidebar on Desktop) */}
         <div className="w-full lg:w-64 flex flex-row lg:flex-col gap-2 md:gap-3 py-4 md:py-6 relative z-20 overflow-x-auto hide-scrollbar shrink-0">
-          <div className="hidden lg:block text-xs font-bold text-gray-400 mb-2 pl-4 tracking-widest uppercase">Kategori</div>
+          <div className="hidden lg:block text-xs font-bold text-gray-400 mb-2 pl-4 tracking-widest uppercase">{language === 'en' ? 'Category' : 'Kategori'}</div>
           {CATEGORIES.map(cat => {
             const isActive = activeCategory === cat.id;
+            const enMap: Record<CategoryId, string> = {
+              gift: 'Gifts',
+              food: 'Food',
+              drink: 'Drinks',
+              outfit: 'Outfits',
+              item: 'Items',
+              furniture: 'Furniture'
+            };
+            const catName = language === 'en' ? (enMap[cat.id] || cat.name) : cat.name;
             return (
               <button
                 key={cat.id}
@@ -324,7 +336,7 @@ export default function ShopPage() {
                 }`}
               >
                 {cat.icon}
-                <span className="tracking-wide uppercase italic">{cat.name}</span>
+                <span className="tracking-wide uppercase italic">{catName}</span>
               </button>
             );
           })}
@@ -350,8 +362,12 @@ export default function ShopPage() {
                     {renderCreativeSVG(item.emoji)}
                   </div>
                   
-                  <h3 className="font-black font-display text-[#5c4d47] text-sm md:text-lg mb-1 leading-tight">{item.name}</h3>
-                  <p className="text-[10px] md:text-xs text-gray-500 font-medium leading-relaxed mb-4 line-clamp-2 h-8">{item.desc}</p>
+                  <h3 className="font-black font-display text-[#5c4d47] text-sm md:text-lg mb-1 leading-tight">
+                    {language === 'en' && EN_SHOP_ITEMS[item.id] ? EN_SHOP_ITEMS[item.id].name : item.name}
+                  </h3>
+                  <p className="text-[10px] md:text-xs text-gray-500 font-medium leading-relaxed mb-4 line-clamp-2 h-8">
+                    {language === 'en' && EN_SHOP_ITEMS[item.id] ? EN_SHOP_ITEMS[item.id].desc : item.desc}
+                  </p>
                   
                   <div className="w-full flex items-center justify-between mt-auto pt-4 border-t border-gray-200/50">
                     <div className="flex flex-col items-start">
@@ -375,7 +391,7 @@ export default function ShopPage() {
                           : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
                       }`}
                     >
-                      {owned ? 'Dimiliki' : 'Beli'}
+                      {owned ? (language === 'en' ? 'Owned' : 'Dimiliki') : (language === 'en' ? 'Buy' : 'Beli')}
                     </button>
                   </div>
                 </div>

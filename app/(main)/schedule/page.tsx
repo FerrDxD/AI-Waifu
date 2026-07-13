@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft, Check, Gift, Sparkles, Target, Trophy, Heart, Flame, Calendar, Award, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { playSfx } from '@/lib/sfx';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { 
   getDailyQuests, 
   getQuestProgressMap,
@@ -26,6 +27,7 @@ const LIVIA_QUEST_REACTIONS = [
 ];
 
 export default function DailyQuestsPage() {
+  const { dict, language } = useLanguage();
   const router = useRouter();
   const [quests, setQuests] = useState<DailyQuest[]>([]);
   const [progressMap, setProgressMap] = useState<Record<string, number>>({});
@@ -45,7 +47,7 @@ export default function DailyQuestsPage() {
 
     const d = new Date();
     const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    setDateFormatted(d.toLocaleDateString('id-ID', options));
+    setDateFormatted(d.toLocaleDateString(language === 'en' ? 'en-US' : 'id-ID', options));
 
     const handleProgressUpdate = (e: any) => {
       if (e.detail?.progress) setProgressMap(e.detail.progress);
@@ -168,11 +170,11 @@ export default function DailyQuestsPage() {
           <div className="flex flex-col">
             <h1 className="font-display font-black text-2xl md:text-4xl text-[#5c4d47] tracking-tight flex items-center gap-2">
               <Calendar className="text-pink-500" size={32} />
-              Jadwal & Misi Harian
+              {dict?.pages?.schedule?.title || 'Jadwal & Misi Harian'}
             </h1>
             <p className="text-xs md:text-sm font-medium text-gray-500 flex items-center gap-2 mt-0.5">
               <Target size={14} className="text-pink-400" />
-              {dateFormatted || 'Misi Otomatis Setiap Hari'} • <span className="text-pink-600 font-bold">Reset pk 00:00</span>
+              {dateFormatted || (language === 'en' ? 'Daily Automatic Quests' : 'Misi Otomatis Setiap Hari')} • <span className="text-pink-600 font-bold">{language === 'en' ? 'Resets at 00:00' : 'Reset pk 00:00'}</span>
             </p>
           </div>
         </div>
@@ -181,7 +183,7 @@ export default function DailyQuestsPage() {
         <div className="hidden sm:flex items-center gap-2 bg-white/90 border border-pink-200 px-5 py-2.5 rounded-2xl shadow-sm">
           <Flame className="text-orange-500 animate-pulse" size={20} />
           <div className="text-right font-mono">
-            <span className="text-xs text-gray-400 block -mb-1 font-sans font-semibold">POIN PROGRES MISI</span>
+            <span className="text-xs text-gray-400 block -mb-1 font-sans font-semibold">{language === 'en' ? 'QUEST PROGRESS POINTS' : 'POIN PROGRES MISI'}</span>
             <span className="text-xl font-black text-pink-600">{completedCount}</span>
             <span className="text-sm font-bold text-gray-400"> / 9 Poin</span>
           </div>
@@ -399,7 +401,7 @@ export default function DailyQuestsPage() {
                           {badge.label}
                         </span>
                         <span className="text-xs font-bold text-gray-400 font-mono">
-                          Progres: {Math.min(currentVal, quest.required)} / {quest.required}
+                          {language === 'en' ? 'Progress:' : 'Progres:'} {Math.min(currentVal, quest.required)} / {quest.required}
                         </span>
                       </div>
                       <span className={`text-sm md:text-base font-medium transition-all ${
@@ -414,7 +416,7 @@ export default function DailyQuestsPage() {
                   <div className="shrink-0 sm:text-right flex items-center justify-end">
                     {isClaimed ? (
                       <span className="text-xs font-bold text-gray-400 bg-gray-200 px-4 py-2 rounded-xl flex items-center gap-1.5">
-                        <Check size={16} /> Diklaim
+                        <Check size={16} /> {language === 'en' ? 'Claimed' : 'Diklaim'}
                       </span>
                     ) : isReady ? (
                       <button 
@@ -422,14 +424,14 @@ export default function DailyQuestsPage() {
                         disabled={claiming !== null}
                         className="w-full sm:w-auto bg-gradient-to-r from-[#ff758c] to-amber-500 hover:from-[#ff6078] hover:to-amber-600 text-white font-black text-xs md:text-sm px-5 py-2.5 rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer animate-pulse"
                       >
-                        <Sparkles size={16} /> Klaim +15 Rv!
+                        <Sparkles size={16} /> {language === 'en' ? 'Claim +15 Rv!' : 'Klaim +15 Rv!'}
                       </button>
                     ) : (
                       <button 
                         onClick={() => handleGoToMission(quest.targetRoute)}
                         className="w-full sm:w-auto bg-white hover:bg-pink-50 text-pink-600 border border-pink-200 hover:border-pink-400 font-bold text-xs px-4 py-2 rounded-xl shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                       >
-                        <span>Kerjakan</span>
+                        <span>{language === 'en' ? 'Go' : 'Kerjakan'}</span>
                         <ArrowRight size={14} />
                       </button>
                     )}

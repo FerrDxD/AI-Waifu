@@ -26,17 +26,47 @@ const LOCATIONS = [
   { id: 'pantai', name: 'Pantai', icon: <Waves size={32} />, color: 'bg-cyan-50 border-cyan-200 text-cyan-600', hover: 'hover:bg-cyan-100' },
   { id: 'bioskop', name: 'Bioskop', icon: <Film size={32} />, color: 'bg-slate-50 border-slate-200 text-slate-600', hover: 'hover:bg-slate-100' },
   { id: 'akuarium', name: 'Akuarium', icon: <Fish size={32} />, color: 'bg-blue-50 border-blue-200 text-blue-600', hover: 'hover:bg-blue-100' },
-  { id: 'pasar_malam', name: 'Pasar Malam', icon: <Tent size={32} />, color: 'bg-amber-50 border-amber-200 text-amber-600', hover: 'hover:bg-amber-100' },
+  { id: 'food_court', name: 'Food Court', icon: <UtensilsCrossed size={32} />, color: 'bg-amber-50 border-amber-200 text-amber-600', hover: 'hover:bg-amber-100' },
   { id: 'ice_skating', name: 'Ice Skating', icon: <Snowflake size={32} />, color: 'bg-sky-50 border-sky-200 text-sky-600', hover: 'hover:bg-sky-100' },
 ];
 
 type SceneLine = { speaker: string, text: string, expression?: LiviaExpression };
 
+function getDateBackgroundUrl(locName: string | null, timeOfDay: 'pagi' | 'sore' | 'malam'): string {
+  if (!locName) return '';
+  const locMap: Record<string, { folder: string, prefix: string }> = {
+    'Supermarket': { folder: 'Supermarket', prefix: 'supermarket' },
+    'Taman Kota': { folder: 'Taman', prefix: 'taman' },
+    'Kafe Kucing': { folder: 'Kafe Kucing', prefix: 'kafe' },
+    'Perpustakaan': { folder: 'Perpustakaan', prefix: 'perpustakaan' },
+    'Arcade Center': { folder: 'Arcade', prefix: 'arcade' },
+    'Warung Ramen': { folder: 'Warung Ramen', prefix: 'ramen' },
+    'Restoran Gyoza': { folder: 'Restoran Gyoza', prefix: 'gyoza' },
+    'Museum Seni': { folder: 'Museum Seni', prefix: 'museum' },
+    'Taman Hiburan': { folder: 'Taman Hiburan', prefix: 'amusement' },
+    'Studio Potret': { folder: 'Studio Potret', prefix: 'studio' },
+    'Konser Musik': { folder: 'Konser Musik', prefix: 'konser' },
+    'Festival Musim Panas': { folder: 'Festival Musim Panas', prefix: 'festival' },
+    'Pantai': { folder: 'Pantai', prefix: 'pantai' },
+    'Bioskop': { folder: 'Bioskop', prefix: 'bioskop' },
+    'Akuarium': { folder: 'Akuarium', prefix: 'akuarium' },
+    'Food Court': { folder: 'Food Court', prefix: 'food_court' },
+    'Ice Skating': { folder: 'Ice Skating', prefix: 'ice_skating' }
+  };
+  const config = locMap[locName];
+  if (!config) return '';
+  return `/date/${config.folder}/${config.prefix}_${timeOfDay}.jpg`;
+}
+
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+
 function DateContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { language, dict } = useLanguage();
   
   const [selectedLoc, setSelectedLoc] = useState<string | null>(null);
+  const [timeOfDay, setTimeOfDay] = useState<'pagi' | 'sore' | 'malam'>('pagi');
   const [isLoading, setIsLoading] = useState(false);
   const [scene, setScene] = useState<SceneLine[] | null>(null);
   const [sceneIndex, setSceneIndex] = useState(0);
@@ -57,8 +87,9 @@ function DateContent() {
     }).catch(console.error);
 
     const locationParam = searchParams.get('location');
-    if (locationParam && LOCATIONS.some(l => l.id === locationParam)) {
-      startJalan(locationParam);
+    const matchedLoc = LOCATIONS.find(l => l.id === locationParam || l.name === locationParam);
+    if (matchedLoc) {
+      startJalan(matchedLoc.name);
       // Clean up the URL so it doesn't trigger again on refresh
       router.replace('/date');
     }
@@ -70,12 +101,16 @@ function DateContent() {
     try {
       const res = await fetch('/api/date', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Language': language
+        },
         body: JSON.stringify({ location: locName }),
       });
       if (res.ok) {
         const data = await res.json();
         setScene(data.scene);
+        setTimeOfDay(data.timeOfDay || 'pagi');
         setSceneIndex(0);
         setIsInteractive(false);
         setChatLog(data.scene.map((line: any) => ({
@@ -115,7 +150,10 @@ function DateContent() {
     try {
       const res = await fetch('/api/date/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Language': language
+        },
         body: JSON.stringify({
           location: selectedLoc,
           message: userMsg,
@@ -136,24 +174,36 @@ function DateContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fdfbf7] relative overflow-hidden flex flex-col font-sans select-none">
+    <div className="h-screen max-h-screen bg-[#fdfbf7] relative overflow-hidden flex flex-col font-sans select-none">
       
       {/* Top Bar */}
       <div className="absolute top-4 md:top-6 left-4 md:left-6 z-30">
         <Link href="/home" className="font-display font-bold text-xs md:text-sm bg-white/70 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[#5c4d47] shadow-sm hover:shadow-md hover:bg-white transition-all flex items-center gap-1 md:gap-2">
-          <span>←</span> Kembali
+          <span>←</span> {dict.common.back}
         </Link>
       </div>
 
       {scene ? (
         // VN Reader Mode
-        <div className="fixed inset-0 z-[100] bg-[#fdfbf7]/95 backdrop-blur-xl flex flex-col items-center justify-between py-6 px-4 md:px-6 sm:py-12 animate-[fadeIn_0.3s_ease-out]">
+        <div className="fixed inset-0 z-[100] bg-[#fdfbf7] flex flex-col items-center justify-between py-6 px-4 md:px-6 sm:py-12 animate-[fadeIn_0.3s_ease-out]">
+          {/* Dynamic Date Background Image */}
+          {selectedLoc && (
+            <img 
+              src={getDateBackgroundUrl(selectedLoc, timeOfDay)}
+              alt="Date Background"
+              className="absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000"
+              onError={(e) => { e.currentTarget.style.opacity = '0'; }}
+            />
+          )}
+          {/* Vignette Overlay for Readability */}
+          <div className="absolute inset-0 z-0 bg-gradient-to-t from-[#fdfbf7] via-[#fdfbf7]/40 to-[#fdfbf7]/70 pointer-events-none" />
+
           <div className="w-full max-w-5xl flex justify-between px-2 sm:px-8 z-20 shrink-0 mt-8 md:mt-0">
             <span className="font-display font-bold text-sm md:text-base text-[#ff758c] bg-white px-4 md:px-6 py-1.5 md:py-2 rounded-full shadow-[0_5px_15px_rgba(255,117,140,0.15)] border border-pink-50 flex items-center gap-2">
               <MapPin size={16} className="w-4 h-4" /> {selectedLoc}
             </span>
             <button onClick={() => setScene(null)} className="text-gray-400 hover:text-[#ff758c] text-sm md:text-base font-bold bg-white px-4 md:px-6 py-1.5 md:py-2 rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-              Pulang
+              {dict.date.returnHome}
             </button>
           </div>
           
@@ -186,7 +236,7 @@ function DateContent() {
                       handleSendChat();
                     }
                   }}
-                  placeholder="Ketik balasanmu untuk Livia..."
+                  placeholder={dict.date.chatPlaceholder}
                   rows={1}
                   disabled={isTyping}
                   className="flex-1 resize-none py-3 md:py-4 px-4 md:px-6 text-[15px] focus:outline-none transition-all placeholder:text-gray-400 bg-white/95 backdrop-blur-xl border border-pink-100 rounded-[24px] text-[#5c4d47] font-medium shadow-[0_10px_25px_rgba(0,0,0,0.05)]"
@@ -204,17 +254,17 @@ function DateContent() {
         </div>
       ) : (
         // Location Selection Mode (GeForce NOW Style Carousel)
-        <div className="flex-1 max-w-[1400px] w-full mx-auto flex flex-col justify-center pt-20 md:pt-24 px-4 md:px-8 z-10 relative">
+        <div className="flex-1 max-w-[1400px] w-full mx-auto flex flex-col justify-center pt-12 md:pt-14 px-4 md:px-8 z-10 relative overflow-hidden">
           
-          <div className="mb-6 md:mb-12 flex flex-col items-center text-center animate-[fadeIn_0.5s_ease-out]">
-            <div className="inline-flex items-center justify-center gap-2 bg-pink-50 text-[#ff758c] px-4 md:px-5 py-2 md:py-2.5 rounded-full font-bold text-xs md:text-sm mb-4 border border-pink-100 shadow-sm">
-               <MapPin size={16} className="w-4 h-4 md:w-5 md:h-5 animate-bounce" /> PILIHAN DESTINASI
+          <div className="mb-4 md:mb-6 flex flex-col items-center text-center animate-[fadeIn_0.5s_ease-out] shrink-0">
+            <div className="inline-flex items-center justify-center gap-2 bg-pink-50 text-[#ff758c] px-3.5 py-1.5 rounded-full font-bold text-xs mb-2 border border-pink-100 shadow-sm">
+               <MapPin size={14} className="w-3.5 h-3.5 animate-bounce" /> {dict.date.badge}
             </div>
-            <h1 className="text-4xl md:text-6xl font-display font-black text-[#5c4d47] mb-3 md:mb-4 tracking-tight drop-shadow-sm">
-              Pilih Destinasi
+            <h1 className="text-3xl md:text-5xl font-display font-black text-[#5c4d47] mb-1.5 tracking-tight drop-shadow-sm">
+              {dict.date.title}
             </h1>
-            <p className="text-[#8C7B6B] font-medium text-sm md:text-xl max-w-lg mx-auto px-4">
-              Geser untuk memilih tempat yang akan jadi kenangan manis kalian hari ini.
+            <p className="text-[#8C7B6B] font-medium text-xs md:text-base max-w-md mx-auto px-4">
+              {dict.date.subtitle}
             </p>
           </div>
 
@@ -225,26 +275,27 @@ function DateContent() {
                 <div className="absolute inset-0 border-4 border-[#ff758c] rounded-full border-t-transparent animate-[spin_1.5s_linear_infinite]" />
                 <MapPin className="w-12 h-12 md:w-16 md:h-16 text-[#ff758c] animate-pulse" />
               </div>
-              <h2 className="text-3xl md:text-5xl font-display font-black text-[#5c4d47] tracking-wider mb-3">Menuju {selectedLoc}...</h2>
-              <p className="text-[#8C7B6B] font-medium text-base md:text-xl px-4 text-center">Livia sedang berdandan dan memilih baju yang pas!</p>
+              <h2 className="text-3xl md:text-5xl font-display font-black text-[#5c4d47] tracking-wider mb-3">{dict.date.loadingTitle}</h2>
+              <p className="text-[#8C7B6B] font-medium text-base md:text-xl px-4 text-center">{dict.date.loadingSub}</p>
             </div>
           ) : (
-            <div className="flex gap-4 md:gap-8 pb-8 md:pb-16 overflow-x-auto snap-x snap-mandatory hide-scrollbar md:scrollbar-thin md:scrollbar-thumb-pink-200 md:scrollbar-track-transparent pr-4 md:pr-8 -mx-4 md:-mx-8 px-6 md:px-12 items-center">
+            <div className="flex gap-4 md:gap-6 pb-4 md:pb-6 overflow-x-auto overflow-y-hidden snap-x snap-mandatory hide-scrollbar pr-4 md:pr-8 -mx-4 md:-mx-8 px-6 md:px-12 items-center">
               {LOCATIONS.map(loc => {
                 const notOwned = loc.requiredItem && !itemsBrought.includes(loc.requiredItem);
                 const notWearing = loc.mustWear && activeOutfit !== loc.requiredItem && activeOutfit !== loc.requiredItem.replace('outfit_', '');
                 const isLocked = notOwned || notWearing;
-                const lockedReason = notOwned ? `Butuh: ${loc.requirementName}` : notWearing ? `Pakai: ${loc.requirementName}` : '';
+                const lockedReason = notOwned ? `${dict.date.lockedNeed}: ${loc.requirementName}` : notWearing ? `${dict.date.lockedWear}: ${loc.requirementName}` : '';
+                const locNameTranslated = dict.date.locations[loc.id as keyof typeof dict.date.locations] || loc.name;
                 
                 return (
                 <button
                   key={loc.id}
                   onClick={() => !isLocked && startJalan(loc.name)}
                   disabled={!!isLocked}
-                  className={`group relative flex-shrink-0 w-[260px] md:w-[320px] h-[380px] md:h-[480px] rounded-[2.5rem] md:rounded-[3rem] transition-all duration-700 ease-out snap-center overflow-hidden flex flex-col justify-end p-6 md:p-8 text-left border-[6px] md:border-8 ${
+                  className={`group relative flex-shrink-0 w-[220px] md:w-[260px] h-[300px] md:h-[350px] rounded-[2rem] md:rounded-[2.5rem] transition-all duration-500 ease-out snap-center overflow-hidden flex flex-col justify-end p-5 md:p-6 text-left border-[4px] md:border-[6px] ${
                     isLocked 
                       ? 'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed grayscale' 
-                      : `bg-white border-white hover:border-[#ff758c]/20 hover:-translate-y-4 hover:shadow-[0_40px_80px_rgba(255,117,140,0.15)]`
+                      : `bg-white border-white hover:border-[#ff758c]/20 hover:-translate-y-3 hover:shadow-[0_25px_50px_rgba(255,117,140,0.15)]`
                   }`}
                 >
                   {/* Subtle Colored Background that grows on hover */}
@@ -253,7 +304,7 @@ function DateContent() {
                   }`} />
                   
                   {/* Giant Blurred Icon Backdrop */}
-                  <div className={`absolute -right-8 -top-8 text-[240px] opacity-5 transition-all duration-700 z-0 pointer-events-none ${
+                  <div className={`absolute -right-8 -top-8 text-[200px] opacity-5 transition-all duration-700 z-0 pointer-events-none ${
                     isLocked ? 'text-gray-900' : `${loc.color.split(' ')[2]} group-hover:scale-110 group-hover:rotate-12 group-hover:opacity-[0.08]`
                   }`}>
                     {loc.icon}
@@ -262,37 +313,37 @@ function DateContent() {
                   {/* Gradient Overlay for Text Readability */}
                   <div className={`absolute inset-0 bg-gradient-to-t ${isLocked ? 'from-gray-200/90' : 'from-white via-white/80 group-hover:from-white/40 group-hover:via-transparent'} to-transparent z-0 transition-all duration-500`} />
 
-                  <div className={`relative z-10 transition-transform duration-500 ease-out flex flex-col h-full justify-between ${isLocked ? '' : 'translate-y-4 md:translate-y-6 group-hover:translate-y-0'}`}>
+                  <div className={`relative z-10 transition-transform duration-500 ease-out flex flex-col h-full justify-between ${isLocked ? '' : 'translate-y-3 md:translate-y-4 group-hover:translate-y-0'}`}>
                     
                     {/* Top Section - Icon */}
                     <div className="flex justify-between items-start w-full">
-                      <div className={`w-14 h-14 md:w-16 md:h-16 rounded-[1.2rem] md:rounded-2xl flex items-center justify-center shadow-sm border transition-all duration-500 ${
+                      <div className={`w-12 h-12 md:w-14 md:h-14 rounded-[1.2rem] md:rounded-2xl flex items-center justify-center shadow-sm border transition-all duration-500 ${
                         isLocked ? 'bg-gray-200 text-gray-400 border-gray-300' : `${loc.color} group-hover:scale-110 group-hover:shadow-xl`
                       }`}>
-                        {isLocked ? <Lock size={24} className="w-6 h-6 md:w-7 md:h-7" /> : loc.icon}
+                        {isLocked ? <Lock size={20} className="w-5 h-5 md:w-6 md:h-6" /> : loc.icon}
                       </div>
                       
                       {!isLocked && (
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-white/80 backdrop-blur-sm px-3 md:px-4 py-1.5 md:py-2 rounded-full shadow-sm text-[10px] md:text-xs font-bold text-[#ff758c] flex items-center gap-1">
-                          Ajak Livia <span>✧</span>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-white/80 backdrop-blur-sm px-3 py-1 md:py-1.5 rounded-full shadow-sm text-[10px] md:text-xs font-bold text-[#ff758c] flex items-center gap-1">
+                          {dict.date.inviteBtn} <span>✧</span>
                         </div>
                       )}
                     </div>
                     
                     {/* Bottom Section - Text */}
                     <div>
-                      <h3 className={`font-black font-display text-2xl md:text-[32px] leading-[1.1] mb-3 md:mb-4 tracking-tight ${
+                      <h3 className={`font-black font-display text-xl md:text-2xl leading-[1.15] mb-2 md:mb-3 tracking-tight ${
                         isLocked ? 'text-gray-400' : 'text-[#5c4d47] group-hover:text-[#ff758c]'
                       } transition-colors duration-300`}>
-                        {loc.name}
+                        {locNameTranslated}
                       </h3>
                       {isLocked ? (
-                        <p className="text-[10px] md:text-sm font-bold flex items-center gap-1.5 md:gap-2 text-red-500 bg-white/90 backdrop-blur-md px-3 md:px-4 py-2 rounded-xl inline-flex w-max shadow-sm border border-red-100">
-                          <Lock size={14} className="md:w-4 md:h-4" /> {lockedReason}
+                        <p className="text-[10px] md:text-xs font-bold flex items-center gap-1.5 text-red-500 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl inline-flex w-max shadow-sm border border-red-100">
+                          <Lock size={12} className="md:w-3.5 md:h-3.5" /> {lockedReason}
                         </p>
                       ) : (
-                        <p className="text-xs md:text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 flex items-center gap-2 text-[#8C7B6B]">
-                          Berangkat sekarang <span className="animate-bounce-x text-[#ff758c]">→</span>
+                        <p className="text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 flex items-center gap-1.5 text-[#8C7B6B]">
+                          {dict.date.goNow} <span className="animate-bounce-x text-[#ff758c]">→</span>
                         </p>
                       )}
                     </div>

@@ -5,6 +5,8 @@ import { Wallet, Timer, Sparkles, Package, Map as MapIcon, BookOpen, Calculator,
 import Link from 'next/link';
 import { playSfx } from '@/lib/sfx';
 import { unlockAchievement } from '@/lib/achievements';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { EN_JOBS } from '@/lib/i18n/content';
 
 type JobCategory = 'sortir' | 'paket' | 'tutor' | 'barista' | 'cucipiring' | 'kasir' | 'dataentry' | 'parkir' | 'pelayan' | 'penulis' | 'tambang' | 'reparasi' | 'pelukis' | 'trader' | 'mancing';
 
@@ -37,6 +39,7 @@ const JOBS: JobDef[] = [
 ];
 
 export default function WorkPage() {
+  const { dict, language } = useLanguage();
   const [selectedJob, setSelectedJob] = useState<JobDef>(JOBS[0]);
   const [gameState, setGameState] = useState<'idle' | 'playing' | 'gameOver'>('idle');
   const [money, setMoney] = useState(0);
@@ -90,11 +93,11 @@ export default function WorkPage() {
       <div className="absolute top-0 left-0 w-full h-16 bg-gradient-to-r from-[#ff758c] to-[#ff0844] z-50 flex items-center justify-between px-4 md:px-8 shadow-md">
         <div className="flex items-center gap-6">
           <Link href="/home" className="text-white hover:text-pink-100 flex items-center gap-2 font-display font-black text-sm tracking-widest uppercase transition-colors">
-            <span className="bg-white/20 p-1.5 rounded-md">←</span> KEMBALI
+            <span className="bg-white/20 p-1.5 rounded-md">←</span> {dict.common.back.toUpperCase()}
           </Link>
           <div className="h-6 w-px bg-white/30 hidden md:block" />
           <h1 className="hidden md:flex font-display font-black text-white text-xl tracking-widest uppercase items-center gap-2">
-            <Sparkles size={20} className="text-amber-300" /> KANTOR AGENSI
+            <Sparkles size={20} className="text-amber-300" /> {(dict?.pages?.work?.title || 'Kantor Agensi').toUpperCase()}
           </h1>
         </div>
         <div className="bg-black/20 backdrop-blur-md border border-white/10 px-5 py-1.5 rounded-r-xl rounded-l-md skew-x-[-10deg] flex items-center gap-3">
@@ -124,16 +127,20 @@ export default function WorkPage() {
                       </span>
                       <span className="font-mono font-bold text-gray-400 tracking-widest text-sm uppercase">ID_{selectedJob.id.padStart(4, '0')}</span>
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-display font-black text-[#5c4d47] tracking-tighter leading-none mb-4">{selectedJob.title}</h1>
+                    <h1 className="text-4xl md:text-6xl font-display font-black text-[#5c4d47] tracking-tighter leading-none mb-4">
+                      {language === 'en' && EN_JOBS[selectedJob.id] ? EN_JOBS[selectedJob.id].title : selectedJob.title}
+                    </h1>
                   </div>
                 </div>
                 
                 <div className="bg-white/80 backdrop-blur-md p-6 md:p-10 rounded-[2rem] border-2 border-pink-100 shadow-lg relative overflow-hidden group">
                   <div className="mb-8 relative z-10">
                     <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                      <FileText size={16} /> Deskripsi Tugas
+                      <FileText size={16} /> {language === 'en' ? 'Task Description' : 'Deskripsi Tugas'}
                     </h3>
-                    <p className="text-lg md:text-xl font-medium text-gray-700 leading-relaxed">{selectedJob.desc}</p>
+                    <p className="text-lg md:text-xl font-medium text-gray-700 leading-relaxed">
+                      {language === 'en' && EN_JOBS[selectedJob.id] ? EN_JOBS[selectedJob.id].desc : selectedJob.desc}
+                    </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-6 mb-8 relative z-10">
                     <div className="flex flex-col">
@@ -213,7 +220,9 @@ export default function WorkPage() {
                     </div>
                     <div className="flex flex-col flex-1 truncate">
                       <span className={`font-mono font-bold text-[10px] tracking-widest uppercase mb-0.5 ${isSelected ? 'text-pink-200' : 'text-gray-400'}`}>{job.type}</span>
-                      <span className={`font-display font-black text-lg truncate tracking-tight ${isSelected ? 'text-white' : 'text-[#5c4d47]'}`}>{job.title}</span>
+                      <span className={`font-display font-black text-lg truncate tracking-tight ${isSelected ? 'text-white' : 'text-[#5c4d47]'}`}>
+                        {language === 'en' && EN_JOBS[job.id] ? EN_JOBS[job.id].title : job.title}
+                      </span>
                     </div>
                     <div className={`shrink-0 text-[10px] font-black uppercase px-2 py-1 rounded skew-x-[8deg] ${jcol}`}>
                       {jrank}

@@ -9,6 +9,9 @@ import CustomAlertModal from '@/components/ui/CustomAlertModal';
 import NavigationProgress from '@/components/ui/NavigationProgress';
 import { Suspense } from 'react';
 
+import { LanguageProvider } from '@/lib/i18n/LanguageContext';
+import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
+
 export const metadata: Metadata = {
   title: 'Teman Kos',
   description: 'Productivity web app with an AI companion',
@@ -24,19 +27,22 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body>
-        <Suspense fallback={null}>
-          <NavigationProgress />
-        </Suspense>
-        <ViewportManager />
-        <QuestTracker />
-        <main className="min-h-screen w-full relative">
-          <RadioProvider>
-            <AchievementToast />
-            <CustomAlertModal />
-            {children}
-          </RadioProvider>
-        </main>
+        <LanguageProvider>
+          <Suspense fallback={null}>
+            <NavigationProgress />
+          </Suspense>
+          <ViewportManager />
+          <QuestTracker />
+          <main className="min-h-screen w-full relative">
+            <RadioProvider>
+              <AchievementToast />
+              <CustomAlertModal />
+              {children}
+            </RadioProvider>
+          </main>
+        </LanguageProvider>
       </body>
     </html>
   );
 }
+

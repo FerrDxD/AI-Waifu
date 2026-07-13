@@ -35,6 +35,19 @@ export function extractCustomApiKey(req: Request): string | undefined {
   return undefined;
 }
 
+export function extractLanguage(req: Request): 'id' | 'en' {
+  const headerLang = req.headers.get('x-language');
+  if (headerLang === 'en' || headerLang === 'id') return headerLang;
+
+  const cookieHeader = req.headers.get('cookie');
+  if (cookieHeader) {
+    const match = cookieHeader.match(/(?:^|;\s*)teman_kost_lang=([^;]*)/);
+    if (match && (match[1] === 'en' || match[1] === 'id')) return match[1] as 'id' | 'en';
+  }
+  return 'id';
+}
+
+
 export type LiviaExpression = 'normal' | 'angry' | 'blushing' | 'clingy' | 'happy' | 'confused' | 'flirty' | 'pain' | 'pleased' | 'scared' | 'serious' | 'silly';
 
 export async function generateLiviaResponse(
@@ -46,7 +59,8 @@ export async function generateLiviaResponse(
   stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number },
   isVoiceCall?: boolean,
   longTermMemory?: string,
-  customApiKey?: string
+  customApiKey?: string,
+  language: 'id' | 'en' = 'id'
 ): Promise<{ reply: string, affectionDelta: number, expression: LiviaExpression, memoryUpdate?: string }> {
   
   const affectionLevelName = affectionLevel < 20 ? 'Orang Asing' :
@@ -77,6 +91,10 @@ PENTING: Kondisi fisik ini HARUS sangat mempengaruhi nada bicara Livia! Jika ia 
   const memoryContext = `\nMemori Jangka Panjang Livia tentang User:
 ${longTermMemory || 'Belum ada memori. Livia baru mengenal User.'}`;
 
+  const languageRule = language === 'en'
+    ? `- MUST REPLY IN NATURAL, CONVERSATIONAL ENGLISH while keeping her tsundere personality intact\n- Keep answers concise (max 3-4 sentences)`
+    : `- Gunakan Bahasa Indonesia yang natural dan sehari-hari\n- Jangan terlalu panjang — maksimal 3-4 kalimat per respons`;
+
   const systemPrompt = `Kamu adalah Livia Einhart, gadis 19 tahun yang baru pindah kos di kota besar atas perintah ibunya. Kamu tsundere, temperamen, tapi sangat manja di dalam hati — walaupun kamu tidak akan pernah mengakuinya secara langsung.
 
 Kepribadian spesifik berdasarkan barang bawaanmu:
@@ -89,10 +107,9 @@ Level kedekatan saat ini: ${affectionLevelName} (level ${levelStage}/5)
 ${physiologicalContext}${memoryContext}
 
 Aturan berbicara:
-- Gunakan Bahasa Indonesia yang natural dan sehari-hari
+${languageRule}
 - JANGAN pernah campur bahasa Jepang
 - Tidak perlu selalu formal — boleh santai, ketus, atau manja sesuai mood
-- Jangan terlalu panjang — maksimal 3-4 kalimat per respons
 - Tunjukkan emosi secara implisit melalui pilihan kata, bukan deskripsi eksplisit${isVoiceCall ? '\n\nATURAN KHUSUS PANGGILAN TELEPON (VOICE CALL):\n- INI ADALAH PANGGILAN TELEPON SUARA, BUKAN CHAT TEKS!\n- SANGAT DILARANG menggunakan tanda bintang untuk aksi fisik atau roleplay (contoh: *tersenyum*, *mengambil barang*), karena teks ini akan dibaca oleh mesin Text-to-Speech.\n- Jika ingin menunjukkan emosi, gunakan kata-kata lisan seperti "Hahaha", "Uhm...", "Eh?!", "Ck", "Huft".\n- Buat kalimat terdengar seperti percakapan lisan yang natural.' : ''}
 
 Kembalikan HANYA JSON valid:
@@ -174,8 +191,14 @@ export async function generateDateDialogue(
   affectionLevel: number,
   userName: string,
   stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number },
-  customApiKey?: string
-): Promise<{ speaker: string, text: string, expression?: LiviaExpression }[]> {
+  customApiKey?: string,
+  language: 'id' | 'en' = 'id'
+): Promise<{ scene: { speaker: string, text: string, expression?: LiviaExpression }[], timeOfDay: 'pagi' | 'sore' | 'malam' }> {
+  const currentHour = new Date().getHours();
+  const defaultTimeOfDay: 'pagi' | 'sore' | 'malam' =
+    currentHour >= 5 && currentHour < 15 ? 'pagi' :
+    currentHour >= 15 && currentHour < 18 ? 'sore' : 'malam';
+
   let physiologicalContext = '';
   if (stats) {
     let hungerState = stats.hunger < 20 ? 'SANGAT KELAPARAN' : stats.hunger < 50 ? 'Lapar' : 'Kenyang';
@@ -188,13 +211,21 @@ export async function generateDateDialogue(
     physiologicalContext = `\nKondisi Fisik & Biologis Livia Saat Ini:\n- Siklus Menstruasi: ${cycleState}\n- Tingkat Lapar: ${hungerState}\n- Tingkat Energi: ${energyState}\n- Tingkat Hidrasi: ${hydrationState}\nPENTING: Sesuaikan respon Livia dengan kondisi fisiknya! Jika dia lelah/lapar, dia akan mengeluh minta pulang atau makan.`;
   }
 
-  const systemPrompt = `Kamu adalah Livia Einhart, gadis 19 tahun tsundere. Kamu dan ${userName} sedang jalan-jalan ke: ${location}. Level afeksi: ${affectionLevel}/100. ${physiologicalContext}
-Buat dialog Visual Novel singkat (5-7 baris) di lokasi tersebut. 
+  const langInstruction = language === 'en'
+    ? `WRITE ALL SCENE DIALOGUE TEXT IN NATURAL, CONVERSATIONAL ENGLISH while keeping Livia's tsundere personality intact.`
+    : `Buat dialog Visual Novel singkat (5-7 baris) di lokasi tersebut dengan Bahasa Indonesia yang natural.`;
+
+  const systemPrompt = `Kamu adalah Livia Einhart, gadis 19 tahun tsundere. Kamu dan ${userName} sedang jalan-jalan ke: ${location}. Level afeksi: ${affectionLevel}/100. Waktu bermain saat ini jam ${currentHour}:00 (${defaultTimeOfDay.toUpperCase()}). ${physiologicalContext}
+Buat dialog Visual Novel singkat (5-7 baris) di lokasi tersebut dengan suasana waktu yang sesuai skenario (pagi/sore/malam).
+${langInstruction}
 User berbicara sebagai "${userName}", Livia sebagai "Livia". Narator sebagai "Narator".
-Kembalikan HANYA array JSON valid dengan format:
-[
-  { "speaker": "Livia" | "${userName}" | "Narator", "text": "dialog", "expression": "normal" | "angry" | "blushing" | "clingy" | "happy" }
-]
+Kembalikan HANYA objek JSON valid dengan format:
+{
+  "timeOfDay": "pagi" | "sore" | "malam",
+  "scene": [
+    { "speaker": "Livia" | "${userName}" | "Narator", "text": "dialog", "expression": "normal" | "angry" | "blushing" | "clingy" | "happy" }
+  ]
+}
 Jangan tambahkan teks lain di luar JSON.`;
 
   const client = getAIClient(customApiKey);
@@ -203,14 +234,24 @@ Jangan tambahkan teks lain di luar JSON.`;
   try {
     const result = await model.generateContent(systemPrompt);
     const text = result.response.text();
-    const match = text.match(/\[[\s\S]*\]/);
+    const match = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
     if (!match) throw new Error("No JSON found");
-    return JSON.parse(match[0]);
+    const parsed = JSON.parse(match[0]);
+    if (Array.isArray(parsed)) {
+      return { scene: parsed, timeOfDay: defaultTimeOfDay };
+    }
+    return {
+      scene: parsed.scene || [],
+      timeOfDay: (parsed.timeOfDay === 'pagi' || parsed.timeOfDay === 'sore' || parsed.timeOfDay === 'malam') ? parsed.timeOfDay : defaultTimeOfDay
+    };
   } catch (error) {
     console.error("Date Gen Error:", error);
-    return [
-      { speaker: "Livia", text: "Maaf ya, aku lagi nggak mood ngomong...", expression: "angry" }
-    ];
+    return {
+      scene: [
+        { speaker: "Livia", text: "Maaf ya, aku lagi nggak mood ngomong...", expression: "angry" }
+      ],
+      timeOfDay: defaultTimeOfDay
+    };
   }
 }
 
@@ -222,7 +263,8 @@ export async function generateDateResponse(
   userName: string,
   stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number },
   longTermMemory?: string,
-  customApiKey?: string
+  customApiKey?: string,
+  language: 'id' | 'en' = 'id'
 ): Promise<{ reply: string, expression: LiviaExpression, affectionDelta: number, memoryUpdate?: string }> {
   
   const affectionLevelName = affectionLevel < 20 ? 'Orang Asing' :
@@ -246,6 +288,10 @@ export async function generateDateResponse(
   const memoryContext = `\nMemori Jangka Panjang Livia tentang ${userName}:
 ${longTermMemory || 'Belum ada memori khusus.'}`;
 
+  const langRule = language === 'en'
+    ? `- MUST REPLY IN NATURAL, CONVERSATIONAL ENGLISH while keeping her tsundere personality intact.`
+    : `- Gunakan Bahasa Indonesia yang natural dan santai.`;
+
   const systemPrompt = `Kamu adalah Livia Einhart, gadis 19 tahun tsundere. Kamu sedang jalan-jalan (kencan) dengan ${userName} di: ${location}. 
 Level kedekatan saat ini: ${affectionLevelName} (${affectionLevel}/100). ${physiologicalContext}${memoryContext}
 - Jika affection < 40: Kamu agak jaga jarak, tsundere, sering malu-malu tapi ketus.
@@ -253,7 +299,7 @@ Level kedekatan saat ini: ${affectionLevelName} (${affectionLevel}/100). ${physi
 - Jika affection >= 80: Kamu sangat protektif, manja, dan terang-terangan suka kencan ini (meski masih sok jual mahal sedikit).
 
 Aturan berbicara:
-- Gunakan Bahasa Indonesia yang natural dan santai.
+${langRule}
 - Jawab secara langsung ke ${userName}.
 - Tunjukkan reaksi yang sesuai dengan suasana ${location}.
 - Jangan terlalu panjang — maksimal 3-4 kalimat per respons.

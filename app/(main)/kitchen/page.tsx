@@ -11,6 +11,8 @@ import LiviaSprite from '@/components/livia/LiviaSprite';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { LiviaExpression } from '@/lib/gemini';
 import { RECIPES } from '@/lib/livia/recipes';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { EN_RECIPES, EN_LIVIA_DIALOGUES } from '@/lib/i18n/content';
 
 // Helper component to render vector icons instead of emojis
 function RecipeIcon({ id }: { id: string }) {
@@ -46,6 +48,7 @@ function RecipeIcon({ id }: { id: string }) {
 }
 
 export default function KitchenPage() {
+  const { dict, language } = useLanguage();
   const [money, setMoney] = useState(0);
   const [affection, setAffection] = useState(0);
   const [activeOutfit, setActiveOutfit] = useState<string>('default');
@@ -66,6 +69,14 @@ export default function KitchenPage() {
   const [sliderPos, setSliderPos] = useState(0);
   const [minigamePhase, setMinigamePhase] = useState<'playing' | 'result'>('playing');
   const [minigameResult, setMinigameResult] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (language === 'en') {
+      setMessage(EN_LIVIA_DIALOGUES.kitchen.greeting);
+    } else {
+      setMessage("Selamat datang di dapur kos! Klik buku resep di atas meja untuk memilih menu masakan.");
+    }
+  }, [language]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -146,7 +157,7 @@ export default function KitchenPage() {
   const handleCook = async (id: string, name: string, cost: number) => {
     if (money < cost) {
       setMessage("Uangmu tidak cukup untuk membeli bahan masakan ini!");
-      setLiviaExpression('sad');
+      setLiviaExpression('pain');
       return;
     }
 
@@ -158,14 +169,14 @@ export default function KitchenPage() {
     } else {
       setMinigamePhase('playing');
       setShowMinigame(true);
-      setLiviaExpression('surprised');
+      setLiviaExpression('confused');
       setMessage(`Ayo potong bahan untuk ${name} dengan tepat waktu di garis hijau!`);
     }
   };
 
   const processCooking = async (id: string, name: string, cost: number, isMinigameFailed: boolean) => {
     setIsCooking(true);
-    setLiviaExpression('surprised');
+    setLiviaExpression('confused');
     setMessage(`Sedang memasak ${name} di atas wajan panas... Aromanya harum sekali!`);
 
     try {
@@ -183,7 +194,7 @@ export default function KitchenPage() {
 
       if (!res.ok) {
         setMessage(data.message || "Gagal memasak.");
-        setLiviaExpression('sad');
+        setLiviaExpression('pain');
         setIsCooking(false);
         return;
       }
@@ -196,7 +207,7 @@ export default function KitchenPage() {
     } catch (error) {
       console.error(error);
       setMessage("Terjadi kesalahan sistem di dapur.");
-      setLiviaExpression('sad');
+      setLiviaExpression('pain');
     } finally {
       setIsCooking(false);
     }
@@ -233,7 +244,7 @@ export default function KitchenPage() {
         <div className="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center shadow-inner border-2 border-amber-200">
           <BookX className="w-12 h-12 text-amber-600" />
         </div>
-        <h1 className="text-2xl font-black text-[#5c4d47]">Dapur Terkunci</h1>
+        <h1 className="text-2xl font-black text-[#5c4d47]">{language === 'en' ? 'Kitchen Locked' : 'Dapur Terkunci'}</h1>
         <p className="text-gray-500 max-w-md">
           Kamu tidak membawa <b>"Buku Resep Masak"</b> saat baru pindah. Livia melarang keras kamu memakai dapurnya karena takut kebakaran!<br/><br/>
           <i>Silakan beli Buku Resep Masak di Toko terlebih dahulu.</i>
@@ -266,7 +277,7 @@ export default function KitchenPage() {
             <div className="w-9 h-9 rounded-xl bg-orange-500 flex items-center justify-center shadow-md">
               <ChefHat className="text-white w-5 h-5" />
             </div>
-            <h1 className="text-lg md:text-2xl font-display font-black text-[#5c4d47] tracking-tight uppercase">Dapur Kos Livia</h1>
+            <h1 className="text-lg md:text-2xl font-display font-black text-[#5c4d47] tracking-tight uppercase">{dict?.pages?.kitchen?.title || 'Dapur Livia'}</h1>
           </div>
         </div>
         
@@ -456,8 +467,12 @@ export default function KitchenPage() {
                   <BookOpen className="w-6 h-6 text-amber-200" />
                 </div>
                 <div>
-                  <h2 className="text-xl md:text-2xl font-display font-black tracking-wide">Buku Resep Masak Livia</h2>
-                  <p className="text-xs text-amber-200 font-medium">Pilih resep dan siapkan bahan untuk dimasak di Kitchen Set</p>
+                  <h2 className="text-xl md:text-2xl font-display font-black tracking-wide">
+                    {language === 'en' ? "Livia's Recipe Book" : "Buku Resep Masak Livia"}
+                  </h2>
+                  <p className="text-xs text-amber-200 font-medium">
+                    {language === 'en' ? "Select a recipe to cook on the kitchen stove" : "Pilih resep dan siapkan bahan untuk dimasak di Kitchen Set"}
+                  </p>
                 </div>
               </div>
               <button 
@@ -477,14 +492,14 @@ export default function KitchenPage() {
                     className={`flex-1 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-2 ${isLiviaCooking ? 'bg-orange-500 text-white shadow-md scale-[1.01]' : 'text-amber-800 hover:bg-amber-200/50'}`}
                   >
                     <ChefHat className="w-4 h-4" />
-                    <span>Livia yang Masak (Buku Ibu)</span>
+                    <span>{language === 'en' ? "Livia Cooks (Mom's Book)" : "Livia yang Masak (Buku Ibu)"}</span>
                   </button>
                   <button 
                     onClick={() => setIsLiviaCooking(false)}
                     className={`flex-1 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-2 ${!isLiviaCooking ? 'bg-orange-500 text-white shadow-md scale-[1.01]' : 'text-amber-800 hover:bg-amber-200/50'}`}
                   >
                     <Flame className="w-4 h-4" />
-                    <span>Kamu yang Masak (Minigame)</span>
+                    <span>{language === 'en' ? "You Cook (Minigame)" : "Kamu yang Masak (Minigame)"}</span>
                   </button>
                 </div>
               </div>
@@ -505,8 +520,12 @@ export default function KitchenPage() {
                         <RecipeIcon id={recipe.id} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-black text-[#5c4d47] text-sm md:text-base truncate">{recipe.name}</h3>
-                        <p className="text-[11px] text-gray-500 font-medium line-clamp-1 mt-0.5">{recipe.desc}</p>
+                        <h3 className="font-black text-[#5c4d47] text-sm md:text-base truncate">
+                          {language === 'en' && EN_RECIPES[recipe.id] ? EN_RECIPES[recipe.id].name : recipe.name}
+                        </h3>
+                        <p className="text-[11px] text-gray-500 font-medium line-clamp-1 mt-0.5">
+                          {language === 'en' && EN_RECIPES[recipe.id] ? EN_RECIPES[recipe.id].desc : recipe.desc}
+                        </p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="font-mono font-bold text-amber-700 text-xs bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
                             {recipe.cost} Rv
@@ -525,7 +544,7 @@ export default function KitchenPage() {
                       }`}
                     >
                       <Flame className="w-3.5 h-3.5" />
-                      <span>{isLiviaCooking ? 'Pesan' : 'Masak'}</span>
+                      <span>{isLiviaCooking ? (language === 'en' ? 'Order' : 'Pesan') : (language === 'en' ? 'Cook' : 'Masak')}</span>
                     </button>
                   </div>
                 );

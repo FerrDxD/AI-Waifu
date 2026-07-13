@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MessageSquare, Clock, BookOpen, Briefcase, Gift, MapPin, Wallet, Shirt, Menu, X, Heart, Moon, Utensils, Battery, Droplet, Sprout, Bed, Radio, Smartphone, Settings, Camera, Package, Calendar, Tv, Target } from 'lucide-react';
+import { MessageSquare, Clock, BookOpen, Briefcase, Gift, MapPin, Wallet, Shirt, Menu, X, Heart, Moon, Utensils, Battery, Droplet, Sprout, Bed, Radio, Smartphone, Settings, Camera, Package, Calendar, Tv, Target, Smile, Zap, Shield } from 'lucide-react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
 import AffectionBar from '@/components/livia/AffectionBar';
 import { LiviaExpression } from '@/lib/gemini';
@@ -14,6 +14,7 @@ import { playSfx } from '@/lib/sfx';
 import { preloadLiviaSprites } from '@/lib/preloader';
 import DailyStampModal from '@/components/daily/DailyStampModal';
 import { unlockAchievement } from '@/lib/achievements';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface HomeClientProps {
   initialAffection: number;
@@ -63,12 +64,32 @@ function getGreeting(affection: number, itemsBrought: string[], stats: {hunger: 
     }
   }
 
+  if (stats.cyclePhase === 'Folikuler' && affection >= 30) {
+    const randomChance = Math.random();
+    if (randomChance < 0.65) {
+      const places = ['Restoran Gyoza', 'Supermarket', 'Taman Kota', 'Warung Ramen', 'Arcade Center', 'Akuarium', 'Food Court'];
+      const place = pickRandom(places);
+      const texts = [
+        `Hei ${userName}! Cuaca hari ini enak banget dan aku lagi berenergi banget. Kita jalan-jalan ke ${place} yuk!`,
+        `${userName}~ Aku lagi nggak mau diem di kamar nih. Temenin aku keluar ke ${place} sekarang ya!`,
+        `Mood aku lagi bagus banget hari ini! Jalan bareng ke ${place} yuk, ${userName}!`,
+        `Hei, mumpung aku lagi bersemangat, kamu mau nemenin aku jalan ke ${place} nggak?`
+      ];
+      return { 
+        text: pickRandom(texts), 
+        expression: 'happy',
+        isInvitingOut: true,
+        invitedPlace: place
+      };
+    }
+  }
+
   if (affection >= 40 && (itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses'))) {
     const randomChance = Math.random();
     if (randomChance > 0.6 && stats.energy > 50 && stats.cyclePhase !== 'Menstruasi') {
-      const places = ['supermarket', 'perpustakaan', 'taman', 'cafe', 'amusement'];
+      const places = ['Supermarket', 'Perpustakaan', 'Taman Kota', 'Kafe Kucing', 'Taman Hiburan'];
       const place = pickRandom(places);
-      const displayPlace = place === 'amusement' ? 'taman hiburan' : place;
+      const displayPlace = place.toLowerCase();
       const texts = [
         `Hei... kebetulan aku mau ke ${displayPlace}. Karena ${userName} udah beliin kacamata ini... y-yah, ${userName} boleh ikut kalau mau.`,
         `Kacamata hitamnya keren kan? A-aku mau tes jalan pakai ini ke ${displayPlace}. ${userName} harus nemenin!`,
@@ -121,10 +142,10 @@ function getGreeting(affection: number, itemsBrought: string[], stats: {hunger: 
     return { text: pickRandom(texts), expression: 'angry' };
   } else if (stats.cyclePhase === 'Luteal') {
     const texts = [
-      `Nggak tau kenapa aku gampang bete hari ini. Mending ${userName} jangan bikin ulah.`,
-      `Hawa rasanya gerah dan bawaannya pengen ngomel. Hati-hati ya kalau bicara.`,
-      `Mood aku lagi nggak karuan. Tolong pahami aja ya.`,
-      `Aku lagi PMS tau! Jangan mancing-mancing masalah!`
+      `Aku lagi laper terus dan pengen rebahan di rumah aja. Jangan ngajak keluar ya hari ini.`,
+      `Nggak tau kenapa aku gampang bete hari ini. Lebih enak di rumah sambil makan camilan yang banyak.`,
+      `Mood aku lagi nggak karuan dan doyan makan banget. Kita di rumah aja ya, ${userName}.`,
+      `Aku lagi PMS tau! Jangan ngajak keluar ke mana-mana, beliin aku makanan aja!`
     ];
     return { text: pickRandom(texts), expression: 'angry' };
   }
@@ -268,6 +289,7 @@ function getGreeting(affection: number, itemsBrought: string[], stats: {hunger: 
 }
 
 export default function HomeClient({ initialAffection, userName, initialItemsBrought, initialOutfit }: HomeClientProps) {
+  const { dict, language } = useLanguage();
   const [sessionTime, setSessionTime] = useState(0);
   const [affection, setAffection] = useState(initialAffection);
   const [itemsBrought] = useState(initialItemsBrought);
@@ -344,46 +366,114 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
     let newText = '';
     let affectionChange = 0;
 
-    if (part === 'head') {
-      newExpr = 'blushing';
-      affectionChange = 1;
-      const texts = [
-        "E-eh?! Jangan elus-elus kepalaku dong...",
-        "A-apa sih... tanganmu hangat...",
-        `Jangan mikir aku suka diginiin ya, ${userName}!`,
-        "R-rambutku berantakan tau..."
-      ];
-      newText = texts[Math.floor(Math.random() * texts.length)];
-    } else if (part === 'chest') {
+    const currentDay = calculateCycleDay(liviaStats.cycleAnchor);
+    const cyclePhase = currentDay <= 5 ? 'Menstruasi' :
+                       currentDay <= 14 ? 'Folikuler' :
+                       currentDay <= 17 ? 'Ovulasi' : 'Luteal';
+
+    if (cyclePhase === 'Ovulasi') {
+      // Saat Ovulasi: semua afeksi bernilai positif dan DUA KALI LIPAT!
+      // Bagian dada, perut, dan paha malah senang dan minta disentuh lagi (+4 / +2)
+      if (part === 'head') {
+        newExpr = 'blushing';
+        affectionChange = 2; // +1 * 2
+        const texts = [
+          `Nnn... enak banget elusanmu... elus kepalaku lagi dong, ${userName}...`,
+          `A-ahh... tanganmu hangat banget... jangan berhenti ya...`,
+          `Hehe... aku lagi seneng banget dideketin kamu hari ini...`
+        ];
+        newText = pickRandom(texts);
+      } else if (part === 'chest') {
+        newExpr = 'blushing';
+        affectionChange = 4; // +2 * 2 = +4!
+        const texts = [
+          `A-ahh... h-hangat... k-kok berhenti? S-sentuh lagi dong, ${userName}...`,
+          `Nnn... jangan dilepas tangannya... hari ini aku lagi pengen dekat banget sama kamu...`,
+          `E-eh... rasanya nyaman... jangan berhenti ya...`
+        ];
+        newText = pickRandom(texts);
+      } else if (part === 'belly') {
+        newExpr = 'blushing';
+        affectionChange = 2; // +1 * 2 = +2!
+        const texts = [
+          `Hehe geli... tapi hangat... elus perutku lagi dong, ${userName}...`,
+          `Nnn... kok cuma sebentar? Sentuh lagi...`,
+          `A-aku nggak marah kok hari ini... elus lagi ya...`
+        ];
+        newText = pickRandom(texts);
+      } else if (part === 'thigh') {
+        newExpr = 'clingy';
+        affectionChange = 4; // +2 * 2 = +4!
+        const texts = [
+          `A-ahh... p-pahaku... sentuh lagi... jangan berhenti ya, ${userName}...`,
+          `Nnn... kenapa berhenti? Raba lagi dong...`,
+          `H-hari ini aku nggak bisa nolak sentuhanmu... dekat-dekat terus sama aku ya...`
+        ];
+        newText = pickRandom(texts);
+      }
+    } else if (cyclePhase === 'Menstruasi') {
+      // Saat Menstruasi: semua interaksi mengurangi afeksi, bahkan pat-pat kepala (+1 -> -1)
       newExpr = 'angry';
-      affectionChange = -2;
-      const texts = [
-        "H-hei! Dasar mesum! Tanganmu mau kupatahkan?!",
-        "M-mata dan tanganmu itu dijaga ya!",
-        `${userName} mau mati sekarang juga?!`,
-        "K-kyyaa! Jangan sentuh dadaku bodoh!"
-      ];
-      newText = texts[Math.floor(Math.random() * texts.length)];
-    } else if (part === 'belly') {
-      newExpr = 'angry';
-      affectionChange = -1;
-      const texts = [
-        "Geli tau! Jauhkan tanganmu dari perutku!",
-        `${userName} ngapain sih?! Dasar aneh!`,
-        "A-aku nggak gemuk kok! Jangan pegang-pegang!",
-        "Hentikan! Atau aku beneran panggil polisi!"
-      ];
-      newText = texts[Math.floor(Math.random() * texts.length)];
-    } else if (part === 'thigh') {
-      newExpr = 'angry';
-      affectionChange = -2;
-      const texts = [
-        "T-tanganmu nyentuh pahaku! Dasar cabul!",
-        "M-mau kutendang wajahmu?!",
-        `Jangan coba-coba meraba-raba ke bawah ya, ${userName}!`,
-        "K-kotor! Jauhkan tanganmu!"
-      ];
-      newText = texts[Math.floor(Math.random() * texts.length)];
+      if (part === 'head') {
+        affectionChange = -1;
+        const texts = [
+          `Aduh jangan sentuh kepalaku! Kepalaku lagi pusing dan perutku kram tau!`,
+          `Jangan pegang-pegang! Aku lagi sensitif banget hari ini!`,
+          `Lepas tanganmu, ${userName}! Moodku lagi hancur!`
+        ];
+        newText = pickRandom(texts);
+      } else {
+        affectionChange = -3;
+        const texts = [
+          `JANGAN SENTUH AKU! Aku lagi haid, jangan sampai emosiku meledak ya!!`,
+          `Tanganmu jauh-jauh!! Pinggang dan perutku lagi sakit semua tau!`,
+          `Berani nyentuh lagi kuremas tanganmu sampai patah!!`
+        ];
+        newText = pickRandom(texts);
+      }
+    } else {
+      // Fase Folikuler & Luteal (reaksi normal)
+      if (part === 'head') {
+        newExpr = 'blushing';
+        affectionChange = 1;
+        const texts = [
+          "E-eh?! Jangan elus-elus kepalaku dong...",
+          "A-apa sih... tanganmu hangat...",
+          `Jangan mikir aku suka diginiin ya, ${userName}!`,
+          "R-rambutku berantakan tau..."
+        ];
+        newText = pickRandom(texts);
+      } else if (part === 'chest') {
+        newExpr = 'angry';
+        affectionChange = -2;
+        const texts = [
+          "H-hei! Dasar mesum! Tanganmu mau kupatahkan?!",
+          "M-mata dan tanganmu itu dijaga ya!",
+          `${userName} mau mati sekarang juga?!`,
+          "K-kyyaa! Jangan sentuh dadaku bodoh!"
+        ];
+        newText = pickRandom(texts);
+      } else if (part === 'belly') {
+        newExpr = 'angry';
+        affectionChange = -1;
+        const texts = [
+          "Geli tau! Jauhkan tanganmu dari perutku!",
+          `${userName} ngapain sih?! Dasar aneh!`,
+          "A-aku nggak gemuk kok! Jangan pegang-pegang!",
+          "Hentikan! Atau aku beneran panggil polisi!"
+        ];
+        newText = pickRandom(texts);
+      } else if (part === 'thigh') {
+        newExpr = 'angry';
+        affectionChange = -2;
+        const texts = [
+          "T-tanganmu nyentuh pahaku! Dasar cabul!",
+          "M-mau kutendang wajahmu?!",
+          `Jangan coba-coba meraba-raba ke bawah ya, ${userName}!`,
+          "K-kotor! Jauhkan tanganmu!"
+        ];
+        newText = pickRandom(texts);
+      }
     }
 
     setInteractionOverride({ text: newText, expression: newExpr });
@@ -451,6 +541,21 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
     return { phase: 'Luteal', color: 'text-amber-500 bg-amber-50 border-amber-200', day: dayOfCycle };
   };
   const cycle = getCycleInfo();
+
+  const stressStat = Math.min(100, Math.max(0, Math.round(
+    ((100 - liviaStats.hunger) * 0.35 + (100 - liviaStats.energy) * 0.35 + (100 - liviaStats.hydration) * 0.3)
+    + (cycle.phase === 'Menstruasi' ? 25 : cycle.phase === 'Luteal' ? 15 : cycle.phase === 'Ovulasi' ? -10 : -5)
+  )));
+
+  const moodStat = Math.min(100, Math.max(0, Math.round(
+    100 - stressStat * 0.5 + (affection * 0.3)
+    + (cycle.phase === 'Ovulasi' ? 20 : cycle.phase === 'Folikuler' ? 10 : cycle.phase === 'Menstruasi' ? -20 : -10)
+  )));
+
+  const toleranceStat = Math.min(100, Math.max(0, Math.round(
+    (affection * 0.6) + ((100 - stressStat) * 0.35)
+    + (cycle.phase === 'Ovulasi' ? 30 : cycle.phase === 'Menstruasi' ? -35 : cycle.phase === 'Luteal' ? -15 : 10)
+  )));
 
   return (
     <div className="min-h-screen relative flex flex-col overflow-hidden bg-[#fdfbf7] select-none font-sans">
@@ -546,7 +651,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
               <Wallet className="w-5 h-5 text-amber-500" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Saldo Rv</span>
+              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{dict.stats.money} Rv</span>
               <span className="font-mono font-black text-xl text-amber-600 leading-none">{money}</span>
             </div>
           </div>
@@ -579,49 +684,85 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
         <div className="flex flex-col-reverse md:flex-row justify-between items-end md:items-end flex-1 pb-4 md:pb-8 pointer-events-none gap-6 md:gap-8 w-full mt-10 md:mt-0 relative">
           
           {/* Bottom Left: Island UI & Chat Bubble */}
-          <div className="absolute bottom-[4.5rem] left-4 right-4 md:bottom-8 md:left-10 md:right-auto md:w-[400px] z-50 flex flex-col gap-3 pointer-events-auto">
+          <div className="absolute bottom-[4.5rem] left-4 right-4 md:bottom-8 md:left-10 md:right-auto md:w-[540px] z-50 flex flex-col gap-3 pointer-events-auto">
             
-            {/* Stats Island (Physiological) */}
-            <div className="hidden md:flex bg-white/80 backdrop-blur-2xl rounded-[2rem] p-4 border border-white/50 shadow-lg items-center justify-between gap-4 self-start w-auto hover:scale-[1.02] transition-transform origin-bottom-left">
-              <div className="flex items-center gap-4 md:gap-5 w-full">
-                 <div className="flex flex-col items-center gap-1.5 pointer-events-none">
-                   <div className="relative flex items-center justify-center w-10 h-10 md:w-12 md:h-12">
+            {/* Stats Island (Physiological & Psychological) */}
+            <div className="hidden md:flex bg-white/85 backdrop-blur-2xl rounded-[2rem] p-3.5 border border-white/60 shadow-lg items-center justify-between gap-3 self-start w-auto hover:scale-[1.01] transition-transform origin-bottom-left">
+              <div className="flex items-center gap-3 md:gap-4 w-full">
+                 {/* FISIK */}
+                 <div title="Hunger" className="flex flex-col items-center gap-1 pointer-events-none">
+                   <div className="relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11">
                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
                        <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
                        <circle cx="20" cy="20" r="16" className="fill-transparent stroke-orange-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.hunger/100)*100.53} strokeLinecap="round" />
                      </svg>
-                     <div className="absolute flex items-center justify-center"><Utensils size={14} className="text-orange-500 drop-shadow-sm" /></div>
+                     <div className="absolute flex items-center justify-center"><Utensils size={13} className="text-orange-500 drop-shadow-sm" /></div>
                    </div>
-                   <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">{liviaStats.hunger}%</span>
+                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.hunger}%</span>
                  </div>
 
-                 <div className="flex flex-col items-center gap-1.5">
-                   <div className="relative flex items-center justify-center w-10 h-10 md:w-12 md:h-12">
+                 <div title="Energy" className="flex flex-col items-center gap-1">
+                   <div className="relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11">
                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
                        <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
                        <circle cx="20" cy="20" r="16" className="fill-transparent stroke-yellow-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.energy/100)*100.53} strokeLinecap="round" />
                      </svg>
-                     <div className="absolute flex items-center justify-center"><Battery size={14} className="text-yellow-500 drop-shadow-sm" /></div>
+                     <div className="absolute flex items-center justify-center"><Battery size={13} className="text-yellow-500 drop-shadow-sm" /></div>
                    </div>
-                   <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">{liviaStats.energy}%</span>
+                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.energy}%</span>
                  </div>
 
-                 <div className="flex flex-col items-center gap-1.5">
-                   <div className="relative flex items-center justify-center w-10 h-10 md:w-12 md:h-12">
+                 <div title="Hydration" className="flex flex-col items-center gap-1">
+                   <div className="relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11">
                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
                        <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
                        <circle cx="20" cy="20" r="16" className="fill-transparent stroke-blue-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.hydration/100)*100.53} strokeLinecap="round" />
                      </svg>
-                     <div className="absolute flex items-center justify-center"><Droplet size={14} className="text-blue-500 drop-shadow-sm" /></div>
+                     <div className="absolute flex items-center justify-center"><Droplet size={13} className="text-blue-500 drop-shadow-sm" /></div>
                    </div>
-                   <span className="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">{liviaStats.hydration}%</span>
+                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.hydration}%</span>
+                 </div>
+
+                 <div className="w-px h-10 bg-gray-200/80 mx-0.5" />
+
+                 {/* PSIKOLOGIS */}
+                 <div title="Mood" className="flex flex-col items-center gap-1">
+                   <div className="relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11">
+                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-rose-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (moodStat/100)*100.53} strokeLinecap="round" />
+                     </svg>
+                     <div className="absolute flex items-center justify-center"><Smile size={13} className="text-rose-500 drop-shadow-sm" /></div>
+                   </div>
+                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{moodStat}%</span>
+                 </div>
+
+                 <div title="Stress" className="flex flex-col items-center gap-1">
+                   <div className="relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11">
+                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-purple-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (stressStat/100)*100.53} strokeLinecap="round" />
+                     </svg>
+                     <div className="absolute flex items-center justify-center"><Zap size={13} className="text-purple-500 drop-shadow-sm" /></div>
+                   </div>
+                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{stressStat}%</span>
+                 </div>
+
+                 <div title="Tolerance" className="flex flex-col items-center gap-1">
+                   <div className="relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11">
+                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-emerald-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (toleranceStat/100)*100.53} strokeLinecap="round" />
+                     </svg>
+                     <div className="absolute flex items-center justify-center"><Shield size={13} className="text-emerald-500 drop-shadow-sm" /></div>
+                   </div>
+                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{toleranceStat}%</span>
                  </div>
               </div>
-              <div className="w-px h-10 md:h-12 bg-gray-200 mx-1 md:mx-2" />
-              <div className={`flex flex-col items-center justify-center text-center min-w-[70px] md:min-w-[90px] gap-1 px-1`}>
+              <div className="w-px h-10 md:h-11 bg-gray-200 mx-1" />
+              <div className="flex flex-col items-center justify-center text-center min-w-[70px] md:min-w-[85px] gap-1 px-1">
                 <Moon size={16} className={`${cycle.color.split(' ')[0]} drop-shadow-sm`} />
-                <span className={`text-[9px] md:text-[11px] font-bold leading-tight ${cycle.color.split(' ')[0]}`}>{cycle.phase}</span>
-                <span className="text-[8px] md:text-[9px] font-bold text-gray-400">Hari {cycle.day}</span>
+                <span className={`text-[10px] md:text-[11px] font-bold leading-tight ${cycle.color.split(' ')[0]}`}>{cycle.phase}</span>
               </div>
             </div>
 
@@ -636,7 +777,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
                     onClick={() => setShowEvent(true)}
                     className="mt-2 md:mt-6 w-full py-2 md:py-3 bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-bold md:font-black text-sm md:text-lg rounded-xl md:rounded-2xl shadow-md hover:-translate-y-1 transition-all flex items-center justify-center gap-2 md:gap-3"
                   >
-                    <span className="text-base md:text-2xl">🕶️</span> Boleh, ayo!
+                    <span className="text-base md:text-2xl">🕶️</span> {language === 'en' ? "Sure, let's go!" : "Boleh, ayo!"}
                   </button>
                 )}
               </div>
@@ -653,16 +794,16 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
                 style={{ pointerEvents: isDesktopMenuOpen ? 'auto' : 'none' }}
               >
                 {[
-                  { href: "/wardrobe", icon: <Shirt size={20} className="w-[20px] h-[20px]" />, title: "Lemari" },
-                  { href: "/shop", icon: <Gift size={20} className="w-[20px] h-[20px]" />, title: "Toko" },
-                  { href: "/work", icon: <Briefcase size={20} className="w-[20px] h-[20px]" />, title: "Kerja" },
-                  { href: "/inventory", icon: <Package size={20} className="w-[20px] h-[20px]" />, title: "Tas" },
-                  { href: "/lounge", icon: <Tv size={20} className="w-[20px] h-[20px]" />, title: "Lounge" },
-                  { href: "/radio", icon: <Radio size={20} className="w-[20px] h-[20px]" />, title: "Radio" },
-                  { href: "/schedule", icon: <Calendar size={20} className="w-[20px] h-[20px]" />, title: "Jadwal" },
-                  { href: "/pomodoro", icon: <Clock size={20} className="w-[20px] h-[20px]" />, title: "Fokus" },
-                  { href: "/settings", icon: <Settings size={20} className="w-[20px] h-[20px]" />, title: "Setelan" },
-                  { href: "/album", icon: <Camera size={20} className="w-[20px] h-[20px]" />, title: "Album" },
+                  { href: "/wardrobe", icon: <Shirt size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.wardrobe || 'Lemari' },
+                  { href: "/shop", icon: <Gift size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.shop || 'Toko' },
+                  { href: "/work", icon: <Briefcase size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.work || 'Kerja' },
+                  { href: "/inventory", icon: <Package size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.inventory || 'Tas' },
+                  { href: "/lounge", icon: <Tv size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.lounge || 'Santai' },
+                  { href: "/radio", icon: <Radio size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.radio || 'Lofi' },
+                  { href: "/schedule", icon: <Calendar size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.schedule || 'Jadwal' },
+                  { href: "/pomodoro", icon: <Clock size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.pomodoro || 'Pomodoro' },
+                  { href: "/settings", icon: <Settings size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.settings || 'Setelan' },
+                  { href: "/album", icon: <Camera size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.album || 'Album' },
                 ].map((m, i) => {
                   const row = 4 - Math.floor(i / 2); // Bottom rows slide out first
                   return (
@@ -687,11 +828,11 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
                 style={{ pointerEvents: isDesktopMenuOpen ? 'none' : 'auto' }}
               >
                 {[
-                  { href: "/chat", icon: <MessageSquare size={24} className="w-[28px] h-[28px]" />, title: "OBROLAN", show: true },
-                  { href: "/story", icon: <BookOpen size={24} className="w-[28px] h-[28px]" />, title: "CERITA", show: true },
-                  { href: "/date", icon: <MapPin size={24} className="w-[28px] h-[28px]" />, title: "JALAN", show: isInvitingOut || (affection >= 40 && (itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses'))), isSpecial: true },
-                  { href: "/kitchen", icon: <Utensils size={24} className="w-[28px] h-[28px]" />, title: "DAPUR", show: itemsBrought.includes('recipe_book') || itemsBrought.includes('recipe_book_shop') },
-                  { href: "/garden", icon: <Sprout size={24} className="w-[28px] h-[28px]" />, title: "KEBUN", show: true }
+                  { href: "/chat", icon: <MessageSquare size={24} className="w-[28px] h-[28px]" />, title: dict.nav.chat.toUpperCase(), show: true },
+                  { href: "/story", icon: <BookOpen size={24} className="w-[28px] h-[28px]" />, title: dict.nav.story.toUpperCase(), show: true },
+                  { href: "/date", icon: <MapPin size={24} className="w-[28px] h-[28px]" />, title: dict.nav.date.toUpperCase(), show: isInvitingOut || (affection >= 40 && (itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses'))), isSpecial: true },
+                  { href: "/kitchen", icon: <Utensils size={24} className="w-[28px] h-[28px]" />, title: dict.nav.kitchen.toUpperCase(), show: itemsBrought.includes('recipe_book') || itemsBrought.includes('recipe_book_shop') },
+                  { href: "/garden", icon: <Sprout size={24} className="w-[28px] h-[28px]" />, title: dict.nav.garden.toUpperCase(), show: true }
                 ].filter(m => m.show).map((m, index, arr) => (
                   <div 
                     key={m.title}
@@ -713,7 +854,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
                 className="absolute bottom-0 right-0 flex items-center gap-3 p-3 md:p-4 rounded-[1.5rem] md:rounded-[2rem] transition-all group w-[180px] md:w-[240px] justify-end hover:scale-[1.02] shadow-sm hover:shadow-xl overflow-hidden backdrop-blur-2xl bg-white/80 md:bg-white/90 border border-white/60 hover:border-pink-200 text-[#5c4d47] z-50"
               >
                 <span className="font-display font-black text-xs md:text-sm tracking-widest relative z-10 transition-colors group-hover:text-[#ff758c]">
-                  {isDesktopMenuOpen ? 'KEMBALI' : 'LAINNYA'}
+                  {isDesktopMenuOpen ? dict.common.back.toUpperCase() : (language === 'en' ? 'MORE' : 'LAINNYA')}
                 </span>
                 <div className={`bg-pink-50 p-2 md:p-3 rounded-xl md:rounded-2xl group-hover:bg-[#ff758c] group-hover:text-white transition-all duration-300 relative z-10 ${isDesktopMenuOpen ? 'text-white bg-[#ff758c] rotate-180' : 'text-gray-400'}`}>
                   <Menu size={24} className="w-[28px] h-[28px]" />
@@ -727,14 +868,14 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
 
       {/* Mobile Bottom Navigation (Island UI) */}
       <div className="md:hidden absolute bottom-6 left-4 right-4 bg-white/90 backdrop-blur-2xl border border-[#5c4d47]/10 rounded-[2rem] p-2 px-4 flex justify-around items-center z-[100] shadow-[0_15px_35px_rgba(0,0,0,0.1)] pointer-events-auto">
-        <MobileNavBtn href="/home" icon={<BookOpen size={22} />} label="Lobi" isActive />
-        <MobileNavBtn href="/chat" icon={<MessageSquare size={22} />} label="Obrolan" />
-        <MobileNavBtn href="/pomodoro" icon={<Clock size={22} />} label="Fokus" />
+        <MobileNavBtn href="/home" icon={<BookOpen size={22} />} label={dict.nav.home} isActive />
+        <MobileNavBtn href="/chat" icon={<MessageSquare size={22} />} label={dict.nav.chat} />
+        <MobileNavBtn href="/pomodoro" icon={<Clock size={22} />} label={dict.nav.pomodoro} />
         <button onClick={() => setShowMoreModal(true)} className="flex flex-col items-center justify-center gap-1 w-14">
           <div className="p-2 rounded-xl transition-all text-gray-400 hover:text-[#ff758c]">
             <Menu size={22} />
           </div>
-          <span className="font-display text-[9px] font-bold text-gray-400">Lainnya</span>
+          <span className="font-display text-[9px] font-bold text-gray-400">{language === 'en' ? 'More' : 'Lainnya'}</span>
         </button>
       </div>
 
@@ -744,7 +885,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
           <div className="bg-[#fdfbf7] w-full md:max-w-lg rounded-t-[2rem] md:rounded-[2rem] p-6 pb-12 md:pb-8 shadow-2xl flex flex-col transform transition-transform animate-[slideUp_0.3s_ease-out] border-t-4 border-[#ff758c] md:border-4">
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-2xl font-display font-black text-[#5c4d47] flex items-center gap-2">
-                <Menu className="text-[#ff758c]" /> Menu Lainnya
+                <Menu className="text-[#ff758c]" /> {language === 'en' ? 'More Menus' : 'Menu Lainnya'}
               </h2>
               <button 
                 onClick={() => setShowMoreModal(false)} 
@@ -756,21 +897,21 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
             
             <div className="grid grid-cols-4 md:grid-cols-5 gap-4 md:gap-6">
               {itemsBrought.includes('recipe_book') && (
-                <BottomMenuCard href="/kitchen" icon={<Utensils size={26} className="md:w-[28px] md:h-[28px]" />} title="Dapur" />
+                <BottomMenuCard href="/kitchen" icon={<Utensils size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.kitchen || 'Dapur'} />
               )}
-              <BottomMenuCard href="/wardrobe" icon={<Shirt size={26} className="md:w-[28px] md:h-[28px]" />} title="Lemari" />
-              <BottomMenuCard href="/shop" icon={<Gift size={26} className="md:w-[28px] md:h-[28px]" />} title="Toko" />
-              <BottomMenuCard href="/work" icon={<Briefcase size={26} className="md:w-[28px] md:h-[28px]" />} title="Kerja" />
-              <BottomMenuCard href="/story" icon={<BookOpen size={26} className="md:w-[28px] md:h-[28px]" />} title="Cerita" />
+              <BottomMenuCard href="/wardrobe" icon={<Shirt size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.wardrobe || 'Lemari'} />
+              <BottomMenuCard href="/shop" icon={<Gift size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.shop || 'Toko'} />
+              <BottomMenuCard href="/work" icon={<Briefcase size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.work || 'Kerja'} />
+              <BottomMenuCard href="/story" icon={<BookOpen size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.story || 'Cerita'} />
               {(isInvitingOut || (affection >= 40 && (itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses')))) && (
-                <BottomMenuCard href="/date" icon={<MapPin size={26} className="md:w-[28px] md:h-[28px]" />} title="Jalan" />
+                <BottomMenuCard href="/date" icon={<MapPin size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.date || 'Jalan'} />
               )}
-              <BottomMenuCard href="/inventory" icon={<Package size={26} className="md:w-[28px] md:h-[28px]" />} title="Tas" />
-              <BottomMenuCard href="/bedroom" icon={<Bed size={26} className="md:w-[28px] md:h-[28px]" />} title="Kamar" />
-              <BottomMenuCard href="/radio" icon={<Radio size={26} className="md:w-[28px] md:h-[28px]" />} title="Radio" />
-              <BottomMenuCard href="/schedule" icon={<Calendar size={26} className="md:w-[28px] md:h-[28px]" />} title="Jadwal" />
-              <BottomMenuCard href="/settings" icon={<Settings size={26} className="md:w-[28px] md:h-[28px]" />} title="Setelan" />
-              <BottomMenuCard href="/album" icon={<Camera size={26} className="md:w-[28px] md:h-[28px]" />} title="Album" />
+              <BottomMenuCard href="/inventory" icon={<Package size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.inventory || 'Tas'} />
+              <BottomMenuCard href="/bedroom" icon={<Bed size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.home || 'Kamar'} />
+              <BottomMenuCard href="/radio" icon={<Radio size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.radio || 'Lofi'} />
+              <BottomMenuCard href="/schedule" icon={<Calendar size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.schedule || 'Jadwal'} />
+              <BottomMenuCard href="/settings" icon={<Settings size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.settings || 'Setelan'} />
+              <BottomMenuCard href="/album" icon={<Camera size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.album || 'Album'} />
             </div>
           </div>
         </div>
@@ -841,47 +982,87 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
               </div>
             </div>
 
-            {/* Physiological Stats */}
+            {/* Physiological & Psychological Stats */}
             <div className="flex flex-col gap-3 bg-gray-50/80 p-4 rounded-2xl border border-gray-100">
               <div className="flex justify-between items-center border-b border-gray-200/60 pb-2">
                 <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Kondisi Livia</span>
-                <div className={`text-[9px] font-bold px-2 py-0.5 rounded-full border shadow-sm flex items-center gap-1 ${cycle.color}`}>
-                  <Moon size={10} /> Siklus: {cycle.phase} (Hari {cycle.day})
+                <div className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full border shadow-sm flex items-center gap-1 ${cycle.color}`}>
+                  <Moon size={10} /> Siklus: {cycle.phase}
                 </div>
               </div>
               
-              <div className="flex justify-between items-center gap-4 mt-1">
+              {/* Row 1: Fisik */}
+              <div className="flex justify-between items-center gap-2 mt-1">
                  <div className="flex flex-col items-center gap-1 flex-1">
-                   <div className="relative flex items-center justify-center w-12 h-12">
+                   <div className="relative flex items-center justify-center w-11 h-11">
                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
                        <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
                        <circle cx="20" cy="20" r="16" className="fill-transparent stroke-orange-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.hunger/100)*100.53} strokeLinecap="round" />
                      </svg>
-                     <div className="absolute flex items-center justify-center"><Utensils size={14} className="text-orange-500" /></div>
+                     <div className="absolute flex items-center justify-center"><Utensils size={13} className="text-orange-500" /></div>
                    </div>
-                   <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.hunger}%</span>
+                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.hunger}%</span>
                  </div>
 
                  <div className="flex flex-col items-center gap-1 flex-1">
-                   <div className="relative flex items-center justify-center w-12 h-12">
+                   <div className="relative flex items-center justify-center w-11 h-11">
                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
                        <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
                        <circle cx="20" cy="20" r="16" className="fill-transparent stroke-yellow-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.energy/100)*100.53} strokeLinecap="round" />
                      </svg>
-                     <div className="absolute flex items-center justify-center"><Battery size={14} className="text-yellow-500" /></div>
+                     <div className="absolute flex items-center justify-center"><Battery size={13} className="text-yellow-500" /></div>
                    </div>
-                   <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.energy}%</span>
+                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.energy}%</span>
                  </div>
 
                  <div className="flex flex-col items-center gap-1 flex-1">
-                   <div className="relative flex items-center justify-center w-12 h-12">
+                   <div className="relative flex items-center justify-center w-11 h-11">
                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
                        <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
                        <circle cx="20" cy="20" r="16" className="fill-transparent stroke-blue-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.hydration/100)*100.53} strokeLinecap="round" />
                      </svg>
-                     <div className="absolute flex items-center justify-center"><Droplet size={14} className="text-blue-500" /></div>
+                     <div className="absolute flex items-center justify-center"><Droplet size={13} className="text-blue-500" /></div>
                    </div>
-                   <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.hydration}%</span>
+                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.hydration}%</span>
+                 </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-200/50 my-0.5" />
+
+              {/* Row 2: Psikologis */}
+              <div className="flex justify-between items-center gap-2">
+                 <div className="flex flex-col items-center gap-1 flex-1">
+                   <div className="relative flex items-center justify-center w-11 h-11">
+                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-rose-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (moodStat/100)*100.53} strokeLinecap="round" />
+                     </svg>
+                     <div className="absolute flex items-center justify-center"><Smile size={13} className="text-rose-500" /></div>
+                   </div>
+                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{moodStat}%</span>
+                 </div>
+
+                 <div className="flex flex-col items-center gap-1 flex-1">
+                   <div className="relative flex items-center justify-center w-11 h-11">
+                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-purple-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (stressStat/100)*100.53} strokeLinecap="round" />
+                     </svg>
+                     <div className="absolute flex items-center justify-center"><Zap size={13} className="text-purple-500" /></div>
+                   </div>
+                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{stressStat}%</span>
+                 </div>
+
+                 <div className="flex flex-col items-center gap-1 flex-1">
+                   <div className="relative flex items-center justify-center w-11 h-11">
+                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
+                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-emerald-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (toleranceStat/100)*100.53} strokeLinecap="round" />
+                     </svg>
+                     <div className="absolute flex items-center justify-center"><Shield size={13} className="text-emerald-500" /></div>
+                   </div>
+                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{toleranceStat}%</span>
                  </div>
               </div>
             </div>

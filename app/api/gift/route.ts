@@ -21,6 +21,16 @@ const RECOVERY_STATS: Record<string, {hunger?: number, energy?: number, hydratio
   susu: { hydration: 30, hunger: 10 },
 };
 
+function calculateCycleDay(anchorString?: string | null): number {
+  if (!anchorString) return 1;
+  const anchorDate = new Date(anchorString);
+  anchorDate.setHours(0, 0, 0, 0);
+  const nowDate = new Date();
+  nowDate.setHours(0, 0, 0, 0);
+  const daysDiff = Math.floor((nowDate.getTime() - anchorDate.getTime()) / (1000 * 60 * 60 * 24));
+  return (daysDiff % 28 + 28) % 28 + 1;
+}
+
 export async function POST(req: Request) {
   try {
     const session = await auth();
@@ -54,8 +64,10 @@ export async function POST(req: Request) {
     let newHydration = profile.liviaHydration ?? 100;
 
     if (body.id && RECOVERY_STATS[body.id]) {
+      const isMenstruation = calculateCycleDay(profile.liviaCycleAnchor?.toISOString()) <= 5;
+      const energyMultiplier = isMenstruation ? 0.2 : 1.0; // 80% reduced effectiveness during menstruation
       newHunger = Math.min(100, newHunger + (RECOVERY_STATS[body.id].hunger || 0));
-      newEnergy = Math.min(100, newEnergy + (RECOVERY_STATS[body.id].energy || 0));
+      newEnergy = Math.min(100, newEnergy + Math.round((RECOVERY_STATS[body.id].energy || 0) * energyMultiplier));
       newHydration = Math.min(100, newHydration + (RECOVERY_STATS[body.id].hydration || 0));
     }
 

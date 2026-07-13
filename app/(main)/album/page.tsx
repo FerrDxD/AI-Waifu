@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, Camera, Image as ImageIcon, Heart, Calendar, BookHeart, Lock } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 const EMOJIS = ["👋", "🍜", "📚", "🪴", "☕", "🎮", "🌧️", "🧳", "🎥", "🍳", "🎉", "🎁", "📝", "⛩️", "🍲", "🏢"];
 const GRADIENTS = [
@@ -51,7 +52,47 @@ const CHAPTER_TITLES = [
   "Pindahan ke Apartemen"
 ];
 
+const EN_CHAPTER_TITLES = [
+  "First Day",
+  "Acquaintances",
+  "Night Cockroach",
+  "Second Home",
+  "Best Friends",
+  "Our Home",
+  "A Sweet Habit",
+  "Lazy Weekend",
+  "Hometown Trip",
+  "A Promise",
+  "Wedding Prep",
+  "Sacred Wedding",
+  "Family Shrine Visit",
+  "Shrine Caretaker",
+  "Warm Bowl of Soup",
+  "Apartment Move"
+];
+
+const EN_CAPTIONS = [
+  "First day at the boarding house. She looked so quiet and awkward holding her cardboard box.",
+  "Getting closer after sharing food. Turns out she loves snacking!",
+  "Midnight panic over a cockroach. Didn't expect someone so stoic to be so scared.",
+  "This place feels familiar now. Her presence slowly made this small room feel like a second home.",
+  "Now we're officially best friends. Funny to think how we started as just next-door neighbors.",
+  "Spending more time together in the living room. It really feels like 'our home' now.",
+  "Without realizing it, waiting for her to come home from her part-time job became my nightly routine.",
+  "A lazy weekend on the carpet watching TV... simple routines I never want to change.",
+  "Accompanying her back to her hometown. Meeting her family made me realize I want to spend my life with her.",
+  "That night under the stars, I made a promise to always protect her smile.",
+  "Busy wedding preparations. But seeing her excitement picking a dress made all exhaustion fade away.",
+  "Our sacred wedding day. Seeing her walk down the aisle, I'm the luckiest person to call her my wife.",
+  "Visiting her family shrine as husband and wife. Our prayers are now officially one.",
+  "Guarding the shrine stall on New Year's Eve. Livia looked breathtaking in her shrine robes.",
+  "Visiting Naomi's apartment after New Year. Together with Livia, we brought warmth to her older sister.",
+  "Moving day from the old boarding room to our new apartment. From Boarding Housemates to Life Partners forever."
+];
+
 export default function AlbumPage() {
+  const { dict, language } = useLanguage();
+  const [affectionLevel, setAffectionLevel] = useState(0);
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
   const [unlockedChapters, setUnlockedChapters] = useState<number[]>([]);
   const [itemsBrought, setItemsBrought] = useState<string[]>([]);
@@ -72,9 +113,9 @@ export default function AlbumPage() {
   const MEMORIES = Array.from({ length: 16 }, (_, i) => ({
     id: i,
     chapterNum: i,
-    title: CHAPTER_TITLES[i] || `Memori Babak ${i}`,
-    date: `Tersimpan di Hati`,
-    caption: CAPTIONS[i] || `Momen berharga bersama Livia dari cerita Babak ${i}.`,
+    title: language === 'en' ? (EN_CHAPTER_TITLES[i] || `Chapter ${i}`) : (CHAPTER_TITLES[i] || `Memori Babak ${i}`),
+    date: language === 'en' ? `Kept in Heart` : `Tersimpan di Hati`,
+    caption: language === 'en' ? (EN_CAPTIONS[i] || `Precious moment with Livia from Chapter ${i}.`) : (CAPTIONS[i] || `Momen berharga bersama Livia dari cerita Babak ${i}.`),
     rotation: Math.floor(Math.random() * 8) - 4,
     unlockedEmoji: EMOJIS[i] || "✨",
     unlockedGradient: GRADIENTS[i % GRADIENTS.length]
@@ -104,9 +145,9 @@ export default function AlbumPage() {
           </Link>
           <div className="flex flex-col">
             <h1 className="font-display font-black text-3xl md:text-4xl text-[#5c4d47] tracking-tighter flex items-center gap-2 drop-shadow-sm">
-              Buku Kenangan <BookHeart className="text-[#ff758c]" />
+              {dict?.pages?.album?.title || 'Buku Kenangan'} <BookHeart className="text-[#ff758c]" />
             </h1>
-            <p className="text-sm font-bold text-[#8b7355] italic">Koleksi foto & memori bersama Livia</p>
+            <p className="text-sm font-bold text-[#8b7355] italic">{dict?.pages?.album?.sub || 'Koleksi foto & memori bersama Livia'}</p>
           </div>
         </div>
       </div>
@@ -152,7 +193,7 @@ export default function AlbumPage() {
                     {/* Hand-written Text Area */}
                     <div className="absolute bottom-2 left-0 w-full px-4 flex flex-col items-center">
                       <span className={`font-serif italic font-bold text-lg text-center leading-tight ${isUnlocked ? 'text-[#5c4d47]' : 'text-gray-400'}`}>
-                        {isUnlocked ? mem.title : `Babak ${mem.chapterNum}`}
+                        {isUnlocked ? mem.title : (language === 'en' ? `Chapter ${mem.chapterNum}` : `Babak ${mem.chapterNum}`)}
                       </span>
                     </div>
                   </div>
@@ -167,11 +208,13 @@ export default function AlbumPage() {
                 <div className="w-full aspect-square bg-gray-50 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 gap-2 relative overflow-hidden">
                   <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #ccc 0, #ccc 1px, transparent 1px, transparent 10px)' }} />
                   <ImageIcon className="text-gray-300 w-10 h-10 z-10" />
-                  <span className="text-xs font-bold text-gray-400 z-10 tracking-widest uppercase mt-2">Akan Datang</span>
+                  <span className="text-xs font-bold text-gray-400 z-10 tracking-widest uppercase mt-2">
+                    {language === 'en' ? 'Coming Soon' : 'Akan Datang'}
+                  </span>
                 </div>
                 <div className="absolute bottom-2 left-0 w-full px-4 flex flex-col items-center">
                   <span className="font-serif italic font-bold text-lg text-center leading-tight text-gray-400">
-                    Babak Berikutnya
+                    {language === 'en' ? 'Next Chapter' : 'Babak Berikutnya'}
                   </span>
                 </div>
               </div>

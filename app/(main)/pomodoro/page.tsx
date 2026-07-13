@@ -5,6 +5,7 @@ import { Play, Pause, RotateCcw, Sparkles, Coffee, Zap, Moon, Flame, ArrowLeft, 
 import Link from 'next/link';
 import { unlockAchievement } from '@/lib/achievements';
 import { playSfx } from '@/lib/sfx';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 const MOTIVATIONS = [
   "Kalau kamu nyerah sekarang, aku yang malu. Fokus ya!",
@@ -14,6 +15,16 @@ const MOTIVATIONS = [
   "...Kamu hebat. Tapi jangan bilang aku yang memujimu barusan.",
   "Orang sukses itu dibentuk dari konsistensi kecil setiap hari.",
   "Bukunya jangan cuma dipandang, dibaca dan dipahami dong!"
+];
+
+const EN_MOTIVATIONS = [
+  "If you give up now, I'll be embarrassed. Stay focused!",
+  "I'm watching you from afar. Don't open social media!",
+  "Finish one more session and I'll make you warm tea.",
+  "You're halfway there. Finish what you started!",
+  "...You're amazing. But don't say I just praised you.",
+  "Successful people are made from small daily consistencies.",
+  "Don't just stare at your screen or books—actually study!"
 ];
 
 type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
@@ -55,6 +66,7 @@ const MODES: Record<TimerMode, ModeConfig> = {
 };
 
 export default function PomodoroPage() {
+  const { dict, language } = useLanguage();
   const [mode, setMode] = useState<TimerMode>('focus');
   
   // Custom durations in minutes
@@ -66,10 +78,19 @@ export default function PomodoroPage() {
 
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
-  const [dialog, setDialog] = useState(MOTIVATIONS[0]);
+  const [dialog, setDialog] = useState(language === 'en' ? EN_MOTIVATIONS[0] : MOTIVATIONS[0]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [completedSessions, setCompletedSessions] = useState(0);
   const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
+
+  const getModeLabel = (m: TimerMode) => {
+    if (language === 'en') {
+      if (m === 'focus') return 'Main Focus';
+      if (m === 'shortBreak') return 'Short Break';
+      if (m === 'longBreak') return 'Long Break';
+    }
+    return MODES[m].label;
+  };
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const pauseTimeRef = useRef<number>(0);
@@ -136,8 +157,9 @@ export default function PomodoroPage() {
         setShowConfetti(false);
         switchMode('shortBreak');
       }, 4000);
-    } else {
-      setDialog("Waktu istirahat selesai! Badan sudah segar kan? Mari kita mulai sesi berikutnya!");
+      setDialog(language === 'en' 
+        ? "Break time is over! Feeling refreshed? Let's start the next session!" 
+        : "Waktu istirahat selesai! Badan sudah segar kan? Mari kita mulai sesi berikutnya!");
       switchMode('focus');
     }
   };
@@ -147,9 +169,12 @@ export default function PomodoroPage() {
     setMode(newMode);
     setTimeLeft(customMinutes[newMode] * 60);
     if (newMode === 'focus') {
-      setDialog(MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)]);
+      const list = language === 'en' ? EN_MOTIVATIONS : MOTIVATIONS;
+      setDialog(list[Math.floor(Math.random() * list.length)]);
     } else {
-      setDialog("Santai dulu, regangkan otot, atau minum air putih biar konsentrasimu terjaga.");
+      setDialog(language === 'en'
+        ? "Relax, stretch your muscles, or drink some water to stay refreshed."
+        : "Santai dulu, regangkan otot, atau minum air putih biar konsentrasimu terjaga.");
     }
   };
 
@@ -225,14 +250,14 @@ export default function PomodoroPage() {
           className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/80 hover:bg-white border border-pink-100 shadow-sm hover:shadow-md transition-all text-[#ff758c] font-bold text-sm group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          <span>Kembali</span>
+          <span>{dict.common.back}</span>
         </Link>
 
         {/* Daily Session Counter Badge */}
         <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/80 border border-pink-100 shadow-sm text-xs md:text-sm font-extrabold text-[#5c4d47]">
           <Flame className="w-4 h-4 text-[#ff758c] animate-pulse" />
           <span>
-            Sesi Hari Ini: <span className="text-[#ff758c] text-base font-black ml-1">{completedSessions}</span>
+            {language === 'en' ? "Today's Sessions:" : "Sesi Hari Ini:"} <span className="text-[#ff758c] text-base font-black ml-1">{completedSessions}</span>
           </span>
         </div>
       </header>
@@ -246,7 +271,7 @@ export default function PomodoroPage() {
           {/* Mode Badge Above Timer */}
           <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 border border-pink-100 shadow-sm mb-4 md:mb-6">
             <currentConfig.icon className="w-4 h-4 text-[#ff758c]" />
-            <span className="text-xs md:text-sm font-black uppercase tracking-widest text-[#5c4d47]">{currentConfig.label}</span>
+            <span className="text-xs md:text-sm font-black uppercase tracking-widest text-[#5c4d47]">{getModeLabel(mode)}</span>
           </div>
 
           {/* Circular Glowing Timer */}
@@ -335,9 +360,13 @@ export default function PomodoroPage() {
             <div className="flex items-center justify-between border-b border-pink-100/60 pb-2">
               <div className="flex items-center gap-2">
                 <Folder className="w-4 h-4 text-[#ff758c]" />
-                <span className="text-xs font-black uppercase tracking-wider text-[#5c4d47]">Laci 1: Tipe Timer</span>
+                <span className="text-xs font-black uppercase tracking-wider text-[#5c4d47]">
+                  {language === 'en' ? 'Drawer 1: Timer Type' : 'Laci 1: Tipe Timer'}
+                </span>
               </div>
-              <span className="text-[11px] font-bold text-[#8c7a70]">Pilih Sesi</span>
+              <span className="text-[11px] font-bold text-[#8c7a70]">
+                {language === 'en' ? 'Select Session' : 'Pilih Sesi'}
+              </span>
             </div>
 
             <div className="grid grid-cols-3 gap-2 pt-0.5">
@@ -356,7 +385,9 @@ export default function PomodoroPage() {
                     }`}
                   >
                     <Icon className="w-4 h-4" />
-                    <span className="truncate w-full text-center text-[11px] md:text-xs">{tab.label.split(' ')[0]}</span>
+                    <span className="truncate w-full text-center text-[11px] md:text-xs">
+                      {getModeLabel(tabMode).split(' ')[0]}
+                    </span>
                   </button>
                 );
               })}
@@ -374,10 +405,12 @@ export default function PomodoroPage() {
             >
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-[#ff758c]" />
-                <span className="text-xs font-black uppercase tracking-wider text-[#5c4d47]">Laci 2: Pengaturan Durasi (Custom)</span>
+                <span className="text-xs font-black uppercase tracking-wider text-[#5c4d47]">
+                  {language === 'en' ? 'Drawer 2: Duration Settings (Custom)' : 'Laci 2: Pengaturan Durasi (Custom)'}
+                </span>
               </div>
               <div className="flex items-center gap-1.5 text-xs font-bold text-[#ff758c] group-hover:scale-105 transition-transform">
-                <span>{showSettingsDrawer ? 'Tutup' : 'Atur Waktu'}</span>
+                <span>{showSettingsDrawer ? (language === 'en' ? 'Close' : 'Tutup') : (language === 'en' ? 'Set Time' : 'Atur Waktu')}</span>
                 {showSettingsDrawer ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </div>
             </div>
@@ -391,7 +424,7 @@ export default function PomodoroPage() {
                     <div key={mKey} className="flex items-center justify-between p-2 rounded-xl bg-pink-50/50 border border-pink-100/60 text-xs font-bold text-[#5c4d47]">
                       <div className="flex items-center gap-2 min-w-0">
                         <Icon className="w-3.5 h-3.5 text-[#ff758c] shrink-0" />
-                        <span className="truncate">{m.label}</span>
+                        <span className="truncate">{getModeLabel(mKey)}</span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <button 
@@ -416,11 +449,11 @@ export default function PomodoroPage() {
               </div>
             ) : (
               <div className="flex items-center justify-between px-2 py-1 text-xs font-bold text-[#8c7a70]">
-                <span>Fokus: <strong className="text-[#5c4d47] font-mono">{customMinutes.focus}m</strong></span>
+                <span>{language === 'en' ? 'Focus:' : 'Fokus:'} <strong className="text-[#5c4d47] font-mono">{customMinutes.focus}m</strong></span>
                 <span>•</span>
-                <span>Singkat: <strong className="text-[#5c4d47] font-mono">{customMinutes.shortBreak}m</strong></span>
+                <span>{language === 'en' ? 'Short:' : 'Singkat:'} <strong className="text-[#5c4d47] font-mono">{customMinutes.shortBreak}m</strong></span>
                 <span>•</span>
-                <span>Panjang: <strong className="text-[#5c4d47] font-mono">{customMinutes.longBreak}m</strong></span>
+                <span>{language === 'en' ? 'Long:' : 'Panjang:'} <strong className="text-[#5c4d47] font-mono">{customMinutes.longBreak}m</strong></span>
               </div>
             )}
           </div>
@@ -430,7 +463,9 @@ export default function PomodoroPage() {
             <div className="flex items-center justify-between border-b border-pink-100/60 pb-2">
               <div className="flex items-center gap-2">
                 <MessageSquareHeart className="w-4 h-4 text-[#ff758c]" />
-                <span className="text-xs font-black uppercase tracking-wider text-[#5c4d47]">Laci 3: Catatan Livia</span>
+                <span className="text-xs font-black uppercase tracking-wider text-[#5c4d47]">
+                  {language === 'en' ? "Drawer 3: Livia's Notes" : "Laci 3: Catatan Livia"}
+                </span>
               </div>
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             </div>

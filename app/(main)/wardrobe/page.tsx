@@ -5,6 +5,8 @@ import LiviaSprite from '@/components/livia/LiviaSprite';
 import { Shirt, CheckCircle2, Lock } from 'lucide-react';
 import Link from 'next/link';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { EN_LIVIA_DIALOGUES } from '@/lib/i18n/content';
 
 const ALL_OUTFITS = [
   { id: 'default', name: 'Baju Biasa', emoji: '👕', desc: 'Pakaian sehari-hari Livia.' },
@@ -18,10 +20,19 @@ const ALL_OUTFITS = [
 ];
 
 export default function WardrobePage() {
+  const { dict, language } = useLanguage();
   const [activeOutfit, setActiveOutfit] = useState<string>('default');
   const [ownedOutfits, setOwnedOutfits] = useState<string[]>(['default']);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState("Lemari pakaianku. Jangan lama-lama milihnya!");
+
+  useEffect(() => {
+    if (language === 'en') {
+      setMessage(EN_LIVIA_DIALOGUES.wardrobe.greeting);
+    } else {
+      setMessage("Lemari pakaianku. Jangan lama-lama milihnya!");
+    }
+  }, [language]);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -79,15 +90,15 @@ export default function WardrobePage() {
       
       if (res.ok) {
         setActiveOutfit(outfitId);
-        if (outfitId === 'default') setMessage("Baju biasa memang paling nyaman.");
-        else if (outfitId === 'outfit_casual') setMessage("Baju ini nyaman banget lho buat nyantai di kamar.");
-        else if (outfitId === 'trench_coat') setMessage("Hangat... tapi pelukanmu pasti lebih hangat.");
-        else if (outfitId === 'outfit_school') setMessage("P-pakaian ini... agak ketat di bagian dada. Jangan mikir macem-macem ya!");
-        else if (outfitId === 'outfit_yukata') setMessage("Yukata ini... bagus kan? B-bukan berarti aku dandan buat kamu ya! Cuma pengen pakai aja.");
-        else if (outfitId === 'gaun_pengantin') setMessage("A-aku jadi malu dilihatin terus... Aku cantik kan jadi istrimu?");
-        else if (outfitId === 'piyama') setMessage("Hoaam... Piyamanya nyaman banget. Mau tidur bareng?");
-        else if (outfitId === 'office_lady') setMessage("Bagaimana laporannya hari ini? Hehe, aku cocok kan jadi atasanmu?");
-        else setMessage("Gimana penampilanku? B-biasa aja kan?");
+        if (outfitId === 'default') setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.wardrobe.default : "Baju biasa memang paling nyaman.");
+        else if (outfitId === 'outfit_casual') setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.wardrobe.outfit_casual : "Baju ini nyaman banget lho buat nyantai di kamar.");
+        else if (outfitId === 'trench_coat') setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.wardrobe.trench_coat : "Hangat... tapi pelukanmu pasti lebih hangat.");
+        else if (outfitId === 'outfit_school') setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.wardrobe.outfit_school : "P-pakaian ini... agak ketat di bagian dada. Jangan mikir macem-macem ya!");
+        else if (outfitId === 'outfit_yukata') setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.wardrobe.outfit_yukata : "Yukata ini... bagus kan? B-bukan berarti aku dandan buat kamu ya! Cuma pengen pakai aja.");
+        else if (outfitId === 'gaun_pengantin') setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.wardrobe.gaun_pengantin : "A-aku jadi malu dilihatin terus... Aku cantik kan jadi istrimu?");
+        else if (outfitId === 'piyama') setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.wardrobe.piyama : "Hoaam... Piyamanya nyaman banget. Mau tidur bareng?");
+        else if (outfitId === 'office_lady') setMessage(language === 'en' ? EN_LIVIA_DIALOGUES.wardrobe.office_lady : "Bagaimana laporannya hari ini? Hehe, aku cocok kan jadi atasanmu?");
+        else setMessage(language === 'en' ? "How do I look?" : "Gimana penampilanku? B-biasa aja kan?");
       }
     } catch (e) {
       console.error(e);
@@ -135,7 +146,7 @@ export default function WardrobePage() {
         </Link>
         <div className="bg-white/50 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/50 flex items-center gap-2">
           <Shirt className="text-[#ff758c] w-4 h-4 md:w-5 md:h-5" />
-          <h1 className="text-sm md:text-base font-display font-black text-[#5c4d47] uppercase tracking-wider mt-0.5">Lemari</h1>
+          <h1 className="text-sm md:text-base font-display font-black text-[#5c4d47] uppercase tracking-wider mt-0.5">{dict?.pages?.wardrobe?.title || 'Lemari'}</h1>
         </div>
       </div>
 
@@ -237,21 +248,36 @@ export default function WardrobePage() {
                     </div>
                     
                     {/* Texts */}
-                    <div className="ml-4 flex-1 min-w-0 pr-2">
-                      <div className="flex items-center gap-2">
-                        <h3 className={`font-black font-display text-base md:text-xl truncate transition-colors duration-300 ${
-                          isActive ? 'text-white drop-shadow-md' : 'text-[#5c4d47]'
-                        }`}>
-                          {outfit.name}
-                        </h3>
-                        {!isOwned && <Lock className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />}
-                      </div>
-                      <p className={`text-[10px] md:text-sm font-medium truncate mt-0.5 transition-colors duration-300 ${
-                        isActive ? 'text-pink-50' : 'text-gray-500'
-                      }`}>
-                        {outfit.desc}
-                      </p>
-                    </div>
+                    {(() => {
+                      const enMap: Record<string, { name: string; desc: string }> = {
+                        default: { name: 'Casual T-Shirt', desc: "Livia's everyday casual wear." },
+                        outfit_casual: { name: 'Loungewear', desc: 'Relaxed outfit for hanging out in the room.' },
+                        trench_coat: { name: 'Trench Coat', desc: 'Perfect for cold weather or going out.' },
+                        outfit_school: { name: 'High School Uniform', desc: 'Sailor style school uniform.' },
+                        outfit_yukata: { name: 'Festival Yukata', desc: 'Traditional wear for festival visits.' },
+                        gaun_pengantin: { name: 'Wedding Dress', desc: 'Pure white dress for the most special day.' },
+                        piyama: { name: 'Pajamas', desc: 'Ultra comfy sleepwear.' },
+                        office_lady: { name: 'Office Lady', desc: 'Elegant office shirt with glasses.' },
+                      };
+                      const trans = language === 'en' ? (enMap[outfit.id] || outfit) : outfit;
+                      return (
+                        <div className="ml-4 flex-1 min-w-0 pr-2">
+                          <div className="flex items-center gap-2">
+                            <h3 className={`font-black font-display text-base md:text-xl truncate transition-colors duration-300 ${
+                              isActive ? 'text-white drop-shadow-md' : 'text-[#5c4d47]'
+                            }`}>
+                              {trans.name}
+                            </h3>
+                            {!isOwned && <Lock className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />}
+                          </div>
+                          <p className={`text-[10px] md:text-sm font-medium truncate mt-0.5 transition-colors duration-300 ${
+                            isActive ? 'text-pink-50' : 'text-gray-500'
+                          }`}>
+                            {trans.desc}
+                          </p>
+                        </div>
+                      );
+                    })()}
 
                     {/* Active Label */}
                     {isActive && (

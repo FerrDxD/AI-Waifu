@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateDateDialogue, extractCustomApiKey } from '@/lib/gemini';
+import { generateDateDialogue, extractCustomApiKey, extractLanguage } from '@/lib/gemini';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { users, userProfiles } from '@/lib/db/schema';
@@ -11,6 +11,7 @@ export async function POST(req: Request) {
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const customApiKey = extractCustomApiKey(req);
+    const language = extractLanguage(req);
     const { location } = await req.json();
     
     const userResults = await db.select().from(users).where(eq(users.id, session.user.id));
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
       newHunger = Math.min(100, newHunger + 35);
       newEnergy = Math.min(100, newEnergy + 15);
       await db.update(userProfiles).set({ liviaHunger: newHunger, liviaEnergy: newEnergy }).where(eq(userProfiles.userId, session.user.id));
-    } else if (location === 'Pasar Malam') {
+    } else if (location === 'Food Court' || location === 'Pasar Malam') {
       newHunger = Math.min(100, newHunger + 25);
       newEnergy = Math.min(100, newEnergy + 10);
       await db.update(userProfiles).set({ liviaHunger: newHunger, liviaEnergy: newEnergy }).where(eq(userProfiles.userId, session.user.id));
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const dialogue = await generateDateDialogue(
+    const { scene: dialogue, timeOfDay } = await generateDateDialogue(
       location, 
       profile?.affection || 0,
       user?.username || user?.name || 'Kamu',
@@ -63,10 +64,11 @@ export async function POST(req: Request) {
         cyclePhase,
         cycleDay: dayOfCycle
       },
-      customApiKey
+      customApiKey,
+      language
     );
 
-    return NextResponse.json({ scene: dialogue });
+    return NextResponse.json({ scene: dialogue, timeOfDay });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

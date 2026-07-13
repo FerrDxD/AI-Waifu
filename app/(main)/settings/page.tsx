@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, User, Volume2, Bell, ShieldAlert, LogOut, Check, X, Key, Sparkles, Trash2, Save, Download, Upload, HardDrive } from 'lucide-react';
+import { ChevronLeft, User, Volume2, Bell, ShieldAlert, LogOut, Check, X, Key, Sparkles, Trash2, Save, Download, Upload, HardDrive, Globe } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { playSfx } from '@/lib/sfx';
 import { showCustomAlert, showCustomConfirm } from '@/lib/alert';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function SettingsPage() {
+  const { language, setLanguage, dict } = useLanguage();
+  const [showLangModal, setShowLangModal] = useState(false);
   const [volume, setVolume] = useState(80);
   const [bgmVolume, setBgmVolume] = useState(50);
   const [sfxVolume, setSfxVolume] = useState(80);
@@ -182,8 +185,8 @@ export default function SettingsPage() {
           <ChevronLeft className="group-hover:-translate-x-1 transition-transform" />
         </Link>
         <div className="flex flex-col">
-          <h1 className="font-display font-black text-2xl md:text-3xl text-[#5c4d47]">Setelan</h1>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Sistem & Preferensi</p>
+          <h1 className="font-display font-black text-2xl md:text-3xl text-[#5c4d47]">{dict.settings.title}</h1>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{dict.settings.subtitle}</p>
         </div>
       </div>
 
@@ -192,14 +195,14 @@ export default function SettingsPage() {
         {/* Section 1: Audio & Visual */}
         <section className="flex flex-col gap-4">
           <h2 className="font-display font-black text-lg text-[#5c4d47] flex items-center gap-2">
-            <Volume2 className="text-[#ff758c]" /> Audio & Suara
+            <Volume2 className="text-[#ff758c]" /> {dict.settings.audioSection}
           </h2>
           
           <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-orange-100 flex flex-col gap-6">
             
             <div className="flex flex-col gap-3">
               <div className="flex justify-between items-center">
-                <span className="font-bold text-sm text-[#5c4d47]">Volume Suara Livia</span>
+                <span className="font-bold text-sm text-[#5c4d47]">{dict.settings.liviaVol}</span>
                 <span className="text-xs font-bold text-pink-500">{volume}%</span>
               </div>
               <input 
@@ -210,7 +213,7 @@ export default function SettingsPage() {
 
             <div className="flex flex-col gap-3">
               <div className="flex justify-between items-center">
-                <span className="font-bold text-sm text-[#5c4d47]">Volume BGM (Musik Latar)</span>
+                <span className="font-bold text-sm text-[#5c4d47]">{dict.settings.bgmVol}</span>
                 <span className="text-xs font-bold text-pink-500">{bgmVolume}%</span>
               </div>
               <input 
@@ -221,7 +224,7 @@ export default function SettingsPage() {
 
             <div className="flex flex-col gap-3">
               <div className="flex justify-between items-center">
-                <span className="font-bold text-sm text-[#5c4d47]">Volume Efek Suara (SFX UI & Kerja)</span>
+                <span className="font-bold text-sm text-[#5c4d47]">{dict.settings.sfxVol}</span>
                 <span className="text-xs font-bold text-pink-500">{sfxVolume}%</span>
               </div>
               <input 
@@ -233,26 +236,53 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* Section 1.5: Bahasa / Language */}
+        <section className="flex flex-col gap-4">
+          <h2 className="font-display font-black text-lg text-[#5c4d47] flex items-center gap-2">
+            <Globe className="text-blue-500" /> {dict.settings.langSection}
+          </h2>
+          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-orange-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col gap-1">
+              <span className="font-bold text-sm text-[#5c4d47]">
+                {dict.settings.langSub}
+              </span>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                {dict.settings.langDesc} ({language === 'en' ? 'English (EN)' : 'Bahasa Indonesia (ID)'}).
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                playSfx('pop');
+                setShowLangModal(true);
+              }}
+              className="shrink-0 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-bold text-sm shadow-md hover:shadow-lg hover:scale-105 transition-all flex items-center justify-center gap-2"
+            >
+              <Globe size={16} />
+              {language === 'en' ? 'English (EN)' : 'Bahasa Indonesia (ID)'} • {dict.settings.changeBtn}
+            </button>
+          </div>
+        </section>
+
         {/* Section 2: AI & Gemini API */}
         <section className="flex flex-col gap-4">
           <h2 className="font-display font-black text-lg text-[#5c4d47] flex items-center gap-2">
-            <Sparkles className="text-amber-500" /> AI & Gemini API Key
+            <Sparkles className="text-amber-500" /> {dict.settings.aiSection}
           </h2>
           
           <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-orange-100 flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <span className="font-bold text-sm text-[#5c4d47] flex items-center gap-2">
-                <Key size={16} className="text-amber-500" /> API Key Pribadi (Custom Gemini Key)
+                <Key size={16} className="text-amber-500" /> {dict.settings.aiCustomKey}
               </span>
               <p className="text-xs text-gray-500 leading-relaxed">
-                Supaya tidak terkena batas limit (429/503) saat bermain intensif, masukkan API Key Google Gemini milikmu sendiri (gratis dari Google AI Studio). Jika kosong, game menggunakan API default server.
+                {dict.settings.aiCustomDesc}
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 mt-2">
               <input 
                 type="password"
-                placeholder="AIzaSy... (Kosongkan untuk default)"
+                placeholder={language === 'en' ? "AIzaSy... (Leave empty for default)" : "AIzaSy... (Kosongkan untuk default)"}
                 value={customApiKey}
                 onChange={(e) => setCustomApiKey(e.target.value)}
                 className="flex-1 bg-orange-50/50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-[#5c4d47] placeholder-gray-400 focus:outline-none focus:border-orange-400 font-mono transition-all"
@@ -262,7 +292,7 @@ export default function SettingsPage() {
                   onClick={handleSaveApiKey}
                   className="bg-[#5c4d47] hover:bg-[#433833] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all shrink-0"
                 >
-                  <Save size={14} /> Simpan
+                  <Save size={14} /> {language === 'en' ? 'Save' : 'Simpan'}
                 </button>
                 {customApiKey && (
                   <button 
@@ -276,7 +306,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <p className="text-[11px] text-amber-600/80 font-medium">
-              *API Key milikmu disimpan secara aman di browser (LocalStorage & Cookie) dan hanya dikirim langsung ke server Google AI saat kamu berinteraksi dengan Livia.
+              {language === 'en' ? '*Your API Key is safely stored in your browser (LocalStorage & Cookie) and sent directly to Google AI servers.' : '*API Key milikmu disimpan secara aman di browser (LocalStorage & Cookie) dan hanya dikirim langsung ke server Google AI saat kamu berinteraksi dengan Livia.'}
             </p>
           </div>
         </section>
@@ -284,14 +314,14 @@ export default function SettingsPage() {
         {/* Section 2: Notifications */}
         <section className="flex flex-col gap-4">
           <h2 className="font-display font-black text-lg text-[#5c4d47] flex items-center gap-2">
-            <Bell className="text-orange-400" /> Notifikasi
+            <Bell className="text-orange-400" /> {language === 'en' ? 'Notifications' : 'Notifikasi'}
           </h2>
           
           <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-orange-100 flex flex-col gap-6">
             <div className="flex justify-between items-center">
               <div className="flex flex-col">
-                <span className="font-bold text-sm text-[#5c4d47]">Pengingat Harian Livia</span>
-                <span className="text-xs text-gray-500">Dapatkan omelan jika kamu belum fokus kerja</span>
+                <span className="font-bold text-sm text-[#5c4d47]">{language === 'en' ? 'Livia Daily Reminders' : 'Pengingat Harian Livia'}</span>
+                <span className="text-xs text-gray-500">{language === 'en' ? "Get scolded if you haven't focused today" : "Dapatkan omelan jika kamu belum fokus kerja"}</span>
               </div>
               <button 
                 onClick={() => setNotifications(!notifications)}
@@ -306,17 +336,15 @@ export default function SettingsPage() {
         </section>
 
         {/* Section: Backup & Restore */}
+        {/* Section: Backup & Restore */}
         <section className="flex flex-col gap-4">
           <h2 className="font-display font-black text-lg text-[#5c4d47] flex items-center gap-2">
-            <HardDrive className="text-blue-500" /> Cadangkan & Pulihkan Data
+            <HardDrive className="text-blue-500" /> {dict.settings.accountSection}
           </h2>
           
           <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-orange-100 flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <span className="font-bold text-sm text-[#5c4d47]">Pengaman Progres Game</span>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                Simpan progresmu (Uang Rv, Afeksi, Lemari, Tas, dan Stempel Login) ke dalam file .JSON agar tidak hilang saat ganti perangkat atau membersihkan cache browser.
-              </p>
+              <span className="font-bold text-sm text-[#5c4d47]">Backup & Restore</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
@@ -325,12 +353,12 @@ export default function SettingsPage() {
                 className="flex items-center justify-center gap-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold text-xs p-4 rounded-2xl shadow-sm transition-all transform active:scale-98 group"
               >
                 <Download size={18} className="group-hover:-translate-y-0.5 transition-transform" />
-                Download Backup (.JSON)
+                {dict.settings.backupBtn}
               </button>
 
               <label className="flex items-center justify-center gap-3 bg-orange-50 hover:bg-orange-100 text-[#5c4d47] border border-orange-200 font-bold text-xs p-4 rounded-2xl shadow-sm cursor-pointer transition-all transform active:scale-98 group">
                 <Upload size={18} className="text-orange-600 group-hover:-translate-y-0.5 transition-transform" />
-                <span>Upload / Pulihkan Data</span>
+                <span>{dict.settings.restoreBtn}</span>
                 <input 
                   type="file" 
                   accept=".json" 
@@ -339,16 +367,13 @@ export default function SettingsPage() {
                 />
               </label>
             </div>
-            <p className="text-[11px] text-blue-600/80 font-medium">
-              *File backup mencakup data profil server dan preferensi lokalmu.
-            </p>
           </div>
         </section>
 
         {/* Section 3: Account & Danger Zone */}
         <section className="flex flex-col gap-4">
           <h2 className="font-display font-black text-lg text-red-500 flex items-center gap-2">
-            <ShieldAlert className="text-red-500" /> Akun & Data
+            <ShieldAlert className="text-red-500" /> {dict.settings.accountSection}
           </h2>
           
           <div className="bg-red-50/50 rounded-[2rem] p-6 shadow-sm border border-red-100 flex flex-col gap-4">
@@ -359,7 +384,7 @@ export default function SettingsPage() {
             >
               <div className="flex items-center gap-3">
                 <LogOut size={18} />
-                Keluar (Logout)
+                {dict.settings.logoutBtn}
               </div>
               <ChevronLeft className="rotate-180 group-hover:translate-x-1 transition-transform" size={18} />
             </button>
@@ -370,15 +395,90 @@ export default function SettingsPage() {
             >
               <div className="flex items-center gap-3">
                 <User size={18} />
-                Hapus & Reset Semua Data Kos
+                {dict.settings.resetDataBtn}
               </div>
             </button>
-            <p className="text-center text-xs text-red-400 font-medium mt-1">Hati-hati! Menghapus data akan me-reset Afeksi dan Uang (Rv) ke 0.</p>
+            <p className="text-center text-xs text-red-400 font-medium mt-1">{dict.settings.resetWarning}</p>
 
           </div>
         </section>
 
       </div>
+
+      {/* Modal Pilih Bahasa */}
+      {showLangModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-white rounded-[2rem] max-w-md w-full p-6 md:p-8 shadow-2xl border border-pink-100 flex flex-col gap-6 relative">
+            <button 
+              onClick={() => {
+                playSfx('pop');
+                setShowLangModal(false);
+              }}
+              className="absolute top-6 right-6 text-gray-400 hover:text-gray-600"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-500">
+                <Globe size={24} />
+              </div>
+              <div>
+                <h3 className="font-display font-black text-xl text-[#5c4d47]">{dict.settings.modalTitle}</h3>
+                <p className="text-xs text-gray-500">{dict.settings.modalSub}</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  playSfx('pop');
+                  setLanguage('id');
+                  setShowLangModal(false);
+                }}
+                className={`w-full p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between ${
+                  language === 'id'
+                    ? 'border-[#ff758c] bg-pink-50/60 text-[#5c4d47] font-bold shadow-sm'
+                    : 'border-gray-100 hover:border-pink-200 text-gray-600'
+                }`}
+              >
+                <div className="flex flex-col">
+                  <span className="text-base font-bold">{dict.settings.idTitle}</span>
+                  <span className="text-xs text-gray-500">{dict.settings.idDesc}</span>
+                </div>
+                {language === 'id' && <Check className="text-[#ff758c]" size={20} />}
+              </button>
+
+              <button
+                onClick={() => {
+                  playSfx('pop');
+                  setLanguage('en');
+                  setShowLangModal(false);
+                }}
+                className={`w-full p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between ${
+                  language === 'en'
+                    ? 'border-[#ff758c] bg-pink-50/60 text-[#5c4d47] font-bold shadow-sm'
+                    : 'border-gray-100 hover:border-pink-200 text-gray-600'
+                }`}
+              >
+                <div className="flex flex-col">
+                  <span className="text-base font-bold">{dict.settings.enTitle}</span>
+                  <span className="text-xs text-gray-500">{dict.settings.enDesc}</span>
+                </div>
+                {language === 'en' && <Check className="text-[#ff758c]" size={20} />}
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowLangModal(false)}
+              className="w-full py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm transition-all"
+            >
+              {dict.common.close}
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

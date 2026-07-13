@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { chatMessages, userProfiles, storyProgress } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { generateLiviaResponse, extractCustomApiKey } from '@/lib/gemini';
+import { generateLiviaResponse, extractCustomApiKey, extractLanguage } from '@/lib/gemini';
 import { generatePersonalityContext } from '@/lib/livia/personality';
 import { applyAffectionUpdate } from '@/lib/livia/affection.server';
 
@@ -20,6 +20,7 @@ export async function POST(req: Request) {
     }
 
     const customApiKey = extractCustomApiKey(req);
+    const language = extractLanguage(req);
     const userId = session.user.id;
 
     // Fetch userProfile
@@ -74,7 +75,8 @@ export async function POST(req: Request) {
       },
       isVoiceCall,
       profile.longTermMemory || undefined,
-      customApiKey
+      customApiKey,
+      language
     );
 
     // ✅ FIX: Simpan user message dan reply dalam satu transaksi

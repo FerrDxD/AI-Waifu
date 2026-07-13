@@ -4,8 +4,11 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, Package, Search, Sparkles } from 'lucide-react';
 import { ITEMS } from '@/lib/livia/items';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { EN_INVENTORY_ITEMS } from '@/lib/i18n/content';
 
 export default function InventoryPage() {
+  const { dict, language } = useLanguage();
   const [itemsBrought, setItemsBrought] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
@@ -36,16 +39,16 @@ export default function InventoryPage() {
           </Link>
           <div className="flex flex-col">
             <h1 className="font-display font-black text-2xl md:text-3xl text-[#5c4d47] flex items-center gap-2">
-              Tas Ransel <Package className="text-pink-400" />
+              {dict?.pages?.inventory?.title || 'Tas Ransel'} <Package className="text-pink-400" />
             </h1>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Kapasitas: {inventoryItems.length} / 50</p>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{language === 'en' ? 'Capacity:' : 'Kapasitas:'} {inventoryItems.length} / 50</p>
           </div>
         </div>
         
         {/* Decorative Search/Filter Mockup */}
         <div className="hidden md:flex bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-inner items-center gap-2">
           <Search size={16} className="text-gray-300" />
-          <span className="text-xs text-gray-400 font-medium">Cari barang...</span>
+          <span className="text-xs text-gray-400 font-medium">{language === 'en' ? 'Search items...' : 'Cari barang...'}</span>
         </div>
       </div>
 
@@ -100,20 +103,28 @@ export default function InventoryPage() {
               {/* Title & Desc */}
               <div className="flex flex-col gap-2">
                 <h2 className="font-display font-black text-2xl text-[#5c4d47]">
-                  {ITEMS.find(i => i.id === selectedItem)?.name}
+                  {language === 'en' && selectedItem && EN_INVENTORY_ITEMS[selectedItem]
+                    ? EN_INVENTORY_ITEMS[selectedItem].name
+                    : ITEMS.find(i => i.id === selectedItem)?.name}
                 </h2>
                 <p className="text-sm text-gray-500 font-medium italic leading-relaxed">
-                  "{ITEMS.find(i => i.id === selectedItem)?.description}"
+                  "{language === 'en' && selectedItem && EN_INVENTORY_ITEMS[selectedItem]
+                    ? EN_INVENTORY_ITEMS[selectedItem].description
+                    : ITEMS.find(i => i.id === selectedItem)?.description}"
                 </p>
               </div>
 
               {/* Buff Card */}
               <div className="w-full bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-4 flex flex-col items-center gap-2 shadow-inner mt-2">
                 <div className="flex items-center gap-1.5 text-emerald-600 font-black uppercase tracking-widest text-[10px]">
-                  <Sparkles size={14} /> {ITEMS.find(i => i.id === selectedItem)?.buff.label}
+                  <Sparkles size={14} /> {language === 'en' && selectedItem && EN_INVENTORY_ITEMS[selectedItem]
+                    ? EN_INVENTORY_ITEMS[selectedItem].buffLabel
+                    : ITEMS.find(i => i.id === selectedItem)?.buff.label}
                 </div>
                 <p className="text-xs font-bold text-[#5c4d47]">
-                  {ITEMS.find(i => i.id === selectedItem)?.buff.description}
+                  {language === 'en' && selectedItem && EN_INVENTORY_ITEMS[selectedItem]
+                    ? EN_INVENTORY_ITEMS[selectedItem].buffDesc
+                    : ITEMS.find(i => i.id === selectedItem)?.buff.description}
                 </p>
               </div>
 
@@ -121,7 +132,9 @@ export default function InventoryPage() {
           ) : (
             <div className="bg-white/50 backdrop-blur-sm border border-dashed border-pink-200 rounded-[2rem] p-8 h-[300px] flex flex-col items-center justify-center text-center gap-4 opacity-70">
               <Package size={48} className="text-pink-200" />
-              <p className="font-bold text-pink-300 font-display">Pilih barang untuk melihat detail</p>
+              <p className="font-bold text-pink-300 font-display">
+                {language === 'en' ? 'Select an item to view details' : 'Pilih barang untuk melihat detail'}
+              </p>
             </div>
           )}
         </div>

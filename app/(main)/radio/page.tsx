@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { ChevronLeft, Play, Pause, SkipForward, SkipBack, Volume2, ListMusic, Disc3, Radio as RadioIcon, BarChart3, FastForward, Rewind } from 'lucide-react';
 
 import { useRadio } from '@/components/RadioProvider';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function RadioPage() {
+  const { dict, language } = useLanguage();
   const {
     isPlaying, currentTrack, progress, durationInSeconds,
     togglePlay, playTrack, nextTrack, prevTrack, playlist, seek
@@ -41,7 +43,7 @@ export default function RadioPage() {
         </Link>
         <div className="flex flex-col items-end">
           <h1 className="font-display font-black text-3xl md:text-4xl text-[#5c4d47] tracking-tight uppercase italic flex items-center gap-2">
-            Kos FM <RadioIcon size={28} className="text-[#ff758c]" />
+            {dict?.pages?.radio?.title || 'Kos FM'} <RadioIcon size={28} className="text-[#ff758c]" />
           </h1>
           <p className="text-xs font-bold text-gray-400 tracking-[0.2em] uppercase">Vibe. Chill. Study.</p>
         </div>
@@ -156,7 +158,7 @@ export default function RadioPage() {
           {/* Playlist */}
           <div className="flex flex-col gap-3">
             <h3 className="font-display font-black text-sm text-[#5c4d47] uppercase tracking-widest pl-2 flex items-center gap-2">
-              <Disc3 size={16} className="text-[#ff758c]" /> Kaset Livia
+              <Disc3 size={16} className="text-[#ff758c]" /> {language === 'en' ? "Livia's Cassettes" : "Kaset Livia"}
             </h3>
             <div className="bg-white/60 backdrop-blur-md rounded-[2rem] p-3 border border-orange-100 flex flex-col gap-2 shadow-sm max-h-[220px] overflow-y-auto custom-scrollbar">
               {playlist.map((item, idx) => (
