@@ -15,8 +15,7 @@ export async function POST(req: Request) {
     const language = extractLanguage(req);
     const { location, message, history } = await req.json();
     
-    const userResults = await db.select().from(users).where(eq(users.id, session.user.id));
-    const user = userResults[0];
+    const userName = (session.user as any)?.name || 'Kamu';
 
     const profileResults = await db.select().from(userProfiles).where(eq(userProfiles.userId, session.user.id));
     const profile = profileResults[0];
@@ -35,7 +34,7 @@ export async function POST(req: Request) {
       message,
       history || [],
       profile?.affection || 0,
-      user?.username || user?.name || 'Kamu',
+      userName,
       {
         hunger: profile?.liviaHunger ?? 100,
         energy: profile?.liviaEnergy ?? 100,
@@ -58,11 +57,12 @@ export async function POST(req: Request) {
       }
       
       if (affectionDelta !== 0) {
-        updateResult = await applyAffectionUpdate(session.user.id, affectionDelta);
-        await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, session.user.id));
-      } else {
-        await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, session.user.id));
+        updateResult = await applyAffectionUpdate(session.user.id, profile.affection || 0, affectionDelta);
+        updateData.affection = updateResult.newAffection;
+        updateData.affectionLevel = updateResult.affectionLevel;
       }
+      
+      await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, session.user.id));
     }
 
     return NextResponse.json({ reply, expression, affectionDelta, newAffection: updateResult.newAffection, unlockedChapter: updateResult.unlockedChapter });

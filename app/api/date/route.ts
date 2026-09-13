@@ -14,9 +14,8 @@ export async function POST(req: Request) {
     const language = extractLanguage(req);
     const { location } = await req.json();
     
-    const userResults = await db.select().from(users).where(eq(users.id, session.user.id));
-    const user = userResults[0];
-
+    const userName = (session.user as any)?.name || 'Kamu';
+    
     const profileResults = await db.select().from(userProfiles).where(eq(userProfiles.userId, session.user.id));
     const profile = profileResults[0];
 
@@ -31,32 +30,38 @@ export async function POST(req: Request) {
 
     let newHunger = profile?.liviaHunger ?? 100;
     let newEnergy = profile?.liviaEnergy ?? 100;
+    let updatePayload: any = null;
 
     if (location === 'Warung Ramen') {
       newHunger = Math.min(100, newHunger + 40);
       newEnergy = Math.min(100, newEnergy + 15);
-      await db.update(userProfiles).set({ liviaHunger: newHunger, liviaEnergy: newEnergy }).where(eq(userProfiles.userId, session.user.id));
+      updatePayload = { liviaHunger: newHunger, liviaEnergy: newEnergy };
     } else if (location === 'Restoran Gyoza') {
       newHunger = Math.min(100, newHunger + 35);
       newEnergy = Math.min(100, newEnergy + 15);
-      await db.update(userProfiles).set({ liviaHunger: newHunger, liviaEnergy: newEnergy }).where(eq(userProfiles.userId, session.user.id));
+      updatePayload = { liviaHunger: newHunger, liviaEnergy: newEnergy };
     } else if (location === 'Food Court' || location === 'Pasar Malam') {
       newHunger = Math.min(100, newHunger + 25);
       newEnergy = Math.min(100, newEnergy + 10);
-      await db.update(userProfiles).set({ liviaHunger: newHunger, liviaEnergy: newEnergy }).where(eq(userProfiles.userId, session.user.id));
+      updatePayload = { liviaHunger: newHunger, liviaEnergy: newEnergy };
     }
 
     if (location.toLowerCase().includes('festival')) {
       const currentItems = profile?.itemsBrought || [];
       if (!currentItems.includes('visited_festival')) {
-        await db.update(userProfiles).set({ itemsBrought: [...currentItems, 'visited_festival'] }).where(eq(userProfiles.userId, session.user.id));
+        updatePayload = updatePayload || {};
+        updatePayload.itemsBrought = [...currentItems, 'visited_festival'];
       }
+    }
+
+    if (updatePayload) {
+      await db.update(userProfiles).set(updatePayload).where(eq(userProfiles.userId, session.user.id));
     }
 
     const { scene: dialogue, timeOfDay } = await generateDateDialogue(
       location, 
       profile?.affection || 0,
-      user?.username || user?.name || 'Kamu',
+      userName,
       {
         hunger: profile?.liviaHunger ?? 100,
         energy: profile?.liviaEnergy ?? 100,

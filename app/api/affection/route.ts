@@ -100,7 +100,16 @@ export async function PATCH(req: Request) {
 
     const userId = session.user.id;
 
-    const result = await applyAffectionUpdate(userId, delta);
+    const profileResults = await db.select({ affection: userProfiles.affection }).from(userProfiles).where(eq(userProfiles.userId, userId));
+    const currentAffection = profileResults[0]?.affection || 0;
+
+    const result = await applyAffectionUpdate(userId, currentAffection, delta);
+
+    await db.update(userProfiles).set({
+      affection: result.newAffection,
+      affectionLevel: result.affectionLevel,
+      lastSeen: new Date(),
+    }).where(eq(userProfiles.userId, userId));
 
     return NextResponse.json(result);
 

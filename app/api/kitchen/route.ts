@@ -48,14 +48,17 @@ export async function POST(req: Request) {
       affectionChange = -2; // Disappointed penalty
     }
 
+    // Calculate Affection
+    const updateResult = await applyAffectionUpdate(session.user.id, profile.affection || 0, affectionChange);
+
     await db.update(userProfiles).set({
       money: newMoney,
       liviaHunger: newHunger,
       liviaEnergy: newEnergy,
+      affection: updateResult.newAffection,
+      affectionLevel: updateResult.affectionLevel,
+      lastSeen: new Date(),
     }).where(eq(userProfiles.userId, session.user.id));
-
-    // Increase (or decrease) Affection
-    const updateResult = await applyAffectionUpdate(session.user.id, affectionChange);
 
     return NextResponse.json({
       success: true,
