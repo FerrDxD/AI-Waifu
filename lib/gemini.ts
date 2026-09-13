@@ -47,50 +47,75 @@ export function extractLanguage(req: Request): 'id' | 'en' {
   return 'id';
 }
 
-
 export type LiviaExpression = 'normal' | 'angry' | 'blushing' | 'clingy' | 'happy' | 'confused' | 'flirty' | 'pain' | 'pleased' | 'scared' | 'serious' | 'silly';
 
-export async function generateLiviaResponse(
-  userMessage: string,
-  chatHistory: { role: 'user' | 'livia', content: string }[],
-  personalityContext: string,
-  affectionLevel: number,
-  itemsBrought: string[],
-  stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number },
-  isVoiceCall?: boolean,
-  longTermMemory?: string,
-  customApiKey?: string,
-  language: 'id' | 'en' = 'id'
-): Promise<{ reply: string, affectionDelta: number, expression: LiviaExpression, memoryUpdate?: string }> {
-  
-  const affectionLevelName = affectionLevel < 20 ? 'Orang Asing' :
-                             affectionLevel < 40 ? 'Kenalan' :
-                             affectionLevel < 60 ? 'Tetangga' :
-                             affectionLevel < 80 ? 'Teman' :
-                             affectionLevel < 100 ? 'Sahabat' : 'Rumah';
-                             
-  const levelStage = affectionLevel < 40 ? '0-1' : affectionLevel < 80 ? '2-3' : '4-5';
+type Stats = { hunger: number; energy: number; hydration: number; cyclePhase: string; cycleDay: number };
 
-  let physiologicalContext = '';
-  if (stats) {
-    let hungerState = stats.hunger < 20 ? 'SANGAT KELAPARAN' : stats.hunger < 50 ? 'Lapar' : 'Kenyang';
-    let energyState = stats.energy < 20 ? 'SANGAT KELELAHAN' : stats.energy < 50 ? 'Capek' : 'Berenergi';
-    let hydrationState = stats.hydration < 20 ? 'SANGAT DEHIDRASI/HAUS' : stats.hydration < 50 ? 'Haus' : 'Cukup Minum';
-    let cycleState = stats.cyclePhase === 'Menstruasi' ? 'Sedang HAID (perut kram, mood sangat buruk, mudah marah)' :
-                     stats.cyclePhase === 'Luteal' ? 'Sedang PMS (sensitif, mood swing parah, gampang emosi)' :
-                     stats.cyclePhase === 'Ovulasi' ? 'Masa Ovulasi (lebih clingy dan cari perhatian)' : 'Siklus Normal';
+// --- Shared helpers ---
 
-    physiologicalContext = `\nKondisi Fisik & Biologis Livia Saat Ini:
+async function callWithRetry(fn: () => Promise<any>, retries = 2, delayMs = 1000): Promise<any> {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      if (i === retries || err?.status !== 503) throw err;
+      await new Promise(res => setTimeout(res, delayMs));
+    }
+  }
+}
+
+function getAffectionLevelName(affection: number): string {
+  if (affection < 20) return 'Orang Asing';
+  if (affection < 40) return 'Kenalan';
+  if (affection < 60) return 'Tetangga';
+  if (affection < 80) return 'Teman';
+  if (affection < 100) return 'Sahabat';
+  return 'Rumah';
+}
+
+// ponytail: context strings are slightly lossy when reused in date routes, acceptable for prompt variety
+function getPhysiologicalContext(stats: Stats): string {
+  const hungerState = stats.hunger < 20 ? 'SANGAT KELAPARAN' : stats.hunger < 50 ? 'Lapar' : 'Kenyang';
+  const energyState = stats.energy < 20 ? 'SANGAT KELELAHAN' : stats.energy < 50 ? 'Capek' : 'Berenergi';
+  const hydrationState = stats.hydration < 20 ? 'SANGAT DEHIDRASI/HAUS' : stats.hydration < 50 ? 'Haus' : 'Cukup Minum';
+  const cycleState =
+    stats.cyclePhase === 'Menstruasi' ? 'Sedang HAID (perut kram, mood sangat buruk, mudah marah)' :
+    stats.cyclePhase === 'Luteal'     ? 'Sedang PMS (sensitif, mood swing parah, gampang emosi)' :
+    stats.cyclePhase === 'Ovulasi'    ? 'Masa Ovulasi (lebih clingy dan cari perhatian)' : 'Siklus Normal';
+  return `\nKondisi Fisik & Biologis Livia Saat Ini:
 - Siklus Menstruasi: ${cycleState} (Hari ke-${stats.cycleDay})
 - Tingkat Lapar: ${hungerState} (${stats.hunger}/100)
 - Tingkat Energi: ${energyState} (${stats.energy}/100)
 - Tingkat Hidrasi: ${hydrationState} (${stats.hydration}/100)
 PENTING: Kondisi fisik ini HARUS sangat mempengaruhi nada bicara Livia! Jika ia lapar/haus/capek atau sedang PMS/Haid, ia akan JAUH LEBIH galak, ketus, marah-marah, mengeluh, atau bahkan mendiamkan user. Jika ia sedang Ovulasi, ia lebih manja.`;
-  }
+}
 
-  const memoryContext = `\nMemori Jangka Panjang Livia tentang User:
-${longTermMemory || 'Belum ada memori. Livia baru mengenal User.'}`;
+function parseJsonResponse(text: string): any {
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No JSON found in response");
+  let jsonStr = match[0];
+  if (!jsonStr.endsWith('}')) jsonStr += '"}'; // basic truncation fallback
+  return JSON.parse(jsonStr);
+}
 
+// --- AI generation functions ---
+
+export async function generateLiviaResponse(
+  userMessage: string,
+  chatHistory: { role: 'user' | 'livia'; content: string }[],
+  personalityContext: string,
+  affectionLevel: number,
+  itemsBrought: string[],
+  stats?: Stats,
+  isVoiceCall?: boolean,
+  longTermMemory?: string,
+  customApiKey?: string,
+  language: 'id' | 'en' = 'id'
+): Promise<{ reply: string; affectionDelta: number; expression: LiviaExpression; memoryUpdate?: string }> {
+  const affectionLevelName = getAffectionLevelName(affectionLevel);
+  const levelStage = affectionLevel < 40 ? '0-1' : affectionLevel < 80 ? '2-3' : '4-5';
+  const physiologicalContext = stats ? getPhysiologicalContext(stats) : '';
+  const memoryContext = `\nMemori Jangka Panjang Livia tentang User:\n${longTermMemory || 'Belum ada memori. Livia baru mengenal User.'}`;
   const languageRule = language === 'en'
     ? `- MUST REPLY IN NATURAL, CONVERSATIONAL ENGLISH while keeping her tsundere personality intact\n- Keep answers concise (max 3-4 sentences)`
     : `- Gunakan Bahasa Indonesia yang natural dan sehari-hari\n- Jangan terlalu panjang — maksimal 3-4 kalimat per respons`;
@@ -124,65 +149,31 @@ affectionDelta positif jika user bilang sesuatu yang Livia suka (implisit), nega
 Hanya kembalikan JSON. Tidak ada teks lain.`;
 
   const client = getAIClient(customApiKey);
-  const model = client.getGenerativeModel({ 
+  const model = client.getGenerativeModel({
     model: "gemini-flash-latest",
-    generationConfig: {
-      temperature: 0.8,
-    }
+    generationConfig: { temperature: 0.8 },
   });
 
-  // Format history manually into the prompt to avoid chat history role conflicts
-  const formattedHistory = chatHistory.map(msg => 
-    `${msg.role === 'livia' ? 'Livia' : 'User'}: ${msg.content}`
-  ).join('\n');
+  const formattedHistory = chatHistory
+    .map(msg => `${msg.role === 'livia' ? 'Livia' : 'User'}: ${msg.content}`)
+    .join('\n');
 
-  const fullPrompt = `${systemPrompt}
-
-Riwayat obrolan sejauh ini:
-${formattedHistory}
-
-User: ${userMessage}
-Livia:`;
+  const fullPrompt = `${systemPrompt}\n\nRiwayat obrolan sejauh ini:\n${formattedHistory}\n\nUser: ${userMessage}\nLivia:`;
 
   try {
     const result = await callWithRetry(() => model.generateContent(fullPrompt));
     const text = result.response.text();
     console.log("Raw Gemini Output:", text);
-    
-    // Cari blok JSON dengan regex
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("No JSON found in response");
-    
-    // Coba tambahkan tutup kurung jika terpotong
-    let jsonStr = match[0];
-    if (!jsonStr.endsWith('}')) jsonStr += '"}'; // basic fallback
-    
-    const parsed = JSON.parse(jsonStr);
-    
+    const parsed = parseJsonResponse(text);
     return {
       reply: parsed.reply || "...",
       affectionDelta: parsed.affectionDelta || 0,
       expression: parsed.expression || "normal",
-      memoryUpdate: parsed.memoryUpdate || ""
+      memoryUpdate: parsed.memoryUpdate || "",
     };
   } catch (error) {
     console.error("Error generating Livia response:", error);
-    return {
-      reply: "Apa sih? Jangan ganggu aku dulu.",
-      affectionDelta: -1,
-      expression: "angry"
-    };
-  }
-
-  async function callWithRetry(fn: () => Promise<any>, retries = 2, delayMs = 1000) {
-    for (let i = 0; i <= retries; i++) {
-      try {
-        return await fn();
-      } catch (err: any) {
-        if (i === retries || err?.status !== 503) throw err;
-        await new Promise(res => setTimeout(res, delayMs));
-      }
-    }
+    return { reply: "Apa sih? Jangan ganggu aku dulu.", affectionDelta: -1, expression: "angry" };
   }
 }
 
@@ -190,26 +181,18 @@ export async function generateDateDialogue(
   location: string,
   affectionLevel: number,
   userName: string,
-  stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number },
+  stats?: Stats,
   customApiKey?: string,
   language: 'id' | 'en' = 'id'
-): Promise<{ scene: { speaker: string, text: string, expression?: LiviaExpression }[], timeOfDay: 'pagi' | 'sore' | 'malam' }> {
+): Promise<{ scene: { speaker: string; text: string; expression?: LiviaExpression }[]; timeOfDay: 'pagi' | 'sore' | 'malam' }> {
   const currentHour = new Date().getHours();
   const defaultTimeOfDay: 'pagi' | 'sore' | 'malam' =
     currentHour >= 5 && currentHour < 15 ? 'pagi' :
     currentHour >= 15 && currentHour < 18 ? 'sore' : 'malam';
 
-  let physiologicalContext = '';
-  if (stats) {
-    let hungerState = stats.hunger < 20 ? 'SANGAT KELAPARAN' : stats.hunger < 50 ? 'Lapar' : 'Kenyang';
-    let energyState = stats.energy < 20 ? 'SANGAT KELELAHAN' : stats.energy < 50 ? 'Capek' : 'Berenergi';
-    let hydrationState = stats.hydration < 20 ? 'SANGAT DEHIDRASI/HAUS' : stats.hydration < 50 ? 'Haus' : 'Cukup Minum';
-    let cycleState = stats.cyclePhase === 'Menstruasi' ? 'Sedang HAID (perut kram, mood sangat buruk, mudah marah)' :
-                     stats.cyclePhase === 'Luteal' ? 'Sedang PMS (sensitif, mood swing parah, gampang emosi)' :
-                     stats.cyclePhase === 'Ovulasi' ? 'Masa Ovulasi (lebih clingy dan cari perhatian)' : 'Siklus Normal';
-
-    physiologicalContext = `\nKondisi Fisik & Biologis Livia Saat Ini:\n- Siklus Menstruasi: ${cycleState}\n- Tingkat Lapar: ${hungerState}\n- Tingkat Energi: ${energyState}\n- Tingkat Hidrasi: ${hydrationState}\nPENTING: Sesuaikan respon Livia dengan kondisi fisiknya! Jika dia lelah/lapar, dia akan mengeluh minta pulang atau makan.`;
-  }
+  const physiologicalContext = stats
+    ? `\n${getPhysiologicalContext(stats)}\nPENTING: Sesuaikan respon Livia dengan kondisi fisiknya! Jika dia lelah/lapar, dia akan mengeluh minta pulang atau makan.`
+    : '';
 
   const langInstruction = language === 'en'
     ? `WRITE ALL SCENE DIALOGUE TEXT IN NATURAL, CONVERSATIONAL ENGLISH while keeping Livia's tsundere personality intact.`
@@ -237,20 +220,16 @@ Jangan tambahkan teks lain di luar JSON.`;
     const match = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
     if (!match) throw new Error("No JSON found");
     const parsed = JSON.parse(match[0]);
-    if (Array.isArray(parsed)) {
-      return { scene: parsed, timeOfDay: defaultTimeOfDay };
-    }
+    if (Array.isArray(parsed)) return { scene: parsed, timeOfDay: defaultTimeOfDay };
     return {
       scene: parsed.scene || [],
-      timeOfDay: (parsed.timeOfDay === 'pagi' || parsed.timeOfDay === 'sore' || parsed.timeOfDay === 'malam') ? parsed.timeOfDay : defaultTimeOfDay
+      timeOfDay: (['pagi', 'sore', 'malam'] as const).includes(parsed.timeOfDay) ? parsed.timeOfDay : defaultTimeOfDay,
     };
   } catch (error) {
     console.error("Date Gen Error:", error);
     return {
-      scene: [
-        { speaker: "Livia", text: "Maaf ya, aku lagi nggak mood ngomong...", expression: "angry" }
-      ],
-      timeOfDay: defaultTimeOfDay
+      scene: [{ speaker: "Livia", text: "Maaf ya, aku lagi nggak mood ngomong...", expression: "angry" }],
+      timeOfDay: defaultTimeOfDay,
     };
   }
 }
@@ -258,36 +237,19 @@ Jangan tambahkan teks lain di luar JSON.`;
 export async function generateDateResponse(
   location: string,
   userMessage: string,
-  chatHistory: { role: 'user' | 'livia' | 'narator', content: string }[],
+  chatHistory: { role: 'user' | 'livia' | 'narator'; content: string }[],
   affectionLevel: number,
   userName: string,
-  stats?: { hunger: number, energy: number, hydration: number, cyclePhase: string, cycleDay: number },
+  stats?: Stats,
   longTermMemory?: string,
   customApiKey?: string,
   language: 'id' | 'en' = 'id'
-): Promise<{ reply: string, expression: LiviaExpression, affectionDelta: number, memoryUpdate?: string }> {
-  
-  const affectionLevelName = affectionLevel < 20 ? 'Orang Asing' :
-                             affectionLevel < 40 ? 'Kenalan' :
-                             affectionLevel < 60 ? 'Tetangga' :
-                             affectionLevel < 80 ? 'Teman' :
-                             affectionLevel < 100 ? 'Sahabat' : 'Rumah';
-                             
-  let physiologicalContext = '';
-  if (stats) {
-    let hungerState = stats.hunger < 20 ? 'SANGAT KELAPARAN' : stats.hunger < 50 ? 'Lapar' : 'Kenyang';
-    let energyState = stats.energy < 20 ? 'SANGAT KELELAHAN' : stats.energy < 50 ? 'Capek' : 'Berenergi';
-    let hydrationState = stats.hydration < 20 ? 'SANGAT DEHIDRASI/HAUS' : stats.hydration < 50 ? 'Haus' : 'Cukup Minum';
-    let cycleState = stats.cyclePhase === 'Menstruasi' ? 'Sedang HAID (perut kram, mood sangat buruk, mudah marah)' :
-                     stats.cyclePhase === 'Luteal' ? 'Sedang PMS (sensitif, mood swing parah, gampang emosi)' :
-                     stats.cyclePhase === 'Ovulasi' ? 'Masa Ovulasi (lebih clingy dan cari perhatian)' : 'Siklus Normal';
-
-    physiologicalContext = `\nKondisi Fisik & Biologis Livia: Siklus ${cycleState}, Lapar: ${hungerState}, Energi: ${energyState}, Hidrasi: ${hydrationState}.\nPENTING: Sesuaikan respon dengan kondisi ini. Jika lapar/capek/haid, dia akan jutek/ngambek minta pulang/makan.`;
-  }
-
-  const memoryContext = `\nMemori Jangka Panjang Livia tentang ${userName}:
-${longTermMemory || 'Belum ada memori khusus.'}`;
-
+): Promise<{ reply: string; expression: LiviaExpression; affectionDelta: number; memoryUpdate?: string }> {
+  const affectionLevelName = getAffectionLevelName(affectionLevel);
+  const physiologicalContext = stats
+    ? `\n${getPhysiologicalContext(stats)}\nPENTING: Sesuaikan respon dengan kondisi ini. Jika lapar/capek/haid, dia akan jutek/ngambek minta pulang/makan.`
+    : '';
+  const memoryContext = `\nMemori Jangka Panjang Livia tentang ${userName}:\n${longTermMemory || 'Belum ada memori khusus.'}`;
   const langRule = language === 'en'
     ? `- MUST REPLY IN NATURAL, CONVERSATIONAL ENGLISH while keeping her tsundere personality intact.`
     : `- Gunakan Bahasa Indonesia yang natural dan santai.`;
@@ -316,40 +278,24 @@ Hanya kembalikan JSON. Tidak ada teks lain.`;
   const client = getAIClient(customApiKey);
   const model = client.getGenerativeModel({ model: "gemini-flash-latest", generationConfig: { temperature: 0.8 } });
 
-  const formattedHistory = chatHistory.map(msg => 
-    `${msg.role === 'livia' ? 'Livia' : msg.role === 'narator' ? 'Narator' : 'User'}: ${msg.content}`
-  ).join('\n');
+  const formattedHistory = chatHistory
+    .map(msg => `${msg.role === 'livia' ? 'Livia' : msg.role === 'narator' ? 'Narator' : 'User'}: ${msg.content}`)
+    .join('\n');
 
-  const fullPrompt = `${systemPrompt}
-
-Riwayat obrolan kencan sejauh ini:
-${formattedHistory}
-
-User (${userName}): ${userMessage}
-Livia:`;
+  const fullPrompt = `${systemPrompt}\n\nRiwayat obrolan kencan sejauh ini:\n${formattedHistory}\n\nUser (${userName}): ${userMessage}\nLivia:`;
 
   try {
     const result = await model.generateContent(fullPrompt);
     const text = result.response.text();
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("No JSON found in response");
-    
-    let jsonStr = match[0];
-    if (!jsonStr.endsWith('}')) jsonStr += '"}';
-    const parsed = JSON.parse(jsonStr);
-    
+    const parsed = parseJsonResponse(text);
     return {
       reply: parsed.reply || "...",
       affectionDelta: parsed.affectionDelta || 0,
       expression: parsed.expression || "normal",
-      memoryUpdate: parsed.memoryUpdate || ""
+      memoryUpdate: parsed.memoryUpdate || "",
     };
   } catch (error) {
     console.error("Error generating Date response:", error);
-    return {
-      reply: "Apa sih? Jangan ngomong yang aneh-aneh di tempat umum.",
-      affectionDelta: -1,
-      expression: "angry"
-    };
+    return { reply: "Apa sih? Jangan ngomong yang aneh-aneh di tempat umum.", affectionDelta: -1, expression: "angry" };
   }
 }

@@ -96,20 +96,18 @@ export async function POST(req: Request) {
     ]);
 
     let updateResult = { newAffection: profile.affection, affectionLevel: profile.affectionLevel, unlockedChapter: null as number | null };
-    
-    // Update profil user (affection, lastSeen, dan memory)
+
+    // Update affection terlebih dahulu jika ada delta
+    if (affectionDelta !== 0) {
+      updateResult = await applyAffectionUpdate(userId, affectionDelta);
+    }
+
+    // Update lastSeen dan memory selalu
     const updateData: any = { lastSeen: new Date() };
     if (memoryUpdate && memoryUpdate.trim() !== '') {
       updateData.longTermMemory = profile.longTermMemory ? profile.longTermMemory + '\n- ' + memoryUpdate : '- ' + memoryUpdate;
     }
-
-    if (affectionDelta !== 0) {
-      updateResult = await applyAffectionUpdate(userId, affectionDelta);
-      // Jika ada affection update, kita tetap perlu update lastSeen dan memory
-      await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, userId));
-    } else {
-      await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, userId));
-    }
+    await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, userId));
 
     return NextResponse.json({
       reply,

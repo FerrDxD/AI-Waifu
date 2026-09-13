@@ -19,7 +19,9 @@ export function preloadLiviaSprites() {
     'default': 'default',
     'school': 'hightscool uniform',
     'trench_coat': 'trench-coat',
-    'office_lady': 'office-lady',
+    'office_lady': 'office_lady',
+    'gaun_pengantin': 'wedding_dress',
+    'piyama': 'piyama',
   };
 
   const folderName = homeFolderMap[activeOutfit] || activeOutfit;

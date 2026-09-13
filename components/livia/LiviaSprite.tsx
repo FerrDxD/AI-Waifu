@@ -3,12 +3,7 @@
 import { LiviaExpression } from '@/lib/gemini';
 import { useState } from 'react';
 import Image from 'next/image';
-import { twMerge } from 'tailwind-merge';
-import { clsx, type ClassValue } from 'clsx';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from '@/lib/utils';
 
 interface LiviaSpriteProps {
   expression: LiviaExpression;
