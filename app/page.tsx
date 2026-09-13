@@ -7,25 +7,27 @@ export default function LandingPage() {
     <div className="relative min-h-screen bg-[#fdfbf7] overflow-hidden font-sans select-none text-[#5c4d47]">
       <ApiGuideModal showFloatingButton={true} />
       
-      {/* Background Image (Slightly blurred/dimmed) */}
+      {/* Background Image */}
       <div 
-        className="absolute inset-0 bg-cover bg-center opacity-50 mix-blend-multiply transition-transform duration-[20s] ease-linear hover:scale-105"
+        className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-multiply transition-transform duration-[30s] ease-out hover:scale-110 motion-reduce:transition-none motion-reduce:hover:scale-100"
         style={{ backgroundImage: "url('/bg/bedroom.webp')" }} 
       />
       
       {/* UI Frost / Gradient Layers */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/40 to-white/90 z-0 pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#ff758c]/5 z-0 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/50 to-white/90 z-0 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#ff758c]/10 z-0 pointer-events-none" />
 
-      {/* GF2 Tactical Crosshairs & Borders */}
-      <div className="absolute top-6 left-6 w-12 h-12 border-t-2 border-l-2 border-pink-300/50 z-10 pointer-events-none" />
-      <div className="absolute top-6 right-6 w-12 h-12 border-t-2 border-r-2 border-pink-300/50 z-10 pointer-events-none" />
-      <div className="absolute bottom-6 left-6 w-12 h-12 border-b-2 border-l-2 border-pink-300/50 z-10 pointer-events-none" />
-      <div className="absolute bottom-6 right-6 w-12 h-12 border-b-2 border-r-2 border-pink-300/50 z-10 pointer-events-none" />
+      {/* GF2 Tactical Grid & Crosshairs */}
+      <div className="absolute top-6 left-6 w-8 h-8 border-t border-l border-pink-300/60 z-10 pointer-events-none" />
+      <div className="absolute top-6 right-6 w-8 h-8 border-t border-r border-pink-300/60 z-10 pointer-events-none" />
+      <div className="absolute bottom-6 left-6 w-8 h-8 border-b border-l border-pink-300/60 z-10 pointer-events-none" />
+      <div className="absolute bottom-6 right-6 w-8 h-8 border-b border-r border-pink-300/60 z-10 pointer-events-none" />
       
-      {/* Fine lines */}
-      <div className="absolute top-12 left-24 right-24 h-[1px] bg-gradient-to-r from-pink-200 via-transparent to-pink-200 z-10 pointer-events-none hidden md:block" />
-      <div className="absolute bottom-12 left-24 right-24 h-[1px] bg-gradient-to-r from-pink-200 via-transparent to-pink-200 z-10 pointer-events-none hidden md:block" />
+      {/* Fine tactical lines */}
+      <div className="absolute top-[3.5rem] left-16 right-16 h-[1px] bg-gradient-to-r from-pink-200/50 via-transparent to-pink-200/50 z-10 pointer-events-none hidden md:block" />
+      <div className="absolute bottom-[3.5rem] left-16 right-16 h-[1px] bg-gradient-to-r from-pink-200/50 via-transparent to-pink-200/50 z-10 pointer-events-none hidden md:block" />
+      <div className="absolute left-[3.5rem] top-16 bottom-16 w-[1px] bg-gradient-to-b from-pink-200/50 via-transparent to-pink-200/50 z-10 pointer-events-none hidden md:block" />
+      <div className="absolute right-[3.5rem] top-16 bottom-16 w-[1px] bg-gradient-to-b from-pink-200/50 via-transparent to-pink-200/50 z-10 pointer-events-none hidden md:block" />
 
       {/* Character Display */}
       <div className="absolute inset-0 flex items-end justify-end md:justify-center md:pl-[15%] pointer-events-none z-30">
@@ -42,50 +44,67 @@ export default function LandingPage() {
         
         {/* Header Area */}
         <div className="flex justify-between items-start">
-          <div className="flex flex-col gap-1 md:gap-2 pointer-events-auto">
-            <h1 className="text-3xl md:text-5xl font-display font-black text-[#5c4d47] tracking-widest uppercase flex items-center gap-3 md:gap-4">
-              <span className="w-1.5 md:w-2 h-6 md:h-8 bg-[#ff758c]" />
+          <div className="flex flex-col gap-1.5 md:gap-2 pointer-events-auto">
+            <h1 className="text-4xl md:text-6xl font-display font-black text-[#5c4d47] tracking-widest uppercase flex items-center gap-3 md:gap-4 drop-shadow-sm">
+              <span className="w-1.5 md:w-2 h-7 md:h-10 bg-[#ff758c] shadow-[0_0_10px_rgba(255,117,140,0.5)]" />
               Teman Kos
             </h1>
             <div className="flex items-center gap-4 pl-4 md:pl-6">
-              <span className="font-mono text-[8px] md:text-[10px] font-bold text-pink-400/80 uppercase tracking-[0.2em] md:tracking-[0.3em]">
-                Productivity System // V 2.2.6
+              <span className="font-mono text-[9px] md:text-[11px] font-bold text-pink-600/90 uppercase tracking-[0.25em] md:tracking-[0.3em]">
+                Productivity System <span className="text-pink-300 mx-1">/</span> V 2.4.6
               </span>
             </div>
           </div>
 
-          <div className="hidden md:flex flex-col items-end gap-1.5 font-mono text-[9px] text-[#5c4d47]/60 uppercase tracking-[0.2em]">
-            <span className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-              SYSTEM.STATUS: NOMINAL
-            </span>
-            <span>DATA_SYNC: ACTIVE</span>
-            <span>MEMORY_ALLOC: 42%</span>
+          {/* Tactical Status HUD */}
+          <div className="hidden md:flex flex-col items-end gap-2 font-mono text-[10px] text-[#5c4d47]/80 uppercase tracking-[0.2em] bg-white/60 backdrop-blur-md px-4 py-3 rounded-bl-xl border-l border-b border-pink-200/60 shadow-[0_4px_20px_rgba(255,117,140,0.05)]">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_5px_rgba(16,185,129,0.6)]" />
+              <span className="font-bold">SYSTEM.STATUS: NOMINAL</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span>DATA_SYNC:</span>
+              <span className="text-pink-600 font-bold">ACTIVE</span>
+            </div>
+            <div className="flex items-center gap-3 w-full justify-end">
+              <span>MEM:</span>
+              <div className="w-16 h-1 bg-gray-200 rounded-full overflow-hidden">
+                <div className="w-[42%] h-full bg-pink-500" />
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Center Left Info Panel */}
-        <div className="flex-1 flex flex-col justify-start max-w-lg pointer-events-auto mt-8 md:mt-16 relative">
-          <div className="relative pl-5 md:pl-8 py-5 md:py-8 mb-2 md:mb-8 bg-gradient-to-r from-white/95 via-white/80 to-transparent md:to-transparent backdrop-blur-sm md:backdrop-blur-md rounded-r-2xl md:rounded-r-3xl border-y border-r border-white/50 md:border-none w-[85%] md:w-auto">
+        <div className="flex-1 flex flex-col justify-center max-w-lg pointer-events-auto md:mt-0 relative z-40">
+          <div className="group relative pl-6 md:pl-8 py-6 md:py-8 mb-2 md:mb-8 bg-white/70 hover:bg-white/80 backdrop-blur-xl rounded-r-3xl border border-white/60 shadow-[0_8px_32px_rgba(255,117,140,0.1)] w-[90%] md:w-auto transition-all duration-300">
             {/* Accent Line */}
-            <div className="absolute left-0 top-0 w-1 md:w-1.5 h-full bg-gradient-to-b from-[#ff758c] to-amber-300 rounded-full" />
+            <div className="absolute left-0 top-0 w-1.5 h-full bg-gradient-to-b from-[#ff758c] to-amber-300 rounded-full shadow-[0_0_8px_rgba(255,117,140,0.4)]" />
             
-            <h2 className="text-2xl md:text-4xl font-display font-black text-[#5c4d47] mb-2 md:mb-4 uppercase tracking-[0.1em] md:tracking-[0.15em] leading-tight drop-shadow-sm md:drop-shadow-none">
+            <div className="absolute -top-3 left-6 bg-pink-100/90 text-pink-700 font-mono text-[9px] px-2 py-0.5 rounded-sm tracking-widest uppercase font-bold border border-pink-200">
+              [ COMPANION_MODULE ]
+            </div>
+
+            <h2 className="text-2xl md:text-4xl font-display font-black text-[#5c4d47] mb-3 md:mb-4 uppercase tracking-[0.1em] md:tracking-[0.15em] leading-tight">
               Virtual <br className="hidden md:block" /> Companion
             </h2>
-            <p className="text-[12px] md:text-base text-[#5c4d47]/90 md:text-gray-500 font-medium leading-relaxed font-sans mb-4 md:mb-8 max-w-[220px] md:max-w-sm drop-shadow-md md:drop-shadow-none">
+            <p className="text-[13px] md:text-base text-[#5c4d47]/80 font-medium leading-relaxed font-sans mb-5 md:mb-8 max-w-[240px] md:max-w-sm">
               Temukan ritme kerjamu bersama Livia. Sistem pendamping produktivitas yang dirancang khusus untuk menemani fokus dan belajarmu di lingkungan kos yang nyaman.
             </p>
             
             {/* Tech stats decorative */}
-            <div className="flex gap-4 md:gap-8 font-mono text-[8px] md:text-[10px] text-pink-600 md:text-pink-400 font-bold uppercase tracking-widest border-t border-pink-200/50 md:border-pink-100 pt-3 md:pt-6 w-max">
-              <div>
-                <span className="text-[#5c4d47]/60 md:text-gray-400 block mb-0.5 md:mb-1">MODULE</span>
-                POMODORO
+            <div className="flex gap-6 md:gap-10 font-mono text-[9px] md:text-[11px] text-pink-600 font-bold uppercase tracking-widest border-t border-pink-200/60 pt-4 md:pt-6 w-max">
+              <div className="flex flex-col gap-1">
+                <span className="text-[#5c4d47]/50 text-[8px] md:text-[9px]">MODULE</span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1 h-1 bg-pink-500 rounded-full" /> POMODORO
+                </span>
               </div>
-              <div>
-                <span className="text-[#5c4d47]/60 md:text-gray-400 block mb-0.5 md:mb-1">INTERACTION</span>
-                VN_DIALOGUE
+              <div className="flex flex-col gap-1">
+                <span className="text-[#5c4d47]/50 text-[8px] md:text-[9px]">INTERACTION</span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1 h-1 bg-pink-500 rounded-full" /> VN_DIALOGUE
+                </span>
               </div>
             </div>
           </div>
@@ -93,24 +112,34 @@ export default function LandingPage() {
 
       </div>
 
-      {/* Floating Action Buttons (Above Livia) */}
-      <div className="absolute bottom-6 left-6 right-6 md:left-auto md:right-14 md:bottom-14 flex flex-col gap-3 pointer-events-auto z-40 md:w-auto">
-        <Link href="/register" className="group relative flex items-center justify-between w-full md:w-[320px] bg-white/95 md:bg-white/90 backdrop-blur-xl border border-pink-200 p-4 md:p-5 shadow-[0_10px_40px_rgba(255,117,140,0.15)] hover:border-[#ff758c] transition-all duration-300 overflow-hidden">
+      {/* Floating Action Buttons */}
+      <div className="absolute bottom-8 left-6 right-6 md:left-auto md:right-14 md:bottom-14 flex flex-col gap-3.5 pointer-events-auto z-40 md:w-auto">
+        <Link 
+          href="/register" 
+          className="group relative flex items-center justify-between w-full md:w-[320px] bg-white/95 backdrop-blur-xl border border-pink-300/50 p-4 md:p-5 shadow-[0_8px_30px_rgba(255,117,140,0.2)] hover:shadow-[0_8px_30px_rgba(255,117,140,0.4)] hover:border-pink-400 transition-all duration-300 overflow-hidden active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fdfbf7] rounded-sm"
+        >
+          {/* Animated Background Fill */}
           <div className="absolute left-0 top-0 w-1.5 h-full bg-[#ff758c] group-hover:w-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] z-0" />
           
+          {/* Scanner Line Effect */}
+          <div className="absolute top-0 left-0 w-full h-[2px] bg-white/40 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out z-10" />
+
           <span className="font-display font-black text-[#5c4d47] group-hover:text-white uppercase tracking-widest z-10 pl-2 transition-colors text-sm md:text-base">
             Mulai Sekarang
           </span>
-          <span className="font-mono text-[9px] md:text-[10px] text-pink-500 md:text-pink-400 group-hover:text-pink-100 z-10 transition-colors tracking-widest">
+          <span className="font-mono text-[9px] md:text-[11px] font-bold text-pink-600 group-hover:text-pink-100 z-10 transition-colors tracking-widest bg-pink-50 group-hover:bg-pink-400/20 px-2 py-0.5 rounded-sm">
             [ SIGN UP ]
           </span>
         </Link>
 
-        <Link href="/login" className="group relative flex items-center justify-between w-full md:w-[320px] bg-white/80 md:bg-white/40 backdrop-blur-md border border-gray-200 p-4 md:p-5 hover:bg-white/90 transition-all duration-300 shadow-sm md:shadow-none">
-          <span className="font-display font-black text-gray-600 md:text-gray-500 group-hover:text-[#5c4d47] uppercase tracking-widest z-10 pl-2 transition-colors text-sm md:text-base">
+        <Link 
+          href="/login" 
+          className="group relative flex items-center justify-between w-full md:w-[320px] bg-white/60 hover:bg-white/95 backdrop-blur-md border border-gray-200 p-4 md:p-5 transition-all duration-300 hover:shadow-lg active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fdfbf7] rounded-sm"
+        >
+          <span className="font-display font-black text-gray-700 group-hover:text-[#5c4d47] uppercase tracking-widest z-10 pl-2 transition-colors text-sm md:text-base">
             Akses Sistem
           </span>
-          <span className="font-mono text-[9px] md:text-[10px] text-gray-500 md:text-gray-400 group-hover:text-gray-500 z-10 transition-colors tracking-widest">
+          <span className="font-mono text-[9px] md:text-[11px] font-bold text-gray-500 group-hover:text-gray-600 z-10 transition-colors tracking-widest px-2 py-0.5 rounded-sm group-hover:bg-gray-100">
             [ SIGN IN ]
           </span>
         </Link>
