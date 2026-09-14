@@ -372,11 +372,9 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
                        currentDay <= 17 ? 'Ovulasi' : 'Luteal';
 
     if (cyclePhase === 'Ovulasi') {
-      // Saat Ovulasi: semua afeksi bernilai positif dan DUA KALI LIPAT!
-      // Bagian dada, perut, dan paha malah senang dan minta disentuh lagi (+4 / +2)
       if (part === 'head') {
         newExpr = 'blushing';
-        affectionChange = 2; // +1 * 2
+        affectionChange = 2;
         const texts = [
           `Nnn... enak banget elusanmu... elus kepalaku lagi dong, ${userName}...`,
           `A-ahh... tanganmu hangat banget... jangan berhenti ya...`,
@@ -385,7 +383,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
         newText = pickRandom(texts);
       } else if (part === 'chest') {
         newExpr = 'blushing';
-        affectionChange = 4; // +2 * 2 = +4!
+        affectionChange = 4;
         const texts = [
           `A-ahh... h-hangat... k-kok berhenti? S-sentuh lagi dong, ${userName}...`,
           `Nnn... jangan dilepas tangannya... hari ini aku lagi pengen dekat banget sama kamu...`,
@@ -394,7 +392,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
         newText = pickRandom(texts);
       } else if (part === 'belly') {
         newExpr = 'blushing';
-        affectionChange = 2; // +1 * 2 = +2!
+        affectionChange = 2;
         const texts = [
           `Hehe geli... tapi hangat... elus perutku lagi dong, ${userName}...`,
           `Nnn... kok cuma sebentar? Sentuh lagi...`,
@@ -403,7 +401,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
         newText = pickRandom(texts);
       } else if (part === 'thigh') {
         newExpr = 'clingy';
-        affectionChange = 4; // +2 * 2 = +4!
+        affectionChange = 4;
         const texts = [
           `A-ahh... p-pahaku... sentuh lagi... jangan berhenti ya, ${userName}...`,
           `Nnn... kenapa berhenti? Raba lagi dong...`,
@@ -412,7 +410,6 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
         newText = pickRandom(texts);
       }
     } else if (cyclePhase === 'Menstruasi') {
-      // Saat Menstruasi: semua interaksi mengurangi afeksi, bahkan pat-pat kepala (+1 -> -1)
       newExpr = 'angry';
       if (part === 'head') {
         affectionChange = -1;
@@ -432,7 +429,6 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
         newText = pickRandom(texts);
       }
     } else {
-      // Fase Folikuler & Luteal (reaksi normal)
       if (part === 'head') {
         newExpr = 'blushing';
         affectionChange = 1;
@@ -479,7 +475,6 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
     setInteractionOverride({ text: newText, expression: newExpr });
     setShowEvent(false);
     
-    // Update local state and backend
     setAffection(prev => Math.min(100, Math.max(0, prev + affectionChange)));
     fetch('/api/affection', {
       method: 'PATCH',
@@ -487,7 +482,6 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
       body: JSON.stringify({ delta: affectionChange, reason: `interaction_touch_${part}` })
     }).catch(console.error);
 
-    // Reset interaction override after 5 seconds
     const globalObj = window as any;
     if (globalObj.interactionTimeout) clearTimeout(globalObj.interactionTimeout);
     globalObj.interactionTimeout = setTimeout(() => {
@@ -557,6 +551,40 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
     + (cycle.phase === 'Ovulasi' ? 30 : cycle.phase === 'Menstruasi' ? -35 : cycle.phase === 'Luteal' ? -15 : 10)
   )));
 
+  // Shared stat data arrays
+  const physicalStats = [
+    { value: liviaStats.hunger, icon: <Utensils size={12} />, strokeColor: 'stroke-orange-400', iconColor: 'text-orange-500', label: 'Makan' },
+    { value: liviaStats.energy, icon: <Battery size={12} />, strokeColor: 'stroke-yellow-400', iconColor: 'text-yellow-500', label: 'Energi' },
+    { value: liviaStats.hydration, icon: <Droplet size={12} />, strokeColor: 'stroke-blue-400', iconColor: 'text-blue-500', label: 'Minum' },
+  ];
+  const psychStats = [
+    { value: moodStat, icon: <Smile size={12} />, strokeColor: 'stroke-rose-400', iconColor: 'text-rose-500', label: 'Mood' },
+    { value: stressStat, icon: <Zap size={12} />, strokeColor: 'stroke-purple-400', iconColor: 'text-purple-500', label: 'Stres' },
+    { value: toleranceStat, icon: <Shield size={12} />, strokeColor: 'stroke-emerald-400', iconColor: 'text-emerald-500', label: 'Sabar' },
+  ];
+
+  const CIRC = 100.53;
+
+  // Chat bubble border color based on expression
+  const bubbleBorderClass =
+    displayExpression === 'angry' ? 'border-red-200/80 shadow-[0_12px_40px_rgba(239,68,68,0.12)]' :
+    displayExpression === 'blushing' ? 'border-pink-200/80 shadow-[0_12px_40px_rgba(244,114,182,0.15)]' :
+    displayExpression === 'clingy' ? 'border-purple-200/80 shadow-[0_12px_40px_rgba(167,139,250,0.15)]' :
+    displayExpression === 'happy' ? 'border-amber-200/80 shadow-[0_12px_40px_rgba(251,191,36,0.15)]' :
+    'border-white/60 shadow-[0_12px_40px_rgba(0,0,0,0.08)]';
+
+  const bubbleDotClass =
+    displayExpression === 'angry' ? 'bg-red-400' :
+    displayExpression === 'blushing' ? 'bg-pink-400 animate-pulse' :
+    displayExpression === 'clingy' ? 'bg-purple-400' :
+    displayExpression === 'happy' ? 'bg-amber-400' :
+    'bg-gray-200';
+
+  const bubbleTextClass =
+    displayExpression === 'angry' ? 'text-red-600' :
+    displayExpression === 'blushing' ? 'text-pink-800' :
+    'text-[#5c4d47]';
+
   return (
     <div className="min-h-screen relative flex flex-col overflow-hidden bg-[#fdfbf7] select-none font-sans">
       <ApiGuideModal showFloatingButton={false} />
@@ -585,11 +613,9 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
       />
       <div className="absolute inset-0 bg-gradient-to-t from-[#fdfbf7] via-transparent to-black/10 pointer-events-none z-0" />
 
-      {/* Center Character (Valkyrie Lobby Style) */}
+      {/* Center Character */}
       <div className="absolute inset-0 pointer-events-none z-10 pb-0 overflow-hidden">
-        {/* Livia Character */}
         <div className="absolute inset-0 z-0">
-          {/* Main Sprite */}
           <LiviaSprite
             expression={displayExpression}
             outfit={outfit}
@@ -599,43 +625,35 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
           />
         </div>
 
-        {/* Invisible Hitboxes Wrapper (Aligned to Livia's body: 48%-71% width on Desktop, 10%-90% on Mobile) */}
+        {/* Invisible Hitboxes */}
         <div className="absolute top-0 left-[10%] md:left-[48%] w-[80%] md:w-[24%] h-full pointer-events-auto z-50 flex flex-col">
-          {/* Head */}
-          <div 
-            onClick={() => handleInteract('head')}
-            className="absolute top-[5%] left-[25%] w-[50%] h-[15%] cursor-pointer z-50 rounded-full transition-colors hover:bg-white/5 active:bg-pink-300/20"
-          />
-          {/* Chest */}
-          <div 
-            onClick={() => handleInteract('chest')}
-            className="absolute top-[23%] left-[25%] w-[50%] h-[12%] cursor-pointer z-50 rounded-[2rem] transition-colors hover:bg-white/5 active:bg-pink-300/20"
-          />
-          {/* Belly */}
-          <div 
-            onClick={() => handleInteract('belly')}
-            className="absolute top-[35%] left-[25%] w-[50%] h-[15%] cursor-pointer z-50 rounded-[2rem] transition-colors hover:bg-white/5 active:bg-pink-300/20"
-          />
-          {/* Thigh */}
-          <div 
-            onClick={() => handleInteract('thigh')}
-            className="absolute top-[50%] left-[15%] w-[70%] h-[35%] cursor-pointer z-50 rounded-[3rem] transition-colors hover:bg-white/5 active:bg-pink-300/20"
-          />
+          <div onClick={() => handleInteract('head')} className="absolute top-[5%] left-[25%] w-[50%] h-[15%] cursor-pointer z-50 rounded-full transition-colors hover:bg-white/5 active:bg-pink-300/20" />
+          <div onClick={() => handleInteract('chest')} className="absolute top-[23%] left-[25%] w-[50%] h-[12%] cursor-pointer z-50 rounded-[2rem] transition-colors hover:bg-white/5 active:bg-pink-300/20" />
+          <div onClick={() => handleInteract('belly')} className="absolute top-[35%] left-[25%] w-[50%] h-[15%] cursor-pointer z-50 rounded-[2rem] transition-colors hover:bg-white/5 active:bg-pink-300/20" />
+          <div onClick={() => handleInteract('thigh')} className="absolute top-[50%] left-[15%] w-[70%] h-[35%] cursor-pointer z-50 rounded-[3rem] transition-colors hover:bg-white/5 active:bg-pink-300/20" />
         </div>
       </div>
-          
 
-      {/* HUD UI Overlay */}
+      {/* ─────────── HUD UI Overlay ─────────── */}
       <div className="absolute inset-0 z-20 pointer-events-none p-4 sm:p-6 md:p-10 flex flex-col justify-between">
         
-        {/* TOP ROW (Desktop) */}
-        <div className="hidden md:flex flex-row justify-between items-start pointer-events-auto w-full">
-          {/* Top Left: Player Info Panel */}
-          <div className="bg-white/80 backdrop-blur-2xl p-5 rounded-3xl border border-white/50 shadow-sm flex flex-col gap-4 min-w-[340px] transform hover:scale-[1.02] transition-transform">
-            <div className="flex justify-between items-center px-1">
-              <span className="font-display font-black text-2xl text-[#5c4d47] tracking-tight">{userName}</span>
-              <div className="font-mono font-bold text-xs bg-gradient-to-r from-pink-400 to-pink-500 text-white px-3 py-1.5 rounded-full shadow-sm">
-                {sessionMinutes > 0 ? `ON: ${sessionMinutes}m` : 'Baru tiba'}
+        {/* ── TOP ROW (Desktop) ── */}
+        <div className="hidden md:flex flex-row justify-between items-start pointer-events-auto w-full gap-4">
+          
+          {/* Player Info Panel */}
+          <div className="bg-white/85 backdrop-blur-2xl p-5 rounded-3xl border border-white/70 shadow-[0_8px_32px_rgba(0,0,0,0.07)] flex flex-col gap-4 min-w-[340px]">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                {/* Avatar initial */}
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-300 to-pink-500 flex items-center justify-center text-white font-display font-black text-lg shadow-sm flex-shrink-0">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+                <span className="font-display font-black text-2xl text-[#5c4d47] tracking-tight leading-none">{userName}</span>
+              </div>
+              {/* Session timer pill */}
+              <div className={`font-mono font-bold text-[10px] px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-all ${sessionMinutes > 0 ? 'bg-pink-500 text-white shadow-sm' : 'bg-gray-100 text-gray-500'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${sessionMinutes > 0 ? 'bg-white/70 animate-pulse' : 'bg-gray-400'}`} />
+                {sessionMinutes > 0 ? `${sessionMinutes}m online` : 'Baru tiba'}
               </div>
             </div>
             <AffectionBar
@@ -645,196 +663,167 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
             />
           </div>
 
-          {/* Top Right: Wallet Indicator */}
-          <div className="bg-white/80 backdrop-blur-2xl px-4 py-2.5 rounded-2xl border border-white/50 shadow-sm flex items-center gap-3 transform hover:scale-[1.02] transition-transform">
-            <div className="p-1.5 bg-amber-100 rounded-lg">
+          {/* Wallet Indicator */}
+          <div className="bg-white/85 backdrop-blur-2xl px-5 py-3.5 rounded-2xl border border-white/70 shadow-[0_8px_32px_rgba(0,0,0,0.07)] flex items-center gap-3">
+            <div className="p-2 bg-amber-50 rounded-xl border border-amber-100/80">
               <Wallet className="w-5 h-5 text-amber-500" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{dict.stats.money} Rv</span>
-              <span className="font-mono font-black text-xl text-amber-600 leading-none">{money}</span>
+              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{dict.stats.money} Rv</span>
+              <span className="font-mono font-black text-2xl text-amber-600 leading-none tabular-nums">{money}</span>
             </div>
           </div>
         </div>
 
-        {/* TOP ROW (Mobile - Ultra Compact) */}
-        <div className="flex md:hidden flex-col gap-2 pointer-events-auto">
-            <div className="absolute top-4 left-4 flex gap-2 z-50">
-              {/* Minimal Affection Pill */}
-            <div 
+        {/* ── TOP ROW (Mobile) ── */}
+        <div className="flex md:hidden pointer-events-auto">
+          <div className="absolute top-4 left-4 flex gap-2 z-50">
+            {/* Affection pill */}
+            <button
               onClick={() => setShowMobileStats(true)}
-              className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-pink-100 shadow-sm flex items-center gap-2 active:scale-95 transition-transform"
+              className="bg-white/95 backdrop-blur-md px-3 py-2 rounded-full border border-pink-100/80 shadow-md flex items-center gap-2 active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400"
             >
-              <Heart size={14} className="fill-amber-400 text-amber-400" />
-              <span className="text-xs font-display font-bold text-amber-600">Lv.{levelInfo.level} {levelInfo.name}</span>
-              <div className="w-12 h-1.5 bg-pink-100 rounded-full overflow-hidden ml-1">
-                <div className="h-full bg-gradient-to-r from-pink-400 to-pink-500" style={{ width: `${Math.max(0, Math.min(100, affection))}%` }} />
+              <Heart size={13} className="fill-pink-500 text-pink-500 flex-shrink-0" />
+              <span className="text-xs font-display font-bold text-[#5c4d47]">Lv.{levelInfo.level} {levelInfo.name}</span>
+              <div className="w-14 h-1.5 bg-pink-100 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-pink-400 to-pink-500 transition-all duration-700 rounded-full" style={{ width: `${Math.max(0, Math.min(100, affection))}%` }} />
               </div>
-            </div>
-            
-            {/* Minimal Wallet Pill */}
-            <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-amber-100 shadow-sm flex items-center gap-1.5">
-              <Wallet size={14} className="text-amber-500" />
-              <span className="font-mono font-black text-sm text-amber-600">{money} Rv</span>
+            </button>
+            {/* Wallet pill */}
+            <div className="bg-white/95 backdrop-blur-md px-3 py-2 rounded-full border border-amber-100/80 shadow-md flex items-center gap-1.5">
+              <Wallet size={13} className="text-amber-500 flex-shrink-0" />
+              <span className="font-mono font-black text-sm text-amber-600 tabular-nums">{money}</span>
+              <span className="text-[9px] font-bold text-amber-400/90">Rv</span>
             </div>
           </div>
         </div>
 
-        {/* BOTTOM ROW */}
-        <div className="flex flex-col-reverse md:flex-row justify-between items-end md:items-end flex-1 pb-4 md:pb-8 pointer-events-none gap-6 md:gap-8 w-full mt-10 md:mt-0 relative">
-          
-          {/* Bottom Left: Island UI & Chat Bubble */}
-          <div className="absolute bottom-[4.5rem] left-4 right-4 md:bottom-8 md:left-10 md:right-auto md:w-[540px] z-50 flex flex-col gap-3 pointer-events-auto">
-            
-            {/* Stats Island (Physiological & Psychological) */}
-            <div className="hidden md:flex bg-white/85 backdrop-blur-2xl rounded-[2rem] p-3.5 border border-white/60 shadow-lg items-center justify-between gap-3 self-start w-auto hover:scale-[1.01] transition-transform origin-bottom-left">
-              <div className="flex items-center gap-3 md:gap-4 w-full">
-                 {/* FISIK */}
-                 <div title="Hunger" className="flex flex-col items-center gap-1 pointer-events-none">
-                   <div className="relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11">
-                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-orange-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.hunger/100)*100.53} strokeLinecap="round" />
-                     </svg>
-                     <div className="absolute flex items-center justify-center"><Utensils size={13} className="text-orange-500 drop-shadow-sm" /></div>
-                   </div>
-                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.hunger}%</span>
-                 </div>
+        {/* ── BOTTOM ROW ── */}
+        <div className="flex-1 relative w-full pointer-events-none">
 
-                 <div title="Energy" className="flex flex-col items-center gap-1">
-                   <div className="relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11">
-                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-yellow-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.energy/100)*100.53} strokeLinecap="round" />
-                     </svg>
-                     <div className="absolute flex items-center justify-center"><Battery size={13} className="text-yellow-500 drop-shadow-sm" /></div>
-                   </div>
-                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.energy}%</span>
-                 </div>
+          {/* Bottom Left: Stats Island + Chat Bubble */}
+          <div className="absolute bottom-[4.5rem] left-0 right-0 md:bottom-8 md:left-0 md:right-auto md:w-[560px] z-50 flex flex-col gap-3 pointer-events-auto">
 
-                 <div title="Hydration" className="flex flex-col items-center gap-1">
-                   <div className="relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11">
-                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-blue-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.hydration/100)*100.53} strokeLinecap="round" />
-                     </svg>
-                     <div className="absolute flex items-center justify-center"><Droplet size={13} className="text-blue-500 drop-shadow-sm" /></div>
-                   </div>
-                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.hydration}%</span>
-                 </div>
-
-                 <div className="w-px h-10 bg-gray-200/80 mx-0.5" />
-
-                 {/* PSIKOLOGIS */}
-                 <div title="Mood" className="flex flex-col items-center gap-1">
-                   <div className="relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11">
-                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-rose-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (moodStat/100)*100.53} strokeLinecap="round" />
-                     </svg>
-                     <div className="absolute flex items-center justify-center"><Smile size={13} className="text-rose-500 drop-shadow-sm" /></div>
-                   </div>
-                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{moodStat}%</span>
-                 </div>
-
-                 <div title="Stress" className="flex flex-col items-center gap-1">
-                   <div className="relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11">
-                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-purple-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (stressStat/100)*100.53} strokeLinecap="round" />
-                     </svg>
-                     <div className="absolute flex items-center justify-center"><Zap size={13} className="text-purple-500 drop-shadow-sm" /></div>
-                   </div>
-                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{stressStat}%</span>
-                 </div>
-
-                 <div title="Tolerance" className="flex flex-col items-center gap-1">
-                   <div className="relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11">
-                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-emerald-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (toleranceStat/100)*100.53} strokeLinecap="round" />
-                     </svg>
-                     <div className="absolute flex items-center justify-center"><Shield size={13} className="text-emerald-500 drop-shadow-sm" /></div>
-                   </div>
-                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{toleranceStat}%</span>
-                 </div>
+            {/* Stats Island – desktop only */}
+            <div className="hidden md:flex bg-white/90 backdrop-blur-2xl rounded-[2rem] p-4 border border-white/70 shadow-[0_8px_32px_rgba(0,0,0,0.08)] items-center gap-2 self-start w-auto origin-bottom-left">
+              {/* Row labels */}
+              <div className="flex flex-col justify-around gap-4 pr-3 border-r border-gray-100/80">
+                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none">Fisik</span>
+                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none">Psikis</span>
               </div>
-              <div className="w-px h-10 md:h-11 bg-gray-200 mx-1" />
-              <div className="flex flex-col items-center justify-center text-center min-w-[70px] md:min-w-[85px] gap-1 px-1">
-                <Moon size={16} className={`${cycle.color.split(' ')[0]} drop-shadow-sm`} />
-                <span className={`text-[10px] md:text-[11px] font-bold leading-tight ${cycle.color.split(' ')[0]}`}>{cycle.phase}</span>
+
+              <div className="flex flex-col gap-2.5 pl-3">
+                {/* Physical stats */}
+                <div className="flex items-center gap-3">
+                  {physicalStats.map(({ value, icon, strokeColor, iconColor, label }) => (
+                    <div key={label} title={`${label}: ${value}%`} className="flex flex-col items-center gap-0.5">
+                      <div className="relative flex items-center justify-center w-10 h-10">
+                        <svg className="w-full h-full -rotate-90" viewBox="0 0 40 40">
+                          <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-100" strokeWidth="4" />
+                          <circle cx="20" cy="20" r="16" className={`fill-transparent ${strokeColor} transition-all duration-1000`} strokeWidth="4" strokeDasharray={CIRC} strokeDashoffset={CIRC - (value / 100) * CIRC} strokeLinecap="round" />
+                        </svg>
+                        <div className={`absolute flex items-center justify-center ${iconColor}`}>{icon}</div>
+                      </div>
+                      <span className="text-[7px] font-bold text-gray-400 tabular-nums">{value}%</span>
+                    </div>
+                  ))}
+                </div>
+                {/* Psychological stats */}
+                <div className="flex items-center gap-3">
+                  {psychStats.map(({ value, icon, strokeColor, iconColor, label }) => (
+                    <div key={label} title={`${label}: ${value}%`} className="flex flex-col items-center gap-0.5">
+                      <div className="relative flex items-center justify-center w-10 h-10">
+                        <svg className="w-full h-full -rotate-90" viewBox="0 0 40 40">
+                          <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-100" strokeWidth="4" />
+                          <circle cx="20" cy="20" r="16" className={`fill-transparent ${strokeColor} transition-all duration-1000`} strokeWidth="4" strokeDasharray={CIRC} strokeDashoffset={CIRC - (value / 100) * CIRC} strokeLinecap="round" />
+                        </svg>
+                        <div className={`absolute flex items-center justify-center ${iconColor}`}>{icon}</div>
+                      </div>
+                      <span className="text-[7px] font-bold text-gray-400 tabular-nums">{value}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Divider + Cycle */}
+              <div className="w-px h-16 bg-gray-100 mx-2" />
+              <div className="flex flex-col items-center text-center min-w-[68px] gap-1 px-1">
+                <Moon size={15} className={`${cycle.color.split(' ')[0]} drop-shadow-sm`} />
+                <span className={`text-[10px] font-black leading-tight ${cycle.color.split(' ')[0]}`}>{cycle.phase}</span>
+                <span className="text-[8px] text-gray-400 font-bold">H-{cycle.day}</span>
               </div>
             </div>
 
             {/* Chat Bubble */}
-            <div className="drop-shadow-lg md:drop-shadow-2xl origin-bottom-left hover:scale-[1.02] transition-transform">
-              <div className="bg-white/95 backdrop-blur-2xl px-4 py-3 md:px-8 md:py-6 rounded-2xl md:rounded-[2.5rem] md:rounded-bl-xl border md:border-2 border-pink-100/50 shadow-xl relative z-10 transition-all duration-300">
-                <p className={`font-display font-semibold md:font-bold text-sm md:text-xl leading-tight md:leading-snug transition-colors duration-300 ${interactionOverride?.expression === 'angry' ? 'text-red-500' : 'text-gray-800'}`}>
-                  "{displayGreeting}"
+            <div className="origin-bottom-left">
+              <div className={`relative bg-white/97 backdrop-blur-2xl px-5 py-4 md:px-8 md:py-6 rounded-2xl md:rounded-[2.5rem] md:rounded-bl-xl border-2 transition-all duration-500 ${bubbleBorderClass}`}>
+                {/* Expression dot */}
+                <span className={`absolute top-3 right-3 md:top-4 md:right-4 w-2 h-2 rounded-full transition-colors duration-500 ${bubbleDotClass}`} />
+                <p className={`font-display font-semibold md:font-bold text-sm md:text-xl leading-snug transition-colors duration-300 pr-5 ${bubbleTextClass}`}>
+                  &ldquo;{displayGreeting}&rdquo;
                 </p>
                 {isInvitingOut && !interactionOverride && (
-                  <button 
+                  <button
                     onClick={() => setShowEvent(true)}
-                    className="mt-2 md:mt-6 w-full py-2 md:py-3 bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-bold md:font-black text-sm md:text-lg rounded-xl md:rounded-2xl shadow-md hover:-translate-y-1 transition-all flex items-center justify-center gap-2 md:gap-3"
+                    className="mt-3 md:mt-5 w-full py-2.5 md:py-3 bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-bold md:font-black text-sm md:text-lg rounded-xl md:rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
                   >
-                    <span className="text-base md:text-2xl">🕶️</span> {language === 'en' ? "Sure, let's go!" : "Boleh, ayo!"}
+                    <MapPin size={17} /> {language === 'en' ? "Sure, let's go!" : "Boleh, ayo!"}
                   </button>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Right Side: Command Menus (Desktop Only) */}
-          <div className="hidden md:flex flex-col items-end w-[300px] absolute bottom-2 right-10 z-40 h-[600px] justify-end pointer-events-auto origin-bottom-right [@media(max-height:700px)]:scale-[0.8] [@media(max-height:550px)]:scale-[0.6]">
+          {/* ── Right Side: Command Menus (Desktop) ── */}
+          <div className="hidden md:flex flex-col items-end w-[300px] absolute bottom-2 right-0 z-40 h-[600px] justify-end pointer-events-auto origin-bottom-right [@media(max-height:700px)]:scale-[0.8] [@media(max-height:550px)]:scale-[0.6]">
             <div className="relative w-full h-full flex flex-col justify-end">
               
-              {/* LAINNYA SUB-MENUS (DRAWER) */}
-              <div 
+              {/* Sub-menus drawer */}
+              <div
                 className="absolute bottom-[110px] right-2 grid grid-cols-2 gap-2 w-[160px]"
                 style={{ pointerEvents: isDesktopMenuOpen ? 'auto' : 'none' }}
               >
                 {[
-                  { href: "/wardrobe", icon: <Shirt size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.wardrobe || 'Lemari' },
-                  { href: "/shop", icon: <Gift size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.shop || 'Toko' },
-                  { href: "/work", icon: <Briefcase size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.work || 'Kerja' },
-                  { href: "/inventory", icon: <Package size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.inventory || 'Tas' },
-                  { href: "/lounge", icon: <Tv size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.lounge || 'Santai' },
-                  { href: "/radio", icon: <Radio size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.radio || 'Lofi' },
-                  { href: "/schedule", icon: <Calendar size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.schedule || 'Jadwal' },
-                  { href: "/pomodoro", icon: <Clock size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.pomodoro || 'Pomodoro' },
-                  { href: "/settings", icon: <Settings size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.settings || 'Setelan' },
-                  { href: "/album", icon: <Camera size={20} className="w-[20px] h-[20px]" />, title: dict?.nav?.album || 'Album' },
+                  { href: "/wardrobe", icon: <Shirt size={20} />, title: dict?.nav?.wardrobe || 'Lemari' },
+                  { href: "/shop", icon: <Gift size={20} />, title: dict?.nav?.shop || 'Toko' },
+                  { href: "/work", icon: <Briefcase size={20} />, title: dict?.nav?.work || 'Kerja' },
+                  { href: "/inventory", icon: <Package size={20} />, title: dict?.nav?.inventory || 'Tas' },
+                  { href: "/lounge", icon: <Tv size={20} />, title: dict?.nav?.lounge || 'Santai' },
+                  { href: "/radio", icon: <Radio size={20} />, title: dict?.nav?.radio || 'Lofi' },
+                  { href: "/schedule", icon: <Calendar size={20} />, title: dict?.nav?.schedule || 'Jadwal' },
+                  { href: "/pomodoro", icon: <Clock size={20} />, title: dict?.nav?.pomodoro || 'Pomodoro' },
+                  { href: "/settings", icon: <Settings size={20} />, title: dict?.nav?.settings || 'Setelan' },
+                  { href: "/album", icon: <Camera size={20} />, title: dict?.nav?.album || 'Album' },
                 ].map((m, i) => {
-                  const row = 4 - Math.floor(i / 2); // Bottom rows slide out first
+                  const row = 4 - Math.floor(i / 2);
                   return (
                     <div
                       key={m.title}
-                      className="w-full"
                       style={{
                         transform: isDesktopMenuOpen ? 'translateY(0) scale(1)' : 'translateY(150px) scale(0.8)',
                         opacity: isDesktopMenuOpen ? 1 : 0,
-                        transition: `all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${isDesktopMenuOpen ? 300 + (row * 60) : 0}ms`
+                        transition: `all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${isDesktopMenuOpen ? 300 + row * 60 : 0}ms`
                       }}
                     >
                       <BottomMenuCard href={m.href} icon={m.icon} title={m.title} />
                     </div>
-                  )
+                  );
                 })}
               </div>
 
-              {/* MAIN MENUS */}
-              <div 
-                className="absolute bottom-[110px] right-0 flex flex-col gap-3 w-full items-end pb-0"
+              {/* Main menus */}
+              <div
+                className="absolute bottom-[110px] right-0 flex flex-col gap-3 w-full items-end"
                 style={{ pointerEvents: isDesktopMenuOpen ? 'none' : 'auto' }}
               >
                 {[
-                  { href: "/chat", icon: <MessageSquare size={24} className="w-[28px] h-[28px]" />, title: dict.nav.chat.toUpperCase(), show: true },
-                  { href: "/story", icon: <BookOpen size={24} className="w-[28px] h-[28px]" />, title: dict.nav.story.toUpperCase(), show: true },
-                  { href: "/date", icon: <MapPin size={24} className="w-[28px] h-[28px]" />, title: dict.nav.date.toUpperCase(), show: isInvitingOut || (affection >= 40 && (itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses'))), isSpecial: true },
-                  { href: "/kitchen", icon: <Utensils size={24} className="w-[28px] h-[28px]" />, title: dict.nav.kitchen.toUpperCase(), show: itemsBrought.includes('recipe_book') || itemsBrought.includes('recipe_book_shop') },
-                  { href: "/garden", icon: <Sprout size={24} className="w-[28px] h-[28px]" />, title: dict.nav.garden.toUpperCase(), show: true }
+                  { href: "/chat", icon: <MessageSquare size={24} />, title: dict.nav.chat.toUpperCase(), show: true },
+                  { href: "/story", icon: <BookOpen size={24} />, title: dict.nav.story.toUpperCase(), show: true },
+                  { href: "/date", icon: <MapPin size={24} />, title: dict.nav.date.toUpperCase(), show: isInvitingOut || (affection >= 40 && (itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses'))), isSpecial: true },
+                  { href: "/kitchen", icon: <Utensils size={24} />, title: dict.nav.kitchen.toUpperCase(), show: itemsBrought.includes('recipe_book') || itemsBrought.includes('recipe_book_shop') },
+                  { href: "/garden", icon: <Sprout size={24} />, title: dict.nav.garden.toUpperCase(), show: true }
                 ].filter(m => m.show).map((m, index, arr) => (
-                  <div 
+                  <div
                     key={m.title}
                     style={{
                       transform: isDesktopMenuOpen ? `translateY(${(arr.length - index) * 60}px) scale(0.8)` : 'translateY(0) scale(1)',
@@ -848,16 +837,16 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
                 ))}
               </div>
 
-              {/* LAINNYA Button on Desktop */}
-              <button 
+              {/* Lainnya toggle button */}
+              <button
                 onClick={() => setIsDesktopMenuOpen(!isDesktopMenuOpen)}
-                className="absolute bottom-0 right-0 flex items-center gap-3 p-3 md:p-4 rounded-[1.5rem] md:rounded-[2rem] transition-all group w-[180px] md:w-[240px] justify-end hover:scale-[1.02] shadow-sm hover:shadow-xl overflow-hidden backdrop-blur-2xl bg-white/80 md:bg-white/90 border border-white/60 hover:border-pink-200 text-[#5c4d47] z-50"
+                className="absolute bottom-0 right-0 flex items-center gap-3 px-5 py-3.5 rounded-[2rem] transition-all group w-[180px] md:w-[240px] justify-end hover:scale-[1.02] shadow-[0_8px_24px_rgba(0,0,0,0.07)] hover:shadow-[0_12px_32px_rgba(255,117,140,0.2)] backdrop-blur-2xl bg-white/90 border border-white/70 hover:border-pink-200 text-[#5c4d47] z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400"
               >
-                <span className="font-display font-black text-xs md:text-sm tracking-widest relative z-10 transition-colors group-hover:text-[#ff758c]">
+                <span className="font-display font-black text-sm tracking-widest relative z-10 transition-colors group-hover:text-[#ff758c]">
                   {isDesktopMenuOpen ? dict.common.back.toUpperCase() : (language === 'en' ? 'MORE' : 'LAINNYA')}
                 </span>
-                <div className={`bg-pink-50 p-2 md:p-3 rounded-xl md:rounded-2xl group-hover:bg-[#ff758c] group-hover:text-white transition-all duration-300 relative z-10 ${isDesktopMenuOpen ? 'text-white bg-[#ff758c] rotate-180' : 'text-gray-400'}`}>
-                  <Menu size={24} className="w-[28px] h-[28px]" />
+                <div className={`p-2.5 rounded-xl transition-all duration-300 relative z-10 flex-shrink-0 ${isDesktopMenuOpen ? 'bg-[#ff758c] text-white rotate-180' : 'bg-pink-50 text-[#ff758c] group-hover:bg-[#ff758c] group-hover:text-white'}`}>
+                  <Menu size={22} />
                 </div>
               </button>
             </div>
@@ -866,204 +855,179 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
         </div>
       </div>
 
-      {/* Mobile Bottom Navigation (Island UI) */}
-      <div className="md:hidden absolute bottom-6 left-4 right-4 bg-white/90 backdrop-blur-2xl border border-[#5c4d47]/10 rounded-[2rem] p-2 px-4 flex justify-around items-center z-[100] shadow-[0_15px_35px_rgba(0,0,0,0.1)] pointer-events-auto">
+      {/* ─────────── Mobile Bottom Navigation ─────────── */}
+      <div className="md:hidden absolute bottom-5 left-4 right-4 bg-white/95 backdrop-blur-2xl border border-white/80 rounded-[2rem] py-2 px-3 flex justify-around items-center z-[100] shadow-[0_-2px_20px_rgba(0,0,0,0.06),0_8px_30px_rgba(0,0,0,0.08)] pointer-events-auto">
         <MobileNavBtn href="/home" icon={<BookOpen size={22} />} label={dict.nav.home} isActive />
         <MobileNavBtn href="/chat" icon={<MessageSquare size={22} />} label={dict.nav.chat} />
         <MobileNavBtn href="/pomodoro" icon={<Clock size={22} />} label={dict.nav.pomodoro} />
-        <button onClick={() => setShowMoreModal(true)} className="flex flex-col items-center justify-center gap-1 w-14">
-          <div className="p-2 rounded-xl transition-all text-gray-400 hover:text-[#ff758c]">
+        <button
+          onClick={() => setShowMoreModal(true)}
+          className="flex flex-col items-center justify-center gap-1 w-14 focus-visible:outline-none"
+        >
+          <div className="p-2 rounded-xl transition-all text-gray-400 hover:text-[#ff758c] active:scale-90 active:bg-pink-50">
             <Menu size={22} />
           </div>
           <span className="font-display text-[9px] font-bold text-gray-400">{language === 'en' ? 'More' : 'Lainnya'}</span>
         </button>
       </div>
 
-      {/* Menu Lainnya Modal */}
+      {/* ─────────── More Menus Modal ─────────── */}
       {showMoreModal && (
-        <div className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-sm flex items-end md:items-center justify-center animate-[fadeIn_0.2s_ease-out]">
-          <div className="bg-[#fdfbf7] w-full md:max-w-lg rounded-t-[2rem] md:rounded-[2rem] p-6 pb-12 md:pb-8 shadow-2xl flex flex-col transform transition-transform animate-[slideUp_0.3s_ease-out] border-t-4 border-[#ff758c] md:border-4">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-display font-black text-[#5c4d47] flex items-center gap-2">
-                <Menu className="text-[#ff758c]" /> {language === 'en' ? 'More Menus' : 'Menu Lainnya'}
+        <div
+          className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowMoreModal(false); }}
+        >
+          <div className="bg-white w-full md:max-w-lg rounded-t-[2.5rem] md:rounded-[2rem] pt-3 px-6 pb-10 md:pb-8 shadow-2xl flex flex-col animate-[slideUp_0.3s_ease-out]">
+            {/* Drag handle */}
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-display font-black text-[#5c4d47]">
+                {language === 'en' ? 'More Menus' : 'Menu Lainnya'}
               </h2>
-              <button 
-                onClick={() => setShowMoreModal(false)} 
-                className="text-gray-400 hover:text-white hover:bg-[#ff758c] bg-white border border-gray-200 w-10 h-10 rounded-full flex items-center justify-center transition-all"
+              <button
+                onClick={() => setShowMoreModal(false)}
+                className="w-9 h-9 text-gray-400 hover:text-white hover:bg-[#ff758c] bg-gray-50 border border-gray-100 rounded-full flex items-center justify-center transition-all active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400"
               >
-                <X size={20} />
+                <X size={17} strokeWidth={2.5} />
               </button>
             </div>
-            
-            <div className="grid grid-cols-4 md:grid-cols-5 gap-4 md:gap-6">
+
+            <div className="grid grid-cols-4 md:grid-cols-5 gap-3 md:gap-4">
               {itemsBrought.includes('recipe_book') && (
-                <BottomMenuCard href="/kitchen" icon={<Utensils size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.kitchen || 'Dapur'} />
+                <BottomMenuCard href="/kitchen" icon={<Utensils size={24} />} title={dict?.nav?.kitchen || 'Dapur'} />
               )}
-              <BottomMenuCard href="/wardrobe" icon={<Shirt size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.wardrobe || 'Lemari'} />
-              <BottomMenuCard href="/shop" icon={<Gift size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.shop || 'Toko'} />
-              <BottomMenuCard href="/work" icon={<Briefcase size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.work || 'Kerja'} />
-              <BottomMenuCard href="/story" icon={<BookOpen size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.story || 'Cerita'} />
+              <BottomMenuCard href="/wardrobe" icon={<Shirt size={24} />} title={dict?.nav?.wardrobe || 'Lemari'} />
+              <BottomMenuCard href="/shop" icon={<Gift size={24} />} title={dict?.nav?.shop || 'Toko'} />
+              <BottomMenuCard href="/work" icon={<Briefcase size={24} />} title={dict?.nav?.work || 'Kerja'} />
+              <BottomMenuCard href="/story" icon={<BookOpen size={24} />} title={dict?.nav?.story || 'Cerita'} />
               {(isInvitingOut || (affection >= 40 && (itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses')))) && (
-                <BottomMenuCard href="/date" icon={<MapPin size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.date || 'Jalan'} />
+                <BottomMenuCard href="/date" icon={<MapPin size={24} />} title={dict?.nav?.date || 'Jalan'} />
               )}
-              <BottomMenuCard href="/inventory" icon={<Package size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.inventory || 'Tas'} />
-              <BottomMenuCard href="/bedroom" icon={<Bed size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.home || 'Kamar'} />
-              <BottomMenuCard href="/radio" icon={<Radio size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.radio || 'Lofi'} />
-              <BottomMenuCard href="/schedule" icon={<Calendar size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.schedule || 'Jadwal'} />
-              <BottomMenuCard href="/settings" icon={<Settings size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.settings || 'Setelan'} />
-              <BottomMenuCard href="/album" icon={<Camera size={26} className="md:w-[28px] md:h-[28px]" />} title={dict?.nav?.album || 'Album'} />
+              <BottomMenuCard href="/inventory" icon={<Package size={24} />} title={dict?.nav?.inventory || 'Tas'} />
+              <BottomMenuCard href="/bedroom" icon={<Bed size={24} />} title={dict?.nav?.home || 'Kamar'} />
+              <BottomMenuCard href="/radio" icon={<Radio size={24} />} title={dict?.nav?.radio || 'Lofi'} />
+              <BottomMenuCard href="/schedule" icon={<Calendar size={24} />} title={dict?.nav?.schedule || 'Jadwal'} />
+              <BottomMenuCard href="/settings" icon={<Settings size={24} />} title={dict?.nav?.settings || 'Setelan'} />
+              <BottomMenuCard href="/album" icon={<Camera size={24} />} title={dict?.nav?.album || 'Album'} />
             </div>
           </div>
         </div>
       )}
 
-      {/* Mini Event Modal (For Sunglasses Event) */}
+      {/* ─────────── Mini Event Modal ─────────── */}
       {showEvent && (
         <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-md flex items-center justify-center p-6 animate-[fadeIn_0.3s_ease-out]">
-          <div className="bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl flex flex-col items-center text-center">
-            <div className="w-28 h-28 bg-gradient-to-br from-gray-100 to-gray-200 rounded-[2rem] flex items-center justify-center text-6xl mb-8 shadow-inner rotate-3">
-              🕶️
+          <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-pink-50 to-pink-100 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner border border-pink-100">
+              <MapPin size={38} className="text-[#ff758c]" />
             </div>
-            <h2 className="text-3xl font-display font-black text-[#5c4d47] mb-4">Momen Spesial</h2>
-            <p className="text-gray-600 mb-8 text-lg">
+            <h2 className="text-3xl font-display font-black text-[#5c4d47] mb-3">Momen Spesial</h2>
+            <p className="text-gray-500 mb-5 text-base leading-relaxed">
               Kamu menghabiskan waktu menemani Livia berbelanja. Dia memakai kacamata hitam pemberianmu sepanjang jalan, menyembunyikan wajahnya yang merona.
             </p>
-            <p className="text-[#ff758c] font-black mb-10 text-xl">"T-tempat ini lumayan seru juga..."</p>
-            <div className="flex gap-4 w-full">
-              <button 
+            <p className="text-[#ff758c] font-display font-black mb-8 text-xl italic">&ldquo;T-tempat ini lumayan seru juga...&rdquo;</p>
+            <div className="flex gap-3 w-full">
+              <button
                 onClick={() => setShowEvent(false)}
-                className="flex-1 py-4 bg-gray-100 text-gray-500 font-bold text-lg rounded-2xl hover:bg-gray-200 transition-colors"
+                className="flex-1 py-3.5 bg-gray-50 text-gray-500 font-bold rounded-2xl hover:bg-gray-100 transition-colors border border-gray-100 active:scale-[0.98] focus-visible:outline-none"
               >
                 Tutup
               </button>
-              <Link 
+              <Link
                 href={invitedPlace ? `/date?location=${encodeURIComponent(invitedPlace)}` : `/date`}
-                className="flex-[2] py-4 bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-black text-lg rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center justify-center"
+                className="flex-[2] py-3.5 bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-black rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all flex items-center justify-center gap-2 focus-visible:outline-none"
               >
-                Jalan Lanjut!
+                <MapPin size={17} /> Jalan Lanjut!
               </Link>
             </div>
           </div>
         </div>
       )}
-      {/* Custom Mobile Modal for Stats & Inventory */}
+
+      {/* ─────────── Mobile Stats Modal ─────────── */}
       {showMobileStats && (
-        <div className="md:hidden fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out] pointer-events-auto">
-          <div className="bg-white/95 backdrop-blur-xl w-full max-w-[340px] rounded-[2rem] p-6 shadow-2xl border border-pink-100 flex flex-col gap-6 animate-[slideUp_0.3s_ease-out]">
-            
-            {/* Header & Close Button */}
-            <div className="flex justify-between items-center border-b border-pink-50 pb-4">
+        <div
+          className="md:hidden fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 pointer-events-auto animate-[fadeIn_0.2s_ease-out]"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowMobileStats(false); }}
+        >
+          <div className="bg-white w-full max-w-[340px] rounded-[2rem] p-6 shadow-2xl border border-gray-50 flex flex-col gap-5 animate-[slideUp_0.25s_ease-out]">
+
+            {/* Header */}
+            <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center text-pink-500 font-black font-display text-xl">{userName.charAt(0)}</div>
+                <div className="w-11 h-11 bg-gradient-to-br from-pink-200 to-pink-400 rounded-full flex items-center justify-center text-white font-black font-display text-xl shadow-sm border-2 border-white flex-shrink-0">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
                 <div className="flex flex-col">
-                  <span className="font-display font-black text-[#5c4d47] text-lg leading-none">{userName}</span>
-                  <span className="text-[10px] font-bold text-pink-400">{levelInfo.name}</span>
+                  <span className="font-display font-black text-[#5c4d47] text-lg leading-tight">{userName}</span>
+                  <span className="text-[10px] font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full w-fit border border-pink-100 mt-0.5">{levelInfo.name}</span>
                 </div>
               </div>
-              <button onClick={() => setShowMobileStats(false)} className="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-500 rounded-full active:scale-95 transition-transform">
-                <X size={16} strokeWidth={3} />
+              <button
+                onClick={() => setShowMobileStats(false)}
+                className="w-9 h-9 flex items-center justify-center bg-gray-50 text-gray-400 rounded-full active:scale-95 transition-transform border border-gray-100 hover:bg-gray-100 focus-visible:outline-none"
+              >
+                <X size={16} strokeWidth={2.5} />
               </button>
             </div>
 
-            {/* Affection Details */}
+            {/* Affection Bar */}
             <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-end mb-1">
+              <div className="flex justify-between items-center">
                 <div className="flex items-center gap-1.5">
-                  <Heart size={16} className="fill-pink-500 text-pink-500" />
+                  <Heart size={14} className="fill-pink-500 text-pink-500" />
                   <span className="font-bold text-[#5c4d47] text-sm">Afeksi</span>
                 </div>
-                <span className="text-xs font-bold text-pink-500 bg-pink-50 px-2 py-0.5 rounded-full">Lv.{levelInfo.level} {levelInfo.name}</span>
+                <span className="font-mono font-black text-sm text-[#5c4d47] tabular-nums">{affection}/100</span>
               </div>
-              <div className="relative w-full max-w-sm h-6 bg-pink-50 rounded-full border border-pink-100 overflow-hidden shadow-inner cursor-help" title={`Afeksi: ${affection} / 100`}>
-                <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-pink-400 to-pink-500 transition-all duration-1000" style={{ width: `${Math.max(0, Math.min(100, affection))}%` }} />
-                <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-md z-10 font-mono">
-                  {affection} / 100
-                </div>
+              <div className="relative w-full h-5 bg-pink-50 rounded-full border border-pink-100/80 overflow-hidden shadow-inner">
+                <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-pink-400 to-pink-500 transition-all duration-700 rounded-full" style={{ width: `${Math.max(0, Math.min(100, affection))}%` }} />
               </div>
             </div>
 
-            {/* Physiological & Psychological Stats */}
-            <div className="flex flex-col gap-3 bg-gray-50/80 p-4 rounded-2xl border border-gray-100">
-              <div className="flex justify-between items-center border-b border-gray-200/60 pb-2">
+            {/* Stats */}
+            <div className="bg-gray-50/80 p-4 rounded-2xl border border-gray-100 flex flex-col gap-4">
+              <div className="flex justify-between items-center">
                 <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Kondisi Livia</span>
-                <div className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full border shadow-sm flex items-center gap-1 ${cycle.color}`}>
-                  <Moon size={10} /> Siklus: {cycle.phase}
+                <div className={`text-[9px] font-bold px-2.5 py-1 rounded-full border flex items-center gap-1.5 ${cycle.color}`}>
+                  <Moon size={9} /> {cycle.phase}
                 </div>
               </div>
-              
-              {/* Row 1: Fisik */}
-              <div className="flex justify-between items-center gap-2 mt-1">
-                 <div className="flex flex-col items-center gap-1 flex-1">
-                   <div className="relative flex items-center justify-center w-11 h-11">
-                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-orange-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.hunger/100)*100.53} strokeLinecap="round" />
-                     </svg>
-                     <div className="absolute flex items-center justify-center"><Utensils size={13} className="text-orange-500" /></div>
-                   </div>
-                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.hunger}%</span>
-                 </div>
 
-                 <div className="flex flex-col items-center gap-1 flex-1">
-                   <div className="relative flex items-center justify-center w-11 h-11">
-                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-yellow-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.energy/100)*100.53} strokeLinecap="round" />
-                     </svg>
-                     <div className="absolute flex items-center justify-center"><Battery size={13} className="text-yellow-500" /></div>
-                   </div>
-                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.energy}%</span>
-                 </div>
-
-                 <div className="flex flex-col items-center gap-1 flex-1">
-                   <div className="relative flex items-center justify-center w-11 h-11">
-                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-blue-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (liviaStats.hydration/100)*100.53} strokeLinecap="round" />
-                     </svg>
-                     <div className="absolute flex items-center justify-center"><Droplet size={13} className="text-blue-500" /></div>
-                   </div>
-                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{liviaStats.hydration}%</span>
-                 </div>
+              {/* Physical */}
+              <div className="flex justify-around items-start">
+                {physicalStats.map(({ value, icon, strokeColor, iconColor, label }) => (
+                  <div key={label} className="flex flex-col items-center gap-1">
+                    <div className="relative flex items-center justify-center w-11 h-11">
+                      <svg className="w-full h-full -rotate-90" viewBox="0 0 40 40">
+                        <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
+                        <circle cx="20" cy="20" r="16" className={`fill-transparent ${strokeColor} transition-all duration-1000`} strokeWidth="4" strokeDasharray={CIRC} strokeDashoffset={CIRC - (value / 100) * CIRC} strokeLinecap="round" />
+                      </svg>
+                      <div className={`absolute flex items-center justify-center ${iconColor}`}>{icon}</div>
+                    </div>
+                    <span className="text-[8px] font-bold text-gray-500">{label}</span>
+                    <span className="text-[9px] font-black text-gray-700 tabular-nums">{value}%</span>
+                  </div>
+                ))}
               </div>
 
-              {/* Divider */}
-              <div className="border-t border-gray-200/50 my-0.5" />
+              <div className="border-t border-gray-200/60" />
 
-              {/* Row 2: Psikologis */}
-              <div className="flex justify-between items-center gap-2">
-                 <div className="flex flex-col items-center gap-1 flex-1">
-                   <div className="relative flex items-center justify-center w-11 h-11">
-                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-rose-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (moodStat/100)*100.53} strokeLinecap="round" />
-                     </svg>
-                     <div className="absolute flex items-center justify-center"><Smile size={13} className="text-rose-500" /></div>
-                   </div>
-                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{moodStat}%</span>
-                 </div>
-
-                 <div className="flex flex-col items-center gap-1 flex-1">
-                   <div className="relative flex items-center justify-center w-11 h-11">
-                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-purple-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (stressStat/100)*100.53} strokeLinecap="round" />
-                     </svg>
-                     <div className="absolute flex items-center justify-center"><Zap size={13} className="text-purple-500" /></div>
-                   </div>
-                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{stressStat}%</span>
-                 </div>
-
-                 <div className="flex flex-col items-center gap-1 flex-1">
-                   <div className="relative flex items-center justify-center w-11 h-11">
-                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
-                       <circle cx="20" cy="20" r="16" className="fill-transparent stroke-emerald-400 transition-all duration-1000" strokeWidth="4" strokeDasharray={100.53} strokeDashoffset={100.53 - (toleranceStat/100)*100.53} strokeLinecap="round" />
-                     </svg>
-                     <div className="absolute flex items-center justify-center"><Shield size={13} className="text-emerald-500" /></div>
-                   </div>
-                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{toleranceStat}%</span>
-                 </div>
+              {/* Psychological */}
+              <div className="flex justify-around items-start">
+                {psychStats.map(({ value, icon, strokeColor, iconColor, label }) => (
+                  <div key={label} className="flex flex-col items-center gap-1">
+                    <div className="relative flex items-center justify-center w-11 h-11">
+                      <svg className="w-full h-full -rotate-90" viewBox="0 0 40 40">
+                        <circle cx="20" cy="20" r="16" className="fill-transparent stroke-gray-200" strokeWidth="4" />
+                        <circle cx="20" cy="20" r="16" className={`fill-transparent ${strokeColor} transition-all duration-1000`} strokeWidth="4" strokeDasharray={CIRC} strokeDashoffset={CIRC - (value / 100) * CIRC} strokeLinecap="round" />
+                      </svg>
+                      <div className={`absolute flex items-center justify-center ${iconColor}`}>{icon}</div>
+                    </div>
+                    <span className="text-[8px] font-bold text-gray-500">{label}</span>
+                    <span className="text-[9px] font-black text-gray-700 tabular-nums">{value}%</span>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -1080,9 +1044,9 @@ function SideMenuCard({ href, icon, title, isSpecial = false }: { href: string; 
     <Link
       href={href}
       prefetch={true}
-      className={`group flex items-center justify-center md:justify-end gap-2 md:gap-4 px-4 md:pl-10 md:pr-6 py-2 md:py-3.5 rounded-2xl md:rounded-l-full md:rounded-r-[2rem] transition-all duration-300 md:duration-500 md:hover:pr-8 border-2 md:border-r-0 whitespace-nowrap shrink-0 ${
-        isSpecial 
-          ? 'bg-gradient-to-l from-[#ff758c] to-[#ff0844] md:from-[#ff758c]/90 md:to-white/90 backdrop-blur-2xl border-white hover:border-pink-300 shadow-md md:shadow-[0_15px_30px_rgba(255,117,140,0.3)]' 
+      className={`group flex items-center justify-center md:justify-end gap-2 md:gap-4 px-4 md:pl-10 md:pr-6 py-2 md:py-3.5 rounded-2xl md:rounded-l-full md:rounded-r-[2rem] transition-all duration-300 md:duration-500 md:hover:pr-8 border-2 md:border-r-0 whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400 ${
+        isSpecial
+          ? 'bg-gradient-to-l from-[#ff758c] to-[#ff0844] md:from-[#ff758c]/90 md:to-white/90 backdrop-blur-2xl border-white hover:border-pink-300 shadow-md md:shadow-[0_15px_30px_rgba(255,117,140,0.3)]'
           : 'bg-white/90 md:bg-white/80 backdrop-blur-2xl border-white/50 hover:bg-white hover:border-pink-200 shadow-sm md:shadow-[0_10px_25px_rgba(0,0,0,0.05)]'
       }`}
     >
@@ -1101,12 +1065,12 @@ function BottomMenuCard({ href, icon, title }: { href: string; icon: React.React
     <Link
       href={href}
       prefetch={true}
-      className="group flex flex-col items-center justify-center gap-1.5 md:gap-2 w-full aspect-square md:w-18 md:h-18 bg-white/90 md:bg-white/80 backdrop-blur-2xl border border-pink-100 rounded-[1.5rem] md:rounded-2xl shadow-sm md:shadow-[0_8px_20px_rgba(0,0,0,0.05)] hover:bg-white hover:border-[#ff758c] hover:shadow-md md:hover:-translate-y-1 transition-all duration-300 shrink-0"
+      className="group flex flex-col items-center justify-center gap-1.5 w-full aspect-square md:w-18 md:h-18 bg-white/90 md:bg-white/80 backdrop-blur-xl border border-pink-100/80 rounded-[1.5rem] md:rounded-2xl shadow-sm md:shadow-[0_4px_16px_rgba(0,0,0,0.05)] hover:bg-white hover:border-[#ff758c]/60 hover:shadow-[0_8px_24px_rgba(255,117,140,0.15)] md:hover:-translate-y-1 active:scale-95 transition-all duration-200 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400"
     >
-      <div className="text-pink-300 group-hover:text-[#ff758c] transition-colors transform group-hover:scale-110 duration-300">
+      <div className="text-pink-300 group-hover:text-[#ff758c] transition-colors transform group-hover:scale-110 duration-200">
         {icon}
       </div>
-      <span className="font-display font-bold text-[10px] md:text-xs text-gray-500 group-hover:text-[#ff758c]">
+      <span className="font-display font-bold text-[10px] md:text-xs text-gray-500 group-hover:text-[#ff758c] transition-colors leading-tight text-center px-1">
         {title}
       </span>
     </Link>
@@ -1115,11 +1079,11 @@ function BottomMenuCard({ href, icon, title }: { href: string; icon: React.React
 
 function MobileNavBtn({ href, icon, label, isActive = false }: { href: string; icon: React.ReactNode; label: string; isActive?: boolean }) {
   return (
-    <Link href={href} prefetch={true} className="flex flex-col items-center justify-center gap-1 w-14">
-      <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-pink-100 text-[#ff758c] shadow-sm' : 'text-gray-400 hover:text-[#ff758c]'}`}>
+    <Link href={href} prefetch={true} className="flex flex-col items-center justify-center gap-1 w-14 focus-visible:outline-none">
+      <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-pink-100 text-[#ff758c] shadow-sm' : 'text-gray-400 hover:text-[#ff758c] active:bg-pink-50 active:scale-90'}`}>
         {icon}
       </div>
-      <span className={`font-display text-[9px] font-bold ${isActive ? 'text-[#ff758c]' : 'text-gray-400'}`}>
+      <span className={`font-display text-[9px] font-bold transition-colors ${isActive ? 'text-[#ff758c]' : 'text-gray-400'}`}>
         {label}
       </span>
     </Link>
