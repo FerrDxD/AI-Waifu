@@ -38,6 +38,14 @@ const JOBS: JobDef[] = [
   { id: '15', type: 'mancing', title: 'Tukang Pancing', desc: 'Tarik pancingan dalam waktu kurang dari 0.6 detik saat ditarik ikan!', rewardStr: '30 Rv', baseReward: 30, icon: Fish }
 ];
 
+// Single source of truth for rank computation — was duplicated in the main panel + job list
+function getRankInfo(completions: number) {
+  if (completions >= 50) return { name: 'Emas',    multiplier: 15, color: 'text-yellow-500 border-yellow-500 bg-yellow-500/10', badgeColor: 'bg-yellow-500 text-white', nextTarget: 50,  level: 3 };
+  if (completions >= 25) return { name: 'Perak',   multiplier: 5,  color: 'text-gray-400 border-gray-400 bg-gray-400/10',       badgeColor: 'bg-gray-400 text-white',   nextTarget: 50,  level: 2 };
+  if (completions >= 10) return { name: 'Perunggu', multiplier: 2, color: 'text-amber-600 border-amber-600 bg-amber-600/10',    badgeColor: 'bg-amber-600 text-white',  nextTarget: 25,  level: 1 };
+  return                        { name: 'Tembaga', multiplier: 1,  color: 'text-[#d97757] border-[#d97757] bg-[#d97757]/10',   badgeColor: 'bg-[#d97757] text-white',  nextTarget: 10,  level: 0 };
+}
+
 export default function WorkPage() {
   const { dict, language } = useLanguage();
   const [selectedJob, setSelectedJob] = useState<JobDef>(JOBS[0]);
@@ -77,16 +85,11 @@ export default function WorkPage() {
 
   const Icon = selectedJob.icon;
 
+
   const completions = jobStats[selectedJob.id] || 0;
-  let rankName = 'Tembaga';
-  let multiplier = 1;
-  let rankColor = 'text-[#d97757] border-[#d97757] bg-[#d97757]/10'; // Tembaga
-  let nextTarget = 10;
-  let rankLevel = 0;
-  if (completions >= 50) { rankName = 'Emas'; multiplier = 15; rankColor = 'text-yellow-500 border-yellow-500 bg-yellow-500/10'; nextTarget = 50; rankLevel = 3; }
-  else if (completions >= 25) { rankName = 'Perak'; multiplier = 5; rankColor = 'text-gray-400 border-gray-400 bg-gray-400/10'; nextTarget = 50; rankLevel = 2; }
-  else if (completions >= 10) { rankName = 'Perunggu'; multiplier = 2; rankColor = 'text-amber-600 border-amber-600 bg-amber-600/10'; nextTarget = 25; rankLevel = 1; }
+  const { name: rankName, multiplier, color: rankColor, nextTarget, level: rankLevel } = getRankInfo(completions);
   const finalReward = selectedJob.baseReward * multiplier;
+
 
   return (
     <div className="h-[100dvh] w-full bg-[#fdfbf7] flex flex-col font-sans select-none overflow-hidden relative">
@@ -204,12 +207,8 @@ export default function WorkPage() {
               const isSelected = selectedJob.id === job.id && gameState === 'idle';
               const JobIcon = job.icon;
               const jc = jobStats[job.id] || 0;
-              let jrank = 'Tembaga';
-              let jcol = 'bg-[#d97757] text-white';
-              if (jc >= 50) { jrank = 'Emas'; jcol = 'bg-yellow-500 text-white'; }
-              else if (jc >= 25) { jrank = 'Perak'; jcol = 'bg-gray-400 text-white'; }
-              else if (jc >= 10) { jrank = 'Perunggu'; jcol = 'bg-amber-600 text-white'; }
-              else { jrank = 'Tembaga'; jcol = 'bg-[#d97757] text-white'; }
+              const { name: jrank, badgeColor: jcol } = getRankInfo(jc);
+
 
               return (
                 <button key={job.id} onClick={() => { setSelectedJob(job); setGameState('idle'); }} className={`relative group w-[280px] md:w-full shrink-0 text-left outline-none transition-all duration-300 ${isSelected ? 'md:-translate-x-4 scale-[1.02]' : 'hover:-translate-x-1 hover:scale-[1.01]'}`}>
@@ -285,6 +284,8 @@ function SortirGame({ onFinish, rank = 0, rankName = 'Tembaga' }: { onFinish: (r
   const initialTime = rank === 3 ? 8 : rank === 2 ? 10 : rank === 1 ? 12 : 15;
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [score, setScore] = useState(0);
+  // ponytail: ref so the timer effect always reads the latest score, not the stale closure value
+  const scoreRef = useRef(0);
   
   const allItems = [
     {emoji:'📚', color:'pink'}, 
@@ -300,14 +301,17 @@ function SortirGame({ onFinish, rank = 0, rankName = 'Tembaga' }: { onFinish: (r
   const [item, setItem] = useState(items[0]);
 
   useEffect(() => {
-    if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(l => l - 1), 1000); return () => clearTimeout(t); } 
-    else { onFinish(score * 2); }
+    if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(l => l - 1), 1000); return () => clearTimeout(t); }
+    else { onFinish(scoreRef.current * 2); }
   }, [timeLeft]);
 
   const handleSort = (c: string) => {
-    if (item.color === c) setScore(s => s + 1);
+    if (item.color === c) {
+      setScore(s => { const n = s + 1; scoreRef.current = n; return n; });
+    }
     setItem(items[Math.floor(Math.random() * items.length)]);
   };
+
 
   const getColorClass = (c: string) => {
     switch(c) {
@@ -342,15 +346,14 @@ function SortirGame({ onFinish, rank = 0, rankName = 'Tembaga' }: { onFinish: (r
 
 function PaketGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { onFinish: (rv: number) => void, baseReward: number, rank?: number, rankName?: string }) {
   const [path, setPath] = useState([0]);
-  const obs = useRef(() => {
-    if (rank === 3) return [1, 2, 3, 7, 8, 12, 13, 16, 17];
-    if (rank === 2) return [1, 3, 7, 8, 12, 13, 16, 21];
-    if (rank === 1) return [3, 7, 8, 12, 16, 21];
-    return [3, 7, 12, 16, 21];
-  });
+  // obstacle list is static per render — no need for useRef
+  const obstacles: number[] = rank === 3 ? [1, 2, 3, 7, 8, 12, 13, 16, 17]
+    : rank === 2 ? [1, 3, 7, 8, 12, 13, 16, 21]
+    : rank === 1 ? [3, 7, 8, 12, 16, 21]
+    : [3, 7, 12, 16, 21];
   
   const handleTileClick = (i: number) => {
-    if (obs.current().includes(i)) return;
+    if (obstacles.includes(i)) return;
     if (path.includes(i)) { if (path[path.length - 2] === i) setPath(p => p.slice(0, -1)); return; }
     const last = path[path.length - 1];
     if ((Math.abs(last - i) === 1 && Math.floor(last / 5) === Math.floor(i / 5)) || Math.abs(last - i) === 5) {
@@ -361,20 +364,20 @@ function PaketGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { o
   return (
     <div className="flex flex-col items-center mt-8 flex-1">
       <DifficultyBadge rank={rank} rankName={rankName} />
-      <h3 className="font-display font-black text-xl text-gray-500 mb-6 uppercase">Hubungkan Rute Paket! ({obs.current().length} Rintangan)</h3>
+      <h3 className="font-display font-black text-xl text-gray-500 mb-6 uppercase">Hubungkan Rute Paket! ({obstacles.length} Rintangan)</h3>
       <div className="grid grid-cols-5 gap-2 bg-gray-100 p-4 rounded-[2rem] w-[320px] shadow-inner border-2 border-gray-200">
         {Array.from({length:25}).map((_, i) => {
           let bg = 'bg-white cursor-pointer hover:bg-pink-50';
           if (i === 0) bg = 'bg-green-500 text-white shadow-md font-black';
           else if (i === 24) bg = 'bg-[#ff758c] text-white shadow-md font-black animate-pulse';
-          else if (obs.current().includes(i)) bg = 'bg-gray-800 border-2 border-gray-900 cursor-not-allowed';
+          else if (obstacles.includes(i)) bg = 'bg-gray-800 border-2 border-gray-900 cursor-not-allowed';
           else if (path[path.length-1]===i) bg = 'bg-blue-500 scale-95 rounded-full border-4 border-white shadow-md';
           else if (path.includes(i)) bg = 'bg-blue-300';
           return <div key={i} onClick={() => handleTileClick(i)} className={`aspect-square rounded-xl flex items-center justify-center transition-all ${bg}`}>
             {i === 0 && "🚀"}
             {i === 24 && "🏠"}
-            {obs.current().includes(i) && "🚧"}
-          </div>
+            {obstacles.includes(i) && "🚧"}
+          </div>;
         })}
       </div>
     </div>
@@ -466,14 +469,18 @@ function CuciPiringGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }
   const initialTime = rank === 3 ? 8 : 10;
   const [clicks, setClicks] = useState(0);
   const [timeLeft, setTimeLeft] = useState(initialTime);
+  // ponytail: single done ref prevents double-onFinish when clicks and timeLeft both reach threshold same render
+  const done = useRef(false);
   useEffect(() => {
     const t = setInterval(() => setTimeLeft(l => l > 0 ? l - 1 : 0), 1000);
     return () => clearInterval(t);
   }, []);
   useEffect(() => {
-    if (clicks >= targetClicks) onFinish(baseReward);
-    else if (timeLeft <= 0) onFinish(0);
+    if (done.current) return;
+    if (clicks >= targetClicks) { done.current = true; onFinish(baseReward); }
+    else if (timeLeft <= 0) { done.current = true; onFinish(0); }
   }, [clicks, timeLeft]);
+
   return (
     <div className="flex flex-col items-center mt-8 flex-1 w-full text-center">
       <DifficultyBadge rank={rank} rankName={rankName} />
@@ -672,13 +679,16 @@ function TambangGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: {
   const initialTime = rank === 3 ? 9 : 10;
   const [clicks, setClicks] = useState(0);
   const [timeLeft, setTimeLeft] = useState(initialTime);
+  // ponytail: single done ref prevents double-onFinish when clicks and timeLeft both reach threshold same render
+  const done = useRef(false);
   useEffect(() => {
     const t = setInterval(() => setTimeLeft(l => l > 0 ? l - 1 : 0), 1000);
     return () => clearInterval(t);
   }, []);
   useEffect(() => {
-    if (clicks >= targetClicks) onFinish(baseReward);
-    else if (timeLeft <= 0) onFinish(0);
+    if (done.current) return;
+    if (clicks >= targetClicks) { done.current = true; onFinish(baseReward); }
+    else if (timeLeft <= 0) { done.current = true; onFinish(0); }
   }, [clicks, timeLeft]);
   return (
     <div className="flex flex-col items-center mt-8 flex-1 w-full text-center">
@@ -716,8 +726,11 @@ function ReparasiGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: 
 
   useEffect(() => {
     if (selL && selR) {
-      if (selL === selR) { setMatched([...matched, selL]); setSelL(null); setSelR(null); }
-      else { setTimeout(() => { setSelL(null); setSelR(null); }, 300); }
+      if (selL === selR) {
+        // ponytail: functional update avoids stale matched snapshot when two clicks fire in the same render
+        setMatched(prev => { const next = [...prev, selL]; return next; });
+        setSelL(null); setSelR(null);
+      } else { setTimeout(() => { setSelL(null); setSelR(null); }, 300); }
     }
   }, [selL, selR]);
   useEffect(() => { if (matched.length === numColors) setTimeout(() => onFinish(baseReward), 300); }, [matched, numColors]);
