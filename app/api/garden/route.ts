@@ -5,6 +5,8 @@ import { gardenPots, userProfiles } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { SEED_CATALOG } from '@/lib/livia/seeds';
+import { applyAffectionUpdate } from '@/lib/livia/affection.server';
+
 
 export const dynamic = 'force-dynamic';
 
@@ -131,6 +133,7 @@ export async function POST(req: Request) {
       const profit = Math.floor(baseCost * 1.45);
       
       let newAffection = profile.affection || 0;
+      let newLevel = profile.affectionLevel || 0;
       let newItemsBrought = profile.itemsBrought || [];
 
       if (seed?.yieldType === 'money_ingredient' && seed.ingredientId) {
@@ -138,14 +141,18 @@ export async function POST(req: Request) {
           newItemsBrought = [...newItemsBrought, seed.ingredientId];
         }
       } else {
-        newAffection += 3;
+        const affRes = await applyAffectionUpdate(userId, profile.affection || 0, 3);
+        newAffection = affRes.newAffection;
+        newLevel = affRes.affectionLevel;
       }
       
       await db.update(userProfiles).set({ 
         money: (profile.money || 0) + profit,
         affection: newAffection,
+        affectionLevel: newLevel,
         itemsBrought: newItemsBrought
       }).where(eq(userProfiles.userId, userId));
+
 
       // Reset pot
       await db.update(gardenPots).set({

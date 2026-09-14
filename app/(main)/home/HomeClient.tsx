@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { MessageSquare, Clock, BookOpen, Briefcase, Gift, MapPin, Wallet, Shirt, Menu, X, Heart, Moon, Utensils, Battery, Droplet, Sprout, Radio, Settings, Camera, Package, Calendar, Tv, Smile, Zap, Shield } from 'lucide-react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
@@ -295,12 +295,30 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
   const [itemsBrought] = useState(initialItemsBrought);
   const [outfit, setOutfit] = useState(initialOutfit);
   const [money, setMoney] = useState(0);
+  const pendingTouchDelta = useRef(0);
+  const touchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const syncTouchAffection = (delta: number) => {
+    pendingTouchDelta.current += delta;
+    if (touchDebounceTimer.current) clearTimeout(touchDebounceTimer.current);
+    touchDebounceTimer.current = setTimeout(() => {
+      const d = pendingTouchDelta.current;
+      if (d === 0) return;
+      pendingTouchDelta.current = 0;
+      fetch('/api/affection', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ delta: d, reason: 'interaction_touch' })
+      }).catch(console.error);
+    }, 400);
+  };
 
   useEffect(() => {
     if (affection >= 50) unlockAchievement('affection_50');
     if (affection >= 80) unlockAchievement('affection_80');
     if (money >= 1000) unlockAchievement('rich_1000');
   }, [affection, money]);
+
 
   const [greetingData, setGreetingData] = useState<{text: string, expression: LiviaExpression, isInvitingOut?: boolean, invitedPlace?: string}>({
     text: "Memuat...",
@@ -476,11 +494,8 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
     setShowEvent(false);
     
     setAffection(prev => Math.min(100, Math.max(0, prev + affectionChange)));
-    fetch('/api/affection', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ delta: affectionChange, reason: `interaction_touch_${part}` })
-    }).catch(console.error);
+    syncTouchAffection(affectionChange);
+
 
     const globalObj = window as any;
     if (globalObj.interactionTimeout) clearTimeout(globalObj.interactionTimeout);

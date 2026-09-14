@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { userProfiles, storyProgress } from '@/lib/db/schema';
+import { userProfiles } from '@/lib/db/schema';
 import { auth } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
-import { shouldUnlockChapter } from '@/lib/livia/affection';
+import { applyAffectionUpdate } from '@/lib/livia/affection.server';
 import { ITEMS } from '@/lib/livia/items';
+
 
 const RECOVERY_STATS: Record<string, {hunger?: number, energy?: number, hydration?: number}> = {
   onigiri: { hunger: 15, energy: 5 },
@@ -48,9 +49,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Not enough money' }, { status: 400 });
     }
 
-    const oldAffection = profile.affection || 0;
-    const newAffection = Math.min(100, oldAffection + affectionDelta);
-    const newLevel = Math.floor(newAffection / 20);
+    const { newAffection, affectionLevel: newLevel, unlockedChapter } = await applyAffectionUpdate(userId, profile.affection || 0, affectionDelta || 0);
     const newMoney = (profile.money || 0) - cost;
 
     const currentItems = profile.itemsBrought || [];
@@ -96,28 +95,6 @@ export async function POST(req: Request) {
         liviaHydration: newHydration
       })
       .where(eq(userProfiles.userId, userId));
-
-    const unlockedChapter = shouldUnlockChapter(oldAffection, newAffection);
-    let unlockedChapters = [0];
-
-    if (unlockedChapter !== null) {
-      const storyResults = await db.select().from(storyProgress).where(eq(storyProgress.userId, userId));
-      const story = storyResults[0];
-      if (story) {
-        const chapters = new Set(story.unlockedChapters || []);
-        chapters.add(unlockedChapter);
-        unlockedChapters = Array.from(chapters);
-        await db.update(storyProgress)
-          .set({ unlockedChapters })
-          .where(eq(storyProgress.userId, userId));
-      } else {
-        unlockedChapters = [0, unlockedChapter];
-        await db.insert(storyProgress).values({
-          userId,
-          unlockedChapters
-        });
-      }
-    }
 
     return NextResponse.json({ success: true, newMoney, newAffection, unlockedChapter });
   } catch (error) {

@@ -39,12 +39,22 @@ export function calculateAffectionDelta(response: LiviaResponse): number {
   }
 }
 
-export function shouldUnlockChapter(oldAffection: number, newAffection: number): number | null {
+export function getUnlockedChapters(oldAffection: number, newAffection: number): number[] {
   const oldLevel = getAffectionLevel(oldAffection);
   const newLevel = getAffectionLevel(newAffection);
   
-  if (newLevel.level > oldLevel.level) {
-    return newLevel.unlocksChapter;
+  if (newLevel.level <= oldLevel.level) return [];
+  
+  const chapters: number[] = [];
+  for (let lvl = oldLevel.level + 1; lvl <= newLevel.level; lvl++) {
+    const conf = AFFECTION_LEVELS[lvl];
+    if (conf) chapters.push(conf.unlocksChapter);
   }
-  return null;
+  return chapters;
 }
+
+export function shouldUnlockChapter(oldAffection: number, newAffection: number): number | null {
+  const chapters = getUnlockedChapters(oldAffection, newAffection);
+  return chapters.length > 0 ? chapters[chapters.length - 1] : null;
+}
+
