@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MessageSquare, Clock, BookOpen, Briefcase, Gift, MapPin, Wallet, Shirt, Menu, X, Heart, Moon, Utensils, Battery, Droplet, Sprout, Bed, Radio, Smartphone, Settings, Camera, Package, Calendar, Tv, Target, Smile, Zap, Shield } from 'lucide-react';
+import { MessageSquare, Clock, BookOpen, Briefcase, Gift, MapPin, Wallet, Shirt, Menu, X, Heart, Moon, Utensils, Battery, Droplet, Sprout, Radio, Settings, Camera, Package, Calendar, Tv, Smile, Zap, Shield } from 'lucide-react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
 import AffectionBar from '@/components/livia/AffectionBar';
 import { LiviaExpression } from '@/lib/gemini';
@@ -904,7 +904,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
                 <BottomMenuCard href="/date" icon={<MapPin size={24} />} title={dict?.nav?.date || 'Jalan'} />
               )}
               <BottomMenuCard href="/inventory" icon={<Package size={24} />} title={dict?.nav?.inventory || 'Tas'} />
-              <BottomMenuCard href="/bedroom" icon={<Bed size={24} />} title={dict?.nav?.home || 'Kamar'} />
+              <BottomMenuCard href="/lounge" icon={<Tv size={24} />} title={dict?.nav?.lounge || 'Santai'} />
               <BottomMenuCard href="/radio" icon={<Radio size={24} />} title={dict?.nav?.radio || 'Lofi'} />
               <BottomMenuCard href="/schedule" icon={<Calendar size={24} />} title={dict?.nav?.schedule || 'Jadwal'} />
               <BottomMenuCard href="/settings" icon={<Settings size={24} />} title={dict?.nav?.settings || 'Setelan'} />
