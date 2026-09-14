@@ -98,6 +98,43 @@ function parseJsonResponse(text: string): any {
   return JSON.parse(jsonStr);
 }
 
+function buildChatContents(
+  history: { role: string; content: string }[],
+  latestUserMessage: string
+): { role: 'user' | 'model'; parts: { text: string }[] }[] {
+  const contents: { role: 'user' | 'model'; parts: { text: string }[] }[] = [];
+
+  for (const msg of history) {
+    if (!msg.content || !msg.content.trim()) continue;
+    const role: 'user' | 'model' = msg.role === 'livia' ? 'model' : 'user';
+    
+    // Combine consecutive turns of the same role so Gemini does not error on repeated roles
+    if (contents.length > 0 && contents[contents.length - 1].role === role) {
+      contents[contents.length - 1].parts[0].text += `\n${msg.content.trim()}`;
+    } else {
+      contents.push({ role, parts: [{ text: msg.content.trim() }] });
+    }
+  }
+
+  // Gemini contents must begin with a 'user' turn
+  if (contents.length > 0 && contents[0].role === 'model') {
+    contents.shift();
+  }
+
+  // Append latest user message
+  if (contents.length > 0 && contents[contents.length - 1].role === roleLatest(contents)) {
+    contents[contents.length - 1].parts[0].text += `\n${latestUserMessage.trim()}`;
+  } else {
+    contents.push({ role: 'user', parts: [{ text: latestUserMessage.trim() }] });
+  }
+
+  return contents;
+}
+
+function roleLatest(contents: { role: string }[]): string {
+  return contents.length > 0 && contents[contents.length - 1].role === 'user' ? 'user' : 'model';
+}
+
 // --- AI generation functions ---
 
 export async function generateLiviaResponse(
@@ -115,7 +152,7 @@ export async function generateLiviaResponse(
   const affectionLevelName = getAffectionLevelName(affectionLevel);
   const levelStage = affectionLevel < 40 ? '0-1' : affectionLevel < 80 ? '2-3' : '4-5';
   const physiologicalContext = stats ? getPhysiologicalContext(stats) : '';
-  const memoryContext = `\nMemori Jangka Panjang Livia tentang User:\n${longTermMemory || 'Belum ada memori. Livia baru mengenal User.'}`;
+  const memoryContext = `\nMemori Jangka Panjang Livia tentang User:\n${longTermMemory || 'Belum ada memori khusus. Livia baru mengenal User.'}`;
   const languageRule = language === 'en'
     ? `- MUST REPLY IN NATURAL, CONVERSATIONAL ENGLISH while keeping her tsundere personality intact\n- Keep answers concise (max 3-4 sentences)`
     : `- Gunakan Bahasa Indonesia yang natural dan sehari-hari\n- Jangan terlalu panjang — maksimal 3-4 kalimat per respons`;
@@ -137,37 +174,37 @@ ${languageRule}
 - Tidak perlu selalu formal — boleh santai, ketus, atau manja sesuai mood
 - Tunjukkan emosi secara implisit melalui pilihan kata, bukan deskripsi eksplisit${isVoiceCall ? '\n\nATURAN KHUSUS PANGGILAN TELEPON (VOICE CALL):\n- INI ADALAH PANGGILAN TELEPON SUARA, BUKAN CHAT TEKS!\n- SANGAT DILARANG menggunakan tanda bintang untuk aksi fisik atau roleplay (contoh: *tersenyum*, *mengambil barang*), karena teks ini akan dibaca oleh mesin Text-to-Speech.\n- Jika ingin menunjukkan emosi, gunakan kata-kata lisan seperti "Hahaha", "Uhm...", "Eh?!", "Ck", "Huft".\n- Buat kalimat terdengar seperti percakapan lisan yang natural.' : ''}
 
+PENTING TENTANG RIWAYAT OBROLAN:
+Kamu dan User sedang mengobrol dalam satu room chat berkelanjutan. Kamu HARUS SELALU mengingat apa yang baru saja kalian bicarakan sebelumnya (topik, pertanyaan, nama, dll). Jawab secara natural dan sambungkan dengan obrolan sebelumnya. Jangan pernah bersikap seperti baru pertama kali disapa jika kalian sudah mengobrol di room ini!
+
 Kembalikan HANYA JSON valid:
 {
   "reply": "teks balasan Livia",
   "affectionDelta": angka antara -5 sampai 5,
   "expression": "normal" | "angry" | "blushing" | "clingy" | "happy" | "confused" | "flirty" | "pain" | "pleased" | "scared" | "serious" | "silly",
-  "memoryUpdate": "Catatan ringkas JIKA ada informasi penting baru dari user di chat ini (misal: user sedang skripsi, nama hewan peliharaan user, dll). Kosongkan (string kosong) jika tidak ada info penting baru."
+  "memoryUpdate": "Catatan ringkas JIKA ada fakta penting baru tentang user (misal: hobi, makanan kesukaan, nama panggilan, dll). Kosongkan jika tidak ada info penting baru."
 }
-
-affectionDelta positif jika user bilang sesuatu yang Livia suka (implisit), negatif jika Livia kesal. Pilih expression yang paling sesuai dengan isi reply.
 Hanya kembalikan JSON. Tidak ada teks lain.`;
 
   const client = getAIClient(customApiKey);
   const model = client.getGenerativeModel({
     model: "gemini-flash-latest",
-    generationConfig: { temperature: 0.8 },
+    systemInstruction: systemPrompt,
+    generationConfig: {
+      temperature: 0.8,
+      responseMimeType: "application/json",
+    },
   });
 
-  const formattedHistory = chatHistory
-    .map(msg => `${msg.role === 'livia' ? 'Livia' : 'User'}: ${msg.content}`)
-    .join('\n');
-
-  const fullPrompt = `${systemPrompt}\n\nRiwayat obrolan sejauh ini:\n${formattedHistory}\n\nUser: ${userMessage}\nLivia:`;
+  const contents = buildChatContents(chatHistory, userMessage);
 
   try {
-    const result = await callWithRetry(() => model.generateContent(fullPrompt));
+    const result = await callWithRetry(() => model.generateContent({ contents }));
     const text = result.response.text();
-    console.log("Raw Gemini Output:", text);
     const parsed = parseJsonResponse(text);
     return {
       reply: parsed.reply || "...",
-      affectionDelta: parsed.affectionDelta || 0,
+      affectionDelta: typeof parsed.affectionDelta === 'number' ? parsed.affectionDelta : 0,
       expression: parsed.expression || "normal",
       memoryUpdate: parsed.memoryUpdate || "",
     };
@@ -176,6 +213,7 @@ Hanya kembalikan JSON. Tidak ada teks lain.`;
     return { reply: "Apa sih? Jangan ganggu aku dulu.", affectionDelta: -1, expression: "angry" };
   }
 }
+
 
 export async function generateDateDialogue(
   location: string,
@@ -276,21 +314,24 @@ Kembalikan HANYA JSON valid:
 Hanya kembalikan JSON. Tidak ada teks lain.`;
 
   const client = getAIClient(customApiKey);
-  const model = client.getGenerativeModel({ model: "gemini-flash-latest", generationConfig: { temperature: 0.8 } });
+  const model = client.getGenerativeModel({
+    model: "gemini-flash-latest",
+    systemInstruction: systemPrompt,
+    generationConfig: {
+      temperature: 0.8,
+      responseMimeType: "application/json",
+    }
+  });
 
-  const formattedHistory = chatHistory
-    .map(msg => `${msg.role === 'livia' ? 'Livia' : msg.role === 'narator' ? 'Narator' : 'User'}: ${msg.content}`)
-    .join('\n');
-
-  const fullPrompt = `${systemPrompt}\n\nRiwayat obrolan kencan sejauh ini:\n${formattedHistory}\n\nUser (${userName}): ${userMessage}\nLivia:`;
+  const contents = buildChatContents(chatHistory, userMessage);
 
   try {
-    const result = await model.generateContent(fullPrompt);
+    const result = await callWithRetry(() => model.generateContent({ contents }));
     const text = result.response.text();
     const parsed = parseJsonResponse(text);
     return {
       reply: parsed.reply || "...",
-      affectionDelta: parsed.affectionDelta || 0,
+      affectionDelta: typeof parsed.affectionDelta === 'number' ? parsed.affectionDelta : 0,
       expression: parsed.expression || "normal",
       memoryUpdate: parsed.memoryUpdate || "",
     };
@@ -299,3 +340,4 @@ Hanya kembalikan JSON. Tidak ada teks lain.`;
     return { reply: "Apa sih? Jangan ngomong yang aneh-aneh di tempat umum.", affectionDelta: -1, expression: "angry" };
   }
 }
+

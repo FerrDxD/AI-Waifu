@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, ArrowLeft, CheckCircle2, Phone } from 'lucide-react';
 import Link from 'next/link';
+import { playSfx } from '@/lib/sfx';
+
 
 interface ChatMessage {
   id: string;
@@ -65,6 +67,7 @@ export default function ChatPage() {
   const handleSend = async () => {
     if (!input.trim() || loading) return;
 
+    playSfx('click');
     const userMsg = input.trim();
     setInput('');
     setMessages(prev => [...prev, {
@@ -84,19 +87,24 @@ export default function ChatPage() {
       const data = await res.json();
 
       if (data.reply) {
+        playSfx('pop');
         setMessages(prev => [...prev, {
           id: (Date.now() + 1).toString(),
           role: 'livia',
           content: data.reply,
           isNew: true,
         }]);
+      } else {
+        playSfx('error');
       }
     } catch (e) {
       console.error(e);
+      playSfx('error');
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="flex justify-center w-full h-[100dvh] overflow-hidden bg-[#f4f2ee] relative font-sans">

@@ -30,24 +30,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    // Fetch chatHistory (last 20) — ambil SEBELUM simpan pesan baru
+    // Fetch chatHistory (last 30 messages in room) — ambil SEBELUM simpan pesan baru
     const historyResults = await db.select()
       .from(chatMessages)
       .where(eq(chatMessages.userId, userId))
       .orderBy(desc(chatMessages.createdAt))
-      .limit(20);
+      .limit(30);
 
-    // Reverse ke chronological order
+    // Reverse ke urutan kronologis
     const chatHistory = historyResults.reverse().map((msg: any) => ({
       role: msg.role as 'user' | 'livia',
       content: msg.content
     }));
 
-    // ✅ FIX: Pastikan history selalu diakhiri dengan 'livia'
-    // Kalau pesan terakhir adalah 'user', ada orphan message — buang
-    while (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
-      chatHistory.pop();
-    }
 
     const personalityContext = generatePersonalityContext(profile.itemsBrought || []);
 
@@ -106,11 +101,18 @@ export async function POST(req: Request) {
       updateData.affectionLevel = updateResult.affectionLevel;
     }
 
-    // Update memory selalu
+    // Update memory terstruktur & bebas duplikasi
     if (memoryUpdate && memoryUpdate.trim() !== '') {
-      updateData.longTermMemory = profile.longTermMemory ? profile.longTermMemory + '\n- ' + memoryUpdate : '- ' + memoryUpdate;
+      const cleanFact = memoryUpdate.trim().replace(/^[-*•]\s*/, '');
+      const existing = (profile.longTermMemory || '').split('\n').map(s => s.trim()).filter(Boolean);
+      const factLine = `- ${cleanFact}`;
+      if (!existing.some(f => f.toLowerCase() === factLine.toLowerCase())) {
+        existing.push(factLine);
+        updateData.longTermMemory = existing.slice(-20).join('\n');
+      }
     }
     await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, userId));
+
 
     return NextResponse.json({
       reply,
