@@ -1320,6 +1320,52 @@ const getNaomiSpriteUrl = (expr?: string) => {
   return '/naomi/normal.webp';
 };
 
+// ponytail: double-buffered sprite for all story NPCs to eliminate blink and lag
+function StoryNPCSprite({
+  src,
+  alt,
+  fallbackSrc,
+  className = '',
+}: {
+  src: string;
+  alt: string;
+  fallbackSrc?: string;
+  className?: string;
+}) {
+  const [displayedSrc, setDisplayedSrc] = useState(src);
+
+  useEffect(() => {
+    if (src === displayedSrc) return;
+    let active = true;
+    const img = new window.Image();
+    img.src = src;
+    img.onload = () => {
+      if (active) setDisplayedSrc(src);
+    };
+    img.onerror = () => {
+      if (!active) return;
+      if (fallbackSrc) setDisplayedSrc(fallbackSrc);
+    };
+    return () => {
+      active = false;
+    };
+  }, [src, displayedSrc, fallbackSrc]);
+
+  return (
+    <img
+      src={displayedSrc}
+      alt={alt}
+      decoding="async"
+      className={`transition-opacity duration-150 ${className}`}
+      onError={() => {
+        if (fallbackSrc && displayedSrc !== fallbackSrc) {
+          setDisplayedSrc(fallbackSrc);
+        }
+      }}
+    />
+  );
+}
+
 export default function StoryPage() {
   const [unlockedChapters, setUnlockedChapters] = useState<number[]>([0]);
   const [activeChapter, setActiveChapter] = useState<Chapter | null>(null);
@@ -1523,18 +1569,31 @@ export default function StoryPage() {
 
     const loaded = new Set<string>();
     scenes.forEach(s => {
-      if (s.expression && !loaded.has(s.expression)) {
-        loaded.add(s.expression);
+      const expr = s.expression ? s.expression.replace(/-[0-9]+$/, '') : 'normal';
+      const key = `${s.speaker}:${s.expression || 'normal'}`;
+      if (loaded.has(key)) return;
+      loaded.add(key);
+
+      let url = '';
+      if (s.speaker === 'Livia') {
+        url = activeChapter.id <= 15
+          ? `/livia/Story-bab/${s.expression || 'normal'}.webp`
+          : `/livia/home-screen/${(userStats?.activeOutfit || 'default').replace('outfit_', '')}/${s.expression || 'normal'}.webp`;
+      } else if (s.speaker === 'Laura') {
+        url = `/laura/story-bab/${expr}.webp`;
+      } else if (s.speaker === 'Enji') {
+        url = `/enji/${expr}.webp`;
+      } else if (s.speaker === 'Ayame') {
+        url = `/ayame/${expr}.webp`;
+      } else if (s.speaker === 'Rikuto') {
+        url = `/ayame/rikuto.webp`;
+      } else if (s.speaker === 'Naomi') {
+        url = getNaomiSpriteUrl(s.expression);
+      }
+
+      if (url) {
         const img = new window.Image();
-        if (s.speaker === 'Livia') {
-          img.src = activeChapter.id <= 15
-            ? `/livia/Story-bab/${s.expression}.webp`
-            : `/livia/home-screen/${(userStats?.activeOutfit || 'default').replace('outfit_', '')}/${s.expression}.webp`;
-        } else if (s.speaker === 'Laura') {
-          img.src = `/laura/story-bab/${s.expression.replace(/-[0-9]+$/, '')}.webp`;
-        } else if (s.speaker === 'Enji') {
-          img.src = `/enji/${s.expression.replace(/-[0-9]+$/, '')}.webp`;
-        }
+        img.src = url;
       }
     });
   }, [activeChapter, userStats?.activeOutfit]);
@@ -1614,16 +1673,11 @@ export default function StoryPage() {
                     50% { transform: translateY(-10px); }
                   }
                 `}</style>
-                <img 
+                <StoryNPCSprite 
                   src={`/laura/story-bab/${scene?.speaker === 'Laura' ? scene.expression.replace(/-[0-9]+$/, '') : 'normal'}.webp`}
+                  fallbackSrc="/laura/story-bab/normal.webp"
                   alt="Laura"
-                  className="absolute inset-0 w-full h-full object-contain object-bottom origin-bottom mx-auto scale-[1.75] md:scale-[1.95] translate-y-[40%] md:translate-y-[50%] transition-all duration-300"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    if (!target.src.includes('normal.webp')) {
-                      target.src = '/laura/story-bab/normal.webp';
-                    }
-                  }}
+                  className="absolute inset-0 w-full h-full object-contain object-bottom origin-bottom mx-auto scale-[1.75] md:scale-[1.95] translate-y-[40%] md:translate-y-[50%]"
                 />
               </div>
             </div>
@@ -1640,16 +1694,11 @@ export default function StoryPage() {
                     50% { transform: translateY(-10px); }
                   }
                 `}</style>
-                <img 
+                <StoryNPCSprite 
                   src={`/enji/${scene?.speaker === 'Enji' ? scene.expression.replace(/-[0-9]+$/, '') : 'normal'}.webp`}
+                  fallbackSrc="/enji/normal.webp"
                   alt="Enji"
-                  className="absolute inset-0 w-full h-full object-contain object-bottom scale-[1.75] md:scale-[1.95] translate-y-[8%] md:translate-y-[11%] transition-all duration-300"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    if (!target.src.includes('normal.webp')) {
-                      target.src = '/enji/normal.webp';
-                    }
-                  }}
+                  className="absolute inset-0 w-full h-full object-contain object-bottom scale-[1.75] md:scale-[1.95] translate-y-[8%] md:translate-y-[11%]"
                 />
               </div>
             </div>
@@ -1665,16 +1714,11 @@ export default function StoryPage() {
                   50% { transform: translateY(-10px); }
                 }
               `}</style>
-              <img 
+              <StoryNPCSprite 
                 src={`/ayame/${scene?.speaker === 'Ayame' ? scene.expression.replace(/-[0-9]+$/, '') : 'normal'}.webp`}
+                fallbackSrc="/ayame/normal.webp"
                 alt="Ayame"
-                className="w-full h-full object-cover md:object-contain scale-[1.55] md:scale-[1.65] translate-y-[25%] md:translate-y-[30%] transition-all duration-300"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (!target.src.includes('normal.webp')) {
-                    target.src = '/ayame/normal.webp';
-                  }
-                }}
+                className="w-full h-full object-cover md:object-contain scale-[1.55] md:scale-[1.65] translate-y-[25%] md:translate-y-[30%]"
               />
             </div>
 
@@ -1689,16 +1733,10 @@ export default function StoryPage() {
                   50% { transform: translateY(-10px); }
                 }
               `}</style>
-              <img 
-                src={`/ayame/rikuto.webp`}
+              <StoryNPCSprite 
+                src="/ayame/rikuto.webp"
                 alt="Rikuto"
-                className="w-full h-full object-cover md:object-contain scale-[1.55] md:scale-[1.65] translate-y-[25%] md:translate-y-[30%] transition-all duration-300"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (!target.src.includes('rikuto.webp')) {
-                    target.src = '/ayame/rikuto.webp';
-                  }
-                }}
+                className="w-full h-full object-cover md:object-contain scale-[1.55] md:scale-[1.65] translate-y-[25%] md:translate-y-[30%]"
               />
             </div>
             {/* Naomi */}
@@ -1712,16 +1750,11 @@ export default function StoryPage() {
                   50% { transform: translateY(-10px); }
                 }
               `}</style>
-              <img 
+              <StoryNPCSprite 
                 src={getNaomiSpriteUrl(scene?.speaker === 'Naomi' ? scene.expression : 'normal')}
+                fallbackSrc="/naomi/normal.webp"
                 alt="Naomi"
-                className="w-full h-full object-cover md:object-contain scale-[1.55] md:scale-[1.65] translate-y-[25%] md:translate-y-[30%] transition-all duration-300"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (!target.src.includes('normal.webp')) {
-                    target.src = '/naomi/normal.webp';
-                  }
-                }}
+                className="w-full h-full object-cover md:object-contain scale-[1.55] md:scale-[1.65] translate-y-[25%] md:translate-y-[30%]"
               />
             </div>
           </div>
