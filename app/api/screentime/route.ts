@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { screenTimeLogs, userProfiles } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 export async function POST(req: Request) {
   try {
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     } 
     
     if (action === 'end' && sessionId) {
-      const logResults = await db.select().from(screenTimeLogs).where(eq(screenTimeLogs.id, sessionId));
+      const logResults = await db.select().from(screenTimeLogs).where(and(eq(screenTimeLogs.id, sessionId), eq(screenTimeLogs.userId, userId)));
       const log = logResults[0];
       
       if (!log || !log.sessionStart) {

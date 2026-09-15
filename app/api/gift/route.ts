@@ -39,7 +39,9 @@ export async function POST(req: Request) {
     
     const userId = session.user.id;
     const body = await req.json();
-    const { cost, affectionDelta } = body;
+    let { cost, affectionDelta } = body;
+    cost = Math.max(0, Number(cost) || 0);
+    affectionDelta = Math.max(-30, Math.min(Number(affectionDelta) || 0, 30));
 
     const profileResults = await db.select().from(userProfiles).where(eq(userProfiles.userId, userId));
     const profile = profileResults[0];

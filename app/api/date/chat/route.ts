@@ -6,10 +6,17 @@ import { users, userProfiles } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { applyAffectionUpdate } from '@/lib/livia/affection.server';
 
+import { aiRateLimit } from '@/lib/rate-limit';
+
 export async function POST(req: Request) {
   try {
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { success } = await aiRateLimit.limit(`date_${session.user.id}`);
+    if (!success) {
+      return NextResponse.json({ error: 'Terlalu banyak request, tunggu sebentar.' }, { status: 429 });
+    }
 
     const customApiKey = extractCustomApiKey(req);
     const language = extractLanguage(req);

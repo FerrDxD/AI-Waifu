@@ -7,11 +7,19 @@ import { generateLiviaResponse, extractCustomApiKey, extractLanguage } from '@/l
 import { generatePersonalityContext } from '@/lib/livia/personality';
 import { applyAffectionUpdate } from '@/lib/livia/affection.server';
 
+import { aiRateLimit } from '@/lib/rate-limit';
+
 export async function POST(req: Request) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate Limiter
+    const { success } = await aiRateLimit.limit(`chat_${session.user.id}`);
+    if (!success) {
+      return NextResponse.json({ error: 'Terlalu banyak request, tunggu sebentar.' }, { status: 429 });
     }
 
     const { message, isVoiceCall } = await req.json();

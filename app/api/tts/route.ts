@@ -1,11 +1,23 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+
+import { aiRateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) return new NextResponse('Unauthorized', { status: 401 });
+
+    const { success } = await aiRateLimit.limit(`tts_${session.user.id}`);
+    if (!success) {
+      return new NextResponse('Terlalu banyak request, tunggu sebentar.', { status: 429 });
+    }
+
     const { text } = await req.json();
     if (!text) {
       return new NextResponse('Text is required', { status: 400 });
     }
+    const safeText = text.slice(0, 300);
 
     const apiKey = process.env.ELEVENLABS_API_KEY;
     // Force override Voice ID to "Bella" (Premade Voice) because .env changes require a server restart to take effect
@@ -23,7 +35,7 @@ export async function POST(req: Request) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        text,
+        text: safeText,
         model_id: 'eleven_multilingual_v2', // Multilingual model for Indonesian
         voice_settings: {
           stability: 0.4,

@@ -1,15 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { 
-  ChevronLeft, Tv, Power, RefreshCw, Radio, ExternalLink, 
-  X, Volume2, Sparkles, Newspaper, ChevronRight, Heart
+  ChevronLeft, Power, RefreshCw, Radio, ExternalLink, 
+  X, Sparkles, Newspaper 
 } from 'lucide-react';
-import LoadingScreen from '@/components/ui/LoadingScreen';
-import LiviaSprite from '@/components/livia/LiviaSprite';
-import { LiviaExpression } from '@/lib/gemini';
 import { playSfx } from '@/lib/sfx';
+
 
 interface NewsItem {
   title: string;
@@ -69,9 +67,6 @@ const CHANNELS: ChannelDef[] = [
 ];
 
 export default function LoungePage() {
-  const [loading, setLoading] = useState(true);
-  const [outfit, setOutfit] = useState('default');
-  
   // TV State
   const [isTvOn, setIsTvOn] = useState(false);
   const [currentChannelIndex, setCurrentChannelIndex] = useState(0);
@@ -79,9 +74,8 @@ export default function LoungePage() {
   const [newsList, setNewsList] = useState<NewsItem[]>([]);
   const [isFetchingNews, setIsFetchingNews] = useState(false);
   
-  // Livia State
-  const [liviaExpression, setLiviaExpression] = useState<LiviaExpression>('normal');
-  const [liviaComment, setLiviaComment] = useState<string>("Sofa ini empuk banget. Sini duduk bareng!");
+  // Livia Commentary State
+  const [liviaComment, setLiviaComment] = useState<string>("Sofa ini empuk banget. Sini duduk!");
   
   // Selected Article Modal State
   const [selectedArticle, setSelectedArticle] = useState<NewsItem | null>(null);
@@ -89,15 +83,6 @@ export default function LoungePage() {
   // In-memory cache for news channels
   const channelCache = useRef<Record<string, NewsItem[]>>({});
 
-  useEffect(() => {
-    fetch('/api/affection')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => {
-        if (d?.activeOutfit) setOutfit(d.activeOutfit);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
 
   const currentChannel = CHANNELS[currentChannelIndex];
   const currentNews = newsList[newsIndex];
@@ -141,7 +126,6 @@ export default function LoungePage() {
       }];
       setNewsList(fallback);
       setNewsIndex(0);
-      setLiviaExpression('confused');
       setLiviaComment("Hmm... antenanya agak kresek-kresek. Coba ganti channel lain deh.");
     } finally {
       setIsFetchingNews(false);
@@ -155,7 +139,6 @@ export default function LoungePage() {
       fetchChannelNews(currentChannel, newsIndex);
     } else {
       setIsTvOn(false);
-      setLiviaExpression('angry');
       setLiviaComment("Yah, kok dimatiin sih? Padahal tadi lagi seru nontonnya.");
     }
   };
@@ -190,37 +173,29 @@ export default function LoungePage() {
     const lower = headline.toLowerCase();
 
     if (lower.includes('gempa') || lower.includes('banjir') || lower.includes('bencana') || lower.includes('tewas')) {
-      setLiviaExpression('scared');
       setLiviaComment("Duh serem banget... Semoga semua orang di sana selamat dan aman ya.");
     } else if (lower.includes('korupsi') || lower.includes('pidana') || lower.includes('polisi') || lower.includes('sidang')) {
-      setLiviaExpression('angry');
       setLiviaComment("Hih, berita beginian lagi! Bikin naik darah aja lihatnya.");
     } else if (lower.includes('menang') || lower.includes('timnas') || lower.includes('juara') || lower.includes('emas')) {
-      setLiviaExpression('happy');
       setLiviaComment("Wah keren banget! Mereka menang! Kamu tadi nonton pertandingannya nggak?");
     } else if (channelId === 'tekno' || lower.includes('ai') || lower.includes('game') || lower.includes('robot')) {
-      setLiviaExpression('pleased');
-      setLiviaComment("Teknologi sekarang cepat banget ya berkembangnya... Jadi kepikiran, aku ini di matamu secanggih itu nggak?");
+      setLiviaComment("Teknologi sekarang cepat banget ya berkembangnya... Menarik juga.");
     } else if (channelId === 'hiburan' || lower.includes('film') || lower.includes('konser') || lower.includes('lagu')) {
-      setLiviaExpression('blushing');
       setLiviaComment("Eh, itu film baru yang lagi rame ya? K-kapan-kapan ajak aku nonton bioskop dong...");
     } else {
-      setLiviaExpression('normal');
       setLiviaComment("Oh, jadi gitu berita hari ini. Enak ya nonton berita sambil santai di sofa gini.");
     }
   };
 
-  const handleTapLivia = () => {
+  const handleTapLounge = () => {
     playSfx('pop');
     if (!isTvOn) {
-      setLiviaExpression('blushing');
-      setLiviaComment("K-kenapa senggol-senggol? Nyalain TV-nya dong, biar kosan nggak sepi!");
+      setLiviaComment("Nyalain TV-nya dong, biar kosan nggak sepi!");
     } else {
-      setLiviaExpression('happy');
       const comments = [
-        "Nonton TV bareng kamu di sofa gini... lumayan nyaman juga sih.",
+        "Nonton TV santai gini... lumayan nyaman juga ya.",
         "Mau camilan nggak? Tadi aku lihat di kulkas ada minuman dingin.",
-        "Jangan cuma liatin aku terus! Liat tuh layarnya, beritanya seru tau.",
+        "Liat tuh layarnya, beritanya seru tau.",
         "Habis ini ganti ke channel hiburan ya, jangan berita politik mulu!"
       ];
       setLiviaComment(comments[Math.floor(Math.random() * comments.length)]);
@@ -232,9 +207,6 @@ export default function LoungePage() {
     setSelectedArticle(item);
   };
 
-  if (loading) {
-    return <LoadingScreen text="Memasuki Lounge..." />;
-  }
 
   return (
     <div className="min-h-[100dvh] w-full bg-[#14151c] relative flex flex-col items-center justify-end overflow-hidden select-none font-sans">
@@ -332,39 +304,29 @@ export default function LoungePage() {
       </div>
 
       {/* Sofa (Foreground element) */}
-      <div className="absolute bottom-0 w-full max-w-[850px] h-32 md:h-44 z-10 pointer-events-none">
-        <div className="w-full h-full bg-[#6d5345] rounded-t-[3rem] md:rounded-t-[4.5rem] shadow-[inset_0_20px_30px_rgba(255,255,255,0.08),0_-10px_30px_rgba(0,0,0,0.5)] border-t-8 border-[#7f6354] relative">
+      <div 
+        onClick={handleTapLounge}
+        className="absolute bottom-0 w-full max-w-[850px] h-28 md:h-40 z-10 cursor-pointer pointer-events-auto group"
+        title="Duduk santai di sofa"
+      >
+        <div className="w-full h-full bg-[#6d5345] rounded-t-[3rem] md:rounded-t-[4.5rem] shadow-[inset_0_20px_30px_rgba(255,255,255,0.08),0_-10px_30px_rgba(0,0,0,0.5)] border-t-8 border-[#7f6354] relative transition-transform duration-300 group-hover:brightness-105">
           <div className="absolute top-0 bottom-0 left-1/3 w-2 bg-[#594236] shadow-inner" />
           <div className="absolute top-0 bottom-0 right-1/3 w-2 bg-[#594236] shadow-inner" />
         </div>
       </div>
 
-      {/* Livia Sitting on the Sofa (Interactive Sprite) */}
-      <div 
-        onClick={handleTapLivia}
-        className="absolute bottom-16 md:bottom-24 right-6 sm:right-16 md:right-28 z-20 cursor-pointer group"
-        title="Sapa Livia"
-      >
-        <LiviaSprite 
-          expression={liviaExpression} 
-          outfit={outfit}
-          variant="home"
-          disableFloat={true}
-          className="h-44 sm:h-56 md:h-64 aspect-[2/3] transition-transform duration-300 group-hover:scale-105"
-          imgClassName="object-contain object-bottom drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)]"
-        />
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 text-gray-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-md whitespace-nowrap pointer-events-none">
-          Sapa Livia ✧
-        </div>
-      </div>
-
       {/* Livia Dialogue Commentary Bar */}
-      <div className="absolute bottom-24 md:bottom-28 left-4 md:left-12 z-30 w-[88%] md:max-w-md transition-all duration-500">
-        <div className="p-3.5 md:p-4 rounded-2xl bg-[#1c1e27]/95 backdrop-blur-xl border border-gray-700/80 shadow-2xl flex items-center gap-3">
-          <div className="bg-gradient-to-r from-pink-500 to-rose-400 text-white font-black text-[11px] px-3 py-1 rounded-full shadow-md shrink-0 uppercase tracking-wider">
+      <div className="absolute bottom-20 md:bottom-24 left-1/2 -translate-x-1/2 z-30 w-[90%] max-w-lg transition-all duration-500">
+        <div 
+          onClick={handleTapLounge}
+          className="p-3 md:p-3.5 rounded-2xl bg-[#1c1e27]/95 backdrop-blur-xl border border-gray-700/80 shadow-2xl flex items-center gap-3 cursor-pointer hover:border-pink-500/40 transition-all active:scale-[0.99]"
+          title="Klik untuk mendengar celoteh Livia"
+        >
+          <div className="bg-gradient-to-r from-pink-500 to-rose-400 text-white font-black text-[10px] md:text-[11px] px-2.5 py-1 rounded-full shadow-md shrink-0 uppercase tracking-wider flex items-center gap-1">
+            <Sparkles size={12} />
             Livia
           </div>
-          <p className="font-medium text-gray-200 text-xs md:text-sm leading-relaxed flex-1">
+          <p className="font-medium text-gray-200 text-xs md:text-sm leading-relaxed flex-1 italic">
             "{liviaComment}"
           </p>
         </div>

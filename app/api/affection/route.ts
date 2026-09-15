@@ -93,10 +93,11 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { delta, reason } = await req.json();
+    let { delta, reason } = await req.json();
     if (typeof delta !== 'number') {
       return NextResponse.json({ error: 'Invalid delta' }, { status: 400 });
     }
+    delta = Math.max(-20, Math.min(delta, 20));
 
     const userId = session.user.id;
 

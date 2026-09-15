@@ -19,17 +19,7 @@ export async function POST(req: Request) {
     }
 
     if (action === 'reset') {
-      const existingUserResults = await db.select().from(users).where(or(eq(users.email, identifier), eq(users.username, identifier)));
-      const existingUser = existingUserResults[0];
-
-      if (!existingUser) {
-        return NextResponse.json({ error: 'Email atau username tidak ditemukan' }, { status: 404 });
-      }
-
-      const hashedPassword = await hash(newPassword, 12);
-      await db.update(users).set({ password: hashedPassword }).where(eq(users.id, existingUser.id));
-
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ error: 'Fitur reset password dinonaktifkan sementara untuk keamanan (butuh OTP/Token).' }, { status: 501 });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

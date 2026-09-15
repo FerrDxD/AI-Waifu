@@ -11,11 +11,13 @@ export async function POST(req: Request) {
     
     const userId = session.user.id;
     const body = await req.json();
-    const { earnedRv, jobId } = body;
+    let { earnedRv, jobId } = body;
     
     if (typeof earnedRv !== 'number') {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
+    
+    earnedRv = Math.max(0, Math.min(earnedRv, 1000));
 
     const profileResults = await db.select().from(userProfiles).where(eq(userProfiles.userId, userId));
     const profile = profileResults[0];
