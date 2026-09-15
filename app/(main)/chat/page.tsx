@@ -177,18 +177,11 @@ export default function ChatPage() {
                 )}
 
                 <div
-                  className="max-w-[75%] md:max-w-[60%] px-4 py-2.5 md:px-5 md:py-3 text-[14px] md:text-[15px] leading-relaxed shadow-sm relative break-words"
-                  style={msg.role === 'livia' ? {
-                    background: '#ffffff',
-                    borderRadius: '4px 18px 18px 18px',
-                    color: '#333333',
-                    fontWeight: 500
-                  } : {
-                    background: '#ff758c',
-                    borderRadius: '18px 4px 18px 18px',
-                    color: '#ffffff',
-                    fontWeight: 500
-                  }}
+                  className={`max-w-[75%] md:max-w-[60%] px-4 py-2.5 md:px-5 md:py-3 text-[16px] leading-relaxed shadow-sm relative break-words font-medium ${
+                    msg.role === 'livia'
+                      ? 'bg-white text-gray-800 rounded-[4px_18px_18px_18px]'
+                      : 'bg-rose-500 text-white rounded-[18px_4px_18px_18px]'
+                  }`}
                 >
                   {msg.role === 'livia' && msg.isNew ? <TypewriterText text={msg.content} /> : msg.content}
                 </div>
@@ -224,7 +217,7 @@ export default function ChatPage() {
           </div>
 
             {/* Input area */}
-          <div className="px-4 md:px-6 py-2 md:py-3 bg-[#f0f2f5] flex items-end gap-2 md:gap-3 z-20 border-t border-gray-200">
+          <div className="px-4 md:px-6 py-2 md:py-3 bg-slate-50 flex items-end gap-2 md:gap-3 z-20 border-t border-gray-200">
             <textarea
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -237,22 +230,12 @@ export default function ChatPage() {
               placeholder="Ketik balasan..."
               rows={1}
               disabled={loading}
-              className="flex-1 resize-none py-3 md:py-3.5 px-5 md:px-6 text-[15px] focus:outline-none transition-all placeholder:text-gray-400 bg-white rounded-3xl border border-transparent focus:border-gray-300 shadow-sm"
-              style={{
-                color: '#333',
-                maxHeight: '120px',
-                minHeight: '50px',
-              }}
+              className="flex-1 resize-none py-3 md:py-3.5 px-5 md:px-6 text-[16px] text-gray-800 focus:outline-none transition-all placeholder:text-gray-400 bg-white rounded-3xl border border-transparent focus:border-gray-300 shadow-sm min-h-[50px] max-h-[120px]"
             />
             <button
               onClick={handleSend}
               disabled={loading || !input.trim()}
-              className="shrink-0 w-12 h-12 flex items-center justify-center rounded-full transition-all shadow-sm"
-              style={{
-                background: input.trim() && !loading ? '#ff758c' : '#e4e6eb',
-                color: input.trim() && !loading ? '#ffffff' : '#b0b3b8',
-                transform: input.trim() && !loading ? 'scale(1)' : 'scale(0.95)'
-              }}
+              className="shrink-0 w-12 h-12 flex items-center justify-center rounded-full transition-all shadow-sm bg-rose-500 text-white disabled:bg-gray-200 disabled:text-gray-400 scale-100 disabled:scale-95"
             >
               <Send size={18} className={`${input.trim() && !loading ? "ml-1" : ""}`} />
             </button>
