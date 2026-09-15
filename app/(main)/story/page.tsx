@@ -529,7 +529,7 @@ const CHAPTERS: Chapter[] = [
       },
       { speaker: "Livia", text: "Mana ada lima menit! Minimal lima jam!", expression: "angry-7","bg":"7.1", nextIndex: 8 },
       { speaker: "Livia", text: "Biarin! Biar kita jadi duo pemalas sejati!", expression: "happy-7","bg":"7.1", nextIndex: 8 },
-      { speaker: "Livia", text: "Makanya buruan sini, selimutnya masih muat kok buat berdua.", expression: "pleased-7", nextIndex: 8 },
+      { speaker: "Livia", text: "Makanya buruan sini, selimutnya masih muat kok buat berdua.", expression: "pleased-7", "bg":"7.1", nextIndex: 8 },
       { speaker: "Narator", text: "Kamu akhirnya mengalah. Meninggalkan mejamu, kamu ikut berbaring di sebelah Livia.", expression: "normal-7","bg":"7.1" },
       { speaker: "Narator", text: "Livia dengan cepat menarik ujung selimutnya dan menutupi tubuhmu juga. Kehangatan langsung menjalar.", expression: "normal-7","bg":"7.1" },
       { speaker: "Livia", text: "Hehe... nyaman banget kan? Sesekali jadi kaum rebahan itu nggak ada salahnya.", expression: "happy-7","bg":"7.1" },
@@ -842,7 +842,7 @@ const CHAPTERS: Chapter[] = [
           { text: "Pilih menu tradisional aja biar keluarga besar senang.", nextIndex: 7 }
         ]
       },
-      { speaker: "Livia", text: "Bener juga! Apalagi rendang sapi, wajib ada tuh!", expression: "happy", nextIndex: 8 },
+      { speaker: "Livia", text: "Bener juga! Apalagi rendang sapi, wajib ada tuh!", expression: "happy", "bg":"6.1", nextIndex: 8 },
       { speaker: "Livia", text: "Kamu gila ya?! Bisa-bisa ibu ngamuk kalau tamu disuguhin mie instan doang!", expression: "angry", "bg":"6.1", nextIndex: 8 },
       { speaker: "Livia", text: "Masuk akal sih. Ibu pasti lebih suka masakan lokal ketimbang pasta-pastaan.", expression: "normal", "bg":"6.1", nextIndex: 8 },
       { speaker: "Narator", text: "Livia mencoret salah satu menu di brosur, lalu merebahkan tubuhnya ke karpet sambil membuang napas panjang.", expression: "normal", "bg":"6.1" },
@@ -1543,8 +1543,8 @@ export default function StoryPage() {
   const scene = activeChapter ? currentScenes[sceneIndex] : null;
 
   // ponytail: manage active backgrounds (max 2 in DOM) to eliminate network choke
-  const targetBg = String(scene?.bg || (activeChapter ? activeChapter.id : 0));
   const [activeBgs, setActiveBgs] = useState<string[]>([]);
+  const targetBg = String(scene?.bg || (activeBgs.length > 0 ? activeBgs[activeBgs.length - 1] : (activeChapter ? activeChapter.id : 0)));
 
   useEffect(() => {
     if (!activeChapter) {
