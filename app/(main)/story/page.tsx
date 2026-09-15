@@ -1589,7 +1589,7 @@ export default function StoryPage() {
           <div className="flex-1 w-full max-w-4xl grid grid-cols-1 grid-rows-1 justify-items-center items-end z-10 min-h-[40vh] md:min-h-0">
             {/* Livia */}
             <div 
-              className="col-start-1 row-start-1 h-[65vh] md:h-[75vh] landscape:h-[80vh] aspect-[9/16] md:aspect-[2/3] drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)] animate-[float_4s_ease-in-out_infinite]"
+              className="col-start-1 row-start-1 h-[55vh] md:h-[60vh] landscape:h-[70vh] aspect-[2/3] drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)] animate-[float_4s_ease-in-out_infinite]"
               style={{ opacity: (scene?.speaker === 'Livia' && !scene?.hideSprite) ? 1 : 0, pointerEvents: (scene?.speaker === 'Livia' && !scene?.hideSprite) ? 'auto' : 'none' }}
             >
               <LiviaSprite 
@@ -1597,17 +1597,17 @@ export default function StoryPage() {
                 outfit={userStats?.activeOutfit || 'default'}
                 variant={activeChapter.id <= 15 ? 'story' : 'home'}
                 chapterId={activeChapter.id}
-                className="h-full w-full" 
-                imgClassName="object-contain object-bottom"
+                className="h-full w-full max-w-[600px]" 
+                imgClassName="object-contain object-bottom scale-[1.5] md:scale-[1.75] translate-y-[25%] md:translate-y-[35%]"
               />
             </div>
             
             {/* Laura */}
             <div 
-              className="col-start-1 row-start-1 h-[65vh] md:h-[75vh] landscape:h-[80vh] aspect-[9/16] md:aspect-[2/3] drop-shadow-[0_20px_40px_rgba(150,150,200,0.3)]"
+              className="col-start-1 row-start-1 h-[55vh] md:h-[60vh] landscape:h-[70vh] aspect-[2/3] drop-shadow-[0_20px_40px_rgba(150,150,200,0.3)]"
               style={{ opacity: (scene?.speaker === 'Laura' && !scene?.hideSprite) ? 1 : 0, pointerEvents: (scene?.speaker === 'Laura' && !scene?.hideSprite) ? 'auto' : 'none' }}
             >
-              <div className="relative flex items-end justify-center h-full w-full animate-[float_3s_ease-in-out_infinite]">
+              <div className="relative flex items-end justify-center h-full w-full max-w-[600px] animate-[float_3s_ease-in-out_infinite]">
                 <style>{`
                   @keyframes float {
                     0%, 100% { transform: translateY(0px); }
@@ -1617,7 +1617,7 @@ export default function StoryPage() {
                 <img 
                   src={`/laura/story-bab/${scene?.speaker === 'Laura' ? scene.expression.replace(/-[0-9]+$/, '') : 'normal'}.webp`}
                   alt="Laura"
-                  className="absolute inset-0 w-full h-full object-contain object-bottom origin-bottom mx-auto transition-all duration-300"
+                  className="absolute inset-0 w-full h-full object-contain object-bottom origin-bottom mx-auto scale-[1.75] md:scale-[1.95] translate-y-[40%] md:translate-y-[50%] transition-all duration-300"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     if (!target.src.includes('normal.webp')) {
@@ -1630,10 +1630,10 @@ export default function StoryPage() {
 
             {/* Enji */}
             <div 
-              className="col-start-1 row-start-1 h-[65vh] md:h-[75vh] landscape:h-[80vh] aspect-[9/16] md:aspect-[2/3] drop-shadow-[0_20px_40px_rgba(100,120,150,0.3)]"
+              className="col-start-1 row-start-1 h-[55vh] md:h-[60vh] landscape:h-[70vh] aspect-[2/3] drop-shadow-[0_20px_40px_rgba(100,120,150,0.3)]"
               style={{ opacity: (scene?.speaker === 'Enji' && !scene?.hideSprite) ? 1 : 0, pointerEvents: (scene?.speaker === 'Enji' && !scene?.hideSprite) ? 'auto' : 'none' }}
             >
-              <div className="relative flex items-end justify-center h-full w-full animate-[float_3s_ease-in-out_infinite]">
+              <div className="relative flex items-end justify-center h-full w-full max-w-[600px] animate-[float_3s_ease-in-out_infinite]">
                 <style>{`
                   @keyframes float {
                     0%, 100% { transform: translateY(0px); }
@@ -1643,7 +1643,7 @@ export default function StoryPage() {
                 <img 
                   src={`/enji/${scene?.speaker === 'Enji' ? scene.expression.replace(/-[0-9]+$/, '') : 'normal'}.webp`}
                   alt="Enji"
-                  className="absolute inset-0 w-full h-full object-contain object-bottom transition-all duration-300"
+                  className="absolute inset-0 w-full h-full object-contain object-bottom scale-[1.75] md:scale-[1.95] translate-y-[8%] md:translate-y-[11%] transition-all duration-300"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     if (!target.src.includes('normal.webp')) {
@@ -1656,79 +1656,73 @@ export default function StoryPage() {
 
             {/* Ayame */}
             <div 
-              className="col-start-1 row-start-1 h-[65vh] md:h-[75vh] landscape:h-[80vh] aspect-[9/16] md:aspect-[2/3] drop-shadow-[0_20px_40px_rgba(200,150,150,0.3)]"
+              className="col-start-1 row-start-1 absolute inset-0 w-full h-full z-10 animate-[float_3s_ease-in-out_infinite]"
               style={{ opacity: (scene?.speaker === 'Ayame' && !scene?.hideSprite) ? 1 : 0, pointerEvents: (scene?.speaker === 'Ayame' && !scene?.hideSprite) ? 'auto' : 'none' }}
             >
-              <div className="relative flex items-end justify-center h-full w-full animate-[float_3s_ease-in-out_infinite]">
-                <style>{`
-                  @keyframes float {
-                    0%, 100% { transform: translateY(0px); }
-                    50% { transform: translateY(-10px); }
+              <style>{`
+                @keyframes float {
+                  0%, 100% { transform: translateY(0px); }
+                  50% { transform: translateY(-10px); }
+                }
+              `}</style>
+              <img 
+                src={`/ayame/${scene?.speaker === 'Ayame' ? scene.expression.replace(/-[0-9]+$/, '') : 'normal'}.webp`}
+                alt="Ayame"
+                className="w-full h-full object-cover md:object-contain scale-[1.55] md:scale-[1.65] translate-y-[25%] md:translate-y-[30%] transition-all duration-300"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.src.includes('normal.webp')) {
+                    target.src = '/ayame/normal.webp';
                   }
-                `}</style>
-                <img 
-                  src={`/ayame/${scene?.speaker === 'Ayame' ? scene.expression.replace(/-[0-9]+$/, '') : 'normal'}.webp`}
-                  alt="Ayame"
-                  className="w-full h-full object-contain object-bottom transition-all duration-300"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    if (!target.src.includes('normal.webp')) {
-                      target.src = '/ayame/normal.webp';
-                    }
-                  }}
-                />
-              </div>
+                }}
+              />
             </div>
 
             {/* Rikuto */}
             <div 
-              className="col-start-1 row-start-1 h-[65vh] md:h-[75vh] landscape:h-[80vh] aspect-[9/16] md:aspect-[2/3] drop-shadow-[0_20px_40px_rgba(100,150,200,0.3)]"
+              className="col-start-1 row-start-1 absolute inset-0 w-full h-full z-10 animate-[float_3s_ease-in-out_infinite]"
               style={{ opacity: (scene?.speaker === 'Rikuto' && !scene?.hideSprite) ? 1 : 0, pointerEvents: (scene?.speaker === 'Rikuto' && !scene?.hideSprite) ? 'auto' : 'none' }}
             >
-              <div className="relative flex items-end justify-center h-full w-full animate-[float_3s_ease-in-out_infinite]">
-                <style>{`
-                  @keyframes float {
-                    0%, 100% { transform: translateY(0px); }
-                    50% { transform: translateY(-10px); }
+              <style>{`
+                @keyframes float {
+                  0%, 100% { transform: translateY(0px); }
+                  50% { transform: translateY(-10px); }
+                }
+              `}</style>
+              <img 
+                src={`/ayame/rikuto.webp`}
+                alt="Rikuto"
+                className="w-full h-full object-cover md:object-contain scale-[1.55] md:scale-[1.65] translate-y-[25%] md:translate-y-[30%] transition-all duration-300"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.src.includes('rikuto.webp')) {
+                    target.src = '/ayame/rikuto.webp';
                   }
-                `}</style>
-                <img 
-                  src={`/ayame/rikuto.webp`}
-                  alt="Rikuto"
-                  className="w-full h-full object-contain object-bottom transition-all duration-300"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    if (!target.src.includes('rikuto.webp')) {
-                      target.src = '/ayame/rikuto.webp';
-                    }
-                  }}
-                />
-              </div>
+                }}
+              />
             </div>
             {/* Naomi */}
             <div 
-              className="col-start-1 row-start-1 h-[65vh] md:h-[75vh] landscape:h-[80vh] aspect-[9/16] md:aspect-[2/3] drop-shadow-[0_20px_40px_rgba(200,100,150,0.3)]"
+              className="col-start-1 row-start-1 absolute inset-0 w-full h-full z-10 animate-[float_3s_ease-in-out_infinite]"
               style={{ opacity: (scene?.speaker === 'Naomi' && !scene?.hideSprite) ? 1 : 0, pointerEvents: (scene?.speaker === 'Naomi' && !scene?.hideSprite) ? 'auto' : 'none' }}
             >
-              <div className="relative flex items-end justify-center h-full w-full animate-[float_3s_ease-in-out_infinite]">
-                <style>{`
-                  @keyframes float {
-                    0%, 100% { transform: translateY(0px); }
-                    50% { transform: translateY(-10px); }
+              <style>{`
+                @keyframes float {
+                  0%, 100% { transform: translateY(0px); }
+                  50% { transform: translateY(-10px); }
+                }
+              `}</style>
+              <img 
+                src={getNaomiSpriteUrl(scene?.speaker === 'Naomi' ? scene.expression : 'normal')}
+                alt="Naomi"
+                className="w-full h-full object-cover md:object-contain scale-[1.55] md:scale-[1.65] translate-y-[25%] md:translate-y-[30%] transition-all duration-300"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.src.includes('normal.webp')) {
+                    target.src = '/naomi/normal.webp';
                   }
-                `}</style>
-                <img 
-                  src={getNaomiSpriteUrl(scene?.speaker === 'Naomi' ? scene.expression : 'normal')}
-                  alt="Naomi"
-                  className="w-full h-full object-contain object-bottom transition-all duration-300"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    if (!target.src.includes('normal.webp')) {
-                      target.src = '/naomi/normal.webp';
-                    }
-                  }}
-                />
-              </div>
+                }}
+              />
             </div>
           </div>
           
