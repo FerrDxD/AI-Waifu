@@ -143,7 +143,7 @@ export default function LiviaSprite({ expression, outfit = 'default', className 
 
   return (
     <div className={cn(
-      "relative flex items-end justify-center overflow-hidden",
+      "relative flex items-end justify-center",
       !disableFloat && "animate-[float_3s_ease-in-out_infinite]",
       className
     )}>
