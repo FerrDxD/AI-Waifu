@@ -195,7 +195,7 @@ Hanya kembalikan JSON. Tidak ada teks lain.`;
 
   const client = getAIClient(customApiKey);
   const model = client.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-2.0-flash",
     systemInstruction: systemPrompt,
     safetySettings: safeSettings,
     generationConfig: {
@@ -259,7 +259,7 @@ Kembalikan HANYA objek JSON valid dengan format:
 Jangan tambahkan teks lain di luar JSON.`;
 
   const client = getAIClient(customApiKey);
-  const model = client.getGenerativeModel({ model: "gemini-1.5-flash", safetySettings: safeSettings });
+  const model = client.getGenerativeModel({ model: "gemini-2.0-flash", safetySettings: safeSettings });
 
   try {
     const result = await model.generateContent(systemPrompt);
@@ -321,7 +321,7 @@ Hanya kembalikan JSON. Tidak ada teks lain.`;
 
   const client = getAIClient(customApiKey);
   const model = client.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-2.0-flash",
     systemInstruction: systemPrompt,
     safetySettings: safeSettings,
     generationConfig: {
