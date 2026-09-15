@@ -128,18 +128,14 @@ function buildChatContents(
     contents.shift();
   }
 
-  // Append latest user message
-  if (contents.length > 0 && contents[contents.length - 1].role === roleLatest(contents)) {
+  // Append latest user message — must always end with a 'user' turn
+  if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
     contents[contents.length - 1].parts[0].text += `\n${latestUserMessage.trim()}`;
   } else {
     contents.push({ role: 'user', parts: [{ text: latestUserMessage.trim() }] });
   }
 
   return contents;
-}
-
-function roleLatest(contents: { role: string }[]): string {
-  return contents.length > 0 && contents[contents.length - 1].role === 'user' ? 'user' : 'model';
 }
 
 // --- AI generation functions ---
