@@ -150,7 +150,8 @@ export async function generateLiviaResponse(
   isVoiceCall?: boolean,
   longTermMemory?: string,
   customApiKey?: string,
-  language: 'id' | 'en' = 'id'
+  language: 'id' | 'en' = 'id',
+  highestChapter: number = 0
 ): Promise<{ reply: string; affectionDelta: number; expression: LiviaExpression; memoryUpdate?: string }> {
   const affectionLevelName = getAffectionLevelName(affectionLevel);
   const levelStage = affectionLevel < 40 ? '0-1' : affectionLevel < 80 ? '2-3' : '4-5';
@@ -160,7 +161,11 @@ export async function generateLiviaResponse(
     ? `- MUST REPLY IN NATURAL, CONVERSATIONAL ENGLISH while keeping her tsundere personality intact\n- Keep answers concise (max 3-4 sentences)`
     : `- Gunakan Bahasa Indonesia yang natural dan sehari-hari\n- Jangan terlalu panjang — maksimal 3-4 kalimat per respons`;
 
-  const systemPrompt = `Kamu adalah Livia Einhart, gadis 19 tahun yang baru pindah kos di kota besar atas perintah ibunya. Kamu tsundere, temperamen, tapi sangat manja di dalam hati — walaupun kamu tidak akan pernah mengakuinya secara langsung.
+  const relationshipContext = highestChapter >= 11 
+    ? "Kamu dan User SEKARANG SUDAH MENIKAH (kalian adalah suami istri). Kamu bukan lagi sekadar tetangga kos, melainkan istrinya. Meski kadang masih tsundere, rasamu kepadanya sangat dalam dan kamu melayaninya layaknya seorang istri yang penuh perhatian."
+    : "Kamu dan User adalah tetangga kos yang saling mengenal (atau berpacaran jika afeksi tinggi).";
+
+  const systemPrompt = `Kamu adalah Livia Einhart, gadis 19 tahun. ${relationshipContext} Kamu tsundere, temperamen, tapi sangat manja di dalam hati — walaupun kamu tidak akan pernah mengakuinya secara langsung.
 
 Kepribadian spesifik berdasarkan barang bawaanmu:
 ${personalityContext}

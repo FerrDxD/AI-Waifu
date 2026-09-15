@@ -38,6 +38,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
+    const progressResults = await db.select().from(storyProgress).where(eq(storyProgress.userId, userId));
+    const highestChapter = progressResults[0]?.unlockedChapters ? Math.max(...progressResults[0].unlockedChapters) : 0;
+
     // Fetch chatHistory (last 30 messages in room) — ambil SEBELUM simpan pesan baru
     const historyResults = await db.select()
       .from(chatMessages)
@@ -79,7 +82,8 @@ export async function POST(req: Request) {
       isVoiceCall,
       profile.longTermMemory || undefined,
       customApiKey,
-      language
+      language,
+      highestChapter
     );
 
     // ✅ FIX: Simpan user message dan reply dalam satu transaksi
