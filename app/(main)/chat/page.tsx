@@ -86,7 +86,7 @@ export default function ChatPage() {
 
       const data = await res.json();
 
-      if (data.reply) {
+      if (res.ok && data.reply) {
         playSfx('pop');
         setMessages(prev => [...prev, {
           id: (Date.now() + 1).toString(),
@@ -96,6 +96,11 @@ export default function ChatPage() {
         }]);
       } else {
         playSfx('error');
+        setMessages(prev => [...prev, {
+          id: (Date.now() + 1).toString(),
+          role: 'livia',
+          content: `[Sistem] Error: ${data.error || 'Koneksi terputus.'}`,
+        }]);
       }
     } catch (e) {
       console.error(e);
