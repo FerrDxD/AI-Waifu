@@ -73,8 +73,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ reply, expression, affectionDelta, newAffection: updateResult.newAffection, unlockedChapter: updateResult.unlockedChapter });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }

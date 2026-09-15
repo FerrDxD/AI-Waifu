@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
 if (!process.env.GEMINI_API_KEY) {
   throw new Error('GEMINI_API_KEY is missing in environment variables');
@@ -16,6 +16,13 @@ export function getAIClient(customApiKey?: string) {
   }
   return genAI;
 }
+
+const safeSettings = [
+  { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+];
 
 export function extractCustomApiKey(req: Request): string | undefined {
   const headerKey = req.headers.get('x-custom-api-key');
@@ -188,8 +195,9 @@ Hanya kembalikan JSON. Tidak ada teks lain.`;
 
   const client = getAIClient(customApiKey);
   const model = client.getGenerativeModel({
-    model: "gemini-1.5-flash-8b",
+    model: "gemini-1.5-flash",
     systemInstruction: systemPrompt,
+    safetySettings: safeSettings,
     generationConfig: {
       temperature: 0.8,
       responseMimeType: "application/json",
@@ -208,9 +216,10 @@ Hanya kembalikan JSON. Tidak ada teks lain.`;
       expression: parsed.expression || "normal",
       memoryUpdate: parsed.memoryUpdate || "",
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating Livia response:", error);
-    return { reply: "Apa sih? Jangan ganggu aku dulu.", affectionDelta: -1, expression: "angry" };
+    // Ponytail: Jangan sembunyikan error API di balik karakter waifu. Lemparkan ke atas biar kelihatan.
+    throw new Error(error?.message || "Gagal menghubungi server AI Google.");
   }
 }
 
@@ -250,7 +259,7 @@ Kembalikan HANYA objek JSON valid dengan format:
 Jangan tambahkan teks lain di luar JSON.`;
 
   const client = getAIClient(customApiKey);
-  const model = client.getGenerativeModel({ model: "gemini-1.5-flash-8b" });
+  const model = client.getGenerativeModel({ model: "gemini-1.5-flash", safetySettings: safeSettings });
 
   try {
     const result = await model.generateContent(systemPrompt);
@@ -263,12 +272,9 @@ Jangan tambahkan teks lain di luar JSON.`;
       scene: parsed.scene || [],
       timeOfDay: (['pagi', 'sore', 'malam'] as const).includes(parsed.timeOfDay) ? parsed.timeOfDay : defaultTimeOfDay,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Date Gen Error:", error);
-    return {
-      scene: [{ speaker: "Livia", text: "Maaf ya, aku lagi nggak mood ngomong...", expression: "angry" }],
-      timeOfDay: defaultTimeOfDay,
-    };
+    throw new Error(error?.message || "Gagal menghubungi server AI Google.");
   }
 }
 
@@ -315,8 +321,9 @@ Hanya kembalikan JSON. Tidak ada teks lain.`;
 
   const client = getAIClient(customApiKey);
   const model = client.getGenerativeModel({
-    model: "gemini-1.5-flash-8b",
+    model: "gemini-1.5-flash",
     systemInstruction: systemPrompt,
+    safetySettings: safeSettings,
     generationConfig: {
       temperature: 0.8,
       responseMimeType: "application/json",
@@ -335,9 +342,9 @@ Hanya kembalikan JSON. Tidak ada teks lain.`;
       expression: parsed.expression || "normal",
       memoryUpdate: parsed.memoryUpdate || "",
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating Date response:", error);
-    return { reply: "Apa sih? Jangan ngomong yang aneh-aneh di tempat umum.", affectionDelta: -1, expression: "angry" };
+    throw new Error(error?.message || "Gagal menghubungi server AI Google.");
   }
 }
 
