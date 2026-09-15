@@ -1,8 +1,7 @@
 'use client';
 
 import { LiviaExpression } from '@/lib/gemini';
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 interface LiviaSpriteProps {
@@ -101,9 +100,50 @@ export default function LiviaSprite({ expression, outfit = 'default', className 
     src = `/livia/story page/${storyOutfitName}.webp`;
   }
 
+  // ponytail: double-buffer sprite switching to eliminate white flash / blank frame
+  const [displayedSrc, setDisplayedSrc] = useState(src);
+
+  useEffect(() => {
+    if (src === displayedSrc) return;
+
+    let active = true;
+    const img = new window.Image();
+    img.src = src;
+    img.onload = () => {
+      if (active) {
+        setDisplayedSrc(src);
+        setImgError(false);
+      }
+    };
+    img.onerror = () => {
+      if (!active) return;
+      // Fallback for story variants with suffix like normal-6 -> normal
+      if (variant === 'story' && typeof expression === 'string' && expression.includes('-')) {
+        const fallback = `/livia/Story-bab/${expression.replace(/-[0-9]+$/, '')}.webp`;
+        const fbImg = new window.Image();
+        fbImg.src = fallback;
+        fbImg.onload = () => {
+          if (active) {
+            setDisplayedSrc(fallback);
+            setImgError(false);
+          }
+        };
+        fbImg.onerror = () => {
+          if (active) setImgError(true);
+        };
+      } else {
+        setImgError(true);
+      }
+    };
+
+    return () => {
+      active = false;
+    };
+  }, [src, displayedSrc, variant, expression]);
+
   return (
     <div className={cn(
-      "relative flex items-end justify-center",
+      "relative flex items-end justify-center overflow-hidden",
       !disableFloat && "animate-[float_3s_ease-in-out_infinite]",
       className
     )}>
@@ -121,15 +161,12 @@ export default function LiviaSprite({ expression, outfit = 'default', className 
           {outfit !== 'default' && <span className="text-pink-300 text-[10px] italic">({outfit})</span>}
         </div>
       ) : (
-        <Image
-          src={src}
+        <img
+          src={displayedSrc}
           alt={`Livia - ${expression}`}
-          fill
-          priority
-          unoptimized={true}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          decoding="async"
           className={cn(
-            "transition-all duration-300",
+            "absolute inset-0 w-full h-full transition-opacity duration-150",
             imgClassName || "object-contain object-bottom",
             variant === 'story' ? '' : (glowStyles[expression as keyof typeof glowStyles] || ''),
             mixBlendMultiply && "mix-blend-multiply"

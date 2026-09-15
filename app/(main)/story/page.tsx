@@ -1496,6 +1496,60 @@ export default function StoryPage() {
   const currentScenes = activeChapter ? (activeChapter.getDynamicContent ? activeChapter.getDynamicContent(userStats!) : activeChapter.content!) : [];
   const scene = activeChapter ? currentScenes[sceneIndex] : null;
 
+  // ponytail: manage active backgrounds (max 2 in DOM) to eliminate network choke
+  const targetBg = String(scene?.bg || (activeChapter ? activeChapter.id : 0));
+  const [activeBgs, setActiveBgs] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!activeChapter) {
+      setActiveBgs([]);
+      return;
+    }
+    setActiveBgs(prev => {
+      if (prev.includes(targetBg)) return prev;
+      return prev.length > 0 ? [prev[prev.length - 1], targetBg] : [targetBg];
+    });
+  }, [targetBg, activeChapter]);
+
+  // ponytail: preload chapter sprites in cache so switching is instantaneous
+  useEffect(() => {
+    if (!activeChapter) return;
+    const scenes = activeChapter.getDynamicContent ? activeChapter.getDynamicContent(userStats!) : activeChapter.content!;
+    if (!scenes || scenes.length === 0) return;
+
+    const firstBg = scenes[0]?.bg || activeChapter.id;
+    const bgImg = new window.Image();
+    bgImg.src = `/bg_story-${firstBg}.webp`;
+
+    const loaded = new Set<string>();
+    scenes.forEach(s => {
+      if (s.expression && !loaded.has(s.expression)) {
+        loaded.add(s.expression);
+        const img = new window.Image();
+        if (s.speaker === 'Livia') {
+          img.src = activeChapter.id <= 15
+            ? `/livia/Story-bab/${s.expression}.webp`
+            : `/livia/home-screen/${(userStats?.activeOutfit || 'default').replace('outfit_', '')}/${s.expression}.webp`;
+        } else if (s.speaker === 'Laura') {
+          img.src = `/laura/story-bab/${s.expression.replace(/-[0-9]+$/, '')}.webp`;
+        } else if (s.speaker === 'Enji') {
+          img.src = `/enji/${s.expression.replace(/-[0-9]+$/, '')}.webp`;
+        }
+      }
+    });
+  }, [activeChapter, userStats?.activeOutfit]);
+
+  // Preload next scene background just-in-time
+  useEffect(() => {
+    if (!activeChapter) return;
+    const scenes = activeChapter.getDynamicContent ? activeChapter.getDynamicContent(userStats!) : activeChapter.content!;
+    const nextScene = scenes[sceneIndex + 1];
+    if (nextScene?.bg) {
+      const nextBg = new window.Image();
+      nextBg.src = `/bg_story-${nextScene.bg}.webp`;
+    }
+  }, [sceneIndex, activeChapter]);
+
   if (isLoading) return <LoadingScreen text="Memuat Cerita..." />;
 
   return (
@@ -1503,18 +1557,18 @@ export default function StoryPage() {
       
       {activeChapter ? (
         <div className="fixed inset-0 z-[100] bg-[#fdfbf7] flex flex-col items-center justify-between py-2 md:py-12 landscape:py-2 px-4 md:px-6 animate-[fadeIn_0.3s_ease-out]">
-          {/* Chapter Background Image with Smooth Cross-fade */}
-          {Array.from(new Set(currentScenes.map(s => s.bg || activeChapter.id))).map((bg) => {
-            const isCurrent = (scene?.bg || activeChapter.id) === bg;
+          {/* Chapter Background Image with Smooth Cross-fade (Max 2 in DOM) */}
+          {activeBgs.map((bg) => {
+            const isCurrent = targetBg === bg;
             return (
               <img 
                 key={bg}
                 src={`/bg_story-${bg}.webp`}
                 alt="Chapter Background"
-                className={`absolute inset-0 w-full h-full object-cover z-0 transition-all duration-[2000ms] ease-in-out ${
+                className={`absolute inset-0 w-full h-full object-cover z-0 transition-all duration-[1000ms] ease-in-out ${
                   isCurrent 
                     ? (scene?.speaker === 'Narator' ? "scale-105 blur-[3px] opacity-40" : "scale-100 blur-0 opacity-60")
-                    : "scale-105 blur-[5px] opacity-0"
+                    : "scale-105 blur-[5px] opacity-0 pointer-events-none"
                 }`}
                 onError={(e) => { e.currentTarget.style.opacity = '0'; }}
               />
