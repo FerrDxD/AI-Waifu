@@ -190,11 +190,22 @@ export default function SettingsPage() {
         }
 
         if (backupObj.serverData) {
-          await fetch('/api/restore', {
+          const restoreRes = await fetch('/api/restore', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(backupObj.serverData)
           });
+
+          // Dulu respons ini tidak pernah dicek, jadi restore yang gagal (404)
+          // tetap menampilkan "berhasil". Sekarang kegagalan dilaporkan jujur.
+          if (!restoreRes.ok) {
+            const detail = await restoreRes.json().catch(() => ({}));
+            await showCustomAlert(
+              `⚠️ Data lokal berhasil dipulihkan, tapi data server gagal disimpan.\n\n${detail?.error || 'Terjadi kesalahan pada server.'}`,
+              "Pemulihan Sebagian ⚠️"
+            );
+            return;
+          }
         }
 
         await showCustomAlert("🎉 Data berhasil dipulihkan! Halaman akan dimuat ulang agar perubahan aktif.", "Pulih Berhasil ✨");

@@ -33,7 +33,11 @@ export type RateLimiter = {
 
 const SWEEP_THRESHOLD = 1000;
 
-function createLimiter(options: { limit: number; windowMs: number; name: string }): RateLimiter {
+/**
+ * Buat limiter baru. Diekspor supaya route/modul lain bisa mendefinisikan
+ * limit sendiri, dan supaya bisa diuji dengan window pendek.
+ */
+export function createLimiter(options: { limit: number; windowMs: number; name: string }): RateLimiter {
   const { limit: max, windowMs, name } = options;
   const buckets = new Map<string, Bucket>();
 

@@ -2,6 +2,8 @@
   "extends": "next/core-web-vitals",
   "rules": {
     "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-throw-literal": "error",
+    "no-debugger": "error",
 
     "react/no-unescaped-entities": [
       "warn",

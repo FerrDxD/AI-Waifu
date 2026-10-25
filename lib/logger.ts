@@ -69,6 +69,7 @@ function emit(level: LogLevel, message: string, meta: LogMeta = {}) {
 
   if (level === 'error') console.error(line);
   else if (level === 'warn') console.warn(line);
+  // eslint-disable-next-line no-console -- logger memang lapisan terakhir yang boleh menulis ke console
   else console.log(line);
 }
 

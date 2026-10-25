@@ -34,12 +34,12 @@ sebelum DoD terpenuhi + ada test yang lulus.
 ## M1 — Fondasi Engineering (Minggu 2–4)
 > Tidak ada renovation tanpa blueprint. M1 ini yang bikin refactor berikutnya tidak menakutkan.
 
-- [ ] **M1.1** ESLint config nyata (`.eslintrc.json`: `next/core-web-vitals` + `@typescript-eslint/recommended` + aturan `no-explicit-any` warning, `no-throw-literal`), Prettier, commit convention (Conventional Commits + commitlint).
-- [ ] **M1.2** **CI** (GitHub Actions): lint → typecheck (`tsc --noEmit`) → build. Semua PR wajib lulus.
-- [ ] **M1.3** Testing harness pertama: Vitest + React Testing Library. Target **30% coverage** pada `lib/` lebih dulu (rate-limit, parser, affection calc, cycle calc, personality context). Aeire testing library untuk route handler guna `_route.ts` minimal smoke test.
-- [ ] **M1.4** Error monitoring: Sentry (source map upload), custom error class (`AppError` dengan `code` & `statusCode`), ganti semua `catch (error: any)` menjadi typed handler + helper `apiHandler()` wrapper (DRY untuk auth+ratelimit+try/catch yang diulang 17x).
-- [ ] **M1.5** Environment validation: `zod` schema `.env` di startup (`GEMINI_API_KEY`, `DATABASE_URL`, `ELEVENLABS_API_KEY`, `NEXTAUTH_SECRET`) — fail fast, bukan `!` non-null assertion.
-- [ ] **M1.6** Docs: README update dengan arsitektur, env variable, perintah dev (README saat ini menulis `cd teman-kos`, padahal folder `AI-Waifu`).
+- [x] **M1.1** ESLint config nyata (`.eslintrc.json`: `next/core-web-vitals` + `no-throw-literal` + `no-debugger`), Prettier, commit convention (Conventional Commits + commitlint + husky `commit-msg`). *`@typescript-eslint/recommended` belum aktif — plugin belum terpasang; lihat `docs/M1-IMPLEMENTATION.md` §7.*
+- [x] **M1.2** **CI** (GitHub Actions): typecheck → lint → test:coverage → build. Semua PR wajib lulus.
+- [x] **M1.3** Testing harness pertama: Vitest. **208 tes / 11 file**, coverage `lib/` **53.96%** (target 30%). React Testing Library belum dipasang (menunggu komponen dipecah di M5.1).
+- [x] **M1.4** Custom error class (`AppError` + `apiErrorResponse`) dan helper `apiHandler()`/`jsonApiHandler()`/`publicApiHandler()` untuk auth + rate limit + try/catch. *Sentry ditunda — butuh DSN.*
+- [x] **M1.5** Environment validation: `zod` schema di `lib/env.ts` (`GEMINI_API_KEY`, `DATABASE_URL`, `ELEVENLABS_API_KEY`, `NEXTAUTH_SECRET`, `ENCRYPTION_KEY`) — fail fast dengan semua masalah sekaligus, bukan `!` non-null assertion.
+- [x] **M1.6** Docs: README ditulis ulang (arsitektur, env variable, perintah dev dengan Bun, path folder `AI-Waifu` yang benar) + `docs/M1-IMPLEMENTATION.md`.
 
 **DoD:** CI hijau, coverage ≥30% di `lib/`, tidak ada `any` baru, nol `console.error` di production path (semua lewat logger).
 

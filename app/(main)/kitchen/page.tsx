@@ -193,7 +193,7 @@ export default function KitchenPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setMessage(data.message || "Gagal memasak.");
+        setMessage(data.message || data.error || "Gagal memasak.");
         setLiviaExpression('pain');
         setIsCooking(false);
         return;

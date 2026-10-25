@@ -12,6 +12,10 @@ node_modules
 out
 next-env.d.ts
 
+# Test / coverage artifacts
+coverage/
+*.lcov
+
 # Build / typecheck artifacts
 *.tsbuildinfo
 tsconfig.tsbuildinfo

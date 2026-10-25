@@ -1,0 +1,11 @@
+# Jangan format file yang di-generate atau bukan milik kita.
+node_modules/
+.next/
+out/
+coverage/
+bun.lock
+package-lock.json
+public/
+*.min.js
+*.min.css
+next-env.d.ts

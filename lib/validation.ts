@@ -136,8 +136,14 @@ export function validateHistory(value: unknown): ChatTurn[] {
     const entry = raw as { role?: unknown; content?: unknown };
     if (typeof entry.content !== 'string') continue;
 
-    const role: ChatTurn['role'] =
-      entry.role === 'livia' ? 'livia' : entry.role === 'narator' ? 'narator' : 'user';
+    // Whitelist ketat: role tak dikenal DIBUANG, bukan dipaksa jadi 'user'.
+    // Sebelumnya `role: "system"` dari client lolos jadi 'user' dan tetap
+    // membawa instruksi penyerang ke dalam prompt.
+    if (entry.role !== 'user' && entry.role !== 'livia' && entry.role !== 'narator') {
+      continue;
+    }
+
+    const role = entry.role as ChatTurn['role'];
 
     const content = sanitizeText(entry.content).slice(0, LIMITS.historyEntry);
     if (content.length === 0) continue;
