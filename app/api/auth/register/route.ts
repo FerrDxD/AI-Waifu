@@ -1,25 +1,26 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { users, userProfiles } from '@/lib/db/schema';
 import { eq, or } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
-import { apiErrorResponse, errors } from '@/lib/errors';
+import { db } from '@/lib/db';
+import { users, userProfiles } from '@/lib/db/schema';
+import { publicApiHandler, ipKey } from '@/lib/api-handler';
+import { errors } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { validateRegisterInput } from '@/lib/validation';
-import { registerRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit';
+import { registerRateLimit } from '@/lib/rate-limit';
 
 /** Cost bcrypt dinaikkan dari 10 (standar lama) ke 12. */
 const BCRYPT_ROUNDS = 12;
 
-export async function POST(req: Request) {
-  try {
+export const POST = publicApiHandler(
+  {
+    route: '/api/auth/register.POST',
     // H0.4: batasi pembuatan akun per IP sebelum menyentuh database.
-    const ip = getClientIp(req);
-    const limit = await registerRateLimit.limit(`register_${ip}`);
-    if (!limit.success) {
-      return rateLimitResponse(limit, 'Terlalu banyak percobaan pendaftaran. Coba lagi nanti.');
-    }
-
+    rateLimit: registerRateLimit,
+    rateLimitKey: ipKey,
+    rateLimitMessage: 'Terlalu banyak percobaan pendaftaran. Coba lagi nanti.',
+  },
+  async ({ req }) => {
     const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
 
     // H0.5: validasi format email, panjang username, dan kebijakan password.
@@ -57,13 +58,11 @@ export async function POST(req: Request) {
 
     await db.insert(userProfiles).values({ userId: newUser.id });
 
-    logger.info('auth.register.success', { userId: newUser.id });
+    logger.info('auth.register.success', { route: '/api/auth/register.POST', userId: newUser.id });
 
     return NextResponse.json(
       { success: true, message: 'Registrasi berhasil' },
       { status: 201 }
     );
-  } catch (error) {
-    return apiErrorResponse(error, { route: 'api/auth/register.POST' });
   }
-}
+);

@@ -1,45 +1,61 @@
 import { NextResponse } from 'next/server';
+import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { userProfiles } from '@/lib/db/schema';
-import { auth } from '@/lib/auth';
-import { eq } from 'drizzle-orm';
+import { apiHandler, jsonApiHandler } from '@/lib/api-handler';
+import { mutationRateLimit } from '@/lib/rate-limit';
+import { errors } from '@/lib/errors';
 
-export async function GET(req: Request) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+const OUTFIT_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
 
-    const profileResults = await db.select().from(userProfiles).where(eq(userProfiles.userId, session.user.id));
+export const GET = apiHandler({ route: '/api/outfit.GET' }, async ({ userId }) => {
+  const profileResults = await db
+    .select()
+    .from(userProfiles)
+    .where(eq(userProfiles.userId, userId));
+  const profile = profileResults[0];
+
+  if (!profile) throw errors.notFound('Profil');
+
+  return NextResponse.json({
+    activeOutfit: profile.activeOutfit,
+    itemsBrought: profile.itemsBrought,
+  });
+});
+
+type OutfitBody = {
+  outfitId?: unknown;
+};
+
+export const POST = jsonApiHandler<OutfitBody>(
+  {
+    route: '/api/outfit.POST',
+    rateLimit: mutationRateLimit,
+    rateLimitMessage: 'Terlalu banyak ganti baju. Tunggu sebentar ya.',
+  },
+  async ({ userId, body }) => {
+    if (typeof body.outfitId !== 'string' || !OUTFIT_ID_PATTERN.test(body.outfitId)) {
+      throw errors.badRequest('Outfit tidak valid.', 'INVALID_OUTFIT');
+    }
+    const outfitId = body.outfitId;
+
+    const profileResults = await db
+      .select()
+      .from(userProfiles)
+      .where(eq(userProfiles.userId, userId));
     const profile = profileResults[0];
 
-    if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    if (!profile) throw errors.notFound('Profil');
 
-    return NextResponse.json({ activeOutfit: profile.activeOutfit, itemsBrought: profile.itemsBrought });
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
-}
-
-export async function POST(req: Request) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const { outfitId } = await req.json();
-
-    const profileResults = await db.select().from(userProfiles).where(eq(userProfiles.userId, session.user.id));
-    const profile = profileResults[0];
-
-    if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
-
-    if (outfitId !== 'default' && (!profile.itemsBrought || !profile.itemsBrought.includes(outfitId))) {
-      return NextResponse.json({ error: 'Outfit not owned' }, { status: 400 });
+    if (outfitId !== 'default' && !(profile.itemsBrought || []).includes(outfitId)) {
+      throw errors.badRequest('Kamu belum memiliki outfit ini.', 'OUTFIT_NOT_OWNED');
     }
 
-    await db.update(userProfiles).set({ activeOutfit: outfitId }).where(eq(userProfiles.userId, session.user.id));
+    await db
+      .update(userProfiles)
+      .set({ activeOutfit: outfitId })
+      .where(eq(userProfiles.userId, userId));
 
     return NextResponse.json({ success: true, activeOutfit: outfitId });
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}
+);

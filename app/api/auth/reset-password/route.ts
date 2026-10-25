@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
+import { eq, or } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
-import { eq, or } from 'drizzle-orm';
-import { apiErrorResponse, errors } from '@/lib/errors';
+import { publicApiHandler, ipKey } from '@/lib/api-handler';
+import { errors } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { validateIdentifier } from '@/lib/validation';
-import { passwordResetRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit';
+import { passwordResetRateLimit } from '@/lib/rate-limit';
 
 /**
  * Reset password (M0/H0.5, H0.4).
@@ -17,14 +18,14 @@ import { passwordResetRateLimit, getClientIp, rateLimitResponse } from '@/lib/ra
  * Aksi `reset` tetap dinonaktifkan sampai alur OTP/token (M4) tersedia. Jangan
  * pernah mengaktifkannya tanpa verifikasi kepemilikan email.
  */
-export async function POST(req: Request) {
-  try {
-    const ip = getClientIp(req);
-    const limit = await passwordResetRateLimit.limit(`reset_${ip}`);
-    if (!limit.success) {
-      return rateLimitResponse(limit, 'Terlalu banyak percobaan. Coba lagi nanti.');
-    }
-
+export const POST = publicApiHandler(
+  {
+    route: '/api/auth/reset-password.POST',
+    rateLimit: passwordResetRateLimit,
+    rateLimitKey: ipKey,
+    rateLimitMessage: 'Terlalu banyak percobaan. Coba lagi nanti.',
+  },
+  async ({ req, ip }) => {
     const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
     const action = body?.action;
 
@@ -36,7 +37,11 @@ export async function POST(req: Request) {
         .from(users)
         .where(or(eq(users.email, identifier), eq(users.username, identifier)));
 
-      logger.info('auth.reset_password.verify', { ip, found: found.length > 0 });
+      logger.info('auth.reset_password.verify', {
+        route: '/api/auth/reset-password.POST',
+        ip,
+        found: found.length > 0,
+      });
 
       // Selalu 200, apa pun hasilnya. Tidak ada informasi yang bocor.
       return NextResponse.json({ success: true });
@@ -53,7 +58,5 @@ export async function POST(req: Request) {
     }
 
     throw errors.badRequest('Aksi tidak dikenal.', 'INVALID_ACTION');
-  } catch (error) {
-    return apiErrorResponse(error, { route: 'api/auth/reset-password.POST' });
   }
-}
+);

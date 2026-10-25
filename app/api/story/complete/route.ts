@@ -1,46 +1,56 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { storyProgress } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
-import { apiErrorResponse } from '@/lib/errors';
+import { jsonApiHandler } from '@/lib/api-handler';
+import { mutationRateLimit } from '@/lib/rate-limit';
+import { errors } from '@/lib/errors';
 
-export async function POST(req: Request) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+/** Batas atas chapterId — mencegah client membuka chapter 99999. */
+const MAX_CHAPTER_ID = 100;
+
+type StoryCompleteBody = {
+  chapterId?: unknown;
+};
+
+export const POST = jsonApiHandler<StoryCompleteBody>(
+  {
+    route: '/api/story/complete.POST',
+    rateLimit: mutationRateLimit,
+    rateLimitMessage: 'Terlalu banyak permintaan. Tunggu sebentar ya.',
+  },
+  async ({ userId, body }) => {
+    const chapterId = body.chapterId;
+    if (
+      typeof chapterId !== 'number' ||
+      !Number.isInteger(chapterId) ||
+      chapterId < 0 ||
+      chapterId > MAX_CHAPTER_ID
+    ) {
+      throw errors.badRequest('chapterId tidak valid.', 'INVALID_CHAPTER');
     }
 
-    const { chapterId } = await req.json();
-    if (typeof chapterId !== 'number') {
-      return NextResponse.json({ error: 'Invalid chapterId' }, { status: 400 });
-    }
-
-    const userId = session.user.id;
-    const storyResults = await db.select().from(storyProgress).where(eq(storyProgress.userId, userId));
+    const storyResults = await db
+      .select()
+      .from(storyProgress)
+      .where(eq(storyProgress.userId, userId));
     const story = storyResults[0];
 
-    if (!story) {
-      return NextResponse.json({ error: 'Story progress not found' }, { status: 404 });
-    }
+    if (!story) throw errors.notFound('Progres cerita');
 
     const currentUnlocked = story.unlockedChapters || [0];
     const nextChapter = chapterId + 1;
 
-    // Add next chapter to unlocked array if not present
     if (!currentUnlocked.includes(nextChapter)) {
       const newUnlocked = [...currentUnlocked, nextChapter].sort((a, b) => a - b);
-      await db.update(storyProgress)
+      await db
+        .update(storyProgress)
         .set({ unlockedChapters: newUnlocked })
         .where(eq(storyProgress.userId, userId));
-        
+
       return NextResponse.json({ success: true, unlockedChapters: newUnlocked });
     }
 
     return NextResponse.json({ success: true, unlockedChapters: currentUnlocked });
-
-  } catch (error) {
-    return apiErrorResponse(error, { route: 'api/story/complete.POST' });
   }
-}
+);

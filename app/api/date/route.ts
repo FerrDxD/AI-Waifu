@@ -1,31 +1,25 @@
 import { NextResponse } from 'next/server';
+import { eq } from 'drizzle-orm';
 import { generateDateDialogue, extractLanguage, resolveApiKey } from '@/lib/gemini';
-import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { userProfiles } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
-import { apiErrorResponse, errors } from '@/lib/errors';
-import { aiRateLimit, aiDailyQuota, rateLimitResponse } from '@/lib/rate-limit';
+import { apiHandler } from '@/lib/api-handler';
+import { aiRateLimit, aiDailyQuota } from '@/lib/rate-limit';
 import { validateDateLocation, sanitizeUserName } from '@/lib/validation';
+import { errors } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 
-export async function POST(req: Request) {
-  let userId: string | null = null;
-
-  try {
-    const session = await auth();
-    if (!session?.user?.id) throw errors.unauthorized();
-    userId = session.user.id;
-    const uid = userId;
-
-    const limit = await aiRateLimit.limit(`date_${uid}`);
-    if (!limit.success) {
-      return rateLimitResponse(limit, 'Terlalu banyak permintaan. Tunggu sebentar ya.');
-    }
-
-    const daily = await aiDailyQuota.limit(`date_${uid}`);
+export const POST = apiHandler(
+  {
+    route: '/api/date.POST',
+    rateLimit: aiRateLimit,
+    rateLimitKey: ({ userId }) => `date_${userId}`,
+    rateLimitMessage: 'Terlalu banyak permintaan. Tunggu sebentar ya.',
+  },
+  async ({ userId, req, session }) => {
+    const daily = await aiDailyQuota.limit(`date_${userId}`);
     if (!daily.success) {
-      logger.warn('date.daily_quota_exhausted', { userId: uid });
+      logger.warn('date.daily_quota_exhausted', { route: '/api/date.POST', userId });
       throw errors.tooManyRequests('Kuota kencan harianmu sudah habis. Lanjut besok ya.');
     }
 
@@ -36,18 +30,20 @@ export async function POST(req: Request) {
     const userName = sanitizeUserName(session.user?.name);
 
     const language = extractLanguage(req);
-    const customApiKey = await resolveApiKey(uid, req);
+    const customApiKey = await resolveApiKey(userId, req);
 
     const profileResults = await db
       .select()
       .from(userProfiles)
-      .where(eq(userProfiles.userId, uid));
+      .where(eq(userProfiles.userId, userId));
     const profile = profileResults[0];
 
     const now = new Date();
-    const anchor = profile?.liviaCycleAnchor ? new Date(profile.liviaCycleAnchor).getTime() : now.getTime();
+    const anchor = profile?.liviaCycleAnchor
+      ? new Date(profile.liviaCycleAnchor).getTime()
+      : now.getTime();
     const daysDiff = Math.floor((now.getTime() - anchor) / (1000 * 60 * 60 * 24));
-    const dayOfCycle = ((daysDiff % 28) + 28) % 28 + 1;
+    const dayOfCycle = (((daysDiff % 28) + 28) % 28) + 1;
     let cyclePhase = 'Luteal';
     if (dayOfCycle <= 5) cyclePhase = 'Menstruasi';
     else if (dayOfCycle <= 14) cyclePhase = 'Folikuler';
@@ -85,7 +81,7 @@ export async function POST(req: Request) {
       await db
         .update(userProfiles)
         .set(updatePayload)
-        .where(eq(userProfiles.userId, uid));
+        .where(eq(userProfiles.userId, userId));
     }
 
     const { scene: dialogue, timeOfDay } = await generateDateDialogue(
@@ -104,7 +100,5 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json({ scene: dialogue, timeOfDay });
-  } catch (error) {
-    return apiErrorResponse(error, { route: 'api/date.POST', userId });
   }
-}
+);

@@ -14,7 +14,7 @@ memasang jaring pengaman supaya lubang yang sama tidak muncul lagi.
 | M1.1 ESLint + Prettier + Conventional Commits | ✅ | `.eslintrc.json` (termasuk `@typescript-eslint/no-explicit-any`), `.prettierrc`, `commitlint.config.mjs`, `.husky/commit-msg` |
 | M1.2 CI GitHub Actions | ✅ | `.github/workflows/ci.yml` |
 | M1.3 Vitest + coverage 30% | ✅ | `vitest.config.mts`, `tests/` — **208 tes, 11 file** |
-| M1.4 `apiHandler` wrapper | ✅ | `lib/api-handler.ts` — 17 tes |
+| M1.4 `apiHandler` wrapper | ✅ | `lib/api-handler.ts` — 17 tes; **21 file route** memakainya (§3.4) |
 | M1.4 Sentry | ⛔ ditunda | Butuh DSN; lihat §7 |
 | M1.5 Validasi env (zod) | ✅ | `lib/env.ts` — 17 tes |
 | M1.6 README | ✅ | `README.md` ditulis ulang |
@@ -180,7 +180,46 @@ Yang divalidasi:
 Semua masalah dikumpulkan sekaligus (`EnvError.issues`), bukan berhenti di
 yang pertama — supaya user tidak memperbaiki env satu per satu selama 5 deploy.
 
-### 3.4 Test suite
+### 3.4 Migrasi seluruh route ke `apiHandler`
+
+Setelah M1 selesai, semua route yang tersisa dimigrasikan. Sekarang **21 file
+route** memakai wrapper; satu-satunya pengecualian adalah
+`app/api/auth/[...nextauth]/route.ts` yang memang handler internal NextAuth dan
+tidak boleh dibungkus.
+
+Pemetaan wrapper:
+
+| Wrapper | Dipakai untuk | Route |
+|---|---|---|
+| `apiHandler` | tanpa body JSON | `chat`, `chat/history`, `date`, `date/chat`, `tts`, `bedroom/sleep`, `outfit` (GET) |
+| `jsonApiHandler` | dengan body JSON | `garden`, `gift`, `kitchen`, `cook`, `hometown-items`, `work`, `screentime`, `story/complete`, `onboarding`, `restore`, `affection`, `outfit` (POST) |
+| `publicApiHandler` | tanpa sesi | `auth/register`, `auth/reset-password` |
+
+Yang berubah secara perilaku, bukan hanya gaya:
+
+- **Rate limit yang dulu tidak ada** sekarang ada: `bedroom/sleep`,
+  `story/complete`, `screentime`, `onboarding`, `gift`, `hometown-items`
+  memakai `mutationRateLimit` (30/menit).
+- **`/api/date/chat` sebelumnya hanya punya batas burst**, tanpa kuota harian.
+  Sekarang memakai `aiRateLimit` + `aiDailyQuota`, sama seperti `/api/chat`.
+- **`/api/chat/history` tidak punya `try/catch` sama sekali** — error DB apa pun
+  akan lolos jadi 500 mentah tanpa log. Sekarang tertangkap dan tercatat.
+- **`/api/screentime` bisa dihitung dua kali**: mengirim `end` untuk sesi yang
+  sudah ditutup menambah total lagi. Sekarang idempoten — kalau `sessionEnd`
+  sudah terisi, total lama dikembalikan apa adanya.
+- **`/api/story/complete` menerima `chapterId` tak terbatas** (angka apa pun,
+  termasuk pecahan dan negatif). Sekarang integer 1–100.
+- **`/api/outfit` menelan error jadi 500 kosong tanpa log.** Sekarang lewat
+  `apiErrorResponse`, jadi penyebabnya tercatat.
+- **`/api/garden`** adalah rewrite terbesar: `any` diganti
+  `typeof gardenPots.$inferSelect`, action di-whitelist, `plantId` divalidasi
+  terhadap katalog server, dan filter kepemilikan tetap dipertahankan.
+- **`/api/gift`, `/api/work`, `/api/hometown-items`** sekarang memvalidasi input
+  client (regex id, batas jumlah, `Number.isFinite`) alih-alih mempercayainya
+  mentah-mentah. Nilai ekonomi dari client tetap hanya di-*clamp*, bukan
+  otoritatif server — itu utang M5.4 yang dicatat di kode.
+
+### 3.5 Test suite
 
 11 file, 208 tes, semuanya fungsi murni atau modul yang di-mock — tidak butuh
 database, tidak butuh jaringan, tidak butuh `.env`.
@@ -296,7 +335,8 @@ Rencana: naikkan bertahap setelah modul DB-dependent punya tes integrasi (M5).
 | Sentry | Butuh akun + DSN. Tanpa DSN, SDK hanya jadi dead weight. | Set `SENTRY_DSN` lalu pasang `@sentry/nextjs`; `lib/logger.ts` sudah jadi titik integrasi tunggal. |
 | Tes `lib/gemini.ts` | Butuh API key & jaringan. | Mock `@google/generative-ai` di M2 (model abstraction). |
 | Tes route handler | Butuh Postgres. | Testcontainers / DB cabang Neon di M5. |
-| Refactor 20 route ke `apiHandler` | Baru 3 route yang dipindah (restore, cook, affection). Sisanya masih pola lama dan **sudah** aman (M0), tapi belum DRY. | Migrasi bertahap; tiap route diverifikasi dengan `tsc` + build. |
+| Refactor 20 route ke `apiHandler` | **Selesai** — 21 file route sudah memakai wrapper (§3.4). | — |
+| Nilai ekonomi dari client (`gift.cost`, `gift.affectionDelta`, `work.earnedRv`) | Masih di-*clamp* di server, bukan dihitung server. Client yang dimodifikasi tetap bisa memberi item/hadiah mahal tanpa bayar sepadan. | M5.4: pindahkan harga & efek ke katalog server seperti `/api/cook`. |
 | Prettier seluruh repo | Diff besar. | Commit `style:` terpisah. |
 | 36 pemakaian `any` | Dijadikan `warn`, bukan `error` — kalau `error`, CI langsung merah untuk kode lama yang tidak kita sentuh. Membersihkannya butuh tipe respons Gemini yang nyata. | M2.2 (abstraksi model). Baseline 36 ini harus turun. |
 | `next@14.2.3` + `next-auth@5.0.0-beta.18` | Upgrade butuh uji manual menyeluruh. | M2.1. |
