@@ -2,6 +2,8 @@
 .env
 .env.local
 .env.*.local
+# Backup sementara saat verifikasi build tanpa env (jangan sampai ke-commit).
+.env*.bak
 
 # Dependencies
 node_modules

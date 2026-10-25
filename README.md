@@ -118,6 +118,7 @@ docs/
   AUDIT.md             Hasil audit keamanan & kualitas
   MILESTONES.md        Roadmap M0–M9
   M0-IMPLEMENTATION.md Laporan hotfix keamanan
+  M1-IMPLEMENTATION.md Laporan test harness, CI, validasi env
 tests/                 Vitest (unit test logika murni)
 ```
 
@@ -141,8 +142,25 @@ aman ke browser.
 | `bun run test:watch` | Test mode watch |
 | `bun run test:coverage` | Test + laporan coverage (ambang 30% pada `lib/`) |
 | `bun run verify` | typecheck + lint + test sekaligus |
+| `bun run format` | Prettier (`--write`) |
+| `bun run format:check` | Cek format tanpa mengubah file |
 | `bun run db:push` | Sinkronkan schema ke database |
 | `bun run db:studio` | Drizzle Studio (GUI database) |
+
+### Konvensi commit
+
+Format Conventional Commits, dipaksa oleh hook `commit-msg` (husky + commitlint):
+
+```
+<type>(<scope>): <subject>
+
+fix(security): tutup kebocoran API key di client
+feat(api): tambah endpoint restore backup
+```
+
+`type`: `feat fix docs style refactor perf test build ci chore revert`.
+Hook hanya `commit-msg` — tidak ada `pre-commit` yang menjalankan test, supaya
+commit tidak terasa seperti menunggu build. Jalankan `bun run verify` sebelum push.
 
 ### CI
 
