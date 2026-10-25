@@ -61,7 +61,7 @@ export default function LoadingScreen({ text = "Now Loading...", showTip = true 
               System Tip
             </div>
             <p className="text-sm md:text-base text-gray-600 font-medium leading-relaxed italic">
-              "{VN_TIPS[tipIndex]}"
+              &ldquo;{VN_TIPS[tipIndex]}&rdquo;
             </p>
           </div>
         )}

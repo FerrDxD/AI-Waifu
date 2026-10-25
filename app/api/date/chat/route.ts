@@ -1,45 +1,63 @@
 import { NextResponse } from 'next/server';
-import { generateDateResponse, extractCustomApiKey, extractLanguage } from '@/lib/gemini';
+import { generateDateResponse, extractLanguage, resolveApiKey } from '@/lib/gemini';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { users, userProfiles } from '@/lib/db/schema';
+import { userProfiles } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { applyAffectionUpdate } from '@/lib/livia/affection.server';
-
-import { aiRateLimit } from '@/lib/rate-limit';
+import { apiErrorResponse, errors } from '@/lib/errors';
+import { aiRateLimit, rateLimitResponse } from '@/lib/rate-limit';
+import {
+  validateChatMessage,
+  validateDateLocation,
+  validateHistory,
+  sanitizeUserName,
+} from '@/lib/validation';
 
 export async function POST(req: Request) {
+  let userId: string | null = null;
+
   try {
     const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session?.user?.id) throw errors.unauthorized();
+    userId = session.user.id;
+    const uid = userId;
 
-    const { success } = await aiRateLimit.limit(`date_${session.user.id}`);
-    if (!success) {
-      return NextResponse.json({ error: 'Terlalu banyak request, tunggu sebentar.' }, { status: 429 });
+    const limit = await aiRateLimit.limit(`datechat_${uid}`);
+    if (!limit.success) {
+      return rateLimitResponse(limit, 'Terlalu banyak permintaan. Tunggu sebentar ya.');
     }
 
-    const customApiKey = extractCustomApiKey(req);
-    const language = extractLanguage(req);
-    const { location, message, history } = await req.json();
-    
-    const userName = (session.user as any)?.name || 'Kamu';
+    const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
 
-    const profileResults = await db.select().from(userProfiles).where(eq(userProfiles.userId, session.user.id));
+    // H0.5: semua input yang masuk prompt divalidasi & dibatasi.
+    const location = validateDateLocation(body?.location);
+    const message = validateChatMessage(body?.message);
+    const history = validateHistory(body?.history);
+    const userName = sanitizeUserName(session.user?.name);
+
+    const language = extractLanguage(req);
+    const customApiKey = await resolveApiKey(uid, req);
+
+    const profileResults = await db
+      .select()
+      .from(userProfiles)
+      .where(eq(userProfiles.userId, uid));
     const profile = profileResults[0];
 
     const now = new Date();
     const anchor = profile?.liviaCycleAnchor ? new Date(profile.liviaCycleAnchor).getTime() : now.getTime();
     const daysDiff = Math.floor((now.getTime() - anchor) / (1000 * 60 * 60 * 24));
-    const dayOfCycle = (daysDiff % 28 + 28) % 28 + 1;
+    const dayOfCycle = ((daysDiff % 28) + 28) % 28 + 1;
     let cyclePhase = 'Luteal';
     if (dayOfCycle <= 5) cyclePhase = 'Menstruasi';
     else if (dayOfCycle <= 14) cyclePhase = 'Folikuler';
     else if (dayOfCycle <= 17) cyclePhase = 'Ovulasi';
 
     const { reply, expression, affectionDelta, memoryUpdate } = await generateDateResponse(
-      location, 
+      location,
       message,
-      history || [],
+      history,
       profile?.affection || 0,
       userName,
       {
@@ -47,34 +65,52 @@ export async function POST(req: Request) {
         energy: profile?.liviaEnergy ?? 100,
         hydration: profile?.liviaHydration ?? 100,
         cyclePhase,
-        cycleDay: dayOfCycle
+        cycleDay: dayOfCycle,
       },
       profile?.longTermMemory || undefined,
       customApiKey,
       language
     );
 
-    // Update affection if there is a delta, and update memory
-    let updateResult: { newAffection: number | undefined | null; affectionLevel?: number; unlockedChapter: number | null } = { newAffection: profile?.affection, unlockedChapter: null };
-    
+    let updateResult: {
+      newAffection: number | null | undefined;
+      affectionLevel?: number;
+      unlockedChapter: number | null;
+    } = { newAffection: profile?.affection, unlockedChapter: null };
+
     if (profile) {
-      const updateData: any = { lastSeen: new Date() };
+      const updateData: Record<string, unknown> = { lastSeen: new Date() };
+
       if (memoryUpdate && memoryUpdate.trim() !== '') {
-        updateData.longTermMemory = profile.longTermMemory ? profile.longTermMemory + '\n- ' + memoryUpdate : '- ' + memoryUpdate;
+        const cleanFact = memoryUpdate.trim().replace(/^[-*•]\s*/, '');
+        const existing = (profile.longTermMemory || '')
+          .split('\n')
+          .map((s) => s.trim())
+          .filter(Boolean);
+        const factLine = `- ${cleanFact}`;
+        if (!existing.some((f) => f.toLowerCase() === factLine.toLowerCase())) {
+          existing.push(factLine);
+          updateData.longTermMemory = existing.slice(-20).join('\n');
+        }
       }
-      
+
       if (affectionDelta !== 0) {
-        updateResult = await applyAffectionUpdate(session.user.id, profile.affection || 0, affectionDelta);
+        updateResult = await applyAffectionUpdate(uid, profile.affection || 0, affectionDelta);
         updateData.affection = updateResult.newAffection;
         updateData.affectionLevel = updateResult.affectionLevel;
       }
-      
-      await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, session.user.id));
+
+      await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, uid));
     }
 
-    return NextResponse.json({ reply, expression, affectionDelta, newAffection: updateResult.newAffection, unlockedChapter: updateResult.unlockedChapter });
-  } catch (error: any) {
-    console.error(error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({
+      reply,
+      expression,
+      affectionDelta,
+      newAffection: updateResult.newAffection,
+      unlockedChapter: updateResult.unlockedChapter,
+    });
+  } catch (error) {
+    return apiErrorResponse(error, { route: 'api/date/chat.POST', userId });
   }
 }

@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { userProfiles, storyProgress } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { ITEMS } from '@/lib/livia/items';
+import { apiErrorResponse } from '@/lib/errors';
 
 export async function POST(req: Request) {
   try {
@@ -52,7 +53,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, activeBuffs, activeDebuffs });
   } catch (error) {
-    console.error('Onboarding API Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse(error, { route: 'api/onboarding.POST' });
   }
 }

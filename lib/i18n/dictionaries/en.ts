@@ -91,7 +91,7 @@ export const enDict: TranslationDict = {
     changeBtn: 'Change',
     aiSection: 'AI & Gemini API Key',
     aiCustomKey: 'Personal API Key (Custom Gemini Key)',
-    aiCustomDesc: 'To prevent hitting rate limits (429/503) during intensive play, enter your own Google Gemini API Key (free from Google AI Studio). If empty, the game uses the default server API.',
+    aiCustomDesc: 'To avoid hitting rate limits (429/503) during intensive play, you can enter your own Google Gemini API Key (free from Google AI Studio). If empty, the game uses the default server API. Note: the key is only kept in this tab\'s memory and must be re-entered after a reload.',
     saveKey: 'Save API Key',
     resetKey: 'Reset to Default',
     accountSection: 'Account & Storage',

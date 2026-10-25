@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Key, ExternalLink, Check, X, ShieldCheck, ArrowRight, HelpCircle } from 'lucide-react';
+import { Sparkles, Key, ExternalLink, Check, X, ShieldCheck, HelpCircle, Trash2 } from 'lucide-react';
 import { showCustomAlert } from '@/lib/alert';
+import { purgeLegacyApiKeyStorage, useApiKeyStatus } from '@/lib/client/api-key';
 
 interface ApiGuideModalProps {
   showFloatingButton?: boolean;
@@ -12,35 +13,60 @@ interface ApiGuideModalProps {
 export default function ApiGuideModal({ showFloatingButton = false, floatingButtonClassName }: ApiGuideModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [apiKey, setApiKey] = useState('');
-  const [isSaved, setIsSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const apiKeyStatus = useApiKeyStatus();
 
   useEffect(() => {
-    const savedKey = localStorage.getItem('custom_gemini_api_key');
-    if (savedKey) {
-      setApiKey(savedKey);
-      setIsSaved(true);
-    }
+    // M0/H0.1: bersihkan sisa localStorage + cookie dari versi lama.
+    purgeLegacyApiKeyStorage();
 
     // Cek apakah user sudah pernah melihat panduan ini
     const hasSeenGuide = localStorage.getItem('seen_api_key_guide');
-    if (!hasSeenGuide && !savedKey) {
+    if (!hasSeenGuide && !apiKeyStatus.hasKey && !apiKeyStatus.loading) {
       const timer = setTimeout(() => {
         setIsOpen(true);
       }, 1200); // Muncul otomatis setelah 1.2 detik saat pertama kali buka web
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [apiKeyStatus.hasKey, apiKeyStatus.loading]);
 
   const handleSave = async () => {
-    if (apiKey.trim()) {
-      localStorage.setItem('custom_gemini_api_key', apiKey.trim());
-      document.cookie = `custom_gemini_api_key=${encodeURIComponent(apiKey.trim())}; path=/; max-age=31536000; SameSite=Lax`;
-      setIsSaved(true);
+    if (!apiKey.trim()) {
+      showCustomAlert('Silakan masukkan API Key yang valid terlebih dahulu.', 'Perhatian ⚠️');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Key dikirim sekali via HTTPS → dienkripsi AES-256-GCM di server.
+      await apiKeyStatus.save(apiKey.trim());
+      setApiKey('');
       localStorage.setItem('seen_api_key_guide', 'true');
       setIsOpen(false);
-      await showCustomAlert('API Key berhasil disimpan! Livia akan memproses obrolanmu tanpa batas limit.', 'Sistem Gemini AI 🔑');
-    } else {
-      showCustomAlert('Silakan masukkan API Key yang valid terlebih dahulu.', 'Perhatian ⚠️');
+      await showCustomAlert(
+        'API Key tersimpan terenkripsi di server. Livia akan memakai kuotamu sendiri — browser tidak menyimpan key-nya.',
+        'API Key Tersimpan 🔑'
+      );
+    } catch (error) {
+      await showCustomAlert(
+        error instanceof Error ? error.message : 'Gagal menyimpan API Key.',
+        'Gagal Menyimpan ❌'
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleForget = async () => {
+    try {
+      await apiKeyStatus.remove();
+      setApiKey('');
+      await showCustomAlert('API Key dihapus dari server. Sistem kembali memakai API Key server.', 'API Key Dihapus 🗑️');
+    } catch (error) {
+      await showCustomAlert(
+        error instanceof Error ? error.message : 'Gagal menghapus API Key.',
+        'Gagal Menghapus ❌'
+      );
     }
   };
 
@@ -129,7 +155,7 @@ export default function ApiGuideModal({ showFloatingButton = false, floatingButt
                       LANGKAH 2
                     </span>
                     <p className="text-xs text-[#5c4d47] font-medium leading-relaxed">
-                      Klik tombol biru <b>"Create API key"</b> (atau Get API Key) dan pilih project baru gratis.
+                      Klik tombol biru <b>&ldquo;Create API key&rdquo;</b> (atau Get API Key) dan pilih project baru gratis.
                     </p>
                   </div>
 
@@ -160,10 +186,26 @@ export default function ApiGuideModal({ showFloatingButton = false, floatingButt
                   <Key size={14} className="text-[#ff758c]" />
                   Masukkan API Key Gemini Kamu Di Sini:
                 </label>
+
+                {apiKeyStatus.hasKey && (
+                  <div className="flex items-center justify-between gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5">
+                    <span className="text-[11px] font-bold text-green-700">
+                      Key aktif: <span className="font-mono">{apiKeyStatus.keyHint}</span>
+                    </span>
+                    <button
+                      onClick={handleForget}
+                      title="Hapus API Key"
+                      className="bg-white hover:bg-red-50 text-red-500 p-2 rounded-lg border border-red-100 shrink-0"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
                 
                 <div className="flex flex-col sm:flex-row gap-2.5">
                   <input
                     type="password"
+                    autoComplete="off"
                     placeholder="AIzaSy..."
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
@@ -171,16 +213,29 @@ export default function ApiGuideModal({ showFloatingButton = false, floatingButt
                   />
                   <button
                     onClick={handleSave}
-                    className="bg-gradient-to-r from-[#ff758c] to-rose-500 hover:from-[#e06277] hover:to-rose-600 text-white px-6 py-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-pink-500/20 transition-all shrink-0 cursor-pointer"
+                    disabled={saving}
+                    className="bg-gradient-to-r from-[#ff758c] to-rose-500 hover:from-[#e06277] hover:to-rose-600 text-white px-6 py-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-pink-500/20 transition-all shrink-0 cursor-pointer disabled:opacity-60"
                   >
                     <Check size={16} />
-                    <span>Simpan & Aktifkan</span>
+                    <span>{saving ? 'Menyimpan...' : 'Simpan & Aktifkan'}</span>
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2 text-[11px] text-gray-500 mt-1">
-                  <ShieldCheck size={14} className="text-green-500 shrink-0" />
-                  <span>Aman & Privasi Terjamin: API Key disimpan eksklusif di browser-mu dan tidak disimpan di database server kami.</span>
+                {/*
+                  M0/H0.1: klaim lama "Aman & Privasi Terjamin: API Key disimpan eksklusif
+                  di browser-mu" DIHAPUS — itu menyesatkan. Sekarang key benar-benar
+                  tidak disimpan di browser, jadi klaimnya bisa dipertanggungjawabkan.
+                */}
+                <div className="flex items-start gap-2 text-[11px] text-green-700 bg-green-50 border border-green-200 rounded-xl p-3 mt-1">
+                  <ShieldCheck size={14} className="text-green-600 shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">
+                    <b>Di mana key-mu disimpan:</b> API Key dikirim sekali lewat HTTPS lalu
+                    dienkripsi (AES-256-GCM) di server kami. Key <b>tidak</b> ditulis ke localStorage,
+                    <b> tidak</b> ke cookie, dan <b>tidak pernah</b> dikirim balik ke browser — kami
+                    hanya menampilkan 4 karakter terakhir. Artinya JavaScript di halaman ini
+                    (termasuk kalau ada XSS) tidak bisa mencurinya. Kamu bisa menghapusnya kapan saja
+                    dari menu Setelan.
+                  </span>
                 </div>
               </div>
 

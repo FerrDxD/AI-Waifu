@@ -1,7 +1,7 @@
 import { config } from 'dotenv';
 config({ path: '.env.local' });
-import { db } from './lib/db';
-import { storyProgress, userProfiles } from './lib/db/schema';
+import { db } from '../lib/db';
+import { storyProgress, userProfiles } from '../lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 async function main() {

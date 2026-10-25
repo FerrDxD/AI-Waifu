@@ -5,6 +5,7 @@ import { auth } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
 import { applyAffectionUpdate } from '@/lib/livia/affection.server';
 import { ITEMS } from '@/lib/livia/items';
+import { apiErrorResponse } from '@/lib/errors';
 
 
 const RECOVERY_STATS: Record<string, {hunger?: number, energy?: number, hydration?: number}> = {
@@ -100,7 +101,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, newMoney, newAffection, unlockedChapter });
   } catch (error) {
-    console.error('Gift API Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse(error, { route: 'api/gift.POST' });
   }
 }

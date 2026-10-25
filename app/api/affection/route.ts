@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { userProfiles, storyProgress } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { applyAffectionUpdate } from '@/lib/livia/affection.server';
+import { apiErrorResponse } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -81,8 +82,7 @@ export async function GET(req: Request) {
       }
     });
   } catch (error) {
-    console.error('Affection GET API Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse(error, { route: 'api/affection.GET' });
   }
 }
 
@@ -115,7 +115,6 @@ export async function PATCH(req: Request) {
     return NextResponse.json(result);
 
   } catch (error) {
-    console.error('Affection API Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse(error, { route: 'api/affection.PATCH' });
   }
 }

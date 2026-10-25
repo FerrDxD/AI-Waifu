@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { storyProgress } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { apiErrorResponse } from '@/lib/errors';
 
 export async function POST(req: Request) {
   try {
@@ -40,7 +41,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, unlockedChapters: currentUnlocked });
 
   } catch (error) {
-    console.error('Story Complete API Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse(error, { route: 'api/story/complete.POST' });
   }
 }

@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { userProfiles } from '@/lib/db/schema';
 import { auth } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
+import { apiErrorResponse } from '@/lib/errors';
 
 export async function POST(req: Request) {
   try {
@@ -39,7 +40,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, newMoney, jobStats });
   } catch (error) {
-    console.error('Work API Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse(error, { route: 'api/work.POST' });
   }
 }

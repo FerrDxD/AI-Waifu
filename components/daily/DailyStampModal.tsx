@@ -86,7 +86,7 @@ export default function DailyStampModal() {
             <img src="/livia/chibi-livia.webp" alt="Chibi Livia" className="w-full h-full object-contain animate-bounce" style={{ animationDuration: '2s' }} />
           </div>
           <p className="text-sm md:text-base text-[#5c4d47] font-medium italic">
-            "Wah, kamu rajin banget mampir ke kos tiap hari! Sini, aku punya sedikit hadiah dan uang saku buatmu hari ini~"
+            &ldquo;Wah, kamu rajin banget mampir ke kos tiap hari! Sini, aku punya sedikit hadiah dan uang saku buatmu hari ini~&rdquo;
           </p>
         </div>
 

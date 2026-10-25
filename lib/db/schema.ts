@@ -36,6 +36,23 @@ export const userProfiles = pgTable('userProfiles', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+/**
+ * API key milik user disimpan TERENKRIPSI di server (AES-256-GCM).
+ * Tabel terpisah dari userProfiles agar data sensitif bisa dihapus / diaudit sendiri.
+ * Key plaintext TIDAK PERNAH dikirim balik ke client.
+ */
+export const userApiKeys = pgTable('userApiKeys', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).unique().notNull(),
+  provider: text('provider').notNull().default('gemini'),
+  ciphertext: text('ciphertext').notNull(),
+  iv: text('iv').notNull(),
+  authTag: text('auth_tag').notNull(),
+  keyHint: text('key_hint').notNull(), // 4 karakter terakhir, untuk ditampilkan ke user
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 export const chatMessages = pgTable('chatMessages', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),

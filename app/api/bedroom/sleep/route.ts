@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { userProfiles } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { apiErrorResponse } from '@/lib/errors';
 
 export async function POST(req: Request) {
   try {
@@ -20,7 +21,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, liviaEnergy: 100 });
   } catch (error) {
-    console.error('Failed to sleep', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse(error, { route: 'api/bedroom/sleep.POST' });
   }
 }

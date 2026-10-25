@@ -7,6 +7,7 @@ import { signOut } from 'next-auth/react';
 import { playSfx } from '@/lib/sfx';
 import { showCustomAlert, showCustomConfirm } from '@/lib/alert';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { purgeLegacyApiKeyStorage, useApiKeyStatus } from '@/lib/client/api-key';
 
 export default function SettingsPage() {
   const { language, setLanguage, dict } = useLanguage();
@@ -15,11 +16,14 @@ export default function SettingsPage() {
   const [bgmVolume, setBgmVolume] = useState(50);
   const [sfxVolume, setSfxVolume] = useState(80);
   const [notifications, setNotifications] = useState(true);
+  // M0/H0.1: key dikelola server. Browser hanya tahu `keyHint`, tidak plaintext.
+  const apiKeyStatus = useApiKeyStatus();
   const [customApiKey, setCustomApiKey] = useState('');
+  const [savingKey, setSavingKey] = useState(false);
 
   useEffect(() => {
-    const savedKey = localStorage.getItem('custom_gemini_api_key');
-    if (savedKey) setCustomApiKey(savedKey);
+    // Bersihkan sisa penyimpanan key dari versi lama (localStorage + cookie).
+    purgeLegacyApiKeyStorage();
 
     const savedSfx = localStorage.getItem('sfx_volume');
     if (savedSfx !== null && !isNaN(parseInt(savedSfx, 10))) {
@@ -56,22 +60,49 @@ export default function SettingsPage() {
   };
 
   const handleSaveApiKey = async () => {
-    if (customApiKey.trim()) {
-      localStorage.setItem('custom_gemini_api_key', customApiKey.trim());
-      document.cookie = `custom_gemini_api_key=${encodeURIComponent(customApiKey.trim())}; path=/; max-age=31536000; SameSite=Lax`;
-      await showCustomAlert("API Key berhasil disimpan! Livia sekarang akan memakai Gemini API Key pribadimu.", "Sistem Gemini AI 🔑");
-    } else {
-      localStorage.removeItem('custom_gemini_api_key');
-      document.cookie = "custom_gemini_api_key=; path=/; max-age=0";
-      await showCustomAlert("API Key dikosongkan. Sistem kembali memakai API Key default server.", "Sistem Gemini AI 🔑");
+    if (!customApiKey.trim()) {
+      await showCustomAlert(
+        'Kolom API Key kosong. Klik tombol hapus untuk kembali memakai API server.',
+        'Perhatian ⚠️'
+      );
+      return;
+    }
+
+    setSavingKey(true);
+    try {
+      // Key dikirim sekali via HTTPS lalu dienkripsi AES-256-GCM di server.
+      await apiKeyStatus.save(customApiKey.trim());
+      setCustomApiKey('');
+      playSfx('chime');
+      await showCustomAlert(
+        'API Key tersimpan terenkripsi di server. Browser tidak lagi menyimpan key-nya.',
+        'API Key Tersimpan 🔑'
+      );
+    } catch (error) {
+      playSfx('error');
+      await showCustomAlert(
+        error instanceof Error ? error.message : 'Gagal menyimpan API Key.',
+        'Gagal Menyimpan ❌'
+      );
+    } finally {
+      setSavingKey(false);
     }
   };
 
   const handleResetApiKey = async () => {
-    setCustomApiKey('');
-    localStorage.removeItem('custom_gemini_api_key');
-    document.cookie = "custom_gemini_api_key=; path=/; max-age=0";
-    await showCustomAlert("API Key di-reset ke default server.", "Sistem Gemini AI 🔑");
+    setSavingKey(true);
+    try {
+      await apiKeyStatus.remove();
+      setCustomApiKey('');
+      await showCustomAlert('API Key dihapus. Sistem kembali memakai API Key default server.', 'API Key Dihapus 🔑');
+    } catch (error) {
+      await showCustomAlert(
+        error instanceof Error ? error.message : 'Gagal menghapus API Key.',
+        'Gagal Menghapus ❌'
+      );
+    } finally {
+      setSavingKey(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -95,12 +126,13 @@ export default function SettingsPage() {
       const serverData = res.ok ? await res.json() : {};
 
       const backupObj = {
-        version: "2.2.6",
+        version: "2.4.6",
         appName: "Teman Kos with Livia",
         timestamp: new Date().toISOString(),
+        // M0/H0.1 + AUDIT 2.4: API key TIDAK PERNAH ikut ke file backup.
+        // File backup gampang dibagikan/di-upload — key ikut keseret = bocor.
         localStorage: {
           livia_outfit: localStorage.getItem('livia_outfit'),
-          custom_gemini_api_key: localStorage.getItem('custom_gemini_api_key'),
           sfx_volume: localStorage.getItem('sfx_volume'),
           daily_login_stamp: localStorage.getItem('daily_login_stamp'),
           unlocked_achievements: localStorage.getItem('unlocked_achievements'),
@@ -149,6 +181,8 @@ export default function SettingsPage() {
 
         if (backupObj.localStorage) {
           Object.entries(backupObj.localStorage).forEach(([key, val]) => {
+            // M0/H0.1: jangan pernah memulihkan API key dari file backup lama.
+            if (key === 'custom_gemini_api_key') return;
             if (val !== null && val !== undefined) {
               localStorage.setItem(key, val as string);
             }
@@ -279,10 +313,41 @@ export default function SettingsPage() {
               </p>
             </div>
 
+            {/* Status key: browser hanya menerima hint, bukan plaintext. */}
+            {apiKeyStatus.loading ? (
+              <p className="text-xs text-gray-400 font-medium">Memeriksa status API Key...</p>
+            ) : apiKeyStatus.hasKey ? (
+              <div className="flex items-center justify-between gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-green-700">
+                    {language === 'en' ? 'Active key (encrypted on server)' : 'Key aktif (terenkripsi di server)'}
+                  </span>
+                  <span className="text-[11px] text-green-600 font-mono">{apiKeyStatus.keyHint}</span>
+                </div>
+                <button
+                  onClick={handleResetApiKey}
+                  disabled={savingKey}
+                  title="Hapus API Key"
+                  className="bg-white hover:bg-red-50 text-red-500 p-2.5 rounded-xl font-bold flex items-center justify-center transition-all shrink-0 border border-red-100 disabled:opacity-50"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 font-medium">
+                {language === 'en' ? 'No personal key saved — using the server API.' : 'Belum ada key pribadi — memakai API server.'}
+              </p>
+            )}
+
+            {apiKeyStatus.error && (
+              <p className="text-[11px] text-red-600 font-medium">{apiKeyStatus.error}</p>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-3 mt-2">
               <input 
                 type="password"
-                placeholder={language === 'en' ? "AIzaSy... (Leave empty for default)" : "AIzaSy... (Kosongkan untuk default)"}
+                autoComplete="off"
+                placeholder={language === 'en' ? "AIzaSy... (new key)" : "AIzaSy... (key baru)"}
                 value={customApiKey}
                 onChange={(e) => setCustomApiKey(e.target.value)}
                 className="flex-1 bg-orange-50/50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-[#5c4d47] placeholder-gray-400 focus:outline-none focus:border-orange-400 font-mono transition-all"
@@ -290,23 +355,17 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2">
                 <button 
                   onClick={handleSaveApiKey}
-                  className="bg-[#5c4d47] hover:bg-[#433833] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all shrink-0"
+                  disabled={savingKey}
+                  className="bg-[#5c4d47] hover:bg-[#433833] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all shrink-0 disabled:opacity-50"
                 >
-                  <Save size={14} /> {language === 'en' ? 'Save' : 'Simpan'}
+                  <Save size={14} /> {savingKey ? '...' : (language === 'en' ? 'Save' : 'Simpan')}
                 </button>
-                {customApiKey && (
-                  <button 
-                    onClick={handleResetApiKey}
-                    title="Hapus API Key"
-                    className="bg-red-50 hover:bg-red-100 text-red-500 p-3 rounded-xl font-bold text-xs flex items-center justify-center transition-all shrink-0 border border-red-100"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                )}
               </div>
             </div>
-            <p className="text-[11px] text-amber-600/80 font-medium">
-              {language === 'en' ? '*Your API Key is safely stored in your browser (LocalStorage & Cookie) and sent directly to Google AI servers.' : '*API Key milikmu disimpan secara aman di browser (LocalStorage & Cookie) dan hanya dikirim langsung ke server Google AI saat kamu berinteraksi dengan Livia.'}
+            <p className="text-[11px] text-green-700 bg-green-50 border border-green-200 rounded-xl p-3 font-medium leading-relaxed">
+              {language === 'en'
+                ? 'Your API Key is sent once over HTTPS and stored encrypted (AES-256-GCM) on our server. It is never written to localStorage or cookies, and it is never sent back to your browser — we only show the last 4 characters. JavaScript running on this page cannot read it.'
+                : 'API Key dikirim sekali lewat HTTPS lalu disimpan terenkripsi (AES-256-GCM) di server kami. Key tidak pernah ditulis ke localStorage atau cookie, dan tidak pernah dikirim balik ke browser — kami hanya menampilkan 4 karakter terakhir. JavaScript yang berjalan di halaman ini tidak bisa membacanya.'}
             </p>
           </div>
         </section>

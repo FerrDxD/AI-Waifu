@@ -6,6 +6,7 @@ import { eq, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { SEED_CATALOG } from '@/lib/livia/seeds';
 import { applyAffectionUpdate } from '@/lib/livia/affection.server';
+import { apiErrorResponse } from '@/lib/errors';
 
 
 export const dynamic = 'force-dynamic';
@@ -80,8 +81,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ pots: processedPots });
   } catch (error) {
-    console.error('Garden GET Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse(error, { route: 'api/garden.GET' });
   }
 }
 
@@ -167,7 +167,6 @@ export async function POST(req: Request) {
     revalidatePath('/garden');
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Garden POST Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse(error, { route: 'api/garden.POST' });
   }
 }

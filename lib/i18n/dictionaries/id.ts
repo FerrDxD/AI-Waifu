@@ -89,7 +89,7 @@ export const idDict = {
     changeBtn: 'Ubah',
     aiSection: 'AI & Gemini API Key',
     aiCustomKey: 'API Key Pribadi (Custom Gemini Key)',
-    aiCustomDesc: 'Supaya tidak terkena batas limit (429/503) saat bermain intensif, masukkan API Key Google Gemini milikmu sendiri (gratis dari Google AI Studio). Jika kosong, game menggunakan API default server.',
+    aiCustomDesc: 'Supaya tidak terkena batas limit (429/503) saat bermain intensif, kamu bisa memasukkan API Key Google Gemini milikmu sendiri (gratis dari Google AI Studio). Jika kosong, game menggunakan API default server. Catatan: key hanya disimpan di memori tab ini dan harus ditempel ulang setelah reload.',
     saveKey: 'Simpan API Key',
     resetKey: 'Reset ke Default',
     accountSection: 'Akun & Penyimpanan',

@@ -5,6 +5,7 @@ import { users, userProfiles } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { applyAffectionUpdate } from '@/lib/livia/affection.server';
 import { RECIPES } from '@/lib/livia/recipes';
+import { apiErrorResponse } from '@/lib/errors';
 
 export async function POST(req: Request) {
   try {
@@ -71,7 +72,6 @@ export async function POST(req: Request) {
     });
 
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse(error, { route: 'api/kitchen.POST' });
   }
 }

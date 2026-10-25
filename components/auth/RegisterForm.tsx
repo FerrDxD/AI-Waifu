@@ -114,11 +114,11 @@ export default function RegisterForm() {
               value={formData.password}
               onChange={handleChange}
               onFocus={() => playSfx('pop')}
-              placeholder="Minimal 6 karakter"
+              placeholder="Minimal 8 karakter (huruf & angka)"
               className="w-full px-4 py-3 bg-orange-50/40 border-2 border-orange-100 text-[#5c4d47] text-sm md:text-base rounded-2xl focus:outline-none focus:border-[#ff758c] focus:bg-white focus:ring-4 focus:ring-pink-500/10 transition-all pr-12 placeholder-gray-400 font-medium shadow-inner"
               required
               disabled={loading}
-              minLength={6}
+              minLength={8}
             />
             <button
               type="button"
@@ -143,7 +143,7 @@ export default function RegisterForm() {
               className="w-full px-4 py-3 bg-orange-50/40 border-2 border-orange-100 text-[#5c4d47] text-sm md:text-base rounded-2xl focus:outline-none focus:border-[#ff758c] focus:bg-white focus:ring-4 focus:ring-pink-500/10 transition-all pr-12 placeholder-gray-400 font-medium shadow-inner"
               required
               disabled={loading}
-              minLength={6}
+              minLength={8}
             />
             <button
               type="button"
