@@ -34,7 +34,7 @@ sebelum DoD terpenuhi + ada test yang lulus.
 ## M1 — Fondasi Engineering (Minggu 2–4)
 > Tidak ada renovation tanpa blueprint. M1 ini yang bikin refactor berikutnya tidak menakutkan.
 
-- [x] **M1.1** ESLint config nyata (`.eslintrc.json`: `next/core-web-vitals` + `no-throw-literal` + `no-debugger`), Prettier, commit convention (Conventional Commits + commitlint + husky `commit-msg`). *`@typescript-eslint/recommended` belum aktif — plugin belum terpasang; lihat `docs/M1-IMPLEMENTATION.md` §7.*
+- [x] **M1.1** ESLint config nyata (`.eslintrc.json`: `next/core-web-vitals` + `no-throw-literal` + `no-debugger` + `@typescript-eslint/no-explicit-any` sebagai warning), Prettier, commit convention (Conventional Commits + commitlint + husky `commit-msg`).
 - [x] **M1.2** **CI** (GitHub Actions): typecheck → lint → test:coverage → build. Semua PR wajib lulus.
 - [x] **M1.3** Testing harness pertama: Vitest. **208 tes / 11 file**, coverage `lib/` **53.96%** (target 30%). React Testing Library belum dipasang (menunggu komponen dipecah di M5.1).
 - [x] **M1.4** Custom error class (`AppError` + `apiErrorResponse`) dan helper `apiHandler()`/`jsonApiHandler()`/`publicApiHandler()` untuk auth + rate limit + try/catch. *Sentry ditunda — butuh DSN.*

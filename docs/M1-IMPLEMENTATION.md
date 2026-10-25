@@ -11,7 +11,7 @@ memasang jaring pengaman supaya lubang yang sama tidak muncul lagi.
 
 | Item | Status | Bukti |
 |---|---|---|
-| M1.1 ESLint + Prettier + Conventional Commits | ✅ | `.eslintrc.json`, `.prettierrc`, `commitlint.config.mjs`, `.husky/commit-msg` |
+| M1.1 ESLint + Prettier + Conventional Commits | ✅ | `.eslintrc.json` (termasuk `@typescript-eslint/no-explicit-any`), `.prettierrc`, `commitlint.config.mjs`, `.husky/commit-msg` |
 | M1.2 CI GitHub Actions | ✅ | `.github/workflows/ci.yml` |
 | M1.3 Vitest + coverage 30% | ✅ | `vitest.config.mts`, `tests/` — **208 tes, 11 file** |
 | M1.4 `apiHandler` wrapper | ✅ | `lib/api-handler.ts` — 17 tes |
@@ -253,6 +253,21 @@ sudah diformat. Memformat seluruh repo sekaligus akan menghasilkan diff ribuan
 baris yang menyembunyikan perubahan logika. Kalau mau, jalankan
 `bun run format` sebagai commit terpisah bertanda `style:`.
 
+### 5.1 Aturan ESLint
+
+| Aturan | Level | Alasan |
+|---|---|---|
+| `no-throw-literal` | error | `throw 'pesan'` kehilangan stack trace dan tidak bisa diperiksa tipe. Nol pelanggaran saat dipasang. |
+| `no-debugger` | error | `debugger` yang tertinggal membekukan browser user. |
+| `@typescript-eslint/no-explicit-any` | warn | 36 pelanggaran lama. Lihat §7. |
+| `react/no-unescaped-entities` | warn | Dibatasi ke `>` dan `}`, karena teks dialog VN memang penuh tanda kutip dan apostrof. |
+
+`@typescript-eslint/eslint-plugin` dipasang di `^7.2.0` supaya cocok dengan
+`@typescript-eslint/parser@7.2.0` yang sudah dibawa `eslint-config-next@14.2.3`.
+Memasang versi 8 akan menarik parser baru dan menimbulkan peringatan peer
+dependency.
+
+
 ---
 
 ## 6. Ambang coverage
@@ -283,6 +298,7 @@ Rencana: naikkan bertahap setelah modul DB-dependent punya tes integrasi (M5).
 | Tes route handler | Butuh Postgres. | Testcontainers / DB cabang Neon di M5. |
 | Refactor 20 route ke `apiHandler` | Baru 3 route yang dipindah (restore, cook, affection). Sisanya masih pola lama dan **sudah** aman (M0), tapi belum DRY. | Migrasi bertahap; tiap route diverifikasi dengan `tsc` + build. |
 | Prettier seluruh repo | Diff besar. | Commit `style:` terpisah. |
+| 36 pemakaian `any` | Dijadikan `warn`, bukan `error` — kalau `error`, CI langsung merah untuk kode lama yang tidak kita sentuh. Membersihkannya butuh tipe respons Gemini yang nyata. | M2.2 (abstraksi model). Baseline 36 ini harus turun. |
 | `next@14.2.3` + `next-auth@5.0.0-beta.18` | Upgrade butuh uji manual menyeluruh. | M2.1. |
 | React Testing Library | Belum ada tes komponen. | M5, setelah komponen dipecah (M5.1). |
 
