@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { z } from 'zod';
 import { AppError } from '@/lib/errors';
 import { __resetAIConfigForTests } from '@/lib/ai/config';
@@ -7,21 +7,15 @@ import type { GenerateOptions } from '@/lib/ai/types';
 import {
   mockGenerateContent,
   mockGenerateContentStream,
-  sdkModuleMock,
 } from './gemini-sdk-mock';
 
 /**
  * Test adapter Gemini (M2.2/M2.6) tanpa memanggil jaringan.
  *
- * SDK di-mock di level modul; bentuk mock dibagi dengan test streaming
- * (lihat tests/gemini-sdk-mock.ts). `mockGenerateContentStream` tetap
- * tersedia biar test mana yang dijalankan duluan tidak melanggar.
+ * SDK di-mock di `tests/setup.ts` (global) — BUKAN di sini. Alasannya ada di
+ * file itu: dengan `isolate: false`, `vi.mock` per file kalah kalau file lain
+ * sudah menarik SDK asli ke registry worker lebih dulu.
  */
-
-vi.mock('@google/generative-ai', async () => {
-  const { sdkModuleMock } = await import('./gemini-sdk-mock');
-  return sdkModuleMock();
-});
 
 const outputSchema = z.object({
   reply: z.string(),

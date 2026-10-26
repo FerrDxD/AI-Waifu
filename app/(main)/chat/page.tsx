@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, ArrowLeft, CheckCircle2, Phone } from 'lucide-react';
+import { Send, ArrowLeft, CheckCircle2, Phone, LifeBuoy, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { playSfx } from '@/lib/sfx';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 
 interface ChatMessage {
@@ -11,6 +12,83 @@ interface ChatMessage {
   role: 'user' | 'livia';
   content: string;
   isNew?: boolean;
+}
+
+/** Bentuk data krisis yang dikirim server (M4.2). */
+interface CrisisInfo {
+  message: string;
+  resources: Array<{ name: string; contact: string; note: string }>;
+  directoryUrl: string;
+  escalate: boolean;
+}
+
+/**
+ * Panel bantuan krisis (M4.2).
+ *
+ * Sengaja dibuat mencolok dan tidak bisa dilewati diam-diam: hijau/tenang,
+ * bukan merah panik, tapi jelas bukan bagian dari roleplay. Nomor hotline bisa
+ * diklik langsung dari HP.
+ */
+function CrisisPanel({ info, onDismiss }: { info: CrisisInfo; onDismiss: () => void }) {
+  const { language } = useLanguage();
+  const isUrl = (value: string) => /^https?:\/\//.test(value);
+
+  return (
+    <div className="mx-3 my-3 rounded-3xl border-2 border-emerald-200 bg-emerald-50/70 p-4 flex flex-col gap-3">
+      <div className="flex items-start gap-2.5">
+        <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0">
+          <LifeBuoy className="text-white w-4 h-4" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="font-display font-black text-sm text-emerald-800">
+            {language === 'en' ? 'You deserve real support' : 'Kamu berhak dapat bantuan nyata'}
+          </span>
+          <span className="text-[11px] text-emerald-700 font-medium leading-relaxed">
+            {language === 'en'
+              ? 'Livia is an AI and cannot help with this. These services can.'
+              : 'Livia adalah AI dan tidak bisa menangani ini. Layanan berikut bisa.'}
+          </span>
+        </div>
+      </div>
+
+      <ul className="flex flex-col gap-2">
+        {info.resources.map((resource) => (
+          <li key={resource.name} className="bg-white rounded-2xl p-3 border border-emerald-100">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <span className="text-xs font-black text-emerald-800">{resource.name}</span>
+              {isUrl(resource.contact) ? (
+                <a
+                  href={resource.contact}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs font-bold text-emerald-600 underline inline-flex items-center gap-1"
+                >
+                  {language === 'en' ? 'Open' : 'Buka'} <ExternalLink size={10} />
+                </a>
+              ) : (
+                <a
+                  href={`tel:${resource.contact.replace(/[^\d+]/g, '')}`}
+                  className="text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg"
+                >
+                  {resource.contact}
+                </a>
+              )}
+            </div>
+            <p className="text-[10px] text-emerald-600/80 font-medium mt-1 leading-snug">
+              {resource.note}
+            </p>
+          </li>
+        ))}
+      </ul>
+
+      <button
+        onClick={onDismiss}
+        className="text-[10px] font-bold text-emerald-600/70 hover:text-emerald-800 self-end transition-colors"
+      >
+        {language === 'en' ? 'Hide' : 'Sembunyikan'}
+      </button>
+    </div>
+  );
 }
 
 function TypewriterText({ text }: { text: string }) {
@@ -32,6 +110,13 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [historyLoaded, setHistoryLoaded] = useState(false);
+  /**
+   * M4.2: diisi kalau server mendeteksi sinyal krisis pada pesan user.
+   * Ditampilkan sebagai panel bantuan yang menonjol, terpisah dari balon chat —
+   * bukan disisipkan ke dalam teks Livia, supaya nomor hotline tidak bisa
+   * terlewat karena terlihat seperti dialog biasa.
+   */
+  const [crisis, setCrisis] = useState<CrisisInfo | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -70,7 +155,9 @@ export default function ChatPage() {
     playSfx('click');
     const userMsg = input.trim();
     setInput('');
-    setMessages(prev => [...prev, {
+    // Panel krisis dari giliran sebelumnya disembunyikan saat user memulai
+    // percakapan baru; kalau masih relevan, server akan mengirimnya lagi.
+    setCrisis(null);setMessages(prev => [...prev, {
       id: Date.now().toString(),
       role: 'user',
       content: userMsg,
@@ -124,6 +211,10 @@ export default function ChatPage() {
               m.id === liviaId ? { ...m, content: event.reply || m.content } : m
             )
           );
+          // M4.2: panel bantuan hanya dari `done`, sama seperti afeksi —
+          // data keamanan tidak boleh berasal dari delta parsial.
+          const doneEvent = event as { crisis?: CrisisInfo };
+          if (doneEvent.crisis?.escalate) setCrisis(doneEvent.crisis);
           playSfx('pop');
         } else if (event.type === 'error') {
           setMessages(prev =>
@@ -256,6 +347,10 @@ export default function ChatPage() {
                 )}
               </div>
             ))}
+
+            {/* M4.2: panel bantuan krisis — di dalam area scroll supaya
+                tetap terlihat setelah balasan Livia, dan bisa ditutup user. */}
+            {crisis && <CrisisPanel info={crisis} onDismiss={() => setCrisis(null)} />}
 
             {/* Loading indicator */}
             {loading && (

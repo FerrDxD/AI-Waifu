@@ -90,6 +90,8 @@ export const POST = apiHandler(
             newAffection: update.newAffection,
             newLevel: update.affectionLevel,
             unlockedChapter: update.unlockedChapter,
+            // M4.2: hanya terisi kalau deteksi krisis terpicu.
+            crisis: final.crisis,
           });
 
           // M2.5: pemicu ringkasan bergulir. Satu `done` = satu turn tersimpan,

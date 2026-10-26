@@ -6,6 +6,7 @@ import { userProfiles } from '@/lib/db/schema';
 import { errors, AppError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { mutationRateLimit } from '@/lib/rate-limit';
+import { recordAuditEvent } from '@/lib/safety/audit';
 import {
   deleteAllMemories,
   deleteMemory,
@@ -80,11 +81,24 @@ export const DELETE = apiHandler(
     try {
       if (all === '1' || all === 'true') {
         const removed = await deleteAllMemories(userId);
+
+        await recordAuditEvent({
+          userId,
+          action: 'memory.delete_all',
+          metadata: { route: `${ROUTE}.DELETE`, removed },
+        });
+
         return NextResponse.json({ removed, all: true }, { headers: NO_STORE });
       }
 
       const removed = await deleteMemory(userId, id as string);
       if (!removed) throw errors.notFound('Memori');
+
+      await recordAuditEvent({
+        userId,
+        action: 'memory.delete',
+        metadata: { route: `${ROUTE}.DELETE`, removed: 1 },
+      });
 
       return NextResponse.json({ removed: 1, all: false }, { headers: NO_STORE });
     } catch (error) {

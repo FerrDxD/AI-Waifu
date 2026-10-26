@@ -87,17 +87,26 @@ sebelum DoD terpenuhi + ada test yang lulus.
 ## M4 — Safety, Privacy & Compliance (Bulan 3, paralel)
 > Bukan batasan, tapi fitur yang membuat user (dan hukum) percaya.
 
-- [ ] **M4.1** **Age gate**: konfirmasi 18+ (atau 13+ dengan gate konten) di registrasi + modal pertama.
-- [ ] **M4.2** **Guardrail layer sendiri** (karena BLOCK_NONE):
+- [x] **M4.1** **Age gate**: konfirmasi 18+ (atau 13+ dengan gate konten) di registrasi + modal pertama.
+      → Checkbox wajib di registrasi (divalidasi ulang di server) + modal blokir untuk akun pra-M4. Hanya waktu konfirmasi yang disimpan (`users.age_confirmed_at`), bukan tanggal lahir. Kegagalan baca = "tidak diketahui" → tidak memblokir.
+- [x] **M4.2** **Guardrail layer sendiri** (karena BLOCK_NONE):
   - Pre-check input: classifikasi bahasa kasar/ancaman/SI sexual terhadap moderasi cepat (Perspective API atau model flash-lite classifier).
   - Post-check output Livia sebelum dirender/stream.
   - Safe-word & behavior: deteksi "aku mau mengakhiri hidup" → tampilkan hotline + escape script.
-- [ ] **M4.3** **PII redaction** sebelum data ke Gemini: nomor telepon, email, NIK, alamat lengkap → token (PHONE_1) yang di-mapping kembali saat rendering jika perlu. Opsional opt-in "mode privat ekstra".
-- [ ] **M4.4** **Data control**: halaman Privacy Center — export semua data (tanpa API key!), hapus akun + seluruh data (hard delete cascade + forget memory), tidak lagi "Coming soon".
-- [ ] **M4.5** **Privacy Policy + ToS asli** (bukan template), cookie consent jika ada analytics.
-- [ ] **M4.6** **Audit log** (`audit_events` table): login, reset, delete data, perubahan sensitive — mempermudah investigasi insiden.
+      → Berbasis pola (deterministik, tanpa latensi/biaya, tetap jalan saat provider down) — bukan Perspective API. Urutan: krisis > sexual_minor > weapons > illegal_harm > hate > prompt_injection. Krisis **melepas persona**: panel bantuan terpisah + hotline (SEJIWA 119 ext. 8, Into The Light, Halo Kemenkes) + direktori `findahelpline.com`. Dipasang di `lib/gemini.ts` (satu pintu ke provider), jadi JSON & streaming memakai aturan identik.
+- [x] **M4.3** **PII redaction** sebelum data ke Gemini: nomor telepon, email, NIK, alamat lengkap → token (PHONE_1) yang di-mapping kembali saat rendering jika perlu. Opsional opt-in "mode privat ekstra".
+      → Email, NIK (16 digit), telepon (`08…`/`+62…`/kode area), rekening (dengan penyaring nominal/tahun), IPv4. **Seluruh riwayat** diredaksi, bukan hanya pesan terbaru (kalau tidak, PII lama terkirim ulang setiap turn). Pemulihan token aman untuk streaming yang terbelah antar delta. Alamat bebas & nama tidak tertangkap — diakui sebagai batas, bukan diklaim sempurna.
+- [x] **M4.4** **Data control**: halaman Privacy Center — export semua data (tanpa API key!), hapus akun + seluruh data (hard delete cascade + forget memory), tidak lagi "Coming soon".
+      → `/privacy` (JSON + Markdown), `GET /api/user/export` (API key tidak pernah ikut; bagian gagal tidak menggagalkan sisanya; pemotongan dicatat jujur), `DELETE /api/user/account` (frasa konfirmasi divalidasi di server, hard delete cascade). Tombol "reset data" palsu di Pengaturan dihapus.
+- [x] **M4.5** **Privacy Policy + ToS asli** (bukan template), cookie consent jika ada analytics.
+      → `/privacy-policy` dan `/tos` bisa dibuka tanpa login, menyebut Google Gemini secara eksplisit. Cookie consent **tidak** ditambahkan karena tidak ada analytics/iklan — banner tanpa cookie yang perlu disetujui hanya melatih user mengabaikannya.
+- [x] **M4.6** **Audit log** (`audit_events` table): login, reset, delete data, perubahan sensitive — mempermudah investigasi insiden.
+      → `auditEvents` dengan `user_id` **tanpa FK cascade** (jejak hapus akun harus bertahan). Metadata daftar-putih (bukan daftar-hitam) supaya field request baru tidak otomatis bocor ke log. `recordAuditEvent()` tidak pernah melempar. Diaudit: login sukses/gagal/terkunci, register, simpan/hapus API key, hapus memori, export, hapus akun, age gate.
 
 **DoD:** Lulus tabel linter privasi internal, takedown insiden terdokumentasi, ToS menyebut LLM processing & transfer data ke Google, age gate aktif.
+
+**Status DoD:** ToS & Kebijakan Privasi menyebut Google Gemini sebagai pemroses data — terpenuhi. Age gate aktif di registrasi & akun lama — terpenuhi (butuh satu `db:push` untuk kolomnya). "Linter privasi internal" tidak ada sebagai tool; yang dijalankan adalah `tsc` + 525 unit test + eval offline 50/50. Takedown insiden **belum terdokumentasi** — belum pernah ada insiden, dan prosedurnya belum ditulis.
+
 
 ---
 

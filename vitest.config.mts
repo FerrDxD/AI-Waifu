@@ -6,6 +6,10 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     include: ['tests/**/*.test.ts'],
+    // Mock SDK didaftarkan di sini, bukan per file test. Lihat penjelasan
+    // lengkap di tests/setup.ts: dengan `isolate: false`, `vi.mock` per file
+    // hanya andal kalau file itu kebetulan berjalan lebih dulu.
+    setupFiles: ['tests/setup.ts'],
     // Pool `forks` gagal start di Windows (worker timeout). `threads`
     // lebih ringan dan stabil di environment ini.
     pool: 'threads',

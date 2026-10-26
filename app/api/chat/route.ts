@@ -32,7 +32,7 @@ export const POST = apiHandler(
 
     const ctx = await loadChatTurnContext({ userId, req, isVoiceCall, message });
 
-    const { reply, affectionDelta, expression, memories, memoryUpdate } =
+    const { reply, affectionDelta, expression, memories, memoryUpdate, crisis } =
       await generateLiviaResponse(
         message,
         ctx.chatHistory,
@@ -66,6 +66,8 @@ export const POST = apiHandler(
       newAffection: updateResult.newAffection,
       newLevel: updateResult.affectionLevel,
       unlockedChapter: updateResult.unlockedChapter,
+      // M4.2: hanya ada kalau pesan user memicu deteksi krisis.
+      crisis,
     });
   }
 );

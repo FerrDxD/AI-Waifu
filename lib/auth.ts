@@ -12,6 +12,7 @@ import {
   recordFailedLogin,
   LOCKOUT_POLICY,
 } from './auth-lockout';
+import { recordAuditEvent } from './safety/audit';
 
 /**
  * Catatan keamanan (M0/H0.4):
@@ -49,6 +50,14 @@ export const authConfig: NextAuthConfig = {
             identifier: identifierStr.slice(0, 3) + '***',
             retryAfterSeconds: lockout.retryAfterSeconds,
           });
+          // M4.6: percobaan login saat terkunci tetap diaudit — pola percobaan
+          // berulang justru sinyal serangan yang paling berguna.
+          await recordAuditEvent({
+            userId: null,
+            action: 'auth.login.failure',
+            outcome: 'denied',
+            metadata: { reason: 'locked_out', provider: 'credentials' },
+          });
           return null;
         }
 
@@ -61,6 +70,12 @@ export const authConfig: NextAuthConfig = {
 
         if (!user || !user.password) {
           recordFailedLogin(identifierStr);
+          await recordAuditEvent({
+            userId: null,
+            action: 'auth.login.failure',
+            outcome: 'failure',
+            metadata: { reason: 'unknown_account', provider: 'credentials' },
+          });
           return null;
         }
 
@@ -73,10 +88,26 @@ export const authConfig: NextAuthConfig = {
             remainingAttempts: state.remainingAttempts,
             maxAttempts: LOCKOUT_POLICY.maxFailedAttempts,
           });
+          await recordAuditEvent({
+            userId: user.id,
+            action: 'auth.login.failure',
+            outcome: 'failure',
+            metadata: {
+              reason: 'bad_password',
+              provider: 'credentials',
+              count: state.remainingAttempts,
+            },
+          });
           return null;
         }
 
         clearLoginFailures(identifierStr);
+
+        await recordAuditEvent({
+          userId: user.id,
+          action: 'auth.login.success',
+          metadata: { provider: 'credentials' },
+        });
 
         return { id: user.id, name: user.name, email: user.email, image: user.image };
       },

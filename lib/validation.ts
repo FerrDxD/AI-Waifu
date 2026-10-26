@@ -163,16 +163,36 @@ export function validateTtsText(value: unknown): string {
 const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
 const USERNAME_RE = /^[a-zA-Z0-9._-]{3,20}$/;
 
-export type RegisterInput = { username: string; email: string; password: string };
+export type RegisterInput = {
+  username: string;
+  email: string;
+  password: string;
+  /**
+   * Konfirmasi 18+ (M4.1). Nilai `true` hanya boleh berasal dari centang
+   * eksplisit user — bukan default. `false`/absen = ditolak.
+   */
+  ageConfirmed: boolean;
+};
 
 /**
  * Validasi registrasi (H0.4/H0.5). Password `"1"` tidak boleh lolos lagi.
+ *
+ * M4.1: konfirmasi usia WAJIB dan diperiksa di server, bukan hanya di form.
+ * Form bisa dilewati (`curl` langsung ke endpoint), jadi centang yang tidak
+ * divalidasi ulang di server hanyalah hiasan.
  */
 export function validateRegisterInput(body: unknown): RegisterInput {
   if (!body || typeof body !== 'object') {
     throw errors.badRequest('Data registrasi tidak valid.', 'INVALID_FIELD');
   }
-  const { username, email, password } = body as Record<string, unknown>;
+  const { username, email, password, ageConfirmed } = body as Record<string, unknown>;
+
+  if (ageConfirmed !== true) {
+    throw errors.badRequest(
+      'Kamu harus mengonfirmasi bahwa kamu berusia 18 tahun atau lebih.',
+      'AGE_NOT_CONFIRMED'
+    );
+  }
 
   const cleanUsername = requireString(username, 'username', { max: 20, min: 3 });
   if (!USERNAME_RE.test(cleanUsername)) {
@@ -200,7 +220,7 @@ export function validateRegisterInput(body: unknown): RegisterInput {
     throw errors.badRequest('Password harus mengandung huruf dan angka.', 'WEAK_PASSWORD');
   }
 
-  return { username: cleanUsername, email: cleanEmail, password };
+  return { username: cleanUsername, email: cleanEmail, password, ageConfirmed: true };
 }
 
 /** Validasi identifier login/reset (email atau username). */

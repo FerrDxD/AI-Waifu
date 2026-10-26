@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ChevronLeft, User, Volume2, Bell, ShieldAlert, LogOut, Check, X, Key, Sparkles, Trash2, Save, Download, Upload, HardDrive, Globe, Brain } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { playSfx } from '@/lib/sfx';
@@ -47,6 +48,7 @@ type MemoryRow = {
 
 export default function SettingsPage() {
   const { language, setLanguage, dict } = useLanguage();
+  const router = useRouter();
   const [showLangModal, setShowLangModal] = useState(false);
   const [volume, setVolume] = useState(80);
   const [bgmVolume, setBgmVolume] = useState(50);
@@ -186,11 +188,17 @@ export default function SettingsPage() {
     }
   };
 
-  const handleResetData = async () => {
-    const confirm = await showCustomConfirm("Apakah kamu yakin ingin mereset seluruh data (Uang, Afeksi, Barang)? Ini tidak bisa dikembalikan!", "Peringatan Bahaya ⚠️", "🔥 Ya, Reset Semua");
-    if (confirm) {
-      await showCustomAlert("Fitur reset sedang dalam tahap pengembangan (Server API diperlukan).", "Pemberitahuan");
-    }
+  /**
+   * M4.4: tombol reset data lama diganti tautan ke Pusat Privasi.
+   *
+   * Sebelumnya tombol ini hanya menampilkan "fitur sedang dikembangkan" —
+   * janji kosong di tempat yang seharusnya menjadi hak user. Sekarang aksi
+   * destruktif sesungguhnya ada di satu halaman yang menjelaskan
+   * konsekuensinya, bukan tersebar sebagai tombol merah di pengaturan.
+   */
+  const handleOpenPrivacyCenter = () => {
+    playSfx('click');
+    router.push('/privacy');
   };
 
   /** Hapus satu fakta. Konfirmasi dulu — ini menghapus ingatan, bukan undo. */
@@ -673,15 +681,20 @@ export default function SettingsPage() {
             </button>
 
             <button 
-              onClick={handleResetData}
+              onClick={handleOpenPrivacyCenter}
               className="w-full flex items-center justify-between p-4 bg-red-500 text-white rounded-2xl shadow-md hover:bg-red-600 transition-all font-bold text-sm group"
             >
               <div className="flex items-center gap-3">
-                <User size={18} />
-                {dict.settings.resetDataBtn}
+                <ShieldAlert size={18} />
+                {language === 'en' ? 'Privacy Center' : 'Pusat Privasi'}
               </div>
+              <ChevronLeft className="rotate-180 group-hover:translate-x-1 transition-transform" size={18} />
             </button>
-            <p className="text-center text-xs text-red-400 font-medium mt-1">{dict.settings.resetWarning}</p>
+            <p className="text-center text-xs text-red-400 font-medium mt-1">
+              {language === 'en'
+                ? 'Download your data, or delete your account and everything in it.'
+                : 'Unduh datamu, atau hapus akun beserta seluruh isinya.'}
+            </p>
 
           </div>
         </section>

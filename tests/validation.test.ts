@@ -139,12 +139,28 @@ describe('validateHistory', () => {
 });
 
 describe('validateRegisterInput', () => {
-  const valid = { username: 'livia_01', email: 'livia@example.com', password: 'rahasiaku123' };
+  const valid = {
+    username: 'livia_01',
+    email: 'livia@example.com',
+    password: 'rahasiaku123',
+    ageConfirmed: true,
+  };
 
   it('menerima input valid', () => {
     const result = validateRegisterInput(valid);
     expect(result.username).toBe('livia_01');
     expect(result.email).toBe('livia@example.com');
+  });
+
+  it('menolak pendaftaran tanpa konfirmasi 18+ (M4.1)', () => {
+    const { ageConfirmed: _drop, ...withoutAge } = valid;
+    expect(() => validateRegisterInput(withoutAge)).toThrow();
+    expect(() => validateRegisterInput({ ...valid, ageConfirmed: false })).toThrow();
+    expect(() => validateRegisterInput({ ...valid, ageConfirmed: 'true' })).toThrow();
+  });
+
+  it('mengembalikan ageConfirmed true setelah lolos', () => {
+    expect(validateRegisterInput(valid).ageConfirmed).toBe(true);
   });
 
   it('menormalkan email ke huruf kecil', () => {

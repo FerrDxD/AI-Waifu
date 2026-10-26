@@ -7,6 +7,7 @@ import { RadioProvider } from '@/components/RadioProvider';
 import AchievementToast from '@/components/ui/AchievementToast';
 import CustomAlertModal from '@/components/ui/CustomAlertModal';
 import NavigationProgress from '@/components/ui/NavigationProgress';
+import AgeGateModal from '@/components/ui/AgeGateModal';
 import { Suspense } from 'react';
 
 import { LanguageProvider } from '@/lib/i18n/LanguageContext';
@@ -37,6 +38,9 @@ export default function RootLayout({
             <RadioProvider>
               <AchievementToast />
               <CustomAlertModal />
+              {/* M4.1: gate untuk akun yang dibuat sebelum M4. Tidak merender
+                  apa pun kalau user sudah mengonfirmasi atau belum login. */}
+              <AgeGateModal />
               {children}
             </RadioProvider>
           </main>

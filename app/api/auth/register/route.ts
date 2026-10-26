@@ -8,6 +8,7 @@ import { errors } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { validateRegisterInput } from '@/lib/validation';
 import { registerRateLimit } from '@/lib/rate-limit';
+import { recordAuditEvent } from '@/lib/safety/audit';
 
 /** Cost bcrypt dinaikkan dari 10 (standar lama) ke 12. */
 const BCRYPT_ROUNDS = 12;
@@ -25,7 +26,8 @@ export const POST = publicApiHandler(
 
     // H0.5: validasi format email, panjang username, dan kebijakan password.
     // Sebelumnya password "1" diterima dan email "a@b" lolos.
-    const { username, email, password } = validateRegisterInput(body);
+    // M4.1: `validateRegisterInput` juga menolak pendaftaran tanpa konfirmasi 18+.
+    const { username, email, password, ageConfirmed } = validateRegisterInput(body);
 
     const existingUsers = await db
       .select({ id: users.id })
@@ -50,6 +52,8 @@ export const POST = publicApiHandler(
         email,
         password: hashedPassword,
         provider: 'credentials',
+        // M4.1: konfirmasi 18+ tercatat sebagai waktu, bukan tanggal lahir.
+        ageConfirmedAt: ageConfirmed ? new Date() : null,
       })
       .returning({ id: users.id });
 
@@ -59,6 +63,12 @@ export const POST = publicApiHandler(
     await db.insert(userProfiles).values({ userId: newUser.id });
 
     logger.info('auth.register.success', { route: '/api/auth/register.POST', userId: newUser.id });
+
+    await recordAuditEvent({
+      userId: newUser.id,
+      action: 'auth.register',
+      metadata: { route: '/api/auth/register.POST', provider: 'credentials' },
+    });
 
     return NextResponse.json(
       { success: true, message: 'Registrasi berhasil' },

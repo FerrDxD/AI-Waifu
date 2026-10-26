@@ -9,6 +9,14 @@ export const users = pgTable('users', {
   name: text('name'),
   image: text('image'),
   provider: text('provider').notNull().default('credentials'),
+  /**
+   * Age gate (M4.1).
+   *
+   * Yang disimpan hanya WAKTU konfirmasi, bukan tanggal lahir: menyimpan DOB
+   * berarti menyimpan PII baru yang tidak kita butuhkan. `null` = belum
+   * dikonfirmasi → modal gate muncul dan blokir fitur AI.
+   */
+  ageConfirmedAt: timestamp('age_confirmed_at'),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
@@ -153,5 +161,31 @@ export const gardenPots = pgTable('gardenPots', {
   hydration: integer('hydration').default(0),
   lastWateredAt: timestamp('last_watered_at'),
   plantedAt: timestamp('planted_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+/**
+ * Audit log peristiwa sensitif (M4.6).
+ *
+ * Tujuannya investigasi insiden, bukan analitik produk. Karena itu:
+ *   - `userId` sengaja TIDAK di-cascade. Kalau user dihapus, jejak "akun ini
+ *     pernah minta hapus data" harus tetap ada untuk membuktikan kepatuhan.
+ *     Karena FK-nya tidak cascade, kolomnya dibuat nullable tanpa referensi.
+ *   - Tidak pernah menyimpan isi pesan, email, atau IP mentah. Hanya aksi,
+ *     hasil, dan metadata yang sudah dibersihkan pemanggil.
+ *
+ * Ini BUKAN log aplikasi (itu `lib/logger.ts`). Log aplikasi untuk debugging
+ * dan boleh hilang; tabel ini untuk pertanggungjawaban dan harus tahan lama.
+ */
+export const auditEvents = pgTable('auditEvents', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  /** Nullable: null berarti aksi anonim (login gagal sebelum identifikasi). */
+  userId: uuid('user_id'),
+  /** Nama aksi stabil, mis. `account.delete`, `data.export`, `apikey.save`. */
+  action: text('action').notNull(),
+  /** `success` | `failure` | `denied`. */
+  outcome: text('outcome').notNull().default('success'),
+  /** Konteks tambahan yang sudah dibersihkan (tanpa PII). */
+  metadata: jsonb('metadata').default({}),
   createdAt: timestamp('created_at').defaultNow(),
 });

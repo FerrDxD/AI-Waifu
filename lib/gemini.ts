@@ -4,6 +4,14 @@ import { getProvider } from './ai';
 import { buildLiviaIdentity, INJECTION_GUARD } from './ai/persona';
 import { describePhysiologicalState } from './livia/cycle';
 import {
+  finalizeModelOutput,
+  makePiiRestoringStream,
+  prepareUserInput,
+  redactTurns,
+  type PreparedInput,
+} from './safety/pipeline';
+import type { CrisisResponse } from './safety/crisis';
+import {
   liviaReplyResponseSchema,
   liviaReplyValidator,
   dateDialogueResponseSchema,
@@ -39,6 +47,44 @@ function deflectionReply(language: 'id' | 'en') {
     expression: 'angry' as LiviaExpression,
     memories: [] as ExtractedMemory[],
     memoryUpdate: '',
+  };
+}
+
+/**
+ * Bungkus `prepareUserInput` + `finalizeModelOutput` untuk satu balasan chat.
+ *
+ * Dipisah supaya jalur JSON dan jalur streaming memakai aturan yang SAMA
+ * PERSIS. Kalau guardrail hanya dipasang di salah satunya, penyerang tinggal
+ * memilih endpoint yang lebih longgar.
+ */
+function guardTurn(
+  userMessage: string,
+  chatHistory: { role: 'user' | 'livia'; content: string }[],
+  language: 'id' | 'en'
+): {
+  prepared: PreparedInput;
+  turns: { role: 'user' | 'model'; text: string }[];
+} {
+  const prepared = prepareUserInput(userMessage, language);
+
+  // Riwayat ikut diredaksi: pesan lama tersimpan mentah dan tetap dikirim
+  // sebagai konteks setiap giliran.
+  const historyTurns = chatHistory
+    .filter((m) => m.content && m.content.trim())
+    .map((m) => ({
+      role: m.role === 'livia' ? ('model' as const) : ('user' as const),
+      text: m.content,
+    }));
+
+  const redactedHistory = redactTurns(historyTurns);
+
+  // Mapping PII dari riwayat digabung ke mapping pesan baru, supaya token dari
+  // giliran lama juga bisa dipulihkan saat model mengutipnya.
+  prepared.piiMatches.push(...redactedHistory.matches);
+
+  return {
+    prepared,
+    turns: [...redactedHistory.turns, { role: 'user' as const, text: prepared.text }],
   };
 }
 
@@ -195,6 +241,11 @@ export async function generateLiviaResponse(
   expression: LiviaExpression;
   memories: ExtractedMemory[];
   memoryUpdate?: string;
+  /**
+   * M4.2: diisi hanya kalau pesan user memicu deteksi krisis. Route meneruskan
+   * ini ke client supaya UI menampilkan panel bantuan, bukan sekadar balon chat.
+   */
+  crisis?: CrisisResponse;
 }> {
   const systemPrompt = buildChatPrompt({
     affectionLevel: affectionLevel,
@@ -210,7 +261,27 @@ export async function generateLiviaResponse(
     earlierSummary,
   });
 
-  const turns = turnsFromHistory(chatHistory, userMessage);
+  // M4.2/M4.3: guardrail input + redaksi PII. Kalau input ditolak, model tidak
+  // dipanggil sama sekali — hemat biaya dan tidak ada risiko model "terbujuk".
+  const guarded = guardTurn(userMessage, chatHistory, language);
+  const { prepared, turns } = guarded;
+
+  if (prepared.blocked) {
+    logger.warn('generateLiviaResponse blocked_by_guardrail', {
+      action: prepared.verdict?.action,
+      category: prepared.verdict?.action === 'deflect' ? prepared.verdict.category : undefined,
+    });
+
+    return {
+      reply: prepared.cannedReply ?? DEFLECTION_REPLIES[language],
+      affectionDelta: 0,
+      expression: (prepared.verdict?.action === 'crisis' ? 'serious' : 'angry') as LiviaExpression,
+      memories: [] as ExtractedMemory[],
+      memoryUpdate: '',
+      // Krisis: sertakan jalur bantuan supaya UI bisa menampilkannya.
+      crisis: prepared.crisis,
+    };
+  }
 
   try {
     const result = await requestReply({ operation: 'chat', systemPrompt, turns, customApiKey });
@@ -220,9 +291,16 @@ export async function generateLiviaResponse(
       return deflectionReply(language);
     }
 
-    // liviaReplyValidator.transform menjamin bentuk ini; `data` tidak null
-    // karena bukan blocked.
-    return result.data!;
+    const data = result.data!;
+    // Tahap keluar: pulihkan PII lalu periksa apakah balasan boleh tampil.
+    const finalized = finalizeModelOutput(data.reply, prepared.piiMatches, language);
+
+    if (finalized.replaced) {
+      logger.warn('generateLiviaResponse output_replaced', { category: finalized.category });
+      return deflectionReply(language);
+    }
+
+    return { ...data, reply: finalized.text };
   } catch (error) {
     // M2.6: gangguan sementara dibalas in-character, bukan error teknis.
     if (isTransientAiError(error)) {
@@ -269,6 +347,8 @@ export function streamLiviaReply(input: {
     expression: LiviaExpression;
     memories: ExtractedMemory[];
     memoryUpdate?: string;
+    /** M4.2: diisi hanya kalau input memicu deteksi krisis. */
+    crisis?: CrisisResponse;
   }>;
 } {
   const {
@@ -296,10 +376,43 @@ export function streamLiviaReply(input: {
     earlierSummary,
   });
 
+  // M4.2/M4.3: guardrail & redaksi PII dipasang SEBELUM provider dipanggil.
+  // Untuk streaming ini penting: kalau pemeriksaan dilakukan setelah stream
+  // dibuka, sebagian teks berbahaya sudah terlanjur terkirim ke browser.
+  const { prepared, turns } = guardTurn(userMessage, chatHistory, language);
+
+  if (prepared.blocked) {
+    const canned = prepared.cannedReply ?? DEFLECTION_REPLIES[language];
+    const expression = (prepared.verdict?.action === 'crisis'
+      ? 'serious'
+      : 'angry') as LiviaExpression;
+
+    logger.warn('streamLiviaReply blocked_by_guardrail', {
+      action: prepared.verdict?.action,
+      category: prepared.verdict?.action === 'deflect' ? prepared.verdict.category : undefined,
+    });
+
+    return {
+      // Dikirim sebagai satu delta supaya klien menampilkannya lewat jalur yang
+      // sama seperti balasan normal — tidak perlu kode khusus di UI.
+      deltas: (async function* () {
+        yield canned;
+      })(),
+      final: Promise.resolve({
+        reply: canned,
+        affectionDelta: 0,
+        expression,
+        memories: [] as ExtractedMemory[],
+        memoryUpdate: '',
+        crisis: prepared.crisis,
+      }),
+    };
+  }
+
   const { deltas, final } = getProvider().stream({
     operation: 'chat',
     systemInstruction,
-    turns: turnsFromHistory(chatHistory, userMessage),
+    turns,
     responseSchema: liviaReplyResponseSchema,
     outputSchema: liviaReplyValidator,
     temperature: 0.8,
@@ -308,14 +421,27 @@ export function streamLiviaReply(input: {
   });
 
   return {
-    deltas,
+    deltas: makePiiRestoringStream(deltas, prepared.piiMatches),
     final: final
       .then((result) => {
         if (result.blocked) {
           logger.warn('streamLiviaReply blocked_by_safety', {});
           return deflectionReply(language);
         }
-        return result.data!;
+
+        // Tahap keluar. Catatan jujur: delta sudah terlanjur mengalir, jadi
+        // penggantian di sini hanya memengaruhi `final` (yang dipakai untuk
+        // menyimpan pesan & afeksi). Teks parsial yang sudah tampil tidak bisa
+        // ditarik kembali — itu batas SSE, bukan kelalaian.
+        const data = result.data!;
+        const finalized = finalizeModelOutput(data.reply, prepared.piiMatches, language);
+
+        if (finalized.replaced) {
+          logger.warn('streamLiviaReply output_replaced', { category: finalized.category });
+          return deflectionReply(language);
+        }
+
+        return { ...data, reply: finalized.text };
       })
       .catch((error: unknown) => {
         if (isTransientAiError(error)) {

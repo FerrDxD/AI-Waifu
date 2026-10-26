@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { z } from 'zod';
 import { __resetAIConfigForTests } from '@/lib/ai/config';
 import { __resetProviderForTests, getProvider } from '@/lib/ai';
@@ -7,17 +7,13 @@ import type { GenerateOptions } from '@/lib/ai/types';
 import {
   mockGenerateContent,
   mockGenerateContentStream,
-  sdkModuleMock,
 } from './gemini-sdk-mock';
 
 /**
  * Streaming provider (M2.1) — diuji dengan SDK yang di-mock, tanpa jaringan.
+ *
+ * Mock didaftarkan global di `tests/setup.ts`.
  */
-
-vi.mock('@google/generative-ai', async () => {
-  const { sdkModuleMock } = await import('./gemini-sdk-mock');
-  return sdkModuleMock();
-});
 
 const outputSchema = z.object({
   reply: z.string(),

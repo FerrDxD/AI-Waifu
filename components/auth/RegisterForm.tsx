@@ -17,6 +17,8 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  /** M4.1: konfirmasi 18+ — wajib, divalidasi ulang di server. */
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -43,6 +45,7 @@ export default function RegisterForm() {
           username: formData.username,
           email: formData.email,
           password: formData.password,
+          ageConfirmed,
         }),
       });
 
@@ -155,9 +158,28 @@ export default function RegisterForm() {
           </div>
         </div>
 
+        {/* M4.1: age gate. Diperiksa juga di server — centang di sini hanya
+            jalur UX, bukan satu-satunya pertahanan. */}
+        <label className="flex items-start gap-3 p-3.5 bg-orange-50/40 border-2 border-orange-100 rounded-2xl cursor-pointer hover:border-orange-200 transition-colors">
+          <input
+            type="checkbox"
+            checked={ageConfirmed}
+            onChange={(e) => { playSfx('click'); setAgeConfirmed(e.target.checked); }}
+            disabled={loading}
+            className="mt-0.5 w-4 h-4 accent-[#ff758c] shrink-0"
+            required
+          />
+          <span className="text-[11px] md:text-xs font-medium text-[#5c4d47] leading-relaxed">
+            Saya berusia <strong>18 tahun atau lebih</strong>, dan saya menyetujui{' '}
+            <a href="/terms" target="_blank" className="text-[#ff758c] font-bold underline">Ketentuan Layanan</a>{' '}
+            serta{' '}
+            <a href="/privacy-policy" target="_blank" className="text-[#ff758c] font-bold underline">Kebijakan Privasi</a>.
+          </span>
+        </label>
+
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !ageConfirmed}
           className="w-full py-4 mt-6 bg-gradient-to-r from-[#ff758c] via-[#ff7eb3] to-[#ff8c75] hover:from-[#ff647e] hover:to-[#ff6da8] text-white font-display font-black text-base rounded-2xl shadow-lg shadow-pink-500/25 hover:shadow-pink-500/35 transition-all transform active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {loading ? 'Mendaftarkan Kunci...' : (

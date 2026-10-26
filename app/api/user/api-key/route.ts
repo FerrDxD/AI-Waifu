@@ -6,6 +6,7 @@ import { requireString, LIMITS } from '@/lib/validation';
 import { deleteUserApiKey, getApiKeyStatus, saveUserApiKey } from '@/lib/ai/keys';
 import { CryptoConfigError } from '@/lib/crypto';
 import { mutationRateLimit } from '@/lib/rate-limit';
+import { recordAuditEvent } from '@/lib/safety/audit';
 
 /**
  * Endpoint pengelolaan API key Gemini milik user (M0/H0.1).
@@ -37,6 +38,15 @@ export const POST = jsonApiHandler<ApiKeyBody>(
 
     try {
       const status = await saveUserApiKey(userId, apiKey);
+
+      // M4.6: yang dicatat hanya provider & route. API key-nya sendiri TIDAK
+      // pernah masuk audit log — itu justru kebocoran yang ingin dicegah.
+      await recordAuditEvent({
+        userId,
+        action: 'apikey.save',
+        metadata: { route: `${ROUTE}.POST`, provider: status.provider },
+      });
+
       return NextResponse.json(status, { headers: NO_STORE });
     } catch (error) {
       if (error instanceof CryptoConfigError) {
@@ -60,6 +70,13 @@ export const DELETE = apiHandler(
   },
   async ({ userId }) => {
     await deleteUserApiKey(userId);
+
+    await recordAuditEvent({
+      userId,
+      action: 'apikey.delete',
+      metadata: { route: `${ROUTE}.DELETE` },
+    });
+
     return NextResponse.json({ hasKey: false });
   }
 );
