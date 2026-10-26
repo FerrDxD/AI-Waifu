@@ -42,6 +42,24 @@ const serverSchema = z.object({
   ELEVENLABS_API_KEY: z.string().optional(),
   ELEVENLABS_VOICE_ID: z.string().optional(),
   NEXTAUTH_URL: z.string().url().optional(),
+
+  // Mesin AI (M2.2): semuanya opsional — default baca dari lib/ai/config.ts.
+  AI_PROVIDER: z.enum(['gemini']).optional(),
+  AI_MODEL_CHAT: z.string().optional(),
+  AI_MODEL_DIALOGUE: z.string().optional(),
+  AI_MODEL_FALLBACK: z.string().optional(),
+  AI_TIMEOUT_MS: z
+    .string()
+    .optional()
+    .refine((v) => v === undefined || (!Number.isNaN(Number(v)) && Number(v) >= 1_000 && Number(v) <= 120_000), 'AI_TIMEOUT_MS harus angka 1000..120000'),
+  AI_MAX_RETRIES: z
+    .string()
+    .optional()
+    .refine((v) => v === undefined || (!Number.isNaN(Number(v)) && Number(v) >= 0 && Number(v) <= 5), 'AI_MAX_RETRIES harus angka 0..5'),
+  AI_RETRY_BASE_MS: z
+    .string()
+    .optional()
+    .refine((v) => v === undefined || (!Number.isNaN(Number(v)) && Number(v) >= 0 && Number(v) <= 10_000), 'AI_RETRY_BASE_MS harus angka 0..10000'),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;

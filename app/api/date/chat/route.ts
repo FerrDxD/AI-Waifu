@@ -6,6 +6,7 @@ import { userProfiles } from '@/lib/db/schema';
 import { applyAffectionUpdate } from '@/lib/livia/affection.server';
 import { apiHandler } from '@/lib/api-handler';
 import { aiRateLimit, aiDailyQuota } from '@/lib/rate-limit';
+import { getCycleInfo } from '@/lib/livia/cycle';
 import {
   validateChatMessage,
   validateDateLocation,
@@ -48,16 +49,8 @@ export const POST = apiHandler(
       .where(eq(userProfiles.userId, userId));
     const profile = profileResults[0];
 
-    const now = new Date();
-    const anchor = profile?.liviaCycleAnchor
-      ? new Date(profile.liviaCycleAnchor).getTime()
-      : now.getTime();
-    const daysDiff = Math.floor((now.getTime() - anchor) / (1000 * 60 * 60 * 24));
-    const dayOfCycle = (((daysDiff % 28) + 28) % 28) + 1;
-    let cyclePhase = 'Luteal';
-    if (dayOfCycle <= 5) cyclePhase = 'Menstruasi';
-    else if (dayOfCycle <= 14) cyclePhase = 'Folikuler';
-    else if (dayOfCycle <= 17) cyclePhase = 'Ovulasi';
+    // M2.3: logika siklus haid dipindah ke lib/livia/cycle.ts
+    const { dayOfCycle, phase: cyclePhase } = getCycleInfo(profile?.liviaCycleAnchor);
 
     const { reply, expression, affectionDelta, memoryUpdate } = await generateDateResponse(
       location,

@@ -3,8 +3,8 @@ import { eq, desc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { chatMessages, userProfiles, storyProgress } from '@/lib/db/schema';
 import { generateLiviaResponse, extractLanguage, resolveApiKey } from '@/lib/gemini';
-import { generatePersonalityContext } from '@/lib/livia/personality';
 import { applyAffectionUpdate } from '@/lib/livia/affection.server';
+import { getCycleInfo } from '@/lib/livia/cycle';
 import { aiRateLimit, aiDailyQuota } from '@/lib/rate-limit';
 import { apiHandler } from '@/lib/api-handler';
 import { errors } from '@/lib/errors';
@@ -64,23 +64,12 @@ export const POST = apiHandler(
       content: msg.content,
     }));
 
-    const personalityContext = generatePersonalityContext(profile.itemsBrought || []);
-
-    const now = new Date();
-    const anchor = profile.liviaCycleAnchor
-      ? new Date(profile.liviaCycleAnchor).getTime()
-      : now.getTime();
-    const daysDiff = Math.floor((now.getTime() - anchor) / (1000 * 60 * 60 * 24));
-    const dayOfCycle = (((daysDiff % 28) + 28) % 28) + 1;
-    let cyclePhase = 'Luteal';
-    if (dayOfCycle <= 5) cyclePhase = 'Menstruasi';
-    else if (dayOfCycle <= 14) cyclePhase = 'Folikuler';
-    else if (dayOfCycle <= 17) cyclePhase = 'Ovulasi';
+    // M2.3: logika siklus haid dipindah ke lib/livia/cycle.ts
+    const { dayOfCycle, phase: cyclePhase } = getCycleInfo(profile.liviaCycleAnchor);
 
     const { reply, affectionDelta, expression, memoryUpdate } = await generateLiviaResponse(
       message,
       chatHistory,
-      personalityContext,
       profile.affection || 0,
       profile.itemsBrought || [],
       {

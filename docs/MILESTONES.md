@@ -49,14 +49,15 @@ sebelum DoD terpenuhi + ada test yang lulus.
 > Ini jantung "sejajar dengan LLM lain".
 
 - [ ] **M2.1** **Streaming response**. Endpoint baru `/api/chat/stream` (SSE) menggantikan JSON round-trip. Typewriter effect diganti partial render. Latensi perceived turun drastis.`responseSchema` + langkah pipe "tag dulu JSON, stream text setelahnya".
-- [ ] **M2.2** **Abstraksi provider AI** (interface `LLMProvider` dengan implementasi `GeminiProvider`, dan nanti `OpenAIProvider`/`AnthropicProvider`/`OllamaProvider`). Model dari env, bukan hardcode `gemini-3.6-flash` 3x.
-- [ ] **M2.3** **Satu sumber persona**: `lib/ai/persona.ts` dengan builder terpusat (base + konteks afeksi + konteks fisiologis + memori). Hapus duplikasi logika siklus haid ke `lib/livia/cycle.ts` (digunakan oleh 3 route). Hapus juga `generateDateDialogue` injection: nama user tidak pernah masuk ke prompt mentah.
-- [ ] **M2.4** **Structured output pakai JSON schema** (`responseSchema`/Zod) — hapus `parseJsonResponse` regex. Kalau model mendukung native JSON mode, pakai itu.
+- [x] **M2.2** **Abstraksi provider AI** (interface `LLMProvider` dengan implementasi `GeminiProvider`, dan nanti `OpenAIProvider`/`AnthropicProvider`/`OllamaProvider`). Model dari env, bukan hardcode `gemini-3.6-flash` 3x.
+- [x] **M2.3** **Satu sumber persona**: `lib/ai/persona.ts` dengan builder terpusat (base + konteks afeksi + konteks fisiologis + memori). Hapus duplikasi logika siklus haid ke `lib/livia/cycle.ts` (digunakan oleh 3 route). Hapus juga `generateDateDialogue` injection: nama user tidak pernah masuk ke prompt mentah.
+- [x] **M2.4** **Structured output pakai JSON schema** (`responseSchema`/Zod) — hapus `parseJsonResponse` regex. Kalau model mendukung native JSON mode, pakai itu.
 - [ ] **M2.5** **Context window engineering**:
   - Rolling summary: tiap 20 pesan, pesan lama diringkas jadi 1 entry (`messageSummaries` table).
   - Root message selection: ambil pesan relevan via keyword/fuzzy, bukan "30 terakhir mentah".
   - Token budget: hitung pakai tokenizer, trim konteks biar gak meledak cost.
 - [ ] **M2.6** **Robust retry & circuit breaker**: retry 503/429/502 dengan exponential backoff, timeout 25 detik, fallback model (flash → flash-lite), ke state "Livia lagi pusing" bila semua gagal (in-world error recovery yang lucu, bukan stack trace).
+  - *Sebagian selesai:* retry 429/5xx + exponential backoff & jitter, timeout, dan fallback model sudah ada di `lib/ai/providers/gemini.ts` (20 test di `tests/ai-provider.test.ts`). Sisa: circuit breaker + state "Livia lagi pusing".
 - [ ] **M2.7** **Evals pertama**: dataset 50 scenario uji (kesopanan, konsistensi persona, ingat nama, nol bahasa Jepang) yang dijalankan terhadap tiap perubahan prompt. Lulus sebelum merge.
 
 **DoD:** First-token latency < 1.5 detik (P50), response Livia konsisten dengan persona ≥85% di evals, ganti provider tidak mengubah code domain (hanya adapter baru).
