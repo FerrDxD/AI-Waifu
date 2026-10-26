@@ -84,6 +84,8 @@ const ENV_KEYS = [
   'AI_TIMEOUT_MS',
   'AI_MAX_RETRIES',
   'AI_RETRY_BASE_MS',
+  'AI_BREAKER_FAILURE_THRESHOLD',
+  'AI_BREAKER_COOLDOWN_MS',
   'GEMINI_API_KEY',
 ] as const;
 
@@ -353,5 +355,66 @@ describe('GeminiProvider.generate', () => {
 
     const request = generateContent.mock.calls[0][1] as { timeout: number };
     expect(request.timeout).toBe(7000);
+  });
+});
+
+describe('GeminiProvider circuit breaker', () => {
+  it('membuka breaker setelah kegagalan backend beruntun lalu gagal cepat', async () => {
+    process.env.AI_MAX_RETRIES = '0';
+    process.env.AI_BREAKER_FAILURE_THRESHOLD = '2';
+    __resetAIConfigForTests();
+    __resetProviderForTests();
+    generateContent.mockRejectedValue(Object.assign(new Error('down'), { status: 503 }));
+
+    const provider = getProvider();
+    await expect(provider.generate(makeOptions())).rejects.toMatchObject({
+      code: 'AI_GENERATION_FAILED',
+    });
+    await expect(provider.generate(makeOptions())).rejects.toMatchObject({
+      code: 'AI_GENERATION_FAILED',
+    });
+
+    // Panggilan ketiga tidak boleh menyentuh SDK sama sekali.
+    const callsBefore = generateContent.mock.calls.length;
+    await expect(provider.generate(makeOptions())).rejects.toMatchObject({
+      code: 'AI_CIRCUIT_OPEN',
+    });
+    expect(generateContent.mock.calls.length).toBe(callsBefore);
+  });
+
+  it('AI_BAD_STRUCTURE tidak membuka breaker', async () => {
+    process.env.AI_BREAKER_FAILURE_THRESHOLD = '1';
+    __resetAIConfigForTests();
+    __resetProviderForTests();
+    generateContent.mockResolvedValue(okResponse('bukan json'));
+
+    const provider = getProvider();
+    for (let i = 0; i < 3; i++) {
+      await expect(provider.generate(makeOptions())).rejects.toMatchObject({
+        code: 'AI_BAD_STRUCTURE',
+      });
+    }
+
+    expect((provider as unknown as { circuitState(): string }).circuitState()).toBe('closed');
+  });
+
+  it('keberhasilan menutup kembali breaker', async () => {
+    process.env.AI_MAX_RETRIES = '0';
+    process.env.AI_BREAKER_FAILURE_THRESHOLD = '1';
+    process.env.AI_BREAKER_COOLDOWN_MS = '0';
+    __resetAIConfigForTests();
+    __resetProviderForTests();
+
+    const provider = getProvider();
+    generateContent.mockRejectedValueOnce(Object.assign(new Error('down'), { status: 503 }));
+    await expect(provider.generate(makeOptions())).rejects.toMatchObject({
+      code: 'AI_GENERATION_FAILED',
+    });
+
+    generateContent.mockResolvedValue(okResponse({ reply: 'ok', affectionDelta: 0 }));
+    const result = await provider.generate(makeOptions());
+
+    expect(result.data).toEqual({ reply: 'ok', affectionDelta: 0 });
+    expect((provider as unknown as { circuitState(): string }).circuitState()).toBe('closed');
   });
 });

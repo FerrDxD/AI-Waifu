@@ -60,6 +60,14 @@ const serverSchema = z.object({
     .string()
     .optional()
     .refine((v) => v === undefined || (!Number.isNaN(Number(v)) && Number(v) >= 0 && Number(v) <= 10_000), 'AI_RETRY_BASE_MS harus angka 0..10000'),
+  AI_BREAKER_FAILURE_THRESHOLD: z
+    .string()
+    .optional()
+    .refine((v) => v === undefined || (!Number.isNaN(Number(v)) && Number(v) >= 1 && Number(v) <= 100), 'AI_BREAKER_FAILURE_THRESHOLD harus angka 1..100'),
+  AI_BREAKER_COOLDOWN_MS: z
+    .string()
+    .optional()
+    .refine((v) => v === undefined || (!Number.isNaN(Number(v)) && Number(v) >= 0 && Number(v) <= 600_000), 'AI_BREAKER_COOLDOWN_MS harus angka 0..600000'),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;

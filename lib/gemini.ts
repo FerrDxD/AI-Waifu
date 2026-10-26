@@ -41,6 +41,34 @@ function deflectionReply(language: 'id' | 'en') {
 }
 
 /**
+ * Balasan saat AI benar-benar tidak bisa dihubungi (M2.6).
+ *
+ * Prinsipnya: user tidak boleh melihat stack trace atau "Gagal menghubungi
+ * server AI Google". Livia tetap in-character — dia sedang pusing/ngantuk,
+ * bukan aplikasinya rusak. Afeksi tidak berubah karena ini bukan momen nyata.
+ */
+const OVERLOADED_REPLIES: Record<'id' | 'en', string> = {
+  id: 'A-aku pusing mendadak... kepalaku berat banget. B-bukan karena kamu lho! Coba ajak aku ngomong lagi sebentar lagi, ya...',
+  en: "I-I suddenly feel dizzy... my head feels so heavy. N-not because of you, okay! Try talking to me again in a bit...",
+};
+
+function overloadedReply(language: 'id' | 'en') {
+  return {
+    reply: OVERLOADED_REPLIES[language],
+    affectionDelta: 0,
+    expression: 'pain' as LiviaExpression,
+    memoryUpdate: '',
+  };
+}
+
+/** Error sementara: layak dibalas in-world, bukan ditampilkan sebagai error. */
+const TRANSIENT_AI_CODES = new Set(['AI_GENERATION_FAILED', 'AI_CIRCUIT_OPEN', 'AI_TIMEOUT']);
+
+function isTransientAiError(error: unknown): boolean {
+  return error instanceof AppError && TRANSIENT_AI_CODES.has(error.code);
+}
+
+/**
  * Bangun turns dari history + pesan terbaru. Penggabungan role beruntun dan
  * pemangkasan teks kosong dilakukan provider (M2.2), jadi di sini cukup
  * meneruskan mentah-menah.
@@ -134,6 +162,13 @@ Hanya kembalikan JSON. Tidak ada teks lain.${INJECTION_GUARD}`;
     // karena bukan blocked.
     return result.data!;
   } catch (error) {
+    // M2.6: gangguan sementara dibalas in-character, bukan error teknis.
+    if (isTransientAiError(error)) {
+      logger.warn('generateLiviaResponse overloaded', {
+        code: (error as AppError).code,
+      });
+      return overloadedReply(language);
+    }
     if (error instanceof AppError) throw error;
     logger.error('generateLiviaResponse failed', { error: serializeError(error) });
     throw new AppError('AI_GENERATION_FAILED', 'Gagal menghubungi server AI Google.', 503, true);
@@ -218,7 +253,6 @@ Jangan tambahkan teks lain di luar JSON.${INJECTION_GUARD}`;
     throw new AppError('AI_DATE_DIALOGUE_FAILED', 'Gagal menghubungi server AI Google.', 503, true);
   }
 }
-
 export async function generateDateResponse(
   location: string,
   userMessage: string,
@@ -268,6 +302,13 @@ Hanya kembalikan JSON. Tidak ada teks lain.${INJECTION_GUARD}`;
 
     return { ...result.data! };
   } catch (error) {
+    if (isTransientAiError(error)) {
+      logger.warn('generateDateResponse overloaded', {
+        code: (error as AppError).code,
+        location,
+      });
+      return overloadedReply(language);
+    }
     if (error instanceof AppError) throw error;
     logger.error('generateDateResponse failed', { error: serializeError(error), location });
     throw new AppError('AI_DATE_RESPONSE_FAILED', 'Gagal menghubungi server AI Google.', 503, true);

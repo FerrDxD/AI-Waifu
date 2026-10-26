@@ -3,7 +3,7 @@
 Dokumen ini mencatat apa yang **sudah** dikerjakan di M2, bug nyata yang
 ditemukan saat mengerjakannya, dan apa yang **belum**.
 
-Status: M2.2, M2.3, M2.4 selesai. M2.6 sebagian. M2.1, M2.5, M2.7 belum.
+Status: M2.2, M2.3, M2.4, M2.6 selesai. M2.1, M2.5, M2.7 belum.
 
 ---
 
@@ -143,10 +143,37 @@ Satu-satunya file yang meng-import `@google/generative-ai`. Tanggung jawabnya:
 4. Fallback model.
 5. Penolakan safety → `blocked: true` (termasuk `PROHIBITED_CONTENT`).
 6. Error internal **tidak** diteruskan ke client; hanya kode + pesan aman.
+7. Circuit breaker (M2.6): setelah `AI_BREAKER_FAILURE_THRESHOLD` (default 5)
+   request gagal beruntun, panggilan berikutnya gagal seketika dengan
+   `AI_CIRCUIT_OPEN` alih-alih menunggu 25 detik × 3 percobaan.
 
 Perubahan perilaku kecil yang disengaja: kandidat kosong dulu berakhir sebagai
 error mentah; sekarang jadi `blocked` → Livia membalas dengan kalimat pengalih
 in-character. Lebih baik untuk user.
+
+Bagaimana breaker menghitung:
+
+| Kegagalan | Dihitung sebagai kegagalan breaker? |
+| --- | --- |
+| 429/5xx/jaringan/timeout | ya |
+| `AI_BAD_STRUCTURE` | tidak — justru bukti backend hidup, reset counter |
+| `GEMINI_NOT_CONFIGURED` | tidak — masalah konfigurasi, bukan gangguan |
+
+Key breaker hanya nama provider (`gemini`), bukan nama model: kalau Gemini
+mati, semua model ikut mati, jadi memisahkan key hanya membuat fallback tetap
+menghantam backend yang sama.
+
+### 3.4b `lib/gemini.ts` — state "Livia lagi pusing"
+
+Gagal sementara (`AI_GENERATION_FAILED`, `AI_CIRCUIT_OPEN`, `AI_TIMEOUT`) pada
+chat dan date chat **tidak** lagi ditampilkan sebagai error teknis — Livia
+membalas in-character ("aku pusing... coba ajak aku ngomong lagi sebentar"),
+`affectionDelta: 0`, `expression: 'pain'`. Kegagalan dikirim as-is di log
+(`generateLiviaResponse overloaded`), jadi monitoring tetap melihatnya.
+
+Yang tetap dilempar sebagai error: `GEMINI_NOT_CONFIGURED` (harus diperbaiki
+admin), `AI_EMPTY_CONTEXT`, `AI_BAD_STRUCTURE` (meminta user coba lagi itu
+wajar), dan semua kegagalan `generateDateDialogue`.
 
 ### 3.5 `lib/ai/persona.ts` — satu sumber persona
 
@@ -190,8 +217,9 @@ dihapus. Ini mengurangi satu jalur di mana prompt bisa dibangun dari luar
 | `tests/ai-schemas.test.ts` | clamp afeksi, koersi field non-kritis, normalisasi ekspresi, batas adegan |
 | `tests/ai-config.test.ts` | default, override env, clamp nilai di luar batas |
 | `tests/cycle.test.ts` | 28 hari, fase, anchor null/invalid, hari negatif |
+| `tests/circuit-breaker.test.ts` | 14 test: closed/open/half-open, cooldown, probe tunggal, reset, snapshot |
 
-Total suite: **315 test** (sebelumnya 208).
+Total suite: **333 test** (sebelumnya 208).
 
 ---
 
@@ -210,11 +238,10 @@ bun run test        → 16 file, 315 test lulus
 | Item | Status | Catatan |
 | --- | --- | --- |
 | M2.1 Streaming (SSE) | belum | endpoint `/api/chat/stream` |
-| M2.5 Context window | belum | butuh tabel `messageSummaries` → menunggu `db:push` |
-| M2.6 Circuit breaker | belum | retry/timeout/fallback sudah ada |
-| M2.6 State "Livia lagi pusing" | belum | error in-world, bukan pesan teknis |
+| M2.5 Context window | belum | butuh tabel `messageSummaries` -> menunggu `db:push` |
 | M2.7 Evals | belum | 50 skenario; juga untuk menguji perubahan persona (mis. `itemsBrought` kosong) |
-| Circuit breaker per-provider | belum | perlu state lintas-request |
+| Circuit breaker per-provider | selesai | `lib/ai/circuit-breaker.ts`, per-proses (multi-instance → M5.5) |
+| State "Livia lagi pusing" | selesai | `overloadedReply()` di `lib/gemini.ts`, hanya untuk kode sementara |
 
 ---
 

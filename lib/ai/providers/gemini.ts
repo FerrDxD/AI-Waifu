@@ -7,6 +7,7 @@ import {
 } from '@google/generative-ai';
 import type { LLMProvider, GenerateOptions, GenerateResult } from '../types';
 import { getAIConfig } from '../config';
+import { CircuitBreaker } from '../circuit-breaker';
 import { AppError } from '@/lib/errors';
 import { logger, serializeError } from '@/lib/logger';
 
@@ -46,8 +47,43 @@ function backoff(baseMs: number, attempt: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, delay));
 }
 
+/**
+ * Apakah error ini menandakan backend-nya sedang bermasalah?
+ *
+ * Dipakai circuit breaker. Error klasifikasi sendiri (`AI_BAD_STRUCTURE`,
+ * `GEMINI_NOT_CONFIGURED`, `AI_EMPTY_CONTEXT`) TIDAK dihitung: backend jelas
+ * merespons, yang salah ada di konfigurasi atau di output model.
+ */
+function isBackendFailure(error: unknown): boolean {
+  if (error instanceof AppError) {
+    return error.code === 'AI_TIMEOUT' || error.code === 'AI_GENERATION_FAILED';
+  }
+  return true;
+}
+
 export class GeminiProvider implements LLMProvider {
   readonly name = 'gemini' as const;
+
+  /**
+   * Circuit breaker per provider (M2.6).
+   *
+   * Key sengaja hanya nama provider, bukan nama model: kalau Gemini sedang
+   * mati, model chat maupun model dialog ikut mati. Memisahkan per model hanya
+   * akan membuat fallback tetap menghantam backend yang sama.
+   */
+  private readonly breaker = new CircuitBreaker({
+    failureThreshold: getAIConfig().breakerFailureThreshold,
+    cooldownMs: getAIConfig().breakerCooldownMs,
+  });
+
+  /** Untuk test & diagnostik. */
+  circuitState(): string {
+    return this.breaker.state(this.name);
+  }
+
+  resetCircuit(): void {
+    this.breaker.reset();
+  }
 
   private clientForKey(apiKey: string | undefined): GoogleGenerativeAI {
     if (apiKey && apiKey.trim().length > 0) {
@@ -89,6 +125,40 @@ export class GeminiProvider implements LLMProvider {
   }
 
   async generate<T>(options: GenerateOptions<T>): Promise<GenerateResult<T>> {
+    const breakerKey = this.name;
+
+    // M2.6: kalau backend baru saja mati berulang kali, jangan biarkan user
+    // menunggu 25 detik × 3 percobaan untuk kegagalan yang sudah pasti.
+    if (!this.breaker.allow(breakerKey)) {
+      logger.warn('ai.circuit_open', {
+        operation: options.operation,
+        state: this.breaker.state(breakerKey),
+      });
+      throw new AppError(
+        'AI_CIRCUIT_OPEN',
+        'Layanan AI sedang tidak tersedia. Coba beberapa saat lagi.',
+        503,
+        true
+      );
+    }
+
+    try {
+      const result = await this.generateWithRetry(options);
+      this.breaker.success(breakerKey);
+      return result;
+    } catch (error) {
+      if (isBackendFailure(error)) {
+        this.breaker.failure(breakerKey);
+      } else {
+        // Error seperti AI_BAD_STRUCTURE / GEMINI_NOT_CONFIGURED justru
+        // membuktikan backend merespons. Jangan buka breaker karenanya.
+        this.breaker.success(breakerKey);
+      }
+      throw error;
+    }
+  }
+
+  private async generateWithRetry<T>(options: GenerateOptions<T>): Promise<GenerateResult<T>> {
     const cfg = getAIConfig();
 
     const contents = this.toContent(options.turns);

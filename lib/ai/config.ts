@@ -26,6 +26,14 @@ const DEFAULT_TIMEOUT_MS = 25_000;
 const DEFAULT_MAX_RETRIES = 2;
 /** Jeda dasar backoff. Bisa dinolkan lewat env saat test supaya cepat. */
 const DEFAULT_RETRY_BASE_MS = 1_000;
+/**
+ * Ambang circuit breaker. 5 request gagal beruntun berarti backend benar-benar
+ * sedang mati, bukan sekadar satu request apes. Cooldown 60 detik cukup lama
+ * untuk tidak menghantam backend yang sedang pulih, tapi cukup pendek agar
+ * user tidak menunggu lama setelah layanan kembali.
+ */
+const DEFAULT_BREAKER_FAILURE_THRESHOLD = 5;
+const DEFAULT_BREAKER_COOLDOWN_MS = 60_000;
 
 export interface AIEngineConfig {
   provider: AIProviderName;
@@ -41,6 +49,10 @@ export interface AIEngineConfig {
   maxRetries: number;
   /** Jeda dasar backoff (ms). Percobaan ke-n menunggu base * 2^n + jitter. */
   retryBaseMs: number;
+  /** Jumlah request gagal beruntun sebelum circuit breaker membuka. */
+  breakerFailureThreshold: number;
+  /** Lama circuit breaker terbuka sebelum mencoba satu percobaan uji. */
+  breakerCooldownMs: number;
 }
 
 function readString(name: string): string | undefined {
@@ -83,6 +95,13 @@ export function getAIConfig(): AIEngineConfig {
     timeoutMs: readInt('AI_TIMEOUT_MS', DEFAULT_TIMEOUT_MS, 1_000, 120_000),
     maxRetries: readInt('AI_MAX_RETRIES', DEFAULT_MAX_RETRIES, 0, 5),
     retryBaseMs: readInt('AI_RETRY_BASE_MS', DEFAULT_RETRY_BASE_MS, 0, 10_000),
+    breakerFailureThreshold: readInt(
+      'AI_BREAKER_FAILURE_THRESHOLD',
+      DEFAULT_BREAKER_FAILURE_THRESHOLD,
+      1,
+      100
+    ),
+    breakerCooldownMs: readInt('AI_BREAKER_COOLDOWN_MS', DEFAULT_BREAKER_COOLDOWN_MS, 0, 600_000),
   };
 
   return cached;

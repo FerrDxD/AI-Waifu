@@ -56,9 +56,8 @@ sebelum DoD terpenuhi + ada test yang lulus.
   - Rolling summary: tiap 20 pesan, pesan lama diringkas jadi 1 entry (`messageSummaries` table).
   - Root message selection: ambil pesan relevan via keyword/fuzzy, bukan "30 terakhir mentah".
   - Token budget: hitung pakai tokenizer, trim konteks biar gak meledak cost.
-- [ ] **M2.6** **Robust retry & circuit breaker**: retry 503/429/502 dengan exponential backoff, timeout 25 detik, fallback model (flash → flash-lite), ke state "Livia lagi pusing" bila semua gagal (in-world error recovery yang lucu, bukan stack trace).
-  - *Sebagian selesai:* retry 429/5xx + exponential backoff & jitter, timeout, dan fallback model sudah ada di `lib/ai/providers/gemini.ts` (20 test di `tests/ai-provider.test.ts`). Sisa: circuit breaker + state "Livia lagi pusing".
-- [ ] **M2.7** **Evals pertama**: dataset 50 scenario uji (kesopanan, konsistensi persona, ingat nama, nol bahasa Jepang) yang dijalankan terhadap tiap perubahan prompt. Lulus sebelum merge.
+- [x] **M2.6** **Robust retry & circuit breaker**: retry 503/429/502 dengan exponential backoff, timeout 25 detik, fallback model (flash → flash-lite), ke state "Livia lagi pusing" bila semua gagal (in-world error recovery yang lucu, bukan stack trace).
+  - *Selesai di sisi single-instance:* retry 429/5xx + backoff & jitter, timeout, fallback model, circuit breaker (`lib/ai/circuit-breaker.ts`), dan balasan in-world "Livia pusing" (`lib/gemini.ts`). Catatan: breaker masih per-proses — breaker terdistribusi ditunda ke M5.5.- [ ] **M2.7** **Evals pertama**: dataset 50 scenario uji (kesopanan, konsistensi persona, ingat nama, nol bahasa Jepang) yang dijalankan terhadap tiap perubahan prompt. Lulus sebelum merge.
 
 **DoD:** First-token latency < 1.5 detik (P50), response Livia konsisten dengan persona ≥85% di evals, ganti provider tidak mengubah code domain (hanya adapter baru).
 
