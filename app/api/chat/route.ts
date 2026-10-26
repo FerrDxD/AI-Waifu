@@ -1,15 +1,11 @@
 import { NextResponse } from 'next/server';
-import { eq, desc } from 'drizzle-orm';
-import { db } from '@/lib/db';
-import { chatMessages, userProfiles, storyProgress } from '@/lib/db/schema';
-import { generateLiviaResponse, extractLanguage, resolveApiKey } from '@/lib/gemini';
-import { applyAffectionUpdate } from '@/lib/livia/affection.server';
-import { getCycleInfo } from '@/lib/livia/cycle';
+import { generateLiviaResponse } from '@/lib/gemini';
 import { aiRateLimit, aiDailyQuota } from '@/lib/rate-limit';
 import { apiHandler } from '@/lib/api-handler';
 import { errors } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { validateChatMessage } from '@/lib/validation';
+import { loadChatTurnContext, persistChatTurn, statsFromContext } from '@/lib/livia/chat-turn';
 
 export const POST = apiHandler(
   {
@@ -33,92 +29,27 @@ export const POST = apiHandler(
     const message = validateChatMessage(body?.message);
     const isVoiceCall = body?.isVoiceCall === true;
 
-    const language = extractLanguage(req);
-    // H0.1: key pribadi diambil dari DB terenkripsi, bukan dari cookie client.
-    const customApiKey = await resolveApiKey(userId, req);
-
-    const profileResults = await db
-      .select()
-      .from(userProfiles)
-      .where(eq(userProfiles.userId, userId));
-    const profile = profileResults[0];
-    if (!profile) throw errors.notFound('Profil');
-
-    const progressResults = await db
-      .select()
-      .from(storyProgress)
-      .where(eq(storyProgress.userId, userId));
-    const highestChapter = progressResults[0]?.unlockedChapters
-      ? Math.max(...progressResults[0].unlockedChapters)
-      : 0;
-
-    const historyResults = await db
-      .select()
-      .from(chatMessages)
-      .where(eq(chatMessages.userId, userId))
-      .orderBy(desc(chatMessages.createdAt))
-      .limit(30);
-
-    const chatHistory = historyResults.reverse().map((msg) => ({
-      role: msg.role as 'user' | 'livia',
-      content: msg.content,
-    }));
-
-    // M2.3: logika siklus haid dipindah ke lib/livia/cycle.ts
-    const { dayOfCycle, phase: cyclePhase } = getCycleInfo(profile.liviaCycleAnchor);
+    const ctx = await loadChatTurnContext({ userId, req, isVoiceCall });
 
     const { reply, affectionDelta, expression, memoryUpdate } = await generateLiviaResponse(
       message,
-      chatHistory,
-      profile.affection || 0,
-      profile.itemsBrought || [],
-      {
-        hunger: profile.liviaHunger ?? 100,
-        energy: profile.liviaEnergy ?? 100,
-        hydration: profile.liviaHydration ?? 100,
-        cyclePhase,
-        cycleDay: dayOfCycle,
-      },
+      ctx.chatHistory,
+      ctx.profile.affection || 0,
+      ctx.profile.itemsBrought || [],
+      statsFromContext(ctx),
       isVoiceCall,
-      profile.longTermMemory || undefined,
-      customApiKey,
-      language,
-      highestChapter
+      ctx.profile.longTermMemory || undefined,
+      ctx.customApiKey,
+      ctx.language,
+      ctx.highestChapter
     );
 
-    await db.insert(chatMessages).values([
-      { userId, role: 'user', content: message, affectionDelta: 0 },
-      { userId, role: 'livia', content: reply, affectionDelta },
-    ]);
-
-    let updateResult = {
-      newAffection: profile.affection,
-      affectionLevel: profile.affectionLevel,
-      unlockedChapter: null as number | null,
-    };
-
-    const updateData: Record<string, unknown> = { lastSeen: new Date() };
-
-    if (affectionDelta !== 0) {
-      updateResult = await applyAffectionUpdate(userId, profile.affection || 0, affectionDelta);
-      updateData.affection = updateResult.newAffection;
-      updateData.affectionLevel = updateResult.affectionLevel;
-    }
-
-    if (memoryUpdate && memoryUpdate.trim() !== '') {
-      const cleanFact = memoryUpdate.trim().replace(/^[-*•]\s*/, '');
-      const existing = (profile.longTermMemory || '')
-        .split('\n')
-        .map((s) => s.trim())
-        .filter(Boolean);
-      const factLine = `- ${cleanFact}`;
-      if (!existing.some((f) => f.toLowerCase() === factLine.toLowerCase())) {
-        existing.push(factLine);
-        updateData.longTermMemory = existing.slice(-20).join('\n');
-      }
-    }
-
-    await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, userId));
+    const updateResult = await persistChatTurn(ctx, message, {
+      reply,
+      affectionDelta,
+      expression,
+      memoryUpdate,
+    });
 
     return NextResponse.json({
       reply,

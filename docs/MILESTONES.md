@@ -48,7 +48,7 @@ sebelum DoD terpenuhi + ada test yang lulus.
 ## M2 — AI Engine Overhaul: Bikin Livia Beneran Cerdas (Bulan 2)
 > Ini jantung "sejajar dengan LLM lain".
 
-- [ ] **M2.1** **Streaming response**. Endpoint baru `/api/chat/stream` (SSE) menggantikan JSON round-trip. Typewriter effect diganti partial render. Latensi perceived turun drastis.`responseSchema` + langkah pipe "tag dulu JSON, stream text setelahnya".
+- [x] **M2.1** **Streaming response**. Endpoint baru `/api/chat/stream` (SSE) menggantikan JSON round-trip. Typewriter effect diganti partial render. Latensi perceived turun drastis.`responseSchema` + langkah pipe "tag dulu JSON, stream text setelahnya".
 - [x] **M2.2** **Abstraksi provider AI** (interface `LLMProvider` dengan implementasi `GeminiProvider`, dan nanti `OpenAIProvider`/`AnthropicProvider`/`OllamaProvider`). Model dari env, bukan hardcode `gemini-3.6-flash` 3x.
 - [x] **M2.3** **Satu sumber persona**: `lib/ai/persona.ts` dengan builder terpusat (base + konteks afeksi + konteks fisiologis + memori). Hapus duplikasi logika siklus haid ke `lib/livia/cycle.ts` (digunakan oleh 3 route). Hapus juga `generateDateDialogue` injection: nama user tidak pernah masuk ke prompt mentah.
 - [x] **M2.4** **Structured output pakai JSON schema** (`responseSchema`/Zod) — hapus `parseJsonResponse` regex. Kalau model mendukung native JSON mode, pakai itu.

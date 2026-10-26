@@ -107,6 +107,28 @@ async function requestReply(opts: {
   });
 }
 
+/**
+ * Aturan tambahan di ATAS fondasi persona: memori obrolan + format JSON.
+ * Dipakai `generateLiviaResponse` dan `streamLiviaReply` supaya keduanya
+ * dijamin memakai prompt yang SAMA — streaming tidak boleh unggul/kalah dari
+ * non-streaming hanya karena promptnya kebetulan beda.
+ */
+function buildChatReplyPrompt(identity: string): string {
+  return `${identity}
+
+PENTING TENTANG RIWAYAT OBROLAN:
+Kamu dan User sedang mengobrol dalam satu room chat berkelanjutan. Kamu HARUS SELALU mengingat apa yang baru saja kalian bicarakan sebelumnya (topik, pertanyaan, nama, dll). Jawab secara natural dan sambungkan dengan obrolan sebelumnya. Jangan pernah bersikap seperti baru pertama kali disapa jika kalian sudah mengobrol di room ini!
+
+Kembalikan HANYA JSON valid:
+{
+  "reply": "teks balasan Livia",
+  "affectionDelta": angka antara -5 sampai 5,
+  "expression": "normal" | "angry" | "blushing" | "clingy" | "happy" | "confused" | "flirty" | "pain" | "pleased" | "scared" | "serious" | "silly",
+  "memoryUpdate": "Catatan ringkas JIKA ada fakta penting baru tentang user (misal: hobi, makanan kesukaan, nama panggilan, dll). Kosongkan jika tidak ada info penting baru."
+}
+Hanya kembalikan JSON. Tidak ada teks lain.${INJECTION_GUARD}`;
+}
+
 // --- AI generation functions ---
 
 export async function generateLiviaResponse(
@@ -134,19 +156,7 @@ export async function generateLiviaResponse(
     language,
   });
 
-  const systemPrompt = `${identity}
-
-PENTING TENTANG RIWAYAT OBROLAN:
-Kamu dan User sedang mengobrol dalam satu room chat berkelanjutan. Kamu HARUS SELALU mengingat apa yang baru saja kalian bicarakan sebelumnya (topik, pertanyaan, nama, dll). Jawab secara natural dan sambungkan dengan obrolan sebelumnya. Jangan pernah bersikap seperti baru pertama kali disapa jika kalian sudah mengobrol di room ini!
-
-Kembalikan HANYA JSON valid:
-{
-  "reply": "teks balasan Livia",
-  "affectionDelta": angka antara -5 sampai 5,
-  "expression": "normal" | "angry" | "blushing" | "clingy" | "happy" | "confused" | "flirty" | "pain" | "pleased" | "scared" | "serious" | "silly",
-  "memoryUpdate": "Catatan ringkas JIKA ada fakta penting baru tentang user (misal: hobi, makanan kesukaan, nama panggilan, dll). Kosongkan jika tidak ada info penting baru."
-}
-Hanya kembalikan JSON. Tidak ada teks lain.${INJECTION_GUARD}`;
+  const systemPrompt = buildChatReplyPrompt(identity);
 
   const turns = turnsFromHistory(chatHistory, userMessage);
 
@@ -173,6 +183,94 @@ Hanya kembalikan JSON. Tidak ada teks lain.${INJECTION_GUARD}`;
     logger.error('generateLiviaResponse failed', { error: serializeError(error) });
     throw new AppError('AI_GENERATION_FAILED', 'Gagal menghubungi server AI Google.', 503, true);
   }
+}
+
+/**
+ * Versi streaming dari `generateLiviaResponse` (M2.1).
+ *
+ * Sengaja BUKAN async: provider sudah langsung memberi `deltas` yang bisa
+ * dikonsumsi `for await`, sementara `final` berisi balasan tervalidasi.
+ *
+ * Kontrak `final` tidak pernah reject karena gangguan sementara — dia resolve
+ * ke balasan "Livia pusing", supaya route streaming tetap bisa menampilkan
+ * sesuatu yang in-character. Yang tetap reject: `AI_BAD_STRUCTURE` (hasil tidak
+ * bisa dipercaya) dan error konfigurasi.
+ */
+export function streamLiviaReply(input: {
+  userMessage: string;
+  chatHistory: { role: 'user' | 'livia'; content: string }[];
+  affectionLevel: number;
+  itemsBrought: string[];
+  stats?: Stats;
+  isVoiceCall?: boolean;
+  longTermMemory?: string;
+  customApiKey?: string;
+  language: 'id' | 'en';
+  highestChapter: number;
+}): {
+  deltas: AsyncIterableIterator<string>;
+  final: Promise<{ reply: string; affectionDelta: number; expression: LiviaExpression; memoryUpdate?: string }>;
+} {
+  const {
+    userMessage,
+    chatHistory,
+    affectionLevel,
+    itemsBrought,
+    stats,
+    isVoiceCall,
+    longTermMemory,
+    customApiKey,
+    language,
+    highestChapter,
+  } = input;
+
+  const identity = buildLiviaIdentity({
+    affection: affectionLevel,
+    highestChapter,
+    stats,
+    itemsBrought,
+    longTermMemory,
+    isVoiceCall,
+    language,
+  });
+
+  const { deltas, final } = getProvider().stream({
+    operation: 'chat',
+    systemInstruction: buildChatReplyPrompt(identity),
+    turns: turnsFromHistory(chatHistory, userMessage),
+    responseSchema: liviaReplyResponseSchema,
+    outputSchema: liviaReplyValidator,
+    temperature: 0.8,
+    maxOutputTokens: 1024,
+    apiKey: customApiKey,
+  });
+
+  return {
+    deltas,
+    final: final
+      .then((result) => {
+        if (result.blocked) {
+          logger.warn('streamLiviaReply blocked_by_safety', {});
+          return deflectionReply(language);
+        }
+        return result.data!;
+      })
+      .catch((error: unknown) => {
+        if (isTransientAiError(error)) {
+          logger.warn('streamLiviaReply overloaded', { code: (error as AppError).code });
+          return overloadedReply(language);
+        }
+        if (error instanceof AppError) {
+          logger.error('streamLiviaReply failed', {
+            code: error.code,
+            error: serializeError(error),
+          });
+        } else {
+          logger.error('streamLiviaReply failed', { error: serializeError(error) });
+        }
+        throw error;
+      }),
+  };
 }
 
 export async function generateDateDialogue(

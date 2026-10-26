@@ -3,7 +3,7 @@
 Dokumen ini mencatat apa yang **sudah** dikerjakan di M2, bug nyata yang
 ditemukan saat mengerjakannya, dan apa yang **belum**.
 
-Status: M2.2, M2.3, M2.4, M2.6 selesai. M2.1, M2.5, M2.7 belum.
+Status: M2.1, M2.2, M2.3, M2.4, M2.6 selesai. M2.5 dan M2.7 belum.
 
 ---
 
@@ -175,6 +175,53 @@ Yang tetap dilempar sebagai error: `GEMINI_NOT_CONFIGURED` (harus diperbaiki
 admin), `AI_EMPTY_CONTEXT`, `AI_BAD_STRUCTURE` (meminta user coba lagi itu
 wajar), dan semua kegagalan `generateDateDialogue`.
 
+### 3.9 M2.1 — streaming SSE (`/api/chat/stream`)
+
+Rantainya:
+
+1. `lib/ai/stream/extract.ts` — mesin status inkremental yang menelusuri JSON
+   yang masih mengalir dan memuntahkan isi field `"reply"` dengan unescape
+   (`\n`, `\"`, `\uXXXX`, termasuk nilai yang terpotong di tengah chunk).
+   Tidak pakai regex supaya kata `"reply"` di dalam string lain tidak salah
+   dikira key.
+2. `lib/ai/stream/queue.ts` — antrean async: provider memproduksi delta,
+   route mengonsumsi dengan `for await`.
+3. Provider dapat metode `stream()` di kontrak `LLMProvider`, memakai
+   `generateContentStream` SDK. Aturan retry streaming lebih ketat daripada
+   non-streaming: diulang hanya SELAMA belum ada satu delta pun terkirim —
+   setelah teks tampil di layar, mengulang akan membuat teks dobel.
+4. `lib/gemini.ts` dapat `streamLiviaReply()` dengan prompt yang SAMA persis
+   dengan `generateLiviaResponse` (dibangun dari satu fungsi
+   `buildChatReplyPrompt`). Blocked → balasan pengalih; gagal sementara →
+   "Livia pusing"; semuanya lewat `final`, bukan dari aliran mentah.
+5. Route `/api/chat/stream` memakai protokol event:
+   `{type:'delta', text}` berulang, lalu `{type:'done', reply, affectionDelta,
+   expression, newAffection, newLevel, unlockedChapter}` — atau
+   `{type:'error', code, message}`. Persistensi (`persistChatTurn`) hanya
+   pada `done`, sehingga teks parsial tidak pernah masuk DB.
+6. `app/(main)/chat/page.tsx` sekarang memakai SSE: bubble Livia muncul
+   seketika dan terisi bertahap; angka afeksi hanya dipercaya dari event
+   `done`, bukan dari aliran mentah.
+
+Logika chat bersama ("ambil profil → bab → riwayat → siklus → generate →
+simpan → update afeksi/memori") diekstrak ke `lib/livia/chat-turn.ts` dan
+dipakai `/api/chat` maupun `/api/chat/stream` — tidak ada duplikasi urutan
+penulisan DB yang rawan.
+
+Untuk sisa tes: `tests/ai-stream-extract.test.ts` (18), `tests/ai-stream.test.ts`
+(9: antrean delta, delta mengalir, blocked, JSON rusak, retry sebelum delta
+pertama, larangan retry setelah delta), serta test provider lama dipindah ke
+mock bersama `tests/gemini-sdk-mock.ts`.
+
+### 3.10 Bug yang ditemukan saat mengerjakan streaming
+
+- Mock SDK di dua test file berbeda bentuknya + `isolate: false` = kegagalan
+  yang bergantung URUTAN file. Diperbaiki dengan satu helper mock bersama.
+- Ekstraktor versi pertama menganggap tanda kutip PEMBUKA sebagai penutup
+  (delta string kosong) dan `pendingHex` di-cosongkan dengan `''` alih-alih
+  `null`, sehingga karakter pertama setelah `:` tertelan sebagai digit hex
+  tidak valid. Keduanya tertangkap karena streaming dites per-karakter.
+
 ### 3.5 `lib/ai/persona.ts` — satu sumber persona
 
 `buildLiviaIdentity()` menyatukan: identitas + status hubungan (menikah kalau
@@ -219,7 +266,7 @@ dihapus. Ini mengurangi satu jalur di mana prompt bisa dibangun dari luar
 | `tests/cycle.test.ts` | 28 hari, fase, anchor null/invalid, hari negatif |
 | `tests/circuit-breaker.test.ts` | 14 test: closed/open/half-open, cooldown, probe tunggal, reset, snapshot |
 
-Total suite: **333 test** (sebelumnya 208).
+Total suite: **360 test** (sebelumnya 208).
 
 ---
 
@@ -237,11 +284,13 @@ bun run test        → 16 file, 315 test lulus
 
 | Item | Status | Catatan |
 | --- | --- | --- |
-| M2.1 Streaming (SSE) | belum | endpoint `/api/chat/stream` |
+| M2.1 Streaming (SSE) | selesai | lihat §3.9 `/api/chat/stream` |
 | M2.5 Context window | belum | butuh tabel `messageSummaries` -> menunggu `db:push` |
 | M2.7 Evals | belum | 50 skenario; juga untuk menguji perubahan persona (mis. `itemsBrought` kosong) |
 | Circuit breaker per-provider | selesai | `lib/ai/circuit-breaker.ts`, per-proses (multi-instance → M5.5) |
 | State "Livia lagi pusing" | selesai | `overloadedReply()` di `lib/gemini.ts`, hanya untuk kode sementara |
+| Streaming only untuk chat | terbatas | date chat & date dialogue masih non-streaming; porternya sudah ada, tinggal route |
+| Watchdog timeout streaming | terbatas | `timeout` masih hanya di request awal; stream yang menggantung belum dipotong paksa |
 
 ---
 

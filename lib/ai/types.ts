@@ -56,7 +56,28 @@ export interface GenerateResult<T> {
   latencyMs: number;
 }
 
+/**
+ * Hasil generasi yang mengalir (M2.1).
+ *
+ * `deltas` memuntahkan potongan teks balasan SEBELUM respons selesai — ini
+ * yang menurunkan latensi yang dirasakan user. `final` diselesaikan belakangan
+ * setelah seluruh output tervalidasi; angka afeksi, ekspresi, dan memori HANYA
+ * boleh diambil dari situ, bukan dari aliran mentah.
+ */
+export interface StreamingGenerate<T> {
+  deltas: AsyncIterableIterator<string>;
+  /** Resolve setelah aliran selesai. Reject kalau struktur output tidak valid. */
+  final: Promise<GenerateResult<T>>;
+}
+
 export interface LLMProvider {
   readonly name: AIProviderName;
   generate<T>(options: GenerateOptions<T>): Promise<GenerateResult<T>>;
+  /**
+   * Variante streaming. Sengaja TIDAK async: `deltas` harus bisa didapat
+   * seketika supaya route bisa membuka SSE sebelum ada byte angka dari model.
+   * Getter/gagal dini (konteks kosong, breaker terbuka) dilempar sinkron di
+   * titik pemanggilan — route sudah berada di dalam handler async.
+   */
+  stream<T>(options: GenerateOptions<T>): StreamingGenerate<T>;
 }

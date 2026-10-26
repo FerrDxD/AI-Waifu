@@ -77,34 +77,97 @@ export default function ChatPage() {
     }]);
     setLoading(true);
 
+    // M2.1: balasan mengalir (SSE). Bubble Livia dibuat langsung lalu diisi
+    // bertahap — user melihat kalimat terbentuk, bukan menunggu kosong.
+    const liviaId = (Date.now() + 1).toString();
+
     try {
-      const res = await fetch('/api/chat', {
+      setMessages(prev => [...prev, { id: liviaId, role: 'livia', content: '', isNew: true }]);
+
+      const res = await fetch('/api/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMsg }),
       });
 
-      const data = await res.json();
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => null);
+        throw new Error((data as { error?: string } | null)?.error || 'Koneksi terputus.');
+      }
 
-      if (res.ok && data.reply) {
-        playSfx('pop');
-        setMessages(prev => [...prev, {
-          id: (Date.now() + 1).toString(),
-          role: 'livia',
-          content: data.reply,
-          isNew: true,
-        }]);
-      } else {
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let gotAny = false;
+
+      const handleEvent = (raw: string) => {
+        if (!raw.startsWith('data: ')) return;
+        let event: { type?: string; text?: string; reply?: string; message?: string };
+        try {
+          event = JSON.parse(raw.slice(6));
+        } catch {
+          return;
+        }
+
+        if (event.type === 'delta' && typeof event.text === 'string') {
+          gotAny = true;
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === liviaId ? { ...m, content: m.content + event.text } : m
+            )
+          );
+        } else if (event.type === 'done') {
+          // Angka afeksi & ekspresi HANYA dari event done — tidak dipercaya
+          // dari aliran mentah (validasi server sudah berjalan).
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === liviaId ? { ...m, content: event.reply || m.content } : m
+            )
+          );
+          playSfx('pop');
+        } else if (event.type === 'error') {
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === liviaId
+                ? { ...m, content: `[Sistem] Error: ${event.message || 'Koneksi terputus.'}` }
+                : m
+            )
+          );
+          playSfx('error');
+        }
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const chunks = buffer.split('\n\n');
+        buffer = chunks.pop() ?? '';
+        for (const chunk of chunks) handleEvent(chunk.trim());
+      }
+      if (buffer.trim()) handleEvent(buffer.trim());
+
+      if (!gotAny) {
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === liviaId && m.content === ''
+              ? { ...m, content: `[Sistem] Error: Livia tidak sempat menjawab.` }
+              : m
+          )
+        );
         playSfx('error');
-        setMessages(prev => [...prev, {
-          id: (Date.now() + 1).toString(),
-          role: 'livia',
-          content: `[Sistem] Error: ${data.error || 'Koneksi terputus.'}`,
-        }]);
       }
     } catch (e) {
       console.error(e);
       playSfx('error');
+      const message = e instanceof Error ? e.message : 'Koneksi terputus.';
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === liviaId
+            ? { ...m, content: `[Sistem] Error: ${message}` }
+            : m
+        )
+      );
     } finally {
       setLoading(false);
     }

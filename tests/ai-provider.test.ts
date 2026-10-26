@@ -4,48 +4,23 @@ import { AppError } from '@/lib/errors';
 import { __resetAIConfigForTests } from '@/lib/ai/config';
 import { __resetProviderForTests, getProvider } from '@/lib/ai';
 import type { GenerateOptions } from '@/lib/ai/types';
+import {
+  mockGenerateContent,
+  mockGenerateContentStream,
+  sdkModuleMock,
+} from './gemini-sdk-mock';
 
 /**
  * Test adapter Gemini (M2.2/M2.6) tanpa memanggil jaringan.
  *
- * SDK di-mock di level modul karena provider sengaja menyembunyikan SDK di
- * balik satu file. Kalau nanti provider kedua ditambahkan, test ini tidak
- * perlu tahu-menahu.
+ * SDK di-mock di level modul; bentuk mock dibagi dengan test streaming
+ * (lihat tests/gemini-sdk-mock.ts). `mockGenerateContentStream` tetap
+ * tersedia biar test mana yang dijalankan duluan tidak melanggar.
  */
 
-const generateContent = vi.fn();
-
-vi.mock('@google/generative-ai', () => {
-  class GoogleGenerativeAI {
-    constructor(readonly apiKey: string) {}
-    getGenerativeModel(config: unknown) {
-      return {
-        generateContent: (request: unknown) => generateContent(config, request),
-      };
-    }
-  }
-
-  return {
-    GoogleGenerativeAI,
-    HarmCategory: {
-      HARM_CATEGORY_HARASSMENT: 'HARM_CATEGORY_HARASSMENT',
-      HARM_CATEGORY_HATE_SPEECH: 'HARM_CATEGORY_HATE_SPEECH',
-      HARM_CATEGORY_SEXUALLY_EXPLICIT: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-      HARM_CATEGORY_DANGEROUS_CONTENT: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-    },
-    HarmBlockThreshold: {
-      BLOCK_MEDIUM_AND_ABOVE: 'BLOCK_MEDIUM_AND_ABOVE',
-      BLOCK_ONLY_HIGH: 'BLOCK_ONLY_HIGH',
-    },
-    SchemaType: {
-      OBJECT: 'object',
-      STRING: 'string',
-      INTEGER: 'integer',
-      ARRAY: 'array',
-      NUMBER: 'number',
-      BOOLEAN: 'boolean',
-    },
-  };
+vi.mock('@google/generative-ai', async () => {
+  const { sdkModuleMock } = await import('./gemini-sdk-mock');
+  return sdkModuleMock();
 });
 
 const outputSchema = z.object({
@@ -100,7 +75,8 @@ beforeEach(() => {
   process.env.AI_MAX_RETRIES = '2';
   __resetAIConfigForTests();
   __resetProviderForTests();
-  generateContent.mockReset();
+  mockGenerateContent.mockReset();
+  mockGenerateContentStream.mockReset();
 });
 
 afterEach(() => {
@@ -111,7 +87,7 @@ afterEach(() => {
 
 describe('GeminiProvider.generate', () => {
   it('mengembalikan data tervalidasi + metadata', async () => {
-    generateContent.mockResolvedValue(okResponse({ reply: 'Hmph.', affectionDelta: 1 }));
+    mockGenerateContent.mockResolvedValue(okResponse({ reply: 'Hmph.', affectionDelta: 1 }));
 
     const result = await getProvider().generate(makeOptions());
 
@@ -123,11 +99,11 @@ describe('GeminiProvider.generate', () => {
   });
 
   it('memaksa JSON + mengirim systemInstruction & safety settings', async () => {
-    generateContent.mockResolvedValue(okResponse({ reply: 'a', affectionDelta: 0 }));
+    mockGenerateContent.mockResolvedValue(okResponse({ reply: 'a', affectionDelta: 0 }));
 
     await getProvider().generate(makeOptions());
 
-    const config = generateContent.mock.calls[0][0] as Record<string, never>;
+    const config = mockGenerateContent.mock.calls[0][0] as Record<string, never>;
     expect(config).toMatchObject({
       model: 'gemini-3.6-flash',
       systemInstruction: 'Kamu adalah Livia.',
@@ -139,15 +115,15 @@ describe('GeminiProvider.generate', () => {
   it('memakai dialogueModel untuk operasi date.dialogue', async () => {
     process.env.AI_MODEL_DIALOGUE = 'model-dialog';
     __resetAIConfigForTests();
-    generateContent.mockResolvedValue(okResponse({ reply: 'a', affectionDelta: 0 }));
+    mockGenerateContent.mockResolvedValue(okResponse({ reply: 'a', affectionDelta: 0 }));
 
     await getProvider().generate(makeOptions({ operation: 'date.dialogue' }));
 
-    expect((generateContent.mock.calls[0][0] as { model: string }).model).toBe('model-dialog');
+    expect((mockGenerateContent.mock.calls[0][0] as { model: string }).model).toBe('model-dialog');
   });
 
   it('penolakan safety filter jadi hasil blocked, BUKAN error', async () => {
-    generateContent.mockResolvedValue({
+    mockGenerateContent.mockResolvedValue({
       response: {
         text: () => {
           throw new Error('no candidates');
@@ -165,7 +141,7 @@ describe('GeminiProvider.generate', () => {
   });
 
   it('finishReason SAFETY juga dianggap blocked', async () => {
-    generateContent.mockResolvedValue({
+    mockGenerateContent.mockResolvedValue({
       response: {
         text: () => '',
         candidates: [{ finishReason: 'SAFETY' }],
@@ -178,7 +154,7 @@ describe('GeminiProvider.generate', () => {
   });
 
   it('tanpa kandidat sama sekali → blocked NO_CANDIDATE', async () => {
-    generateContent.mockResolvedValue({
+    mockGenerateContent.mockResolvedValue({
       response: {
         text: () => {
           throw new Error('no candidates');
@@ -194,36 +170,36 @@ describe('GeminiProvider.generate', () => {
   });
 
   it('mengulang 503 lalu berhasil', async () => {
-    generateContent
+    mockGenerateContent
       .mockRejectedValueOnce(Object.assign(new Error('busy'), { status: 503 }))
       .mockResolvedValueOnce(okResponse({ reply: 'ok', affectionDelta: 0 }));
 
     const result = await getProvider().generate(makeOptions());
 
-    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(mockGenerateContent).toHaveBeenCalledTimes(2);
     expect(result.data).toEqual({ reply: 'ok', affectionDelta: 0 });
   });
 
   it('tidak mengulang 400 (bukan error sementara)', async () => {
-    generateContent.mockRejectedValue(Object.assign(new Error('bad request'), { status: 400 }));
+    mockGenerateContent.mockRejectedValue(Object.assign(new Error('bad request'), { status: 400 }));
 
     await expect(getProvider().generate(makeOptions())).rejects.toMatchObject({
       code: 'AI_GENERATION_FAILED',
     });
-    expect(generateContent).toHaveBeenCalledTimes(1);
+    expect(mockGenerateContent).toHaveBeenCalledTimes(1);
   });
 
   it('menyerah setelah maxRetries + 1 percobaan', async () => {
-    generateContent.mockRejectedValue(Object.assign(new Error('busy'), { status: 429 }));
+    mockGenerateContent.mockRejectedValue(Object.assign(new Error('busy'), { status: 429 }));
 
     await expect(getProvider().generate(makeOptions())).rejects.toMatchObject({
       code: 'AI_GENERATION_FAILED',
     });
-    expect(generateContent).toHaveBeenCalledTimes(3);
+    expect(mockGenerateContent).toHaveBeenCalledTimes(3);
   });
 
   it('pesan error internal tidak bocor ke client', async () => {
-    generateContent.mockRejectedValue(new Error('key AIzaSyD-RAHASIA-SEKALI'));
+    mockGenerateContent.mockRejectedValue(new Error('key AIzaSyD-RAHASIA-SEKALI'));
 
     const error = await getProvider()
       .generate(makeOptions())
@@ -236,7 +212,7 @@ describe('GeminiProvider.generate', () => {
   it('memakai model fallback kalau model utama gagal', async () => {
     process.env.AI_MODEL_FALLBACK = 'model-cadangan';
     __resetAIConfigForTests();
-    generateContent.mockImplementation((config: { model: string }) => {
+    mockGenerateContent.mockImplementation((config: { model: string }) => {
       if (config.model === 'model-cadangan') {
         return Promise.resolve(okResponse({ reply: 'dari fallback', affectionDelta: 0 }));
       }
@@ -255,7 +231,7 @@ describe('GeminiProvider.generate', () => {
     process.env.AI_MODEL_FALLBACK = 'model-cadangan';
     process.env.AI_MAX_RETRIES = '0';
     __resetAIConfigForTests();
-    generateContent.mockImplementation((config: { model: string }) => {
+    mockGenerateContent.mockImplementation((config: { model: string }) => {
       if (config.model === 'model-cadangan') {
         return Promise.resolve(okResponse({ reply: 'ok', affectionDelta: 0 }));
       }
@@ -267,16 +243,16 @@ describe('GeminiProvider.generate', () => {
   });
 
   it('JSON rusak → AI_BAD_STRUCTURE, tidak diulang', async () => {
-    generateContent.mockResolvedValue(okResponse('ini bukan json'));
+    mockGenerateContent.mockResolvedValue(okResponse('ini bukan json'));
 
     await expect(getProvider().generate(makeOptions())).rejects.toMatchObject({
       code: 'AI_BAD_STRUCTURE',
     });
-    expect(generateContent).toHaveBeenCalledTimes(1);
+    expect(mockGenerateContent).toHaveBeenCalledTimes(1);
   });
 
   it('JSON valid tapi melanggar skema → AI_BAD_STRUCTURE', async () => {
-    generateContent.mockResolvedValue(okResponse({ reply: 42, affectionDelta: 0 }));
+    mockGenerateContent.mockResolvedValue(okResponse({ reply: 42, affectionDelta: 0 }));
 
     await expect(getProvider().generate(makeOptions())).rejects.toMatchObject({
       code: 'AI_BAD_STRUCTURE',
@@ -287,7 +263,7 @@ describe('GeminiProvider.generate', () => {
     await expect(
       getProvider().generate(makeOptions({ turns: [{ role: 'user', text: '   ' }] }))
     ).rejects.toMatchObject({ code: 'AI_EMPTY_CONTEXT' });
-    expect(generateContent).not.toHaveBeenCalled();
+    expect(mockGenerateContent).not.toHaveBeenCalled();
   });
 
   it('tanpa key server & tanpa key user → GEMINI_NOT_CONFIGURED', async () => {
@@ -300,16 +276,16 @@ describe('GeminiProvider.generate', () => {
 
   it('key user dipakai kalau ada', async () => {
     delete process.env.GEMINI_API_KEY;
-    generateContent.mockResolvedValue(okResponse({ reply: 'a', affectionDelta: 0 }));
+    mockGenerateContent.mockResolvedValue(okResponse({ reply: 'a', affectionDelta: 0 }));
 
     await getProvider().generate(makeOptions({ apiKey: '  user-key  ' }));
 
-    const client = generateContent.mock.calls[0][0];
+    const client = mockGenerateContent.mock.calls[0][0];
     expect(client).toBeDefined();
   });
 
   it('menggabungkan giliran dengan role sama', async () => {
-    generateContent.mockResolvedValue(okResponse({ reply: 'a', affectionDelta: 0 }));
+    mockGenerateContent.mockResolvedValue(okResponse({ reply: 'a', affectionDelta: 0 }));
 
     await getProvider().generate(
       makeOptions({
@@ -322,7 +298,7 @@ describe('GeminiProvider.generate', () => {
       })
     );
 
-    const request = generateContent.mock.calls[0][1] as {
+    const request = mockGenerateContent.mock.calls[0][1] as {
       contents: { role: string; parts: { text: string }[] }[];
     };
     expect(request.contents).toHaveLength(2);
@@ -331,7 +307,7 @@ describe('GeminiProvider.generate', () => {
   });
 
   it('membuang giliran model di awal (Gemini menolak)', async () => {
-    generateContent.mockResolvedValue(okResponse({ reply: 'a', affectionDelta: 0 }));
+    mockGenerateContent.mockResolvedValue(okResponse({ reply: 'a', affectionDelta: 0 }));
 
     await getProvider().generate(
       makeOptions({
@@ -342,18 +318,18 @@ describe('GeminiProvider.generate', () => {
       })
     );
 
-    const request = generateContent.mock.calls[0][1] as { contents: { role: string }[] };
+    const request = mockGenerateContent.mock.calls[0][1] as { contents: { role: string }[] };
     expect(request.contents[0].role).toBe('user');
   });
 
   it('mengirim timeout dari config', async () => {
     process.env.AI_TIMEOUT_MS = '7000';
     __resetAIConfigForTests();
-    generateContent.mockResolvedValue(okResponse({ reply: 'a', affectionDelta: 0 }));
+    mockGenerateContent.mockResolvedValue(okResponse({ reply: 'a', affectionDelta: 0 }));
 
     await getProvider().generate(makeOptions());
 
-    const request = generateContent.mock.calls[0][1] as { timeout: number };
+    const request = mockGenerateContent.mock.calls[0][1] as { timeout: number };
     expect(request.timeout).toBe(7000);
   });
 });
@@ -364,7 +340,7 @@ describe('GeminiProvider circuit breaker', () => {
     process.env.AI_BREAKER_FAILURE_THRESHOLD = '2';
     __resetAIConfigForTests();
     __resetProviderForTests();
-    generateContent.mockRejectedValue(Object.assign(new Error('down'), { status: 503 }));
+    mockGenerateContent.mockRejectedValue(Object.assign(new Error('down'), { status: 503 }));
 
     const provider = getProvider();
     await expect(provider.generate(makeOptions())).rejects.toMatchObject({
@@ -375,18 +351,18 @@ describe('GeminiProvider circuit breaker', () => {
     });
 
     // Panggilan ketiga tidak boleh menyentuh SDK sama sekali.
-    const callsBefore = generateContent.mock.calls.length;
+    const callsBefore = mockGenerateContent.mock.calls.length;
     await expect(provider.generate(makeOptions())).rejects.toMatchObject({
       code: 'AI_CIRCUIT_OPEN',
     });
-    expect(generateContent.mock.calls.length).toBe(callsBefore);
+    expect(mockGenerateContent.mock.calls.length).toBe(callsBefore);
   });
 
   it('AI_BAD_STRUCTURE tidak membuka breaker', async () => {
     process.env.AI_BREAKER_FAILURE_THRESHOLD = '1';
     __resetAIConfigForTests();
     __resetProviderForTests();
-    generateContent.mockResolvedValue(okResponse('bukan json'));
+    mockGenerateContent.mockResolvedValue(okResponse('bukan json'));
 
     const provider = getProvider();
     for (let i = 0; i < 3; i++) {
@@ -406,12 +382,12 @@ describe('GeminiProvider circuit breaker', () => {
     __resetProviderForTests();
 
     const provider = getProvider();
-    generateContent.mockRejectedValueOnce(Object.assign(new Error('down'), { status: 503 }));
+    mockGenerateContent.mockRejectedValueOnce(Object.assign(new Error('down'), { status: 503 }));
     await expect(provider.generate(makeOptions())).rejects.toMatchObject({
       code: 'AI_GENERATION_FAILED',
     });
 
-    generateContent.mockResolvedValue(okResponse({ reply: 'ok', affectionDelta: 0 }));
+    mockGenerateContent.mockResolvedValue(okResponse({ reply: 'ok', affectionDelta: 0 }));
     const result = await provider.generate(makeOptions());
 
     expect(result.data).toEqual({ reply: 'ok', affectionDelta: 0 });
