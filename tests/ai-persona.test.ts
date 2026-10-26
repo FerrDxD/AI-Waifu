@@ -87,7 +87,7 @@ describe('buildLiviaIdentity', () => {
   it('memori yang diisi ikut masuk & di-trim', () => {
     const text = buildLiviaIdentity({
       affection: 50,
-      longTermMemory: '  Suka kopi hitam  ',
+      memoryLines: '  Suka kopi hitam  ',
       language: 'id',
     });
     expect(text).toContain('Suka kopi hitam');

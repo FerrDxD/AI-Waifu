@@ -94,10 +94,99 @@ const affectionDeltaField = coerceField((value) => {
 /** `expression` juga non-kritis: nilai aneh → `normal`, bukan error. */
 const expressionField = coerceField((value) => normalizeExpression(value));
 
-/** `memoryUpdate` non-kritis: bukan string → string kosong. */
+/**
+ * Memori terstruktur (M3.2).
+ *
+ * Dulu satu-satunya jalur tulis memori adalah field teks `memoryUpdate`:
+ * model menulis satu kalimat bebas, server menempelkannya ke blob 20 baris.
+ * Itu tidak bisa diberi tipe, tidak bisa di-dedupe dengan baik, dan tidak
+ * bisa di-ranking saat retrieval.
+ *
+ * Sekarang model mengirim array `memories` yang terstruktur. Tipe `diary`
+ * sengaja TIDAK boleh dibuat model — itu hasil konsolidasi server (M3.4).
+ */
+export const EXTRACTABLE_MEMORY_TYPES = ['core', 'episodic', 'semantic'] as const;
+export type ExtractedMemoryType = (typeof EXTRACTABLE_MEMORY_TYPES)[number];
+
+export interface ExtractedMemory {
+  type: ExtractedMemoryType;
+  content: string;
+  confidence: number;
+}
+
+const EXTRACTABLE_MEMORY_SET: ReadonlySet<string> = new Set(EXTRACTABLE_MEMORY_TYPES);
+
+/** Batas panjang satu fakta — cukup untuk satu kalimat, tidak untuk esai. */
+export const MAX_MEMORY_CONTENT_LENGTH = 200;
+
+/** Maksimal fakta baru yang boleh ditulis dari satu balasan. */
+export const MAX_MEMORIES_PER_REPLY = 3;
+
+export function normalizeExtractedMemoryType(value: unknown): ExtractedMemoryType {
+  return typeof value === 'string' && EXTRACTABLE_MEMORY_SET.has(value)
+    ? (value as ExtractedMemoryType)
+    : 'semantic';
+}
+
+export function clampMemoryConfidence(value: unknown, fallback = 60): number {
+  const numeric =
+    typeof value === 'number' ? value : typeof value === 'string' ? Number(value.trim()) : NaN;
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.max(0, Math.min(100, Math.round(numeric)));
+}
+
+/** Bersihkan satu fakta: trim, buang bullet, rapikan spasi, potong panjang. */
+export function cleanMemoryContent(value: unknown, maxLength = MAX_MEMORY_CONTENT_LENGTH): string {
+  if (typeof value !== 'string') return '';
+  const cleaned = value
+    .replace(/^[-*•]\s*/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return cleaned.length > maxLength ? cleaned.slice(0, maxLength).trim() : cleaned;
+}
+
+/**
+ * Koersi array `memories` dari model.
+ *
+ * Sama seperti field non-kritis lain: array rusak TIDAK boleh membuang balasan
+ * yang teksnya sudah bagus. Item yang tidak bisa dipahami dibuang satu per
+ * satu, bukan menggagalkan semuanya.
+ */
+export function coerceMemories(value: unknown): ExtractedMemory[] {
+  if (!Array.isArray(value)) return [];
+
+  const result: ExtractedMemory[] = [];
+  const seen = new Set<string>();
+
+  for (const raw of value) {
+    if (result.length >= MAX_MEMORIES_PER_REPLY) break;
+    if (!raw || typeof raw !== 'object') continue;
+
+    const item = raw as Record<string, unknown>;
+    const content = cleanMemoryContent(item.content);
+    if (content.length < 3) continue;
+
+    const key = content.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    result.push({
+      type: normalizeExtractedMemoryType(item.type),
+      content,
+      confidence: clampMemoryConfidence(item.confidence),
+    });
+  }
+
+  return result;
+}
+
+/** `memoryUpdate` non-kritis: bukan string → string kosong (fallback lama). */
 const memoryUpdateField = coerceField((value) =>
   typeof value === 'string' ? value.trim() : ''
 );
+
+/** `memories` non-kritis: bentuk aneh → array kosong. */
+const memoriesField = coerceField((value) => coerceMemories(value));
 
 /** Validator balasan Livia (chat & date chat). */
 export const liviaReplyValidator = z
@@ -105,12 +194,14 @@ export const liviaReplyValidator = z
     reply: z.string().trim().min(1, 'reply kosong'),
     affectionDelta: affectionDeltaField,
     expression: expressionField,
+    memories: memoriesField,
     memoryUpdate: memoryUpdateField,
   })
   .transform((value) => ({
     reply: value.reply,
     affectionDelta: value.affectionDelta,
     expression: value.expression,
+    memories: value.memories,
     memoryUpdate: value.memoryUpdate,
   }));
 
@@ -138,10 +229,34 @@ export const liviaReplyResponseSchema: ResponseSchema = {
     memoryUpdate: {
       type: SchemaType.STRING,
       description:
-        'Satu kalimat fakta penting baru tentang user (hobi, makanan favorit, nama panggilan). String kosong kalau tidak ada.',
+        'Warisan lama. Kosongkan saja; fakta baru ditulis di field memories.',
+    },
+    memories: {
+      type: SchemaType.ARRAY,
+      description:
+        'Fakta tahan lama BARU tentang user. Maksimal 2. Array kosong kalau tidak ada fakta baru.',
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          type: {
+            type: SchemaType.STRING,
+            description:
+              'core (identitas inti: nama panggilan, alergi) | episodic (kejadian/rencana) | semantic (fakta stabil: hobi, kerja, makanan).',
+          },
+          content: {
+            type: SchemaType.STRING,
+            description: 'Satu kalimat fakta, maksimal 200 karakter, tanpa bullet.',
+          },
+          confidence: {
+            type: SchemaType.INTEGER,
+            description: 'Keyakinan bahwa fakta ini benar, 0–100.',
+          },
+        },
+        required: ['type', 'content', 'confidence'],
+      },
     },
   },
-  required: ['reply', 'affectionDelta', 'expression', 'memoryUpdate'],
+  required: ['reply', 'affectionDelta', 'expression', 'memories'],
 };
 
 /** Satu baris dialog Visual Novel pada kencan. */
@@ -230,4 +345,28 @@ export const chatSummaryResponseSchema: ResponseSchema = {
     },
   },
   required: ['summary'],
+};
+
+/**
+ * Hasil konsolidasi memori (M3.4).
+ *
+ * Beberapa memori lama dipadatkan menjadi SATU "inti memori" bergaya diary.
+ * Output dibatasi pendek karena akan ikut masuk konteks chat.
+ */
+export const memoryDigestValidator = z.object({
+  memory: z.string().trim().min(1),
+});
+
+export type MemoryDigest = z.infer<typeof memoryDigestValidator>;
+
+export const memoryDigestResponseSchema: ResponseSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    memory: {
+      type: SchemaType.STRING,
+      description:
+        'Satu paragraf 2-4 kalimat, sudut pandang Livia, merangkum memori-memori tersebut menjadi satu ingatan yang utuh.',
+    },
+  },
+  required: ['memory'],
 };

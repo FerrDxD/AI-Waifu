@@ -67,13 +67,20 @@ sebelum DoD terpenuhi + ada test yang lulus.
 ## M3 — Sistem Memori Berlapis (Bulan 3)
 > Karakter AI yang diingat sebagai standar. Selama ini Livia "amnesia chapter-based".
 
-- [ ] **M3.1** Tabel `memory_items`: `id, user_id, type (core|episodic|semantic), content, confidence, created_at, last_recalled_at, decay_score`. Hapus `longTermMemory` text blob.
-- [ ] **M3.2** **Memory extraction pipeline**: setiap balasan model, ekstrak fakta (tool/function calling, bukan prompt "memoryUpdate"), tulis ke tabel, dedupe dengan similarity.
-- [ ] **M3.3** **Retrieval (bukan ambil semua)**: scoring gabungan: relevance (embeddings di Neon pgvector atau cosine sederhana via `pgvector`), recency, decay. Ambil top-K (5–8) yang masuk konteks.
-- [ ] **M3.4** **Memory consolidation**: tiap minggu, memori lama dipadatkan menjadi "inti memori" (entri tipe diary). Livia bisa "merenung" saat user offline.
-- [ ] **M3.5** **User-visible memory UI**: panel "Apa yang Livia ingat tentang kamu" (transparansi) + tombol hapus per item (GDPR).
+- [x] **M3.1** Tabel `memory_items`: `id, user_id, type (core|episodic|semantic), content, confidence, created_at, last_recalled_at, decay_score`. Hapus `longTermMemory` text blob.
+      → Selesai dengan penyesuaian: kolom `longTermMemory` **dormant**, bukan dihapus (drop kolom berisi data user = operasi satu arah). Migrasi data otomatis (`importLegacyMemory`) mengosongkannya setelah insert berhasil. Lihat `docs/M3-IMPLEMENTATION.md` §2.2.
+- [x] **M3.2** **Memory extraction pipeline**: setiap balasan model, ekstrak fakta (tool/function calling, bukan prompt "memoryUpdate"), tulis ke tabel, dedupe dengan similarity.
+      → Field terstruktur `memories: [{type, content, confidence}]` di skema balasan (schema-hint + zod coercion), dedupe dua lapis (batch + tabel, Jaccard ≥ 0.7). `memoryUpdate` disisakan sebagai fallback legacy.
+- [x] **M3.3** **Retrieval (bukan ambil semua)**: scoring gabungan: relevance (embeddings di Neon pgvector atau cosine sederhana via `pgvector`), recency, decay. Ambil top-K (5–8) yang masuk konteks.
+      → Relevance **lexical** (bukan pgvector — ditunda sebagai utang teknis, lihat §5.4/§8) + decay + recency + bonus core. Top-K 6, plafon 8, skor minimum 0.25.
+- [x] **M3.4** **Memory consolidation**: tiap minggu, memori lama dipadatkan menjadi "inti memori" (entri tipe diary). Livia bisa "merenung" saat user offline.
+      → Dipicu per turn aktif (tanpa worker/queue): total item > 30 dan ≥ 6 kandidat ber-decay ≤ 50 → satu entri `diary`, sumber dihapus setelah capture.
+- [x] **M3.5** **User-visible memory UI**: panel "Apa yang Livia ingat tentang kamu" (transparansi) + tombol hapus per item (GDPR).
+      → `/api/memory` GET/DELETE + panel di halaman Settings (badge tipe, kekuatan, hapus per item, "Lupakan semua").
 
 **DoD:** Tes memori: user bilang "aku beli kucing bernama Poy" di sesi A → di sesi B hari berbeda, Livia menyebut Poy secara natural tanpa diprompt, ≥70% kasus.
+
+**Status DoD:** mekanismenya sudah ada (fakta → `memoryItems` → retrieval relevansi → blok memori di prompt), tetapi **pengukuran ≥70% belum diambil**: butuh 2 sesi live ke API dan kuota free-tier sedang habis. Yang sudah terbukti: `memory.*` (10 skenario, termasuk `memory.pet_name`) lulus 10/10 di eval offline, dan test unit retrieval membuktikan fakta relevan mengalahkan fakta baru yang tidak relevan.
 
 ---
 

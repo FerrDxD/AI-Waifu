@@ -55,7 +55,7 @@ describe('evals level prompt (tanpa API)', () => {
       itemsBrought: spec.itemsBrought ?? [],
       stats: spec.stats,
       isVoiceCall: spec.isVoiceCall,
-      longTermMemory: spec.longTermMemory,
+      memoryLines: spec.longTermMemory,
       language: spec.language,
       highestChapter: spec.highestChapter ?? 0,
       earlierSummary: spec.earlierSummary,

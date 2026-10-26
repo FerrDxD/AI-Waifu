@@ -18,6 +18,8 @@ import { loadSummaries } from '@/lib/livia/summary';
 import { logger } from '@/lib/logger';
 import { applyAffectionUpdate } from '@/lib/livia/affection.server';
 import { getCycleInfo } from '@/lib/livia/cycle';
+import { importLegacyMemory, recordMemories, retrieveMemoryLines } from '@/lib/livia/memory';
+import type { ExtractedMemory } from '@/lib/ai/schemas';
 
 type Profile = typeof userProfiles.$inferSelect;
 
@@ -33,6 +35,11 @@ export interface ChatTurnContext {
   chatHistory: { role: 'user' | 'livia'; content: string }[];
   /** Ringkasan obrolan lama yang sudah digabung ('' kalau belum ada). */
   earlierSummary: string;
+  /**
+   * Memori terpilih untuk giliran ini (M3.3), sudah dalam format baris
+   * `- fakta`. String kosong berarti belum ada memori.
+   */
+  memoryLines: string;
   cyclePhase: string;
   dayOfCycle: number;
   language: 'id' | 'en';
@@ -43,6 +50,9 @@ export interface LiviaReplyContent {
   reply: string;
   affectionDelta: number;
   expression: string;
+  /** Fakta terstruktur dari model (M3.2); sumber utama penulisan memori. */
+  memories?: ExtractedMemory[];
+  /** Fallback lama kalau model tidak mengisi `memories`. */
   memoryUpdate?: string;
 }
 
@@ -70,6 +80,17 @@ export async function loadChatTurnContext(args: {
     .where(eq(userProfiles.userId, userId));
   const profile = profileResults[0];
   if (!profile) throw errors.notFound('Profil');
+
+  // M3.1: migrasi sekali jalan dari blob `longTermMemory` lama ke tabel
+  // terstruktur. Setelah kolomnya kosong (kondisi normal), tidak ada kerja
+  // tambahan di sini.
+  if (profile.longTermMemory && profile.longTermMemory.trim() !== '') {
+    await importLegacyMemory(userId, profile.longTermMemory);
+  }
+
+  // M3.3: ambil 5–8 memori paling relevan untuk pesan ini. Fungsi ini tidak
+  // pernah melempar — memori yang tidak tersedia bukan alasan chat gagal.
+  const memoryLines = await retrieveMemoryLines(userId, message);
 
   const progressResults = await db
     .select()
@@ -126,6 +147,7 @@ export async function loadChatTurnContext(args: {
     highestChapter,
     chatHistory,
     earlierSummary: contextBuild.summaryText,
+    memoryLines,
     cyclePhase: phase,
     dayOfCycle,
     language: extractLanguage(req),
@@ -169,7 +191,7 @@ export async function persistChatTurn(
   aiReply: LiviaReplyContent
 ): Promise<PersistChatTurnResult> {
   const { userId, profile } = ctx;
-  const { reply, affectionDelta, memoryUpdate } = aiReply;
+  const { reply, affectionDelta, memories, memoryUpdate } = aiReply;
 
   await db.insert(chatMessages).values([
     { userId, role: 'user', content: message, affectionDelta: 0 },
@@ -190,20 +212,16 @@ export async function persistChatTurn(
     updateData.affectionLevel = updateResult.affectionLevel;
   }
 
-  if (memoryUpdate && memoryUpdate.trim() !== '') {
-    const cleanFact = memoryUpdate.trim().replace(/^[-*•]\s*/, '');
-    const existing = (profile.longTermMemory || '')
-      .split('\n')
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const factLine = `- ${cleanFact}`;
-    if (!existing.some((f) => f.toLowerCase() === factLine.toLowerCase())) {
-      existing.push(factLine);
-      updateData.longTermMemory = existing.slice(-20).join('\n');
-    }
-  }
-
   await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, userId));
+
+  // M3.2: memori ditulis ke tabel terstruktur, BUKAN lagi ke blob 20 baris.
+  //
+  // DI-AWAIT (bukan fire-and-forget): di Next serverless, promise yang tidak
+  // ditunggu bisa dibekukan begitu response dikirim, sehingga fakta baru hilang
+  // diam-diam. Biayanya hanya 1 SELECT + 1 INSERT. `recordMemories` menelan
+  // semua errornya sendiri, jadi tidak bisa membatalkan pesan & afeksi yang
+  // sudah tersimpan. Konsolidasi (LLM call) TETAP fire-and-forget di dalamnya.
+  await recordMemories(userId, { memories, memoryUpdate }, ctx.customApiKey);
 
   return updateResult;
 }

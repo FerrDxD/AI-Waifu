@@ -15,6 +15,7 @@ import {
 } from '@/lib/validation';
 import { errors } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { importLegacyMemory, recordMemories, retrieveMemoryLines } from '@/lib/livia/memory';
 
 export const POST = apiHandler(
   {
@@ -52,23 +53,30 @@ export const POST = apiHandler(
     // M2.3: logika siklus haid dipindah ke lib/livia/cycle.ts
     const { dayOfCycle, phase: cyclePhase } = getCycleInfo(profile?.liviaCycleAnchor);
 
-    const { reply, expression, affectionDelta, memoryUpdate } = await generateDateResponse(
-      location,
-      message,
-      history,
-      profile?.affection || 0,
-      userName,
-      {
-        hunger: profile?.liviaHunger ?? 100,
-        energy: profile?.liviaEnergy ?? 100,
-        hydration: profile?.liviaHydration ?? 100,
-        cyclePhase,
-        cycleDay: dayOfCycle,
-      },
-      profile?.longTermMemory || undefined,
-      customApiKey,
-      language
-    );
+    // M3: kencan juga memakai memori berlapis, bukan blob lama.
+    if (profile?.longTermMemory && profile.longTermMemory.trim() !== '') {
+      await importLegacyMemory(userId, profile.longTermMemory);
+    }
+    const memoryLines = await retrieveMemoryLines(userId, message);
+
+    const { reply, expression, affectionDelta, memories, memoryUpdate } =
+      await generateDateResponse(
+        location,
+        message,
+        history,
+        profile?.affection || 0,
+        userName,
+        {
+          hunger: profile?.liviaHunger ?? 100,
+          energy: profile?.liviaEnergy ?? 100,
+          hydration: profile?.liviaHydration ?? 100,
+          cyclePhase,
+          cycleDay: dayOfCycle,
+        },
+        memoryLines,
+        customApiKey,
+        language
+      );
 
     let updateResult: {
       newAffection: number | null | undefined;
@@ -79,19 +87,6 @@ export const POST = apiHandler(
     if (profile) {
       const updateData: Record<string, unknown> = { lastSeen: new Date() };
 
-      if (memoryUpdate && memoryUpdate.trim() !== '') {
-        const cleanFact = memoryUpdate.trim().replace(/^[-*•]\s*/, '');
-        const existing = (profile.longTermMemory || '')
-          .split('\n')
-          .map((s) => s.trim())
-          .filter(Boolean);
-        const factLine = `- ${cleanFact}`;
-        if (!existing.some((f) => f.toLowerCase() === factLine.toLowerCase())) {
-          existing.push(factLine);
-          updateData.longTermMemory = existing.slice(-20).join('\n');
-        }
-      }
-
       if (affectionDelta !== 0) {
         updateResult = await applyAffectionUpdate(userId, profile.affection || 0, affectionDelta);
         updateData.affection = updateResult.newAffection;
@@ -99,6 +94,10 @@ export const POST = apiHandler(
       }
 
       await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, userId));
+
+      // M3.2: fakta dari kencan ikut masuk tabel memori. Di-await dengan alasan
+      // sama seperti chat: promise tanpa penunggu bisa dibekukan serverless.
+      await recordMemories(userId, { memories, memoryUpdate }, customApiKey);
     }
 
     return NextResponse.json({

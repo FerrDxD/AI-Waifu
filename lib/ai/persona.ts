@@ -27,7 +27,11 @@ export interface PersonaContextInput {
   highestChapter?: number;
   stats?: PhysiologicalStats;
   itemsBrought?: string[];
-  longTermMemory?: string;
+  /**
+   * Memori siap-tempel (M3): baris `- fakta` hasil retrieval dari
+   * `memoryItems`. Bukan lagi blob 20 baris milik profil.
+   */
+  memoryLines?: string;
   isVoiceCall?: boolean;
   language: Language;
 }
@@ -88,7 +92,7 @@ Level kedekatan saat ini: ${levelName} (level ${affectionStage(input.affection)}
   }
 
   prompt += `\nMemori Jangka Panjang Livia tentang User:
-${input.longTermMemory?.trim() || 'Belum ada memori khusus. Livia baru mengenal User.'}
+${input.memoryLines?.trim() || 'Belum ada memori khusus. Livia baru mengenal User.'}
 
 Aturan berbicara:
 ${languageRule(input.language)}

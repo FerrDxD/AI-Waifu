@@ -55,7 +55,7 @@ export const POST = apiHandler(
       itemsBrought: ctx.profile.itemsBrought || [],
       stats: statsFromContext(ctx),
       isVoiceCall,
-      longTermMemory: ctx.profile.longTermMemory || undefined,
+      memoryLines: ctx.memoryLines,
       customApiKey: ctx.customApiKey,
       language: ctx.language,
       highestChapter: ctx.highestChapter,

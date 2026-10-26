@@ -82,6 +82,41 @@ export const messageSummaries = pgTable('messageSummaries', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+/**
+ * Memori berlapis Livia tentang user (M3).
+ *
+ * Sebelumnya seluruh memori hidup di satu kolom teks `userProfiles.longTermMemory`
+ * yang dibaca apa adanya ke prompt dan dipotong `slice(-20)`. Akibatnya:
+ *   - fakta lama hilang begitu 20 baris terlampaui,
+ *   - semua fakta masuk prompt setiap turn (boros token),
+ *   - user tidak bisa melihat/menghapus apa yang diingat.
+ *
+ * Sekarang satu fakta = satu baris. `type` membedakan bobotnya:
+ *   - core     : identitas inti (nama panggilan, alergi) — tidak meluruh.
+ *   - semantic : fakta stabil (hobi, pekerjaan, makanan favorit).
+ *   - episodic : kejadian/rencana tertentu (janji Sabtu, kejadian lucu).
+ *   - diary    : hasil "merenung" — padatan beberapa memori lama (M3.4).
+ *
+ * `decayScore` adalah snapshot 0–100 saat terakhir dihitung; nilai yang
+ * dipakai untuk ranking selalu dihitung ulang dari `lastRecalledAt` supaya
+ * tidak pernah basi. Kolom `longTermMemory` lama dibiarkan (dormant) supaya
+ * migrasi bisa berjalan tanpa memutus versi lama.
+ */
+export const memoryItems = pgTable('memoryItems', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  /** 'core' | 'episodic' | 'semantic' | 'diary' */
+  type: text('type').notNull(),
+  content: text('content').notNull(),
+  /** Keyakinan 0–100 bahwa fakta ini benar. */
+  confidence: integer('confidence').notNull().default(60),
+  /** Snapshot kekuatan memori 0–100 (dihitung ulang saat dibaca). */
+  decayScore: integer('decay_score').notNull().default(100),
+  createdAt: timestamp('created_at').defaultNow(),
+  /** Terakhir kali memori ini masuk konteks — dasar perhitungan decay. */
+  lastRecalledAt: timestamp('last_recalled_at'),
+});
+
 export const screenTimeLogs = pgTable('screenTimeLogs', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),

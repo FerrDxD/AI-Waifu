@@ -32,24 +32,26 @@ export const POST = apiHandler(
 
     const ctx = await loadChatTurnContext({ userId, req, isVoiceCall, message });
 
-    const { reply, affectionDelta, expression, memoryUpdate } = await generateLiviaResponse(
-      message,
-      ctx.chatHistory,
-      ctx.profile.affection || 0,
-      ctx.profile.itemsBrought || [],
-      statsFromContext(ctx),
-      isVoiceCall,
-      ctx.profile.longTermMemory || undefined,
-      ctx.customApiKey,
-      ctx.language,
-      ctx.highestChapter,
-      ctx.earlierSummary
-    );
+    const { reply, affectionDelta, expression, memories, memoryUpdate } =
+      await generateLiviaResponse(
+        message,
+        ctx.chatHistory,
+        ctx.profile.affection || 0,
+        ctx.profile.itemsBrought || [],
+        statsFromContext(ctx),
+        isVoiceCall,
+        ctx.memoryLines,
+        ctx.customApiKey,
+        ctx.language,
+        ctx.highestChapter,
+        ctx.earlierSummary
+      );
 
     const updateResult = await persistChatTurn(ctx, message, {
       reply,
       affectionDelta,
       expression,
+      memories,
       memoryUpdate,
     });
 

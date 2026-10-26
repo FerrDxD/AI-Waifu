@@ -8,6 +8,7 @@ import {
   liviaReplyValidator,
   dateDialogueResponseSchema,
   dateDialogueValidator,
+  type ExtractedMemory,
   type LiviaExpression,
 } from './ai/schemas';
 
@@ -36,6 +37,7 @@ function deflectionReply(language: 'id' | 'en') {
     reply: DEFLECTION_REPLIES[language],
     affectionDelta: 0,
     expression: 'angry' as LiviaExpression,
+    memories: [] as ExtractedMemory[],
     memoryUpdate: '',
   };
 }
@@ -57,6 +59,7 @@ function overloadedReply(language: 'id' | 'en') {
     reply: OVERLOADED_REPLIES[language],
     affectionDelta: 0,
     expression: 'pain' as LiviaExpression,
+    memories: [] as ExtractedMemory[],
     memoryUpdate: '',
   };
 }
@@ -131,8 +134,14 @@ Kembalikan HANYA JSON valid:
   "reply": "teks balasan Livia",
   "affectionDelta": angka antara -5 sampai 5,
   "expression": "normal" | "angry" | "blushing" | "clingy" | "happy" | "confused" | "flirty" | "pain" | "pleased" | "scared" | "serious" | "silly",
-  "memoryUpdate": "Catatan ringkas JIKA ada fakta penting baru tentang user (misal: hobi, makanan kesukaan, nama panggilan, dll). Kosongkan jika tidak ada info penting baru."
+  "memories": [
+    { "type": "core" | "episodic" | "semantic", "content": "fakta tahan lama tentang User", "confidence": 0-100 }
+  ]
 }
+TENTANG MEMORI:
+- Isi "memories" HANYA jika ada fakta BARU yang layak diingat jangka panjang (nama panggilan, hobi, makanan favorit, alergi, pekerjaan, janji/rencana, kejadian penting).
+- Maksimal 2 fakta per balasan. Kalau tidak ada fakta baru, kirim array kosong [].
+- Jangan mengulang fakta yang sudah tertulis di memori. Jangan mencatat basa-basi.
 Hanya kembalikan JSON. Tidak ada teks lain.${INJECTION_GUARD}`;
 }
 
@@ -147,7 +156,8 @@ export interface ChatPromptInput {
   itemsBrought: string[];
   stats?: Stats;
   isVoiceCall?: boolean;
-  longTermMemory?: string;
+  /** Baris `- fakta` hasil retrieval memori (M3.3). */
+  memoryLines?: string;
   language: 'id' | 'en';
   highestChapter: number;
   earlierSummary?: string;
@@ -159,7 +169,7 @@ export function buildChatPrompt(input: ChatPromptInput): string {
     highestChapter: input.highestChapter,
     stats: input.stats,
     itemsBrought: input.itemsBrought,
-    longTermMemory: input.longTermMemory,
+    memoryLines: input.memoryLines,
     isVoiceCall: input.isVoiceCall,
     language: input.language,
   });
@@ -174,12 +184,18 @@ export async function generateLiviaResponse(
   itemsBrought: string[],
   stats?: Stats,
   isVoiceCall?: boolean,
-  longTermMemory?: string,
+  memoryLines?: string,
   customApiKey?: string,
   language: 'id' | 'en' = 'id',
   highestChapter: number = 0,
   earlierSummary?: string
-): Promise<{ reply: string; affectionDelta: number; expression: LiviaExpression; memoryUpdate?: string }> {
+): Promise<{
+  reply: string;
+  affectionDelta: number;
+  expression: LiviaExpression;
+  memories: ExtractedMemory[];
+  memoryUpdate?: string;
+}> {
   const systemPrompt = buildChatPrompt({
     affectionLevel: affectionLevel,
     itemsBrought,
@@ -188,7 +204,7 @@ export async function generateLiviaResponse(
     // konteks kepribadian tetap dibangun (semua barang tercatat "tertinggal di
     // rumah"). Mengubahnya = mengubah persona, jadi tunggu eval M2.7.
     isVoiceCall,
-    longTermMemory,
+    memoryLines,
     language,
     highestChapter,
     earlierSummary,
@@ -239,7 +255,7 @@ export function streamLiviaReply(input: {
   itemsBrought: string[];
   stats?: Stats;
   isVoiceCall?: boolean;
-  longTermMemory?: string;
+  memoryLines?: string;
   customApiKey?: string;
   language: 'id' | 'en';
   highestChapter: number;
@@ -247,7 +263,13 @@ export function streamLiviaReply(input: {
   earlierSummary?: string;
 }): {
   deltas: AsyncIterableIterator<string>;
-  final: Promise<{ reply: string; affectionDelta: number; expression: LiviaExpression; memoryUpdate?: string }>;
+  final: Promise<{
+    reply: string;
+    affectionDelta: number;
+    expression: LiviaExpression;
+    memories: ExtractedMemory[];
+    memoryUpdate?: string;
+  }>;
 } {
   const {
     userMessage,
@@ -256,7 +278,7 @@ export function streamLiviaReply(input: {
     itemsBrought,
     stats,
     isVoiceCall,
-    longTermMemory,
+    memoryLines,
     customApiKey,
     language,
     highestChapter,
@@ -268,7 +290,7 @@ export function streamLiviaReply(input: {
     itemsBrought,
     stats,
     isVoiceCall,
-    longTermMemory,
+    memoryLines,
     language,
     highestChapter,
     earlierSummary,
@@ -398,14 +420,20 @@ export async function generateDateResponse(
   affectionLevel: number,
   userName: string,
   stats?: Stats,
-  longTermMemory?: string,
+  memoryLines?: string,
   customApiKey?: string,
   language: 'id' | 'en' = 'id'
-): Promise<{ reply: string; expression: LiviaExpression; affectionDelta: number; memoryUpdate?: string }> {
+): Promise<{
+  reply: string;
+  expression: LiviaExpression;
+  affectionDelta: number;
+  memories: ExtractedMemory[];
+  memoryUpdate?: string;
+}> {
   const identity = buildLiviaIdentity({
     affection: affectionLevel,
     stats,
-    longTermMemory,
+    memoryLines,
     language,
     itemsBrought: undefined,
   });
@@ -424,8 +452,11 @@ Kembalikan HANYA JSON valid:
   "reply": "teks balasan Livia",
   "affectionDelta": angka antara -5 sampai 5,
   "expression": "normal" | "angry" | "blushing" | "clingy" | "happy" | "confused" | "flirty" | "pain" | "pleased" | "scared" | "serious" | "silly",
-  "memoryUpdate": "Catatan ringkas JIKA ada informasi penting baru dari user di percakapan ini. Kosongkan jika tidak ada info baru."
+  "memories": [
+    { "type": "core" | "episodic" | "semantic", "content": "fakta tahan lama tentang User", "confidence": 0-100 }
+  ]
 }
+TENTANG MEMORI: isi "memories" hanya jika User menyebut fakta baru yang layak diingat (maksimal 2). Kalau tidak ada, kirim [].
 Hanya kembalikan JSON. Tidak ada teks lain.${INJECTION_GUARD}`;
 
   const turns = turnsFromHistory(chatHistory, userMessage);

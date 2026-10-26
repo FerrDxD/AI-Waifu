@@ -1,13 +1,49 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, User, Volume2, Bell, ShieldAlert, LogOut, Check, X, Key, Sparkles, Trash2, Save, Download, Upload, HardDrive, Globe } from 'lucide-react';
+import { ChevronLeft, User, Volume2, Bell, ShieldAlert, LogOut, Check, X, Key, Sparkles, Trash2, Save, Download, Upload, HardDrive, Globe, Brain } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { playSfx } from '@/lib/sfx';
 import { showCustomAlert, showCustomConfirm } from '@/lib/alert';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { purgeLegacyApiKeyStorage, useApiKeyStatus } from '@/lib/client/api-key';
+
+/**
+ * Label & warna per tipe memori (M3.5). Diletakkan di luar komponen supaya
+ * tidak dibuat ulang setiap render.
+ */
+const MEMORY_TYPE_LABELS: Record<
+  string,
+  { id: string; en: string; className: string }
+> = {
+  core: { id: 'Inti', en: 'Core', className: 'bg-pink-50 text-pink-600 border-pink-100' },
+  semantic: {
+    id: 'Fakta',
+    en: 'Fact',
+    className: 'bg-amber-50 text-amber-600 border-amber-100',
+  },
+  episodic: {
+    id: 'Kejadian',
+    en: 'Event',
+    className: 'bg-blue-50 text-blue-600 border-blue-100',
+  },
+  diary: {
+    id: 'Diary',
+    en: 'Diary',
+    className: 'bg-purple-50 text-purple-600 border-purple-100',
+  },
+};
+
+type MemoryRow = {
+  id: string;
+  type: string;
+  content: string;
+  confidence: number;
+  decayScore: number;
+  createdAt: string | null;
+  lastRecalledAt: string | null;
+};
 
 export default function SettingsPage() {
   const { language, setLanguage, dict } = useLanguage();
@@ -20,6 +56,37 @@ export default function SettingsPage() {
   const apiKeyStatus = useApiKeyStatus();
   const [customApiKey, setCustomApiKey] = useState('');
   const [savingKey, setSavingKey] = useState(false);
+
+  // M3.5: panel transparansi memori.
+  const [memories, setMemories] = useState<MemoryRow[]>([]);
+  const [memoriesLoading, setMemoriesLoading] = useState(true);
+  const [memoryError, setMemoryError] = useState<string | null>(null);
+  const [memoryUnavailable, setMemoryUnavailable] = useState(false);
+  const [busyMemoryId, setBusyMemoryId] = useState<string | null>(null);
+
+  /**
+   * Muat daftar memori dari server (M3.5).
+   *
+   * `useCallback` dengan dependensi `language`: identitas fungsi stabil per
+   * bahasa, jadi effect di bawah tidak memicu loop fetch→setState→fetch.
+   */
+  const loadMemories = useCallback(async () => {
+    try {
+      const res = await fetch('/api/memory', { cache: 'no-store' });
+      if (!res.ok) throw new Error('memory load failed');
+
+      const data = (await res.json()) as { memories?: MemoryRow[]; unavailable?: boolean };
+      setMemories(Array.isArray(data.memories) ? data.memories : []);
+      // `unavailable` = tabel memori belum ada di DB (user belum `db:push`).
+      // Bukan error: sampaikan apa adanya supaya tidak terlihat seperti bug.
+      setMemoryUnavailable(data.unavailable === true);
+      setMemoryError(null);
+    } catch {
+      setMemoryError(language === 'en' ? 'Could not load memories.' : 'Gagal memuat memori.');
+    } finally {
+      setMemoriesLoading(false);
+    }
+  }, [language]);
 
   useEffect(() => {
     // Bersihkan sisa penyimpanan key dari versi lama (localStorage + cookie).
@@ -40,6 +107,13 @@ export default function SettingsPage() {
       setVolume(parseInt(savedLivia, 10));
     }
   }, []);
+
+  // M3.5: muat memori sekali (dan saat bahasa berubah, supaya pesan galat
+  // memakai bahasa yang benar). Gagal memuat bukan error fatal — panel hanya
+  // menampilkan pesan, sisa halaman tetap berfungsi.
+  useEffect(() => {
+    void loadMemories();
+  }, [loadMemories]);
 
   const handleSfxChange = (val: number) => {
     setSfxVolume(val);
@@ -118,6 +192,63 @@ export default function SettingsPage() {
       await showCustomAlert("Fitur reset sedang dalam tahap pengembangan (Server API diperlukan).", "Pemberitahuan");
     }
   };
+
+  /** Hapus satu fakta. Konfirmasi dulu — ini menghapus ingatan, bukan undo. */
+  async function handleDeleteMemory(id: string) {
+    const confirmed = await showCustomConfirm(
+      language === 'en'
+        ? 'Delete this memory from Livia’s mind?'
+        : 'Hapus memori ini dari ingatan Livia?',
+      language === 'en' ? 'Delete Memory' : 'Hapus Memori',
+      language === 'en' ? 'Yes, forget it' : 'Ya, lupakan'
+    );
+    if (!confirmed) return;
+
+    setBusyMemoryId(id);
+    try {
+      const res = await fetch(`/api/memory?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('memory delete failed');
+
+      setMemories((prev) => prev.filter((memory) => memory.id !== id));
+      playSfx('pop');
+    } catch {
+      playSfx('error');
+      await showCustomAlert(
+        language === 'en' ? 'Failed to delete the memory.' : 'Gagal menghapus memori.',
+        'Error ❌'
+      );
+    } finally {
+      setBusyMemoryId(null);
+    }
+  }
+
+  /** Hapus semua fakta yang diingat Livia tentang user. */
+  async function handleDeleteAllMemories() {
+    const confirmed = await showCustomConfirm(
+      language === 'en'
+        ? 'Make Livia forget EVERYTHING she remembers about you? This cannot be undone.'
+        : 'Buat Livia melupakan SEMUA yang dia ingat tentang kamu? Ini tidak bisa dibatalkan.',
+      language === 'en' ? 'Forget Everything' : 'Lupakan Semua',
+      language === 'en' ? 'Yes, forget all' : 'Ya, hapus semua'
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch('/api/memory?all=1', { method: 'DELETE' });
+      if (!res.ok) throw new Error('memory delete all failed');
+
+      setMemories([]);
+      playSfx('pop');
+    } catch {
+      playSfx('error');
+      await showCustomAlert(
+        language === 'en' ? 'Failed to delete memories.' : 'Gagal menghapus memori.',
+        'Error ❌'
+      );
+    }
+  }
 
   const handleBackupData = async () => {
     playSfx('coin');
@@ -378,6 +509,88 @@ export default function SettingsPage() {
                 ? 'Your API Key is sent once over HTTPS and stored encrypted (AES-256-GCM) on our server. It is never written to localStorage or cookies, and it is never sent back to your browser — we only show the last 4 characters. JavaScript running on this page cannot read it.'
                 : 'API Key dikirim sekali lewat HTTPS lalu disimpan terenkripsi (AES-256-GCM) di server kami. Key tidak pernah ditulis ke localStorage atau cookie, dan tidak pernah dikirim balik ke browser — kami hanya menampilkan 4 karakter terakhir. JavaScript yang berjalan di halaman ini tidak bisa membacanya.'}
             </p>
+          </div>
+        </section>
+
+        {/* Section 2.5: Memori Livia (M3.5) */}
+        <section className="flex flex-col gap-4">
+          <h2 className="font-display font-black text-lg text-[#5c4d47] flex items-center gap-2">
+            <Brain className="text-purple-500" />{' '}
+            {language === 'en' ? "Livia's Memory" : 'Memori Livia'}
+          </h2>
+
+          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-orange-100 flex flex-col gap-4">
+            <p className="text-xs text-gray-500 leading-relaxed">
+              {language === 'en'
+                ? 'These are the facts Livia remembers about you. Delete any of them and she will forget it immediately.'
+                : 'Ini fakta yang Livia ingat tentang kamu. Hapus salah satunya dan Livia akan langsung melupakannya.'}
+            </p>
+
+            {memoriesLoading ? (
+              <p className="text-xs text-gray-400 font-medium">
+                {language === 'en' ? 'Loading memories...' : 'Memuat memori...'}
+              </p>
+            ) : memoryError ? (
+              <p className="text-xs text-red-500 font-medium">{memoryError}</p>
+            ) : memories.length === 0 ? (
+              <p className="text-xs text-gray-400 font-medium">
+                {memoryUnavailable
+                  ? language === 'en'
+                    ? 'Memory storage is not set up yet on this server.'
+                    : 'Penyimpanan memori belum disiapkan di server ini.'
+                  : language === 'en'
+                    ? 'No memories yet. Keep chatting — Livia will remember what matters.'
+                    : 'Belum ada memori. Terus mengobrol — Livia akan mengingat hal yang penting.'}
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {memories.map((memory) => {
+                  const label = MEMORY_TYPE_LABELS[memory.type] ?? MEMORY_TYPE_LABELS.semantic;
+                  return (
+                    <li
+                      key={memory.id}
+                      className="flex items-start gap-3 bg-orange-50/40 border border-orange-100 rounded-2xl px-4 py-3"
+                    >
+                      <div className="flex flex-col gap-1 flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${label.className}`}
+                          >
+                            {language === 'en' ? label.en : label.id}
+                          </span>
+                          <span className="text-[10px] text-gray-400 font-bold">
+                            {language === 'en'
+                              ? `strength ${memory.decayScore}%`
+                              : `kekuatan ${memory.decayScore}%`}
+                          </span>
+                        </div>
+                        <p className="text-sm text-[#5c4d47] font-medium break-words">
+                          {memory.content}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => void handleDeleteMemory(memory.id)}
+                        disabled={busyMemoryId === memory.id}
+                        title={language === 'en' ? 'Forget this' : 'Lupakan ini'}
+                        className="shrink-0 bg-white hover:bg-red-50 text-red-500 p-2 rounded-xl border border-red-100 transition-all disabled:opacity-40"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            {!memoriesLoading && memories.length > 0 && (
+              <button
+                onClick={() => void handleDeleteAllMemories()}
+                className="self-start text-[11px] font-bold text-red-500 bg-red-50 hover:bg-red-100 border border-red-100 rounded-xl px-3 py-2 transition-all flex items-center gap-2"
+              >
+                <Trash2 size={12} />
+                {language === 'en' ? 'Forget everything' : 'Lupakan semua'}
+              </button>
+            )}
           </div>
         </section>
 

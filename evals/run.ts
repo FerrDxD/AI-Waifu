@@ -65,7 +65,7 @@ function buildArtifact(spec: ScenarioSpec): EvalArtifact {
     itemsBrought: spec.itemsBrought ?? [],
     stats: spec.stats,
     isVoiceCall: spec.isVoiceCall,
-    longTermMemory: spec.longTermMemory,
+    memoryLines: spec.longTermMemory,
     language: spec.language,
     highestChapter: spec.highestChapter ?? 0,
     earlierSummary: spec.earlierSummary,
@@ -243,7 +243,10 @@ async function main() {
   }
 
   const results: ScenarioResult[] = [];
-  const delayMs = Number(process.env.AI_EVAL_DELAY_MS ?? 7_000);
+  // Jeda hanya relevan untuk mode LIVE (kuota free-tier). Mode offline tidak
+  // memanggil API sama sekali, jadi menunggu 7 detik per skenario hanya
+  // memperlambat CI tanpa manfaat.
+  const delayMs = live ? Number(process.env.AI_EVAL_DELAY_MS ?? 7_000) : 0;
 
   for (let i = 0; i < specs.length; i++) {
     const spec = specs[i];

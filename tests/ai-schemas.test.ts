@@ -63,6 +63,7 @@ describe('liviaReplyValidator', () => {
     expect(parsed.affectionDelta).toBe(0);
     expect(parsed.expression).toBe('normal');
     expect(parsed.memoryUpdate).toBe('');
+    expect(parsed.memories).toEqual([]);
   });
 
   it(`affectionDelta di-clamp ke ±${MAX_AFFECTION_DELTA}`, () => {
@@ -156,9 +157,9 @@ describe('responseSchema', () => {
       properties: object;
     };
     expect(schema.required).toEqual(
-      expect.arrayContaining(['reply', 'affectionDelta', 'expression', 'memoryUpdate'])
+      expect.arrayContaining(['reply', 'affectionDelta', 'expression', 'memories'])
     );
-    expect(Object.keys(schema.properties)).toHaveLength(4);
+    expect(Object.keys(schema.properties)).toHaveLength(5);
   });
 
   it('dateDialogue menyatakan scene sebagai array of object', () => {
