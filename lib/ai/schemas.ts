@@ -206,3 +206,28 @@ export const dateDialogueResponseSchema: ResponseSchema = {
   },
   required: ['timeOfDay', 'scene'],
 };
+
+/**
+ * Skema ringkasan percakapan (M2.5).
+ *
+ * Ringkasan tidak perlu tahu ekspresi/afeksi — hanya teks catatan Livia.
+ * Output dibatasi pendek di provider karena isi ringkasan ini masuk ke
+ * prompt SETIAP turn chat.
+ */
+export const chatSummaryValidator = z.object({
+  summary: z.string().trim().min(1),
+});
+
+export type ChatSummary = z.infer<typeof chatSummaryValidator>;
+
+export const chatSummaryResponseSchema: ResponseSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    summary: {
+      type: SchemaType.STRING,
+      description:
+        'Ringkasan 3-5 kalimat Bahasa Indonesia, dari sudut pandang Livia. Fokus pada fakta user, janji/jadwal, dan konflik yang belum selesai.',
+    },
+  },
+  required: ['summary'],
+};

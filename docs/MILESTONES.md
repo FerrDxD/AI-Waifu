@@ -52,10 +52,10 @@ sebelum DoD terpenuhi + ada test yang lulus.
 - [x] **M2.2** **Abstraksi provider AI** (interface `LLMProvider` dengan implementasi `GeminiProvider`, dan nanti `OpenAIProvider`/`AnthropicProvider`/`OllamaProvider`). Model dari env, bukan hardcode `gemini-3.6-flash` 3x.
 - [x] **M2.3** **Satu sumber persona**: `lib/ai/persona.ts` dengan builder terpusat (base + konteks afeksi + konteks fisiologis + memori). Hapus duplikasi logika siklus haid ke `lib/livia/cycle.ts` (digunakan oleh 3 route). Hapus juga `generateDateDialogue` injection: nama user tidak pernah masuk ke prompt mentah.
 - [x] **M2.4** **Structured output pakai JSON schema** (`responseSchema`/Zod) — hapus `parseJsonResponse` regex. Kalau model mendukung native JSON mode, pakai itu.
-- [ ] **M2.5** **Context window engineering**:
-  - Rolling summary: tiap 20 pesan, pesan lama diringkas jadi 1 entry (`messageSummaries` table).
-  - Root message selection: ambil pesan relevan via keyword/fuzzy, bukan "30 terakhir mentah".
-  - Token budget: hitung pakai tokenizer, trim konteks biar gak meledak cost.
+- [x] **M2.5** **Context window engineering**:
+  - Rolling summary: tiap 20 pesan belum-terringkas, rentang lama direkap jadi 1 entri (`messageSummaries` table; pelacak cakupan = `SUM(coveredCount)`, pemicu fire-and-forget setelah persist).
+  - Root message selection: pesan lama relevan dipilih via kata kunci (`lib/ai/context.ts` — ≥2 kata bersinggungan, atau 1 kata khas ≥7 huruf), bukan "30 terakhir mentah".
+  - Token budget: heuristik `chars/3.5` (`approximateTokens`) — cukup untuk memangkas; window 14 turn terakhir selalu dijaga, sisanya di-pangkas dari yang paling lama.
 - [x] **M2.6** **Robust retry & circuit breaker**: retry 503/429/502 dengan exponential backoff, timeout 25 detik, fallback model (flash → flash-lite), ke state "Livia lagi pusing" bila semua gagal (in-world error recovery yang lucu, bukan stack trace).
   - *Selesai di sisi single-instance:* retry 429/5xx + backoff & jitter, timeout, fallback model, circuit breaker (`lib/ai/circuit-breaker.ts`), dan balasan in-world "Livia pusing" (`lib/gemini.ts`). Catatan: breaker masih per-proses — breaker terdistribusi ditunda ke M5.5.- [ ] **M2.7** **Evals pertama**: dataset 50 scenario uji (kesopanan, konsistensi persona, ingat nama, nol bahasa Jepang) yang dijalankan terhadap tiap perubahan prompt. Lulus sebelum merge.
 

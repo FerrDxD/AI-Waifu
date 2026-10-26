@@ -6,6 +6,7 @@ import { errors } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { validateChatMessage } from '@/lib/validation';
 import { loadChatTurnContext, persistChatTurn, statsFromContext } from '@/lib/livia/chat-turn';
+import { maybeSummarizeChats } from '@/lib/livia/summary';
 
 export const POST = apiHandler(
   {
@@ -29,7 +30,7 @@ export const POST = apiHandler(
     const message = validateChatMessage(body?.message);
     const isVoiceCall = body?.isVoiceCall === true;
 
-    const ctx = await loadChatTurnContext({ userId, req, isVoiceCall });
+    const ctx = await loadChatTurnContext({ userId, req, isVoiceCall, message });
 
     const { reply, affectionDelta, expression, memoryUpdate } = await generateLiviaResponse(
       message,
@@ -41,7 +42,8 @@ export const POST = apiHandler(
       ctx.profile.longTermMemory || undefined,
       ctx.customApiKey,
       ctx.language,
-      ctx.highestChapter
+      ctx.highestChapter,
+      ctx.earlierSummary
     );
 
     const updateResult = await persistChatTurn(ctx, message, {
@@ -50,6 +52,10 @@ export const POST = apiHandler(
       expression,
       memoryUpdate,
     });
+
+    // M2.5: pemicu ringkasan bergulir. Fire-and-forget — ringkasan menelan
+    // segalanya (diekan di dalamnya) supaya turn chat tidak bisa gagal.
+    void maybeSummarizeChats(userId, ctx.customApiKey);
 
     return NextResponse.json({
       reply,

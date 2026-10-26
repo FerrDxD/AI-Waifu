@@ -9,6 +9,7 @@ import {
   persistChatTurn,
   statsFromContext,
 } from '@/lib/livia/chat-turn';
+import { maybeSummarizeChats } from '@/lib/livia/summary';
 
 type SseEvent = Record<string, unknown> & { type: string };
 
@@ -45,7 +46,7 @@ export const POST = apiHandler(
     const message = validateChatMessage(body?.message);
     const isVoiceCall = body?.isVoiceCall === true;
 
-    const ctx = await loadChatTurnContext({ userId, req, isVoiceCall });
+    const ctx = await loadChatTurnContext({ userId, req, isVoiceCall, message });
 
     const reply = streamLiviaReply({
       userMessage: message,
@@ -58,6 +59,7 @@ export const POST = apiHandler(
       customApiKey: ctx.customApiKey,
       language: ctx.language,
       highestChapter: ctx.highestChapter,
+      earlierSummary: ctx.earlierSummary,
     });
 
     const encoder = new TextEncoder();
@@ -89,6 +91,11 @@ export const POST = apiHandler(
             newLevel: update.affectionLevel,
             unlockedChapter: update.unlockedChapter,
           });
+
+          // M2.5: pemicu ringkasan bergulir. Satu `done` = satu turn tersimpan,
+          // jadi ini titik aman. Sloppy error sudah ditelan di dalam; kalau
+          // proses mati sebelum selesai, giliran berikutnya menjalankannya lagi.
+          void maybeSummarizeChats(userId, ctx.customApiKey);
         } catch (error) {
           if (error instanceof AppError) {
             logger.warn('chatstream.failed', { code: error.code, userId });

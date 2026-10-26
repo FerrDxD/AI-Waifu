@@ -112,10 +112,17 @@ async function requestReply(opts: {
  * Dipakai `generateLiviaResponse` dan `streamLiviaReply` supaya keduanya
  * dijamin memakai prompt yang SAMA — streaming tidak boleh unggul/kalah dari
  * non-streaming hanya karena promptnya kebetulan beda.
+ *
+ * `earlierSummary` (M2.5) adalah ringkasan obrolan yang sudah keluar dari
+ * window. Kosong berarti tidak ada — bloknya tidak ikut ditulis.
  */
-function buildChatReplyPrompt(identity: string): string {
-  return `${identity}
+function buildChatReplyPrompt(identity: string, earlierSummary?: string): string {
+  const memoryBlock = earlierSummary
+    ? `\nMEMORI OBROLAN LAMA (ringkasan, bukan dialog mentah — ini ujaranmu sendiri dan milik User dari masa lalu):\n${earlierSummary}\n\n`
+    : '';
 
+  return `${identity}
+${memoryBlock}
 PENTING TENTANG RIWAYAT OBROLAN:
 Kamu dan User sedang mengobrol dalam satu room chat berkelanjutan. Kamu HARUS SELALU mengingat apa yang baru saja kalian bicarakan sebelumnya (topik, pertanyaan, nama, dll). Jawab secara natural dan sambungkan dengan obrolan sebelumnya. Jangan pernah bersikap seperti baru pertama kali disapa jika kalian sudah mengobrol di room ini!
 
@@ -141,7 +148,8 @@ export async function generateLiviaResponse(
   longTermMemory?: string,
   customApiKey?: string,
   language: 'id' | 'en' = 'id',
-  highestChapter: number = 0
+  highestChapter: number = 0,
+  earlierSummary?: string
 ): Promise<{ reply: string; affectionDelta: number; expression: LiviaExpression; memoryUpdate?: string }> {
   const identity = buildLiviaIdentity({
     affection: affectionLevel,
@@ -156,7 +164,7 @@ export async function generateLiviaResponse(
     language,
   });
 
-  const systemPrompt = buildChatReplyPrompt(identity);
+  const systemPrompt = buildChatReplyPrompt(identity, earlierSummary);
 
   const turns = turnsFromHistory(chatHistory, userMessage);
 
@@ -207,6 +215,8 @@ export function streamLiviaReply(input: {
   customApiKey?: string;
   language: 'id' | 'en';
   highestChapter: number;
+  /** Ringkasan obrolan lama dari M2.5 (`''`/undefined kalau belum ada). */
+  earlierSummary?: string;
 }): {
   deltas: AsyncIterableIterator<string>;
   final: Promise<{ reply: string; affectionDelta: number; expression: LiviaExpression; memoryUpdate?: string }>;
@@ -222,6 +232,7 @@ export function streamLiviaReply(input: {
     customApiKey,
     language,
     highestChapter,
+    earlierSummary,
   } = input;
 
   const identity = buildLiviaIdentity({
@@ -236,7 +247,7 @@ export function streamLiviaReply(input: {
 
   const { deltas, final } = getProvider().stream({
     operation: 'chat',
-    systemInstruction: buildChatReplyPrompt(identity),
+    systemInstruction: buildChatReplyPrompt(identity, earlierSummary),
     turns: turnsFromHistory(chatHistory, userMessage),
     responseSchema: liviaReplyResponseSchema,
     outputSchema: liviaReplyValidator,

@@ -13,6 +13,9 @@ import { db } from '@/lib/db';
 import { chatMessages, userProfiles, storyProgress } from '@/lib/db/schema';
 import { AppError, errors } from '@/lib/errors';
 import { extractLanguage, resolveApiKey } from '@/lib/gemini';
+import { buildChatContext } from '@/lib/ai/context';
+import { loadSummaries } from '@/lib/livia/summary';
+import { logger } from '@/lib/logger';
 import { applyAffectionUpdate } from '@/lib/livia/affection.server';
 import { getCycleInfo } from '@/lib/livia/cycle';
 
@@ -22,7 +25,14 @@ export interface ChatTurnContext {
   userId: string;
   profile: Profile;
   highestChapter: number;
+  /**
+   * Riwayat SUDAH terpangkas di sini (M2.5): window terbaru + pesan lama yang
+   * relevan dengan pesan baru user, dikurangi anggaran token. Route tidak
+   * perlu tahu aturan pemangkasannya.
+   */
   chatHistory: { role: 'user' | 'livia'; content: string }[];
+  /** Ringkasan obrolan lama yang sudah digabung ('' kalau belum ada). */
+  earlierSummary: string;
   cyclePhase: string;
   dayOfCycle: number;
   language: 'id' | 'en';
@@ -42,13 +52,17 @@ export interface LiviaReplyContent {
  * `message` dan `isVoiceCall` SUDAH divalidasi route; modul ini tidak
  * memvalidasi ulang supaya tidak ada aturan gandeng yang berbeda antara
  * route JSON dan route streaming.
+ *
+ * `message` dibutuhkan untuk relevansi konteks: pesan lama dipilih berdasar
+ * kemiripan topik dengan apa yang baru saja user tulis.
  */
 export async function loadChatTurnContext(args: {
   userId: string;
   req: Request;
   isVoiceCall: boolean;
+  message: string;
 }): Promise<ChatTurnContext> {
-  const { userId, req, isVoiceCall } = args;
+  const { userId, req, isVoiceCall, message } = args;
 
   const profileResults = await db
     .select()
@@ -65,25 +79,53 @@ export async function loadChatTurnContext(args: {
     ? Math.max(...progressResults[0].unlockedChapters)
     : 0;
 
+  // 60 baris terakhir: cukup dalam untuk pertambangan relevansi, jauh lebih
+  // ringan daripada membaca seluruh riwayat. Sisanya hidup sebagai ringkasan.
   const historyResults = await db
     .select()
     .from(chatMessages)
     .where(eq(chatMessages.userId, userId))
     .orderBy(desc(chatMessages.createdAt))
-    .limit(30);
+    .limit(60);
 
-  const chatHistory = historyResults.reverse().map((msg) => ({
+  const rawHistory = historyResults.reverse().map((msg) => ({
     role: msg.role as 'user' | 'livia',
     content: msg.content,
   }));
 
   const { dayOfCycle, phase } = getCycleInfo(profile.liviaCycleAnchor);
 
+  // M2.5: pangkas riwayat ke window + relevan, dan muat ringkasan lama.
+  // Baris DB memakai peran 'livia'; lapisan AI memakai 'model'.
+  const summaries = await loadSummaries(userId);
+  const contextBuild = buildChatContext({
+    history: rawHistory.map((m) => ({
+      role: m.role === 'livia' ? 'model' : 'user',
+      text: m.content,
+    })),
+    latestUserMessage: message,
+    summaries,
+  });
+
+  const chatHistory = contextBuild.turns.map((turn) => ({
+    role: (turn.role === 'model' ? 'livia' : 'user') as 'user' | 'livia',
+    content: turn.text,
+  }));
+
+  if (contextBuild.droppedTurns > 0) {
+    logger.warn('chat.context_trimmed', {
+      userId,
+      dropped: contextBuild.droppedTurns,
+      usedTokens: contextBuild.usedTokens,
+    });
+  }
+
   return {
     userId,
     profile,
     highestChapter,
     chatHistory,
+    earlierSummary: contextBuild.summaryText,
     cyclePhase: phase,
     dayOfCycle,
     language: extractLanguage(req),

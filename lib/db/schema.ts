@@ -62,6 +62,26 @@ export const chatMessages = pgTable('chatMessages', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+/**
+ * Ringkasan bergulir percakapan lama (M2.5).
+ *
+ * Dulu context window = "30 pesan terakhir mentah". Akibatnya ingatan bentrok
+ * dua arah: fakta dari awal kenalan keluar dari window dan Livia melupakan, sambil
+ * 30 pesan itu sendiri menjaga biaya token tetap membengkak.
+ *
+ * Tabel ini menyimpan RINGKASAN (bukan teks mentah) atas rentang pesan lama.
+ * `coveredCount` menjumlahkan berapa banyak pesan yang sudah dibahas supaya
+ * summarizer tahu di mana dia berhenti tanpa harus membaca isi ringkasannya.
+ */
+export const messageSummaries = pgTable('messageSummaries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  summary: text('summary').notNull(),
+  /** Berapa banyak chatMessages yang tercakup oleh ringkasan ini. */
+  coveredCount: integer('covered_count').notNull().default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
 export const screenTimeLogs = pgTable('screenTimeLogs', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),

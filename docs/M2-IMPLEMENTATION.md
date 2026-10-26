@@ -3,7 +3,7 @@
 Dokumen ini mencatat apa yang **sudah** dikerjakan di M2, bug nyata yang
 ditemukan saat mengerjakannya, dan apa yang **belum**.
 
-Status: M2.1, M2.2, M2.3, M2.4, M2.6 selesai. M2.5 dan M2.7 belum.
+Status: M2.1, M2.2, M2.3, M2.4, M2.5, M2.6 selesai. M2.7 (evals) belum.
 
 ---
 
@@ -275,7 +275,7 @@ Total suite: **360 test** (sebelumnya 208).
 ```
 bunx tsc --noEmit   → 0 error
 bun run lint        → 0 error (warning lama tetap)
-bun run test        → 16 file, 315 test lulus
+bun run test        → 21 file, 382 test lulus
 ```
 
 ---
@@ -285,7 +285,7 @@ bun run test        → 16 file, 315 test lulus
 | Item | Status | Catatan |
 | --- | --- | --- |
 | M2.1 Streaming (SSE) | selesai | lihat §3.9 `/api/chat/stream` |
-| M2.5 Context window | belum | butuh tabel `messageSummaries` -> menunggu `db:push` |
+| M2.5 Context window | selesai | rolling summary + relevant mining + token budget — lihat §7 |
 | M2.7 Evals | belum | 50 skenario; juga untuk menguji perubahan persona (mis. `itemsBrought` kosong) |
 | Circuit breaker per-provider | selesai | `lib/ai/circuit-breaker.ts`, per-proses (multi-instance → M5.5) |
 | State "Livia lagi pusing" | selesai | `overloadedReply()` di `lib/gemini.ts`, hanya untuk kode sementara |
@@ -296,8 +296,72 @@ bun run test        → 16 file, 315 test lulus
 
 ## 6. Langkah manual yang masih perlu dilakukan user
 
-1. `bun run db:push` — tabel `userApiKeys` belum ada, jadi `/api/user/api-key`
-   gagal saat runtime sampai ini dijalankan.
+1. `bun run db:push` — tabel `messageSummaries` (M2.5) belum ada di database;
+   `/api/chat` & `/api/chat/stream` tetap jalan tanpa itu (ringkasan dilewati),
+   tapi Livia tidak akan punya memori jangka panjang sampai tabel dibuat.
 2. Set `ENCRYPTION_KEY` di `.env.local` (32 byte base64/hex). Tanpa ini fitur
    API key user degradasi dengan pesan jelas, tidak crash.
 3. Opsional: set `AI_MODEL_FALLBACK` kalau ingin fallback model aktif.
+
+---
+
+## 7. M2.5 — Context window engineering
+
+Semua bekerja di tiga lapis: **murni** (`lib/ai/context.ts`, diuji penuh),
+**DB** (`lib/livia/summary.ts`), dan **kabel** (`lib/livia/chat-turn.ts`
++ dua route chat + `lib/gemini.ts`).
+
+### 7.1 `lib/ai/context.ts` — builder konteks (murni, tanpa DB/SDK)
+
+- `approximateTokens()` — perkiraan token `ceil(chars / 3.5)`. Tokenizer
+  sungguhan = dependensi berat; akurasi ±20% cukup untuk memangkas.
+- `pickRelevantTurns(oldTurns, latestUserMessage, max=8)` — root message
+  selection: kandidat diskor lewat kata signifikan (≥4 huruf, bukan
+  stopwords ID/EN). Lulus jika **≥2 kata bersinggungan** ATAU **1 kata khas
+  ≥7 huruf** (nama/topik unik — "rafaelkanzler" pass, "jam" tidak).
+- `mergeTurns(turns, budget)` — isi dari AKHIR (terbaru dulu); yang tak muat
+  dilewati (bukan berhenti), yang dibuang duluan adalah yang paling lama —
+  memori terdekat tidak pernah hilang duluan.
+- `buildChatContext({history, latestUserMessage, summaries, budgetTokens=6000})`
+  — orkestrasi: root turns dulu → window 14 terakhir → (tanpa pesan terbaru:
+  `turnsFromHistory` di domain yang menambahkannya, jadi tidak dobel). Anggaran
+  ringkasan dipotong dulu dari budget turn.
+
+### 7.2 `lib/livia/summary.ts` — ringkasan bergulir (DB + provider)
+
+- Pelacak cakupan: `SUM(messageSummaries.coveredCount)` vs jumlah total pesan.
+  Tanpa kolom status di `chatMessages`; race dua proses paling buruknya entri
+  dobel (bukan rentang terlewat).
+- Rentang yang diringkas: query `.offset(covered)` — pesan yang sudah
+  tercakup selalu adalah terlama, jadi offset melompatinya dengan benar.
+- Panggilan model kecil: `chatSummaryResponseSchema` + `chatSummaryValidator`
+  (zod), temperature 0.3, max 250 token, prompt Livia-perspective ("fakta
+  tentang user, janji, konflik yang menggantung").
+- Seluruh isi `maybeSummarizeChats()` dibungkus try/catch: kegagalan ringkasan
+  (DB, provider, breaker, safety-block) ditelan + dilog `summary.failed`/
+  `summary.blocked`. **Turn chat tidak pernah gagal karena ringkasan.**
+- Threshold = 20 pesan menunggak (`SUMMARY_THRESHOLD`, konstanta, bukan env).
+
+### 7.3 Kabel: chat-turn + prompt + route
+
+- `loadChatTurnContext` sekarang menerima `message`, membaca 60 baris
+  (bukan 30) untuk pertambangan relevansi, memanggil `buildChatContext`,
+  dan mengembalikan `chatHistory` terpangkas + `earlierSummary`.
+- `buildChatReplyPrompt(identity, earlierSummary?)` menambah blok
+  "MEMORI OBROLAN LAMA (ringkasan...)" di antara identity dan blok riwayat —
+  hanya jika non-kosong, sehingga persona awal tidak tergeser.
+- `generateLiviaResponse(..., earlierSummary?)` + `streamLiviaReply({..., earlierSummary})`
+  — kedua route chat (JSON & SSE) memakai prompt yang sama.
+- Pemicu summarizer: `void maybeSummarizeChats(userId, apiKey)` SETELAH
+  `persistChatTurn()` — di route JSON dan setelah event `done` di route SSE.
+  Fire-and-forget memengaruhi proses yang hidup (self-hosted); serverless
+  bisa memangkasnya — giliran berikutnya mengejar.
+
+### 7.4 Test
+
+- `tests/ai-context.test.ts` (murni): window selalu ikut, urutan kronologis,
+  pemilihan relevan (2 kata / 1 kata khas), token budget membuang yang lama
+  dulu, skip-bukan-berhenti di turn mahal, ringkasan memakan anggaran.
+- `tests/summary.test.ts` (murni): `shouldSummarize` — ambang, sisa cakupan,
+  clamp negatif, threshold custom. Integrasi DB/provider-nya diuji lewat
+  route test yang sudah ada (mock gemini yang dipakai bareng, `tests/gemini-sdk-mock.ts`).
