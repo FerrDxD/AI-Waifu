@@ -17,6 +17,7 @@ next-env.d.ts
 # Test / coverage artifacts
 coverage/
 *.lcov
+evals/last-report.json
 
 # Build / typecheck artifacts
 *.tsbuildinfo

@@ -25,8 +25,12 @@ export function sdkModuleMock() {
     constructor(public readonly apiKey: string) {}
     getGenerativeModel(config: unknown) {
       return {
-        generateContent: (request: unknown) => mockGenerateContent(config, request),
-        generateContentStream: (request: unknown) => mockGenerateContentStream(config, request),
+        // Bentuk SDK asli: argumen kedua adalah opsi level-request
+        // (SingleRequestOptions: { timeout }) — istimewa dari body.
+        generateContent: (request: unknown, requestOptions?: unknown) =>
+          mockGenerateContent(config, request, requestOptions),
+        generateContentStream: (request: unknown, requestOptions?: unknown) =>
+          mockGenerateContentStream(config, request, requestOptions),
       };
     }
   }

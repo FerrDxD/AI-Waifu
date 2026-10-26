@@ -14,6 +14,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "verify": "bun run typecheck && bun run lint && bun run test",
+    "evals": "bun evals/run.ts",
+    "evals:live": "bun evals/run.ts --live",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "prepare": "husky || true"

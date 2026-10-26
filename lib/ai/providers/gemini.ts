@@ -5,6 +5,7 @@ import {
   type GenerateContentRequest,
   type GenerateContentResponse,
   type ResponseSchema,
+  type SingleRequestOptions,
 } from '@google/generative-ai';
 import type { LLMProvider, GenerateOptions, GenerateResult, StreamingGenerate } from '../types';
 import { getAIConfig } from '../config';
@@ -365,10 +366,10 @@ export class GeminiProvider implements LLMProvider {
       const extractor = createReplyExtractor();
 
       try {
-        const streamResult = await model.generateContentStream({
-          contents,
-          timeout: timeoutMs,
-        } as GenerateContentRequest);
+        const streamResult = await model.generateContentStream(
+          { contents },
+          { timeout: timeoutMs } as SingleRequestOptions
+        );
 
         for await (const chunk of streamResult.stream) {
           const raw = chunkTextOf(chunk);
@@ -493,10 +494,13 @@ export class GeminiProvider implements LLMProvider {
 
     let result;
     try {
-      result = await model.generateContent({
-        contents,
-        timeout: timeoutMs,
-      } as GenerateContentRequest);
+      // PENTING: `timeout` BUKAN bagian dari body request (API v1beta menolak
+      // field itu dengan 400 "Unknown name timeout"). Ini opsi level-request
+      // milik SDK — argumen kedua dari call.
+      result = await model.generateContent(
+        { contents },
+        { timeout: timeoutMs } as SingleRequestOptions
+      );
     } catch (error) {
       // Timeout dari SDK melempar versi-nya sendiri; ubah jadi AppError jelas.
       const timeoutError = toTimeoutError(error);

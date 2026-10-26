@@ -138,6 +138,35 @@ Hanya kembalikan JSON. Tidak ada teks lain.${INJECTION_GUARD}`;
 
 // --- AI generation functions ---
 
+/**
+ * Satu pintu untuk melatih prompt chat — dipakai produce (generate/stream)
+ * DAN evals (M2.7), supaya eval menguji jalur yang persis sama.
+ */
+export interface ChatPromptInput {
+  affectionLevel: number;
+  itemsBrought: string[];
+  stats?: Stats;
+  isVoiceCall?: boolean;
+  longTermMemory?: string;
+  language: 'id' | 'en';
+  highestChapter: number;
+  earlierSummary?: string;
+}
+
+export function buildChatPrompt(input: ChatPromptInput): string {
+  const identity = buildLiviaIdentity({
+    affection: input.affectionLevel,
+    highestChapter: input.highestChapter,
+    stats: input.stats,
+    itemsBrought: input.itemsBrought,
+    longTermMemory: input.longTermMemory,
+    isVoiceCall: input.isVoiceCall,
+    language: input.language,
+  });
+
+  return buildChatReplyPrompt(identity, input.earlierSummary);
+}
+
 export async function generateLiviaResponse(
   userMessage: string,
   chatHistory: { role: 'user' | 'livia'; content: string }[],
@@ -151,20 +180,19 @@ export async function generateLiviaResponse(
   highestChapter: number = 0,
   earlierSummary?: string
 ): Promise<{ reply: string; affectionDelta: number; expression: LiviaExpression; memoryUpdate?: string }> {
-  const identity = buildLiviaIdentity({
-    affection: affectionLevel,
-    highestChapter,
+  const systemPrompt = buildChatPrompt({
+    affectionLevel: affectionLevel,
+    itemsBrought,
     stats,
     // Perilaku lama dipertahankan: kalau user tidak membawa barang apa pun,
     // konteks kepribadian tetap dibangun (semua barang tercatat "tertinggal di
     // rumah"). Mengubahnya = mengubah persona, jadi tunggu eval M2.7.
-    itemsBrought,
-    longTermMemory,
     isVoiceCall,
+    longTermMemory,
     language,
+    highestChapter,
+    earlierSummary,
   });
-
-  const systemPrompt = buildChatReplyPrompt(identity, earlierSummary);
 
   const turns = turnsFromHistory(chatHistory, userMessage);
 
@@ -235,19 +263,20 @@ export function streamLiviaReply(input: {
     earlierSummary,
   } = input;
 
-  const identity = buildLiviaIdentity({
-    affection: affectionLevel,
-    highestChapter,
-    stats,
+  const systemInstruction = buildChatPrompt({
+    affectionLevel,
     itemsBrought,
-    longTermMemory,
+    stats,
     isVoiceCall,
+    longTermMemory,
     language,
+    highestChapter,
+    earlierSummary,
   });
 
   const { deltas, final } = getProvider().stream({
     operation: 'chat',
-    systemInstruction: buildChatReplyPrompt(identity, earlierSummary),
+    systemInstruction,
     turns: turnsFromHistory(chatHistory, userMessage),
     responseSchema: liviaReplyResponseSchema,
     outputSchema: liviaReplyValidator,

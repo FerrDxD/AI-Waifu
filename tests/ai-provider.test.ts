@@ -322,15 +322,19 @@ describe('GeminiProvider.generate', () => {
     expect(request.contents[0].role).toBe('user');
   });
 
-  it('mengirim timeout dari config', async () => {
+  it('mengirim timeout dari config sebagai opsi level-request, bukan field body', async () => {
     process.env.AI_TIMEOUT_MS = '7000';
     __resetAIConfigForTests();
     mockGenerateContent.mockResolvedValue(okResponse({ reply: 'a', affectionDelta: 0 }));
 
     await getProvider().generate(makeOptions());
 
-    const request = mockGenerateContent.mock.calls[0][1] as { timeout: number };
-    expect(request.timeout).toBe(7000);
+    // Argumen [0]=config model, [1]=request body (TANPA timeout), [2]=opsi.
+    const body = mockGenerateContent.mock.calls[0][1] as Record<string, unknown>;
+    expect(body).not.toHaveProperty('timeout'); // guard regresi: 'timeout' di body = 400 dari API
+
+    const requestOptions = mockGenerateContent.mock.calls[0][2] as { timeout: number };
+    expect(requestOptions.timeout).toBe(7000);
   });
 });
 

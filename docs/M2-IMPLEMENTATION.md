@@ -91,6 +91,31 @@ sama-sama menambahkan aturan TTS. Prompt jadi berulang dan model cenderung
 mengabaikan salah satunya. Sekarang satu tempat saja
 (`buildLiviaIdentity`), dan ada test yang mengunci jumlah kemunculannya = 1.
 
+### 2.7 `timeout` dikirim sebagai field body request (ditemukan M2.7)
+
+Live eval lwat `bun run evals:live` langsung kena HTTP 400 dari API:
+`Unknown name "timeout": Cannot find field`. Penyebab acung: `generateOnce`
+dan `streamOnce` mengirim `{ contents, timeout }` — `timeout` BUKAN field
+body, melainkan opsi level-request SDK. Semua panggilan produce (chat &
+streaming) gagal seperti itu selama provider baru berjalan. Perbaikan: argumen kedua `{ timeout }` + guard regresi di test
+(`body` TIDAK boleh berisi `timeout`). Ini bukti nilai eval live — bug
+setelah refactor bisa luntur tanpa diminta user "coba chat dulu".
+
+### 2.8 Kuota free-tier 429 menghantam run penuh (ditemukan M2.7)
+
+Run live penuh pertama langsung diburunkan 429 (RPM), lalu circuit breaker
+membuka dan sisa skenario gagal cepat. Ini perilaku sistem yang BENAR
+(breaker melindungi user), tapi membuat eval satu-batch yang polos tidak
+lengkap. Perbaikan di runner:
+- **Pacing**: jeda antar skenario default 7 detik (`AI_EVAL_DELAY_MS`).
+- **Retry murah**: jalankan dengan `AI_MAX_RETRIES=1`.
+- **Key opsional**: `AI_EVAL_API_KEY` menimpa key server — kuota key
+  utama tidak terganggu.
+- Ketika kuota HARÍA habis (429 meski jeda 15s, 48 kemunculan), single
+  skenario juga gagal: satu-satunya solusi adalah menunggu reset kuota atau
+  memakai key lain, run eval hanya dinilai ulang nanti. Run penuh yang
+  valid (semua 50 PASS) menggantikan angka DoD di §8.1.
+
 ---
 
 ## 3. Yang dibangun
@@ -365,3 +390,39 @@ Semua bekerja di tiga lapis: **murni** (`lib/ai/context.ts`, diuji penuh),
 - `tests/summary.test.ts` (murni): `shouldSummarize` — ambang, sisa cakupan,
   clamp negatif, threshold custom. Integrasi DB/provider-nya diuji lewat
   route test yang sudah ada (mock gemini yang dipakai bareng, `tests/gemini-sdk-mock.ts`).
+
+---
+
+## 8. M2.7 — Eval harness pertama
+
+Tiga file di `evals/`:
+
+| File | Isi |
+| --- | --- |
+| `dataset.ts` | 50 skenario: 10 memory, 8 language, 8 politeness, 8 persona, 8 structure, 8 safety. Tiap skenario = kondisi profil (afeksi, memori, stats, voice, bahasa) + pesan user + daftar nama cek. |
+| `checks.ts` | Registry cek: **hard** (struktur JSON, nol karakter Jepang, tidak bocor system prompt, no asterisk di voice call, token terlarang, nama fakta disebut) dan **soft** (persona: tsundere di afeksi rendah, manja di tinggi, empati saat user sedih, keringkasan). Cek `prompt.*` dinilai dari system prompt builder produksi; cek `reply.*` dari balasan model. |
+| `run.ts` | CLI: offline default (tanpa API; CI) atau `--live`. Filter `--category=` dan `--id=`. Lulus: hard 100% + soft >= 85%. Report live → `evals/last-report.json` (gitignored). |
+
+Prompt eval dibangun lewat `buildChatPrompt()` (`lib/gemini.ts`) — jalur yang
+PERSIS sama dengan produce (dipakai `generateLiviaResponse` & `streamLiviaReply`
+juga), jadi yang dinilai bukan prompt tiruan.
+
+Penegakan CI: `tests/evals-dataset.test.ts` — jumlah tepat 50, id unik, semua
+nama cek terdaftar, dan semua cek `prompt.*` lulus untuk seluruh dataset tanpa
+API. Berarti perubahahan prompt yang merusak garis dasar langsung merah di test.
+
+DoD live (hasil `bun run evals:live` penuh dengan key server): §8.1.
+
+### 8.1 Status hasil live saat milestone ditutup
+
+| Item | Status |
+| --- | --- |
+| Integritas dataset + cek `prompt.*` (offline, CI) | **50/50 PASS** |
+| Validasi jalur live (satu skenario memakai API) | PASS (1 skenario: `language.english_reply` — balasan model nyata di-parse, cek reply bekerja; bug 400 `timeout` ditemukan/diperbaiki di §2.7) |
+| Run penuh 50 skenario | DITUNDA: kuota free-tier 429 (lihat §2.8); perintah ulang: `AI_EVAL_DELAY_MS=15000 AI_MAX_RETRIES=1 bun run evals:live` (atau `AI_EVAL_API_KEY=<key lain>`) |
+
+Angka DoD "persona >=85%" resmi belum lulus kalkulasi, tetapi jalur live
+sudah terbukti bekerja (bug 400 ditemukan/ketemu dan diperbaiki di §2.7,
+balasan model di-parse dan dinilai). Ini pekerjaan operasional — bukan
+fitur — dan menggantung PENUH pada kuota Google.
+
