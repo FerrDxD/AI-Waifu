@@ -53,6 +53,26 @@ async function main() {
   const chatCount = Number((results[0] as { rowCount: number | string }).rowCount ?? 0);
   const summaryCount = Number((results[1] as { rowCount: number | string }).rowCount ?? 0);
   console.log(`Retensi ${cutoffDays} hari: ${chatCount} chat, ${summaryCount} ringkasan dihapus.`);
+
+  // Counter rate limit (M5.5): window terpanjang 30 hari, jadi baris dengan
+  // window_start >31 hari pasti sudah tidak aktif. Jalankan DI LUAR transaksi
+  // retensi chat supaya prune tetap berhasil walau tabelnya belum dibuat
+  // (mis. belum menjalankan db:push/db:migrate).
+  try {
+    const counterResults = await sql.transaction(
+      () => [sql`DELETE FROM "rateLimitCounters" WHERE "window_start" < now() - interval '31 day'`],
+      { fullResults: true }
+    );
+    const counterCount = Number(
+      ((counterResults[0] as { rowCount: number | string }).rowCount ?? 0)
+    );
+    console.log(`Rate limit: ${counterCount} counter kedaluwarsa dihapus.`);
+  } catch (error) {
+    console.warn(
+      'Lewat: pembersihan rateLimitCounters gagal (tabel mungkin belum dibuat — jalankan db:push/db:migrate dulu).',
+      error
+    );
+  }
 }
 
 main().catch((error: unknown) => {

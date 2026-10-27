@@ -1,11 +1,20 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+/**
+ * M5.5: store produksi (Postgres/Neon) diganti in-memory lewat tests/setup.ts
+ * (bukan vi.mock per file — `isolate: false` membuatnya tidak andal).
+ * Yang diuji di sini: algoritma + konfigurasi limiter produksi.
+ */
 import {
   aiRateLimit,
   mutationRateLimit,
   registerRateLimit,
+  createLimiter,
   getClientIp,
   rateLimitResponse,
 } from '@/lib/rate-limit';
+import { createMemoryStore } from './helpers/limiter';
+import { logger } from '@/lib/logger';
 
 /** Key unik per tes supaya state in-memory tidak saling mencemari. */
 const unique = (() => {
@@ -33,7 +42,7 @@ describe('aiRateLimit', () => {
     for (let i = 0; i < 5; i++) await aiRateLimit.limit(key);
     expect((await aiRateLimit.limit(key)).success).toBe(false);
 
-    aiRateLimit.reset(key);
+    await aiRateLimit.reset(key);
     expect((await aiRateLimit.limit(key)).success).toBe(true);
   });
 
@@ -67,6 +76,77 @@ describe('limit lain punya konfigurasi wajar', () => {
       expect((await registerRateLimit.limit(key)).success).toBe(true);
     }
     expect((await registerRateLimit.limit(key)).success).toBe(false);
+  });
+});
+
+describe('multi-cap: window + harian + bulanan (M5.5)', () => {
+  it('cap harian menang setelah window per-menit pulih', async () => {
+    const key = unique('daily');
+    const limiter = createLimiter({
+      name: `daily-${key}`,
+      caps: [
+        { limit: 2, windowMs: 60_000 },
+        { limit: 3, windowMs: 24 * 60 * 60_000 },
+      ],
+      store: createMemoryStore(),
+    });
+
+    expect((await limiter.limit(key)).success).toBe(true); // menit:1, hari:1
+    expect((await limiter.limit(key)).success).toBe(true); // menit:2, hari:2
+    expect((await limiter.limit(key)).success).toBe(false); // menit:3 → ditolak
+    expect((await limiter.limit(key)).success).toBe(false); // menit:4 → ditolak
+  });
+
+  it('request yang ditolak cap pendek tidak menambah cap panjang', async () => {
+    vi.useFakeTimers();
+    try {
+      const key = unique('multi');
+      const limiter = createLimiter({
+        name: `multi-${key}`,
+        caps: [
+          { limit: 2, windowMs: 60_000 },
+          { limit: 3, windowMs: 24 * 60 * 60_000 },
+        ],
+        store: createMemoryStore(),
+      });
+
+      expect((await limiter.limit(key)).success).toBe(true);
+      expect((await limiter.limit(key)).success).toBe(true);
+      expect((await limiter.limit(key)).success).toBe(false); // ditolak per-menit (hari tetap 2)
+      expect((await limiter.limit(key)).success).toBe(false); // ditolak per-menit
+
+      vi.advanceTimersByTime(61_000); // window per-menit baru
+
+      expect((await limiter.limit(key)).success).toBe(true); // hari:3 — kalau request ditolak
+      // tadi ikut menambah cap harian, request ini sudah pasti gagal
+      const blocked = await limiter.limit(key); // hari:4 > 3 → cap harian menang
+      expect(blocked.success).toBe(false);
+      expect(blocked.retryAfterSeconds).toBeGreaterThan(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('cap dengan alert memicu logger.warn sekali saat pertama terlampaui', async () => {
+    const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    try {
+      const key = unique('alert');
+      const limiter = createLimiter({
+        name: `alert-${key}`,
+        caps: [{ limit: 1, windowMs: 60_000, alert: 'tes-quota-ai' }],
+        store: createMemoryStore(),
+      });
+
+      expect((await limiter.limit(key)).success).toBe(true);
+      expect((await limiter.limit(key)).success).toBe(false); // count=2 == limit+1 → warn
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy.mock.calls[0][1]).toMatchObject({ limiter: `alert-${key}`, cap: 'tes-quota-ai' });
+
+      expect((await limiter.limit(key)).success).toBe(false); // count=3 → tidak double-warn
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 });
 

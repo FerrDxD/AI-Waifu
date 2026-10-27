@@ -201,3 +201,24 @@ export const auditEvents = pgTable('auditEvents', {
   metadata: jsonb('metadata').default({}),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+/**
+ * Counter rate limit terdistribusi (M5.5).
+ *
+ * Menggantikan `Map` in-memory (`lib/rate-limit.ts` versi M0) yang reset tiap
+ * cold start serverless, tidak dibagi antar instance, dan bisa bocor memori.
+ * Sekarang counter hidup di Postgres (Neon) sehingga berlaku lintas instance
+ * dan bertahan antar redeploy.
+ *
+ * `key` sudah menyandikan `${name}:${scope}:${windowMs}:${bucketStart}`, jadi
+ * tiap window (menit/hari/bulan) punya baris sendiri. Increment dilakukan atomik
+ * (`INSERT ... ON CONFLICT DO UPDATE count = count + 1`) dalam SATU statement —
+ * aman di driver neon-http yang tidak punya koneksi persisten. Baris window lama
+ * dibuang oleh `db:prune`.
+ */
+export const rateLimitCounters = pgTable('rateLimitCounters', {
+  key: text('key').primaryKey(),
+  count: integer('count').notNull().default(1),
+  /** Awal bucket window (epoch-aligned). Dipakai `db:prune` untuk membuang baris tua. */
+  windowStart: timestamp('window_start', { withTimezone: true }).notNull(),
+});

@@ -112,16 +112,16 @@ sebelum DoD terpenuhi + ada test yang lulus.
 
 ## M5 — Arsitektur & Performance (Bulan 4)
 
-- [ ] **M5.1** **Pecah monolit**: `story/page.tsx` 2028 baris → data pindah ke `content/story/chapters/*.json` (writer-friendly, bisa di-edit tanpa ngetik JSX). `HomeClient` 1028 baris → dipecah per-fitur (`features/home/*`). Tujuan: tidak ada file page > 300 baris.
-- [ ] **M5.2** **Server Actions / RPC layer** ganti fetch manual ke API untuk operasi state (mengurangi boilerplate + typed end-to-end). Pertahankan REST hanya untuk streaming/SSE.
-- [ ] **M5.3** **Database**:
+- [x] **M5.1** **Pecah monolit**: `story/page.tsx` 2028 baris → data pindah ke `content/story/chapters/*.json` (writer-friendly, bisa di-edit tanpa ngetik JSX). `HomeClient` 1028 baris → dipecah per-fitur (`features/home/*`). Tujuan: tidak ada file page > 300 baris.
+- [x] **M5.2** **Server Actions / RPC layer** ganti fetch manual ke API untuk operasi state (mengurangi boilerplate + typed end-to-end). Pertahankan REST hanya untuk streaming/SSE. *(Core termigrasi: affection, work, cook — lihat docs/M5-IMPLEMENTATION.md §2; operasi lain = utang terdokumentasi.)*
+- [x] **M5.3** **Database**:
   - Index: `chatMessages(userId, createdAt DESC)`, `screenTimeLogs(userId, date)`, `pomodoroSessions(userId, completedAt)`, `memory_items(userId, lastRecalledAt)`.
   - Migrations sistem (`drizzle-kit generate` + folder migrations + CI check drift), bukan `push` ke prod.
   - Retention policy: chat > 90 hari dipindah ke cold storage/diresume (agree dengan M2.5).
-- [ ] **M5.4** **Hindari race condition**: `SELECT ... FOR UPDATE` / atomic increment (`SET affection = affection + ?`) untuk update affection & story unlock. Client-side cheat diberantas: money/item/affection state otoritas server; `localStorage` hanya preferensi (volume, bahasa).
-- [ ] **M5.5** **Distributed rate limiter**: pindah ke DB/Redis (`Neon` table atau Upstash) — per-user, per-route, daily + monthly cap + alert cost. Hapus in-memory `Map` (memory leak + tidak efektif).
-- [ ] **M5.6** **Cache**: LRU untuk cache konteks persona, memori prebuilt; `unstable_cache` untuk data read berat (story chapters adalah JSON statis). Image optimization diaktifkan (`formats: ['image/avif']` + `sharp`).
-- [ ] **M5.7** **Lazy load** komponen global di layout (RadioProvider, QuestTracker) agar first load JS turun.
+- [x] **M5.4** **Hindari race condition**: `SELECT ... FOR UPDATE` / atomic increment (`SET affection = affection + ?`) untuk update affection & story unlock. Client-side cheat diberantas: money/item/affection state otoritas server; `localStorage` hanya preferensi (volume, bahasa). *(neon-http tak punya koneksi persisten → semua mutasi jadi SATU UPDATE dengan ekspresi SQL + guard, bukan FOR UPDATE.)*
+- [x] **M5.5** **Distributed rate limiter**: pindah ke DB/Redis (`Neon` table atau Upstash) — per-user, per-route, daily + monthly cap + alert cost. Hapus in-memory `Map` (memory leak + tidak efektif).
+- [x] **M5.6** **Cache**: LRU untuk cache konteks persona, memori prebuilt; `unstable_cache` untuk data read berat (story chapters adalah JSON statis). Image optimization diaktifkan (`formats: ['image/avif']` + `sharp`). *(LRU in-proses dinilai tidak tepat untuk serverless stateless + retrieval per-query — alasan di docs/M5-IMPLEMENTATION.md §6.2; image avif/webp aktif.)*
+- [x] **M5.7** **Lazy load** komponen global di layout (RadioProvider, QuestTracker) agar first load JS turun.
 
 **DoD:** Skor Lighthouse Performance ≥85 di mobile, query utama explain-plan pakai index (bukan seq scan), zero cheat lewat DevTools console (diverifikasi manual).
 

@@ -29,3 +29,31 @@ vi.mock('@google/generative-ai', async () => {
   const { sdkModuleMock } = await import('./gemini-sdk-mock');
   return sdkModuleMock();
 });
+
+/**
+ * Mock store rate limit (M5.5).
+ *
+ * Limiter produksi memakai `dbRateLimitStore` (Postgres/Neon). Suite vitest
+ * tidak punya database, dan `isolate: false` membuat `vi.mock` per file tidak
+ * andal (tergantung urutan file). Jadi store-nya digantikan in-memory di sini
+ * — SEBELUM file test mana pun meng-import `@/lib/rate-limit`.
+ *
+ * Algoritma limiter tetap diuji penuh (bucket window, multi-cap, reset,
+ * cost alert); yang di-skip hanya lapisan SQL-nya (ditegakkan di production
+ * lewat migrasi + skrip prune).
+ */
+vi.mock('@/lib/rate-limit/store', () => {
+  const map = new Map<string, number>();
+  return {
+    dbRateLimitStore: {
+      increment: async (key: string) => {
+        const count = (map.get(key) ?? 0) + 1;
+        map.set(key, count);
+        return count;
+      },
+      delete: async (key: string) => {
+        map.delete(key);
+      },
+    },
+  };
+});
