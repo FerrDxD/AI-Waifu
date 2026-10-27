@@ -16,6 +16,7 @@ import {
   DailyQuest,
   getTodayDateString 
 } from '@/lib/livia/quests';
+import { claimWork, updateAffection } from '@/lib/actions';
 
 const LIVIA_QUEST_REACTIONS = [
   "Wah, satu misi berhasil kamu selesaikan! Keren banget~",
@@ -84,12 +85,8 @@ export default function DailyQuestsPage() {
     playSfx('chime');
 
     try {
-      // 1. Berikan reward per misi (+15 Rv)
-      await fetch('/api/work', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ earnedRv: 15, jobId: `quest_${quest.id}` })
-      });
+      // 1. Berikan reward per misi (+15 Rv) — M5.2: Server Action.
+      await claimWork(15, `quest_${quest.id}`);
 
       // 2. Simpan status klaim misi (menguatkan poin milestone progres +1)
       claimQuestReward(quest.id);
@@ -109,18 +106,11 @@ export default function DailyQuestsPage() {
     playSfx('chime');
 
     try {
-      await fetch('/api/work', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ earnedRv: rewardRv, jobId: `daily_milestone_${milestone}` })
-      });
+      // M5.2: Server Action untuk reward Rv & afeksi milestone.
+      await claimWork(rewardRv, `daily_milestone_${milestone}`);
 
       if (rewardAffection > 0) {
-        await fetch('/api/affection', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ delta: rewardAffection, reason: `daily_milestone_${milestone}` })
-        });
+        await updateAffection(rewardAffection, `daily_milestone_${milestone}`);
       }
 
       claimMilestone(milestone);

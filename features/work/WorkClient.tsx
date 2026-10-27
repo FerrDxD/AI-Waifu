@@ -7,6 +7,7 @@ import { playSfx } from '@/lib/sfx';
 import { unlockAchievement } from '@/lib/achievements';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { EN_JOBS } from '@/lib/i18n/content';
+import { claimWork } from '@/lib/actions';
 
 type JobCategory = 'sortir' | 'paket' | 'tutor' | 'barista' | 'cucipiring' | 'kasir' | 'dataentry' | 'parkir' | 'pelayan' | 'penulis' | 'tambang' | 'reparasi' | 'pelukis' | 'trader' | 'mancing';
 
@@ -70,12 +71,13 @@ export default function WorkPage() {
       playSfx('coin');
       unlockAchievement('work_first');
       try {
-        const res = await fetch('/api/work', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ earnedRv: amount, jobId: selectedJob.id }) });
-        if (res.ok) { 
-          const data = await res.json(); 
-          setMoney(data.newMoney); 
-          if (data.newMoney >= 1000) unlockAchievement('rich_1000');
-          if (data.jobStats) setJobStats(data.jobStats);
+        // M5.2: Server Action (bukan fetch) — hasil kerja diklaim di server.
+        const result = await claimWork(amount, selectedJob.id);
+        if (result.ok) {
+          const newMoney = result.data.newMoney ?? 0;
+          setMoney(newMoney);
+          if (newMoney >= 1000) unlockAchievement('rich_1000');
+          if (result.data.jobStats) setJobStats(result.data.jobStats);
         }
       } catch (e) { console.error(e); }
     } else {

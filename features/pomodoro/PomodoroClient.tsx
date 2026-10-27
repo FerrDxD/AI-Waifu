@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { unlockAchievement } from '@/lib/achievements';
 import { playSfx } from '@/lib/sfx';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { updateAffection } from '@/lib/actions';
 
 const MOTIVATIONS = [
   "Kalau kamu nyerah sekarang, aku yang malu. Fokus ya!",
@@ -144,11 +145,8 @@ export default function PomodoroPage() {
       setDialog("Luarr biasa! Satu sesi fokus berhasil dituntaskan dengan sempurna. Istirahat sebentar ya!");
       
       try {
-        await fetch('/api/affection', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ delta: 5, reason: 'pomodoro' }),
-        });
+        // M5.2: Server Action (bukan fetch) — afeksi sesi Pomodoro.
+        await updateAffection(5, 'pomodoro');
       } catch (e) {
         console.error(e);
       }

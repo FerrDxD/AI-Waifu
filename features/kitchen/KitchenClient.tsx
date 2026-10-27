@@ -13,6 +13,7 @@ import { LiviaExpression } from '@/lib/gemini';
 import { RECIPES } from '@/lib/livia/recipes';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { EN_RECIPES, EN_LIVIA_DIALOGUES } from '@/lib/i18n/content';
+import { cookRecipe } from '@/lib/actions';
 
 // Helper component to render vector icons instead of emojis
 function RecipeIcon({ id }: { id: string }) {
@@ -180,29 +181,20 @@ export default function KitchenPage() {
     setMessage(`Sedang memasak ${name} di atas wajan panas... Aromanya harum sekali!`);
 
     try {
-      const res = await fetch('/api/cook', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          recipeId: id,
-          isLiviaCooking: isLiviaCooking,
-          isMinigameFailed: isMinigameFailed
-        }),
-      });
+      // M5.2: Server Action (bukan fetch) — harga & efek dari katalog server.
+      const result = await cookRecipe(id, isMinigameFailed);
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setMessage(data.message || data.error || "Gagal memasak.");
+      if (!result.ok) {
+        setMessage(result.error || "Gagal memasak.");
         setLiviaExpression('pain');
         setIsCooking(false);
         return;
       }
 
-      setMoney(data.money);
-      setAffection(data.affection);
-      setLiviaExpression(data.expression || 'happy');
-      setMessage(data.message);
+      setMoney(result.data.money ?? 0);
+      setAffection(result.data.affection);
+      setLiviaExpression(result.data.expression);
+      setMessage(result.data.message);
 
     } catch (error) {
       console.error(error);

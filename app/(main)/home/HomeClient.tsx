@@ -20,6 +20,7 @@ import { MoreMenusModal, MiniEventModal } from '@/features/home/HomeModals';
 import { StatIsland, MobileStatsModal, type StatItem } from '@/features/home/StatsDisplay';
 import TopHud from '@/features/home/TopHud';
 import HomeBackdrop from '@/features/home/HomeBackdrop';
+import { updateAffection } from '@/lib/actions';
 
 /**
  * Layar home (M5.1).
@@ -78,11 +79,8 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
       const d = pendingTouchDelta.current;
       if (d === 0) return;
       pendingTouchDelta.current = 0;
-      fetch('/api/affection', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ delta: d, reason: 'interaction_touch' }),
-      }).catch(console.error);
+      // M5.2: Server Action (bukan fetch) — ter-tipe end-to-end, tanpa boilerplate.
+      void updateAffection(d, 'interaction_touch').catch(console.error);
     }, 400);
   };
 
