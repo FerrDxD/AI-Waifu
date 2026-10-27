@@ -35,6 +35,14 @@ const nextConfig = {
   // Jangan bocorkan versi framework di header response.
   poweredByHeader: false,
 
+  // M5.6: image optimization. next/image mengutamakan AVIF (browser modern)
+  // lalu WebP, dikodekan oleh sharp (di-bundle Next di production). Hemat
+  // bandwidth besar untuk sprite Livia & background. Hanya memengaruhi elemen
+  // <Image/>; elemen <img> polos memang tidak lewat optimizer.
+  images: {
+    formats: ['image/avif', 'image/webp'],
+  },
+
   async headers() {
     return [
       {

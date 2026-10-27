@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 // @ts-ignore
 import './globals.css';
 import ViewportManager from '@/components/ViewportManager';
-import QuestTracker from '@/components/QuestTracker';
+import DeferredQuestTracker from '@/components/DeferredQuestTracker';
 import { RadioProvider } from '@/components/RadioProvider';
 import AchievementToast from '@/components/ui/AchievementToast';
 import CustomAlertModal from '@/components/ui/CustomAlertModal';
@@ -33,7 +33,7 @@ export default function RootLayout({
             <NavigationProgress />
           </Suspense>
           <ViewportManager />
-          <QuestTracker />
+          <DeferredQuestTracker />
           <main className="min-h-screen w-full relative">
             <RadioProvider>
               <AchievementToast />

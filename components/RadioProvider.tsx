@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useState, useRef, useEffect } from 'react';
+import { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
 
 export const PLAYLIST = [
   { id: 1, title: 'Afternoon Tea', artist: 'Kos FM', file: 'Afternoon Tea.mp3', duration: '5:38', color: 'from-amber-200 to-orange-300' },
@@ -30,25 +30,42 @@ export function RadioProvider({ children }: { children: React.ReactNode }) {
   const [currentTrack, setCurrentTrack] = useState(0);
   const [progress, setProgress] = useState(0); // 0 to 100
   const [durationInSeconds, setDurationInSeconds] = useState(0);
-  
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const currentTrackRef = useRef(0);
+  currentTrackRef.current = currentTrack;
 
-  useEffect(() => {
-    // Only initialize once on client
-    if (!audioRef.current) {
-      const audio = new Audio(`/radio/${PLAYLIST[currentTrack].file}`);
-      audio.loop = true;
+  /**
+   * Buat elemen <audio> sekali saja. M5.7: dipanggil di `requestIdleCallback`
+   * (bukan sinkron saat mount), supaya pembuatan Audio + fetch MP3 + autoplay
+   * tidak memblokir first paint — provider ini ter-mount di layout akar, jadi
+   * kalau dikerjakan saat mount, setiap navigasi berebut jalur dengan first
+   * load. Perilaku autoplay ambien tetap dipertahankan, hanya digeser ke idle.
+   */
+  const ensureAudio = useCallback((autoplay: boolean) => {
+    if (audioRef.current) {
+      if (autoplay) audioRef.current.play().catch(() => {});
+      return audioRef.current;
+    }
+    const audio = new Audio(`/radio/${PLAYLIST[currentTrackRef.current].file}`);
+    audio.loop = true;
 
-      // Baca bgm_volume dari localStorage
-      const savedBgm = localStorage.getItem('bgm_volume');
-      audio.volume = savedBgm !== null ? parseInt(savedBgm, 10) / 100 : 0.5;
+    // Baca bgm_volume dari localStorage
+    const savedBgm = localStorage.getItem('bgm_volume');
+    audio.volume = savedBgm !== null ? parseInt(savedBgm, 10) / 100 : 0.5;
 
-      audioRef.current = audio;
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration) setProgress((audio.currentTime / audio.duration) * 100);
+    });
+    audio.addEventListener('loadedmetadata', () => setDurationInSeconds(audio.duration));
 
-      // Coba putar otomatis saat aplikasi pertama kali dibuka
+    audioRef.current = audio;
+
+    if (autoplay) {
       audio.play().then(() => {
         setIsPlaying(true);
       }).catch((e) => {
+        // Autoplay diblokir browser: tunggu interaksi pertama user.
         console.warn("Autoplay browser diblokir, menunggu interaksi pertama user...", e);
         const handleFirstInteraction = () => {
           if (audioRef.current && audioRef.current.paused) {
@@ -66,6 +83,24 @@ export function RadioProvider({ children }: { children: React.ReactNode }) {
       });
     }
 
+    return audio;
+  }, []);
+
+  // Inisialisasi audio + autoplay ambien, ditunda sampai browser idle.
+  useEffect(() => {
+    let cancelled = false;
+    let idleHandle: number | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const mount = () => {
+      if (!cancelled) ensureAudio(true);
+    };
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      idleHandle = (window as unknown as { requestIdleCallback: (cb: () => void, opts: { timeout: number }) => number })
+        .requestIdleCallback(mount, { timeout: 2500 });
+    } else {
+      timer = setTimeout(mount, 500);
+    }
+
     // Listen untuk perubahan volume BGM real-time dari Settings
     const handleBgmVolumeChange = (e: Event) => {
       const val = (e as CustomEvent).detail as number;
@@ -75,39 +110,21 @@ export function RadioProvider({ children }: { children: React.ReactNode }) {
     };
     window.addEventListener('bgm_volume_change', handleBgmVolumeChange);
     return () => {
+      cancelled = true;
+      if (idleHandle !== undefined && 'cancelIdleCallback' in window) {
+        (window as unknown as { cancelIdleCallback: (h: number) => void }).cancelIdleCallback(idleHandle);
+      }
+      if (timer) clearTimeout(timer);
       window.removeEventListener('bgm_volume_change', handleBgmVolumeChange);
     };
-  }, []);
+  }, [ensureAudio]);
 
+  // Play/pause mengikuti state — hanya kalau elemen sudah tersedia.
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-
-    const handleTimeUpdate = () => {
-      if (audio.duration) {
-        setProgress((audio.currentTime / audio.duration) * 100);
-      }
-    };
-    
-    const handleLoadedMetadata = () => {
-      setDurationInSeconds(audio.duration);
-    };
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-
-    return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-    };
-  }, [currentTrack]); // re-bind when track might change natively, though ref persists
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
     if (isPlaying) {
-      audio.play().catch(e => console.error("Audio play failed:", e));
+      audio.play().catch(() => {});
     } else {
       audio.pause();
     }
@@ -115,19 +132,23 @@ export function RadioProvider({ children }: { children: React.ReactNode }) {
 
   const playTrack = (index: number) => {
     setCurrentTrack(index);
-    if (audioRef.current) {
-      audioRef.current.src = `/radio/${PLAYLIST[index].file}`;
-      audioRef.current.loop = true;
-      audioRef.current.load();
-      if (isPlaying) {
-        audioRef.current.play().catch(console.error);
-      } else {
-        setIsPlaying(true); // this will trigger the useEffect above
-      }
+    currentTrackRef.current = index;
+    const audio = ensureAudio(true);
+    const src = `/radio/${PLAYLIST[index].file}`;
+    if (audio.src !== src) {
+      audio.src = src;
+      audio.loop = true;
+      audio.load();
     }
+    audio.play().catch(console.error);
+    setIsPlaying(true);
   };
 
-  const togglePlay = () => setIsPlaying(!isPlaying);
+  const togglePlay = () => {
+    const next = !isPlaying;
+    if (next) ensureAudio(true);
+    setIsPlaying(next);
+  };
 
   const nextTrack = () => {
     const nextIdx = (currentTrack + 1) % PLAYLIST.length;
@@ -140,8 +161,9 @@ export function RadioProvider({ children }: { children: React.ReactNode }) {
   };
 
   const seek = (percent: number) => {
-    if (audioRef.current && audioRef.current.duration) {
-      audioRef.current.currentTime = (percent / 100) * audioRef.current.duration;
+    const audio = audioRef.current;
+    if (audio && audio.duration) {
+      audio.currentTime = (percent / 100) * audio.duration;
       setProgress(percent);
     }
   };
