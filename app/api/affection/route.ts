@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { userProfiles, storyProgress } from '@/lib/db/schema';
-import { applyAffectionUpdate } from '@/lib/livia/affection.server';
+import { applyAffectionAtomic } from '@/lib/livia/affection.server';
 import { apiHandler, jsonApiHandler } from '@/lib/api-handler';
 import { mutationRateLimit } from '@/lib/rate-limit';
 import { errors } from '@/lib/errors';
@@ -110,25 +110,11 @@ export const PATCH = jsonApiHandler<{ delta?: unknown; reason?: unknown }>(
       Math.min(MAX_AFFECTION_DELTA, Math.trunc(body.delta))
     );
 
-    const profileResults = await db
-      .select({ affection: userProfiles.affection })
-      .from(userProfiles)
-      .where(eq(userProfiles.userId, userId));
-
-    const currentAffection = profileResults[0]?.affection || 0;
-    const result = await applyAffectionUpdate(userId, currentAffection, delta);
-
-    const updated = await db
-      .update(userProfiles)
-      .set({
-        affection: result.newAffection,
-        affectionLevel: result.affectionLevel,
-        lastSeen: new Date(),
-      })
-      .where(eq(userProfiles.userId, userId))
-      .returning({ id: userProfiles.id });
-
-    if (updated.length === 0) {
+    // M5.4: penjumlahan + clamp terjadi dalam satu statement UPDATE atomik
+    // (affection + delta, dibatasi [0,100]) — update yang bersaing tidak lagi
+    // saling menimpa. Level & unlock chapter dihitung dari nilai hasil.
+    const result = await applyAffectionAtomic(userId, delta);
+    if (!result) {
       throw errors.notFound('Profil');
     }
 

@@ -1,0 +1,541 @@
+{
+  "id": 2,
+  "title": "Kecoa Malam",
+  "reqAffection": 40,
+  "reqLevel": 2,
+  "scenes": [
+    {
+      "speaker": "Narator",
+      "text": "Cuaca malam ini sedang hujan deras. Terdengar suara gedoran panik di pintu kamarmu.",
+      "expression": "normal",
+      "bg": "2.1",
+      "hideSprite": true
+    },
+    {
+      "speaker": "Livia",
+      "text": "Buka pintunya! Tolong buka pintunya sekarang juga!",
+      "expression": "scared",
+      "bg": "2.1",
+      "hideSprite": true
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu terbangun dari tidur setengah sadarmu.",
+      "expression": "normal",
+      "choices": [
+        {
+          "text": "Buka pintu segera.",
+          "nextIndex": 3
+        },
+        {
+          "text": "Tanya dari dalam.",
+          "nextIndex": 4
+        },
+        {
+          "text": "Tarik selimut lagi.",
+          "nextIndex": 5
+        }
+      ],
+      "bg": "2.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Akhirnya! Lama banget sih bukanya!",
+      "expression": "angry",
+      "bg": "2.1",
+      "hideSprite": true,
+      "nextIndex": 6
+    },
+    {
+      "speaker": "Livia",
+      "text": "Jangan banyak tanya! Buka dulu!",
+      "expression": "pain",
+      "bg": "2.1",
+      "hideSprite": true,
+      "nextIndex": 6
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hei! Aku denger suara selimut ditarik ya!",
+      "expression": "scared",
+      "bg": "2.1",
+      "hideSprite": true
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu buru-buru membukakan pintu.",
+      "expression": "normal",
+      "bg": "2.1",
+      "hideSprite": true
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia langsung menerobos masuk.",
+      "expression": "normal",
+      "bg": "2.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hah... hah... syukurlah kamu belum tidur.",
+      "expression": "pain",
+      "bg": "2.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Di kamarku ada... ada... monster pembawa malapetaka!",
+      "expression": "scared",
+      "choices": [
+        {
+          "text": "Pencuri?!",
+          "nextIndex": 10
+        },
+        {
+          "text": "Hantu?!",
+          "nextIndex": 11
+        },
+        {
+          "text": "Kecoak lagi?",
+          "nextIndex": 12
+        }
+      ],
+      "bg": "2.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Bukan! Ini jauh lebih seram dari pencuri!",
+      "expression": "angry",
+      "bg": "2.2",
+      "nextIndex": 13
+    },
+    {
+      "speaker": "Livia",
+      "text": "Bukan hantu! Ini monster nyata!",
+      "expression": "pain",
+      "bg": "2.2",
+      "nextIndex": 13
+    },
+    {
+      "speaker": "Livia",
+      "text": "Bukan 'lagi'! Ini jenis yang berbeda!",
+      "expression": "serious",
+      "bg": "2.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Seekor kecoak raksasa seukuran telapak tanganku menempel di dinding!",
+      "expression": "serious",
+      "bg": "2.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Dan yang lebih parah lagi... monster itu punya sayap! Dia terbang ke arahku!",
+      "expression": "scared",
+      "bg": "2.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Aku nyaris serangan jantung tadi! Kamu harus tanggung jawab!",
+      "expression": "clingy",
+      "choices": [
+        {
+          "text": "Kenapa aku yang tanggung jawab?",
+          "nextIndex": 16
+        },
+        {
+          "text": "Tenang, biar aku yang urus.",
+          "nextIndex": 17
+        },
+        {
+          "text": "Biarin aja, nanti juga pergi.",
+          "nextIndex": 18
+        }
+      ],
+      "bg": "2.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "K-karena kamu tetanggaku! Lindungi aku dong!",
+      "expression": "blushing",
+      "bg": "2.2",
+      "nextIndex": 19
+    },
+    {
+      "speaker": "Livia",
+      "text": "Syukurlah... aku mengandalkanmu.",
+      "expression": "pleased",
+      "bg": "2.2",
+      "nextIndex": 19
+    },
+    {
+      "speaker": "Livia",
+      "text": "Jahat banget! Aku nggak berani tidur tau!",
+      "expression": "angry",
+      "bg": "2.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu menghela napas, sepertinya malam tidurmu akan tertunda sebentar.",
+      "expression": "normal",
+      "bg": "2.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "P-pokoknya, kamu harus usir benda itu dari kamarku sekarang juga.",
+      "expression": "normal",
+      "bg": "2.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Eh tunggu, kamarmu juga bersih dari makhluk sejenis itu kan?",
+      "expression": "confused",
+      "choices": [
+        {
+          "text": "Bersih kok, aman.",
+          "nextIndex": 22
+        },
+        {
+          "text": "Tadi ada satu lewat.",
+          "nextIndex": 23
+        },
+        {
+          "text": "Mau kuperiksa lemariku?",
+          "nextIndex": 24
+        }
+      ],
+      "bg": "2.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Fuh... baguslah kalau gitu.",
+      "expression": "happy",
+      "bg": "2.2",
+      "nextIndex": 25
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kyaaa! Jangan bohong! Bahaya!",
+      "expression": "scared",
+      "bg": "2.2",
+      "nextIndex": 25
+    },
+    {
+      "speaker": "Livia",
+      "text": "N-nggak usah! Nanti malah ada beneran!",
+      "expression": "pain",
+      "bg": "2.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kalian berdua berjalan mengendap-endap menuju kamar Livia.",
+      "expression": "normal",
+      "bg": "2.3"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu membuka pintunya perlahan, sementara Livia bersembunyi di punggungmu.",
+      "expression": "normal",
+      "bg": "2.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hati-hati... terakhir kulihat dia ada di atas lemari bajuku.",
+      "expression": "scared",
+      "choices": [
+        {
+          "text": "Pegang bajuku.",
+          "nextIndex": 28
+        },
+        {
+          "text": "Jalan di depanku.",
+          "nextIndex": 29
+        },
+        {
+          "text": "Sstt, jangan berisik.",
+          "nextIndex": 30
+        }
+      ],
+      "bg": "2.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "I-iya... udah kupegang erat-erat.",
+      "expression": "clingy",
+      "bg": "2.3",
+      "nextIndex": 31
+    },
+    {
+      "speaker": "Livia",
+      "text": "Nggak mau! Kamu duluan!",
+      "expression": "angry",
+      "bg": "2.3",
+      "nextIndex": 31
+    },
+    {
+      "speaker": "Livia",
+      "text": "(Mengangguk sambil menahan napas)",
+      "expression": "serious",
+      "bg": "2.3"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu masuk dan menyalakan lampu. Ruangan tampak sepi.",
+      "expression": "normal",
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Lho? Kok nggak ada? Ke mana perginya monster sialan itu?",
+      "expression": "confused",
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu mulai mencari di sudut-sudut kamar.",
+      "expression": "normal",
+      "choices": [
+        {
+          "text": "Cari di kolong kasur.",
+          "nextIndex": 34
+        },
+        {
+          "text": "Cari di balik gorden.",
+          "nextIndex": 35
+        },
+        {
+          "text": "Mungkin udah kabur.",
+          "nextIndex": 36
+        }
+      ],
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Jangan disenterin ke sana! Nanti kaget!",
+      "expression": "scared",
+      "bg": "2.4",
+      "nextIndex": 37
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hati-hati... bisa jadi dia menyergap.",
+      "expression": "serious",
+      "bg": "2.4",
+      "nextIndex": 37
+    },
+    {
+      "speaker": "Livia",
+      "text": "Semoga saja begitu...",
+      "expression": "pleased",
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Tiba-tiba, terdengar suara kepakan sayap dari arah tirai.",
+      "expression": "normal",
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Itu dia! D-dari suaranya, dia bersiap lepas landas lagi!",
+      "expression": "scared",
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kecoak itu akhirnya keluar dan terbang serampangan ke arah kalian.",
+      "expression": "normal",
+      "choices": [
+        {
+          "text": "Tangkis dengan bantal!",
+          "nextIndex": 40
+        },
+        {
+          "text": "Lindungi Livia!",
+          "nextIndex": 41
+        },
+        {
+          "text": "Lari keluar kamar!",
+          "nextIndex": 42
+        }
+      ],
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Itu bantalku bodoh! Jangan dikotorin!",
+      "expression": "angry",
+      "bg": "2.4",
+      "nextIndex": 43
+    },
+    {
+      "speaker": "Livia",
+      "text": "K-kamu... jantan juga ternyata.",
+      "expression": "blushing",
+      "bg": "2.4",
+      "nextIndex": 43
+    },
+    {
+      "speaker": "Livia",
+      "text": "Woi! Jangan tinggalin aku sendirian!",
+      "expression": "pain",
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu dengan sigap mengambil majalah bekas dan... BUK!",
+      "expression": "normal",
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kecoak itu jatuh terlentang di lantai, menggelepar tak berdaya.",
+      "expression": "normal",
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "K-kamu berhasil! Pukulan yang luar biasa!",
+      "expression": "happy",
+      "choices": [
+        {
+          "text": "Sudah tugasku sebagai pahlawan.",
+          "nextIndex": 46
+        },
+        {
+          "text": "Cepat ambil sapu.",
+          "nextIndex": 47
+        },
+        {
+          "text": "Gimana? Keren kan?",
+          "nextIndex": 48
+        }
+      ],
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Pahlawan kesiangan maksudnya! Hehe.",
+      "expression": "silly",
+      "bg": "2.4",
+      "nextIndex": 49
+    },
+    {
+      "speaker": "Livia",
+      "text": "Iya iya, sebentar kuambilkan.",
+      "expression": "pleased",
+      "bg": "2.4",
+      "nextIndex": 49
+    },
+    {
+      "speaker": "Livia",
+      "text": "Biasa aja tuh. Jangan besar kepala.",
+      "expression": "flirty",
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu menyingkirkan kecoak itu dengan tisu, lalu membuangnya ke tempat sampah luar.",
+      "expression": "normal",
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Fiuh... akhirnya aku bisa napas lega. Detak jantungku masih kencang nih.",
+      "expression": "normal",
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Makasih ya udah nolongin walau hujannya lagi deras begini.",
+      "expression": "blushing",
+      "choices": [
+        {
+          "text": "Sama-sama. Sekarang tidur sana.",
+          "nextIndex": 52
+        },
+        {
+          "text": "Minum air hangat dulu gih.",
+          "nextIndex": 53
+        },
+        {
+          "text": "Awas ada pasangannya.",
+          "nextIndex": 54
+        }
+      ],
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Iya, bawel. Kamu juga tidur.",
+      "expression": "happy",
+      "bg": "2.4",
+      "nextIndex": 55
+    },
+    {
+      "speaker": "Livia",
+      "text": "M-makasih perhatiannya.",
+      "expression": "pleased",
+      "bg": "2.4",
+      "nextIndex": 55
+    },
+    {
+      "speaker": "Livia",
+      "text": "J-jangan ngomong sembarangan! Mulutmu jahat!",
+      "expression": "angry",
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Saat kamu sudah melangkah keluar, dia memanggilmu dari ambang pintu.",
+      "expression": "normal",
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kalo besok malam ada kecoak terbang lagi... boleh aku panggil kamu lagi kan?",
+      "expression": "flirty",
+      "choices": [
+        {
+          "text": "Tentu, pintuku terbuka.",
+          "nextIndex": 57
+        },
+        {
+          "text": "Boleh, asal ada bayarannya.",
+          "nextIndex": 58
+        },
+        {
+          "text": "Mending kamu beli obat nyamuk.",
+          "nextIndex": 59
+        }
+      ],
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "I-ini cuma pencegahan darurat lho! Dah!",
+      "expression": "blushing",
+      "bg": "2.4",
+      "nextIndex": 60
+    },
+    {
+      "speaker": "Livia",
+      "text": "Mata duitan! Nggak jadi!",
+      "expression": "angry",
+      "bg": "2.4",
+      "nextIndex": 60
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kamu ini nggak romantis banget sih!",
+      "expression": "pain",
+      "bg": "2.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Pintu kamarnya perlahan tertutup, menyisakan suara hujan di luar.",
+      "expression": "normal",
+      "bg": "2.4",
+      "hideSprite": true
+    }
+  ]
+}

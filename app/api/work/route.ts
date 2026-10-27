@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { userProfiles } from '@/lib/db/schema';
+import { moneyPlusExpr } from '@/lib/livia/atomic-profile';
 import { jsonApiHandler } from '@/lib/api-handler';
 import { mutationRateLimit } from '@/lib/rate-limit';
 import { errors } from '@/lib/errors';
@@ -37,25 +38,33 @@ export const POST = jsonApiHandler<WorkBody>(
     const jobId =
       typeof body.jobId === 'string' && JOB_ID_PATTERN.test(body.jobId) ? body.jobId : undefined;
 
-    const profileResults = await db
-      .select()
-      .from(userProfiles)
-      .where(eq(userProfiles.userId, userId));
-    const profile = profileResults[0];
-
-    if (!profile) throw errors.notFound('Profil');
-
-    const newMoney = (profile.money || 0) + earnedRv;
-
-    const jobStats = (profile.jobStats as Record<string, number>) || {};
+    // M5.4 — atomik: `money = money + ?` dan increment jobStats (jsonb) dalam
+    // SATU statement. `jobId` sudah divalidasi pola alfanumerik, jadi aman
+    // diinterpolasi ke JSON. Race dua kerja bersamaan tidak lagi saling menimpa
+    // jumlah Rv maupun hitungan.
+    const setClause: { money: ReturnType<typeof moneyPlusExpr>; jobStats?: unknown; lastSeen: Date } = {
+      money: moneyPlusExpr(earnedRv),
+      lastSeen: new Date(),
+    };
     if (earnedRv > 0 && jobId) {
-      jobStats[jobId] = (jobStats[jobId] || 0) + 1;
+      setClause.jobStats = sql`
+        COALESCE(${userProfiles.jobStats}, '{}') || jsonb_build_object(
+          ${jobId},
+          GREATEST(0, COALESCE((${userProfiles.jobStats}->>${jobId})::int, 0) + 1)
+        )
+      `;
     }
 
-    await db
+    const updated = await db
       .update(userProfiles)
-      .set({ money: newMoney, jobStats })
-      .where(eq(userProfiles.userId, userId));
+      .set(setClause)
+      .where(eq(userProfiles.userId, userId))
+      .returning({ money: userProfiles.money, jobStats: userProfiles.jobStats });
+
+    if (updated.length === 0) throw errors.notFound('Profil');
+
+    const newMoney = updated[0].money;
+    const jobStats = (updated[0].jobStats as Record<string, number>) || {};
 
     return NextResponse.json({ success: true, newMoney, jobStats });
   }

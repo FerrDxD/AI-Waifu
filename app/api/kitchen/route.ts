@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { userProfiles } from '@/lib/db/schema';
-import { applyAffectionUpdate } from '@/lib/livia/affection.server';
+import { ensureUnlockedChapters } from '@/lib/livia/affection.server';
+import {
+  newAffectionExpr,
+  affectionLevelExpr,
+  clampStatExpr,
+  moneyMinusExpr,
+  moneyAtLeastExpr,
+} from '@/lib/livia/atomic-profile';
 import { RECIPES } from '@/lib/livia/recipes';
 import { jsonApiHandler } from '@/lib/api-handler';
 import { mutationRateLimit } from '@/lib/rate-limit';
@@ -42,14 +49,6 @@ export const POST = jsonApiHandler<KitchenBody>(
 
     if (!profile) throw errors.notFound('Profil');
 
-    const currentMoney = profile.money || 0;
-    if (currentMoney < recipe.cost) {
-      throw errors.badRequest(
-        'Uang (Rv) tidak cukup untuk membeli bahan masakan ini!',
-        'INSUFFICIENT_FUNDS'
-      );
-    }
-
     const currentItems = profile.itemsBrought || [];
     if (!currentItems.includes('recipe_book') && !currentItems.includes('recipe_book_shop')) {
       throw new AppError(
@@ -60,41 +59,48 @@ export const POST = jsonApiHandler<KitchenBody>(
       );
     }
 
-    const newMoney = currentMoney - recipe.cost;
+    // M5.4 — atomik: `WHERE money >= cost` mencegah double-spend; semua delta
+    // deterministik (dari resep + hasil mini-game) sehingga aman di-clamp di
+    // level statement. Gagal mini-game = stat tidak naik, afeksi -2.
+    const affectionChange = isFailed ? -2 : recipe.affectionDelta;
+    const hungerDelta = isFailed ? 0 : recipe.hungerDelta;
+    const energyDelta = isFailed ? 0 : recipe.energyDelta;
 
-    let newHunger = Math.min(100, (profile.liviaHunger || 100) + recipe.hungerDelta);
-    let newEnergy = Math.min(100, (profile.liviaEnergy || 100) + recipe.energyDelta);
-    let affectionChange = recipe.affectionDelta;
-
-    if (isFailed) {
-      // Mini-game gagal: tidak ada kenaikan stat, Livia kecewa.
-      newHunger = profile.liviaHunger || 100;
-      newEnergy = profile.liviaEnergy || 100;
-      affectionChange = -2;
-    }
-
-    const updateResult = await applyAffectionUpdate(
-      userId,
-      profile.affection || 0,
-      affectionChange
-    );
-
-    await db
+    const updated = await db
       .update(userProfiles)
       .set({
-        money: newMoney,
-        liviaHunger: newHunger,
-        liviaEnergy: newEnergy,
-        affection: updateResult.newAffection,
-        affectionLevel: updateResult.affectionLevel,
+        money: moneyMinusExpr(recipe.cost),
+        affection: newAffectionExpr(affectionChange),
+        affectionLevel: affectionLevelExpr(affectionChange),
+        liviaHunger: clampStatExpr(userProfiles.liviaHunger, hungerDelta),
+        liviaEnergy: clampStatExpr(userProfiles.liviaEnergy, energyDelta),
         lastSeen: new Date(),
       })
-      .where(eq(userProfiles.userId, userId));
+      .where(and(eq(userProfiles.userId, userId), moneyAtLeastExpr(recipe.cost)))
+      .returning({
+        money: userProfiles.money,
+        affection: userProfiles.affection,
+        liviaHunger: userProfiles.liviaHunger,
+        liviaEnergy: userProfiles.liviaEnergy,
+      });
+
+    if (updated.length === 0) {
+      throw errors.badRequest(
+        'Uang (Rv) tidak cukup untuk membeli bahan masakan ini!',
+        'INSUFFICIENT_FUNDS'
+      );
+    }
+
+    const newMoney = updated[0].money;
+    const newHunger = updated[0].liviaHunger;
+    const newEnergy = updated[0].liviaEnergy;
+    const newAffection = updated[0].affection ?? 0;
+    await ensureUnlockedChapters(userId, newAffection);
 
     return NextResponse.json({
       success: true,
       newMoney,
-      newAffection: updateResult.newAffection,
+      newAffection,
       newHunger,
       newEnergy,
       recipeName: recipe.name,

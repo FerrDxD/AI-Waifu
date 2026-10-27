@@ -4,7 +4,14 @@ import { gardenPots, userProfiles } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { SEED_CATALOG } from '@/lib/livia/seeds';
-import { applyAffectionUpdate } from '@/lib/livia/affection.server';
+import { ensureUnlockedChapters } from '@/lib/livia/affection.server';
+import {
+  newAffectionExpr,
+  affectionLevelExpr,
+  moneyMinusExpr,
+  moneyPlusExpr,
+  moneyAtLeastExpr,
+} from '@/lib/livia/atomic-profile';
 import { apiHandler, jsonApiHandler } from '@/lib/api-handler';
 import { mutationRateLimit } from '@/lib/rate-limit';
 import { errors } from '@/lib/errors';
@@ -130,14 +137,16 @@ export const POST = jsonApiHandler<GardenBody>(
         : undefined;
       if (!seed) throw errors.badRequest('Bibit tidak dikenal.', 'INVALID_SEED');
 
-      if ((profile.money || 0) < seed.cost) {
+      // M5.4 — atomik: `money = money - cost` + guard `money >= cost` dalam satu
+      // statement, mencegah double-spend saat tombol ditekuk cepat.
+      const moneyUpdate = await db
+        .update(userProfiles)
+        .set({ money: moneyMinusExpr(seed.cost) })
+        .where(and(eq(userProfiles.userId, userId), moneyAtLeastExpr(seed.cost)))
+        .returning({ id: userProfiles.id });
+      if (moneyUpdate.length === 0) {
         throw errors.badRequest('Uang kamu tidak cukup untuk membeli bibit ini.', 'INSUFFICIENT_FUNDS');
       }
-
-      await db
-        .update(userProfiles)
-        .set({ money: (profile.money || 0) - seed.cost })
-        .where(eq(userProfiles.userId, userId));
 
       await db
         .update(gardenPots)
@@ -164,29 +173,36 @@ export const POST = jsonApiHandler<GardenBody>(
       const baseCost = seed?.cost || 100;
       const profit = Math.floor(baseCost * 1.45);
 
-      let newAffection = profile.affection || 0;
-      let newLevel = profile.affectionLevel || 0;
-      let newItemsBrought = profile.itemsBrought || [];
+      const currentItems = profile.itemsBrought || [];
+      const isIngredient = seed?.yieldType === 'money_ingredient' && seed.ingredientId;
+      const newItemsBrought =
+        isIngredient && seed.ingredientId && !currentItems.includes(seed.ingredientId)
+          ? [...currentItems, seed.ingredientId]
+          : currentItems;
 
-      if (seed?.yieldType === 'money_ingredient' && seed.ingredientId) {
-        if (!newItemsBrought.includes(seed.ingredientId)) {
-          newItemsBrought = [...newItemsBrought, seed.ingredientId];
-        }
-      } else {
-        const affRes = await applyAffectionUpdate(userId, profile.affection || 0, 3);
-        newAffection = affRes.newAffection;
-        newLevel = affRes.affectionLevel;
+      // M5.4 — atomik: `money = money + profit` dalam satu statement (anti
+      // double-harvest); afeksi +3 untuk tanaman non-bahan.
+      const setClause: {
+        money: ReturnType<typeof moneyPlusExpr>;
+        itemsBrought: string[];
+        lastSeen: Date;
+        affection?: ReturnType<typeof newAffectionExpr>;
+        affectionLevel?: ReturnType<typeof affectionLevelExpr>;
+      } = { money: moneyPlusExpr(profit), itemsBrought: newItemsBrought, lastSeen: new Date() };
+      if (!isIngredient) {
+        setClause.affection = newAffectionExpr(3);
+        setClause.affectionLevel = affectionLevelExpr(3);
       }
 
-      await db
+      const updated = await db
         .update(userProfiles)
-        .set({
-          money: (profile.money || 0) + profit,
-          affection: newAffection,
-          affectionLevel: newLevel,
-          itemsBrought: newItemsBrought,
-        })
-        .where(eq(userProfiles.userId, userId));
+        .set(setClause)
+        .where(eq(userProfiles.userId, userId))
+        .returning({ affection: userProfiles.affection });
+
+      if (updated.length > 0) {
+        await ensureUnlockedChapters(userId, updated[0].affection ?? 0);
+      }
 
       await db
         .update(gardenPots)

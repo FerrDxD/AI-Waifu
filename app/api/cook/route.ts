@@ -1,22 +1,33 @@
 import { NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { userProfiles } from '@/lib/db/schema';
 import { jsonApiHandler } from '@/lib/api-handler';
 import { mutationRateLimit } from '@/lib/rate-limit';
 import { errors } from '@/lib/errors';
 import { RECIPES } from '@/lib/livia/recipes';
-import { applyAffectionUpdate } from '@/lib/livia/affection.server';
+import { ensureUnlockedChapters } from '@/lib/livia/affection.server';
+import { getAffectionLevel, getUnlockedChapters } from '@/lib/livia/affection';
+import {
+  newAffectionExpr,
+  affectionLevelExpr,
+  clampStatExpr,
+  moneyMinusExpr,
+  moneyAtLeastExpr,
+} from '@/lib/livia/atomic-profile';
 
 /**
  * POST /api/cook
  *
- * Sebelumnya client (`kitchen/page.tsx`) memanggil endpoint ini padahal route-nya
- * tidak ada, jadi memasak selalu gagal dengan pesan generik.
- *
  * Aturan penting: **harga dan efek resep diambil dari katalog server**
  * (`lib/livia/recipes.ts`), bukan dari body request. Kalau client bisa mengirim
  * `cost` sendiri, siapa pun bisa memasak resep termahal dengan biaya 0.
+ *
+ * M5.4 — atomik: seluruh penyesuaian profil (uang, afeksi, lapar, energi) terjadi
+ * dalam SATU statement `UPDATE`. Guard `WHERE money >= cost` mencegah
+ * double-spend: dua request yang datang bersamaan tak bisa melewati guard setelah
+ * yang pertama sudah mengurangi saldo. Clamp [0,100] di-`affection`/stat terjadi
+ * di level statement, bukan dari snapshot client.
  */
 
 type CookBody = {
@@ -24,11 +35,6 @@ type CookBody = {
   isLiviaCooking?: unknown;
   isMinigameFailed?: unknown;
 };
-
-function clampStat(value: number | null | undefined, delta: number): number {
-  const base = typeof value === 'number' && Number.isFinite(value) ? value : 100;
-  return Math.min(100, Math.max(0, base + delta));
-}
 
 export const POST = jsonApiHandler<CookBody>(
   {
@@ -49,24 +55,6 @@ export const POST = jsonApiHandler<CookBody>(
 
     const isMinigameFailed = body.isMinigameFailed === true;
 
-    const profileResults = await db
-      .select()
-      .from(userProfiles)
-      .where(eq(userProfiles.userId, userId));
-    const profile = profileResults[0];
-
-    if (!profile) {
-      throw errors.notFound('Profil');
-    }
-
-    const money = profile.money ?? 0;
-    if (money < recipe.cost) {
-      throw errors.badRequest(
-        `Uang kos kamu tidak cukup untuk ${recipe.name}. Butuh ${recipe.cost} Rv.`,
-        'INSUFFICIENT_FUNDS'
-      );
-    }
-
     // Gagal mini-game tetap menghasilkan masakan, tapi hasilnya lebih buruk.
     // Bukan hukuman finansial (uang tetap terpakai) — supaya tidak bisa di-spam.
     const affectionDelta = isMinigameFailed
@@ -75,24 +63,40 @@ export const POST = jsonApiHandler<CookBody>(
     const hungerDelta = isMinigameFailed ? Math.floor(recipe.hungerDelta / 2) : recipe.hungerDelta;
     const energyDelta = isMinigameFailed ? Math.floor(recipe.energyDelta / 2) : recipe.energyDelta;
 
-    const affectionResult = await applyAffectionUpdate(
-      userId,
-      profile.affection ?? 0,
-      affectionDelta
-    );
-
-    await db
+    const updated = await db
       .update(userProfiles)
       .set({
-        money: money - recipe.cost,
-        affection: affectionResult.newAffection,
-        affectionLevel: affectionResult.affectionLevel,
-        liviaHunger: clampStat(profile.liviaHunger, hungerDelta),
-        liviaEnergy: clampStat(profile.liviaEnergy, energyDelta),
+        money: moneyMinusExpr(recipe.cost),
+        affection: newAffectionExpr(affectionDelta),
+        affectionLevel: affectionLevelExpr(affectionDelta),
+        liviaHunger: clampStatExpr(userProfiles.liviaHunger, hungerDelta),
+        liviaEnergy: clampStatExpr(userProfiles.liviaEnergy, energyDelta),
         liviaStatsUpdatedAt: new Date(),
         lastSeen: new Date(),
       })
-      .where(eq(userProfiles.userId, userId));
+      .where(and(eq(userProfiles.userId, userId), moneyAtLeastExpr(recipe.cost)))
+      .returning({ money: userProfiles.money, affection: userProfiles.affection });
+
+    if (updated.length === 0) {
+      // Guard gagal: profil tidak ada ATAU saldo tidak cukup.
+      const profile = (
+        await db
+          .select({ money: userProfiles.money })
+          .from(userProfiles)
+          .where(eq(userProfiles.userId, userId))
+      )[0];
+      if (!profile) throw errors.notFound('Profil');
+      throw errors.badRequest(
+        `Uang kos kamu tidak cukup untuk ${recipe.name}. Butuh ${recipe.cost} Rv.`,
+        'INSUFFICIENT_FUNDS'
+      );
+    }
+
+    const newMoney = updated[0].money;
+    const newAffection = updated[0].affection ?? 0;
+    await ensureUnlockedChapters(userId, newAffection);
+    const level = getAffectionLevel(newAffection);
+    const unlockedChapter = getUnlockedChapters(-1, newAffection).pop() ?? null;
 
     const message = isMinigameFailed
       ? `${recipe.name} jadi kurang matang, tapi Livia tetap menghabiskanmu. Dia bilang, "Yaa... lumayan lah. Lain kali jangan sambil main HP ya!"`
@@ -100,10 +104,10 @@ export const POST = jsonApiHandler<CookBody>(
 
     return NextResponse.json({
       ok: true,
-      money: money - recipe.cost,
-      affection: affectionResult.newAffection,
-      affectionLevel: affectionResult.affectionLevel,
-      unlockedChapter: affectionResult.unlockedChapter,
+      money: newMoney,
+      affection: newAffection,
+      affectionLevel: level.level,
+      unlockedChapter,
       expression: isMinigameFailed ? 'pain' : 'happy',
       message,
       recipe: { id: recipe.id, name: recipe.name, emoji: recipe.emoji },

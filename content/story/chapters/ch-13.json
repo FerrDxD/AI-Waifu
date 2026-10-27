@@ -1,0 +1,393 @@
+{
+  "id": 13,
+  "title": "Pengurus Kuil",
+  "reqAffection": 100,
+  "reqLevel": 5,
+  "requirements": [
+    {
+      "kind": "accountDays",
+      "min": 70,
+      "label": "Menyelesaikan Kunjungan Kuil"
+    }
+  ],
+  "scenes": [
+    {
+      "speaker": "Narator",
+      "text": "Malam pergantian tahun tiba. Udara musim dingin yang menusuk tulang sama sekali tak menyurutkan lautan manusia yang memadati kuil.",
+      "expression": "normal",
+      "bg": "13.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Gimana? P-pakaian ini... nggak aneh kan di aku?",
+      "expression": "blushing-13",
+      "bg": "13.1",
+      "choices": [
+        {
+          "text": "Sangat cantik, seperti bidadari kuil.",
+          "nextIndex": 2
+        },
+        {
+          "text": "Sedikit kebesaran, tapi menggemaskan.",
+          "nextIndex": 4
+        },
+        {
+          "text": "Terlihat profesional. Ayo mulai bekerja!",
+          "nextIndex": 6
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "B-bidadari?! Jangan berlebihan ah, nanti aku besar kepala lho...",
+      "expression": "blushing-13",
+      "bg": "13.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Narator",
+      "text": "",
+      "expression": "normal",
+      "bg": "13.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ugh, ini ukuran terkecil yang ibumu temukan! Jangan diledek dong...",
+      "expression": "angry-13",
+      "bg": "13.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Narator",
+      "text": "",
+      "expression": "normal",
+      "bg": "13.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Livia",
+      "text": "Wah, bos kita galak banget! Siap laksanakan, Komandan!",
+      "expression": "silly-13",
+      "bg": "13.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Narator",
+      "text": "",
+      "expression": "normal",
+      "bg": "13.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Narator",
+      "text": "Setelah merapikan chihaya putih dan hakama merahnya, kalian berjalan menuju stan Omamori di tengah hiruk-pikuk Hatsumode.",
+      "expression": "normal",
+      "bg": "13.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "S-selamat datang! Jimat keselamatan, kesuksesan, dan jodoh ada di sebelah sini!",
+      "expression": "happy-13",
+      "bg": "13.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Jimat untuk ujian masuk Universitas? Ada! Yang ini paling ampuh!",
+      "expression": "happy-13",
+      "bg": "13.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia beradaptasi dengan sangat cepat. Senyum ramahnya mengundang kerumunan tak henti di stan kalian.",
+      "expression": "normal",
+      "bg": "13.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Namun tak lama, sekelompok gadis remaja menghampiri stan sambil berbisik-bisik dan melirikmu dengan genit.",
+      "expression": "normal",
+      "bg": "13.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Eh? Ada yang bisa saya bantu, Kak?",
+      "expression": "scared-13",
+      "bg": "13.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Salah satu gadis itu menyenggol temannya lalu bertanya kepadamu, 'Kakak pengurus kuil ganteng banget, sendirian aja kah? Mau tukeran kontak?'",
+      "expression": "normal",
+      "bg": "13.2",
+      "choices": [
+        {
+          "text": "Lirik Livia yang mulai cemberut.",
+          "nextIndex": 15
+        },
+        {
+          "text": "Tolak dengan senyum halus.",
+          "nextIndex": 17
+        },
+        {
+          "text": "Tarik tangan Livia dan pamerkan cincin.",
+          "nextIndex": 19
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "E-ehem! Maaf ya Dek, 'Kakak ganteng' ini jimat jodohnya udah sold out alias udah ada yang punya!",
+      "expression": "angry-13",
+      "bg": "13.2",
+      "nextIndex": 21
+    },
+    {
+      "speaker": "Narator",
+      "text": "",
+      "expression": "normal",
+      "bg": "13.2",
+      "nextIndex": 21
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu menolak dengan halus, beralasan bahwa kamu sedang sangat sibuk bekerja menjaga kuil bersama istrimu.",
+      "expression": "normal",
+      "bg": "13.2",
+      "nextIndex": 21
+    },
+    {
+      "speaker": "Narator",
+      "text": "",
+      "expression": "normal",
+      "bg": "13.2",
+      "nextIndex": 21
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu menarik tangan Livia, menunjukkan cincin pernikahan kalian yang melingkar serasi di jari manis.",
+      "expression": "normal",
+      "bg": "13.2",
+      "nextIndex": 21
+    },
+    {
+      "speaker": "Narator",
+      "text": "",
+      "expression": "normal",
+      "bg": "13.2",
+      "nextIndex": 21
+    },
+    {
+      "speaker": "Narator",
+      "text": "Melihat hal itu, para gadis remaja tersebut langsung salah tingkah, meminta maaf, lalu berlari pergi.",
+      "expression": "normal",
+      "bg": "13.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Huuu... untung aja tadi ada aku. Kalau ngga, pasti kamu udah digoda macem-macem.",
+      "expression": "clingy-13",
+      "bg": "13.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tapi... makasih ya. Udah ngebuktiin kalau kamu beneran cuma milikku.",
+      "expression": "blushing-13",
+      "bg": "13.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Malam terus larut, pengunjung silih berganti. Livia melayani mereka dengan penuh semangat.",
+      "expression": "normal",
+      "bg": "13.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Jimat untuk kelancaran persalinan? Oh, tentu saja! Semoga istri Anda dan bayinya sehat selalu ya, Pak!",
+      "expression": "happy-13",
+      "bg": "13.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Fiuh... lumayan capek juga ya. Gimana? Aku udah kelihatan kaya penjaga kuil profesional belum?",
+      "expression": "happy-13",
+      "bg": "13.2",
+      "choices": [
+        {
+          "text": "Sangat profesional dan cekatan.",
+          "nextIndex": 27
+        },
+        {
+          "text": "Jangan memaksakan diri ya.",
+          "nextIndex": 29
+        },
+        {
+          "text": "Semangat sampai pagi!",
+          "nextIndex": 31
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hehe, tentu saja! Aku kan harus bantu meringankan beban suamiku tercinta.",
+      "expression": "blushing-13",
+      "bg": "13.2",
+      "nextIndex": 33
+    },
+    {
+      "speaker": "Narator",
+      "text": "",
+      "expression": "normal",
+      "bg": "13.2",
+      "nextIndex": 33
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tenang aja, energi aku masih full kok! Apalagi kalau kerjanya bareng kamu terus.",
+      "expression": "happy-13",
+      "bg": "13.2",
+      "nextIndex": 33
+    },
+    {
+      "speaker": "Narator",
+      "text": "",
+      "expression": "normal",
+      "bg": "13.2",
+      "nextIndex": 33
+    },
+    {
+      "speaker": "Livia",
+      "text": "Uwooogh! Pantang menyerah sebelum fajar menyingsing!",
+      "expression": "silly-13",
+      "bg": "13.2",
+      "nextIndex": 33
+    },
+    {
+      "speaker": "Narator",
+      "text": "",
+      "expression": "normal",
+      "bg": "13.2",
+      "nextIndex": 33
+    },
+    {
+      "speaker": "Narator",
+      "text": "Beberapa jam berlalu. Saat pergantian shift, kalian melipir ke ruang istirahat staf yang sepi.",
+      "expression": "normal",
+      "bg": "13.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Akhirnya bisa duduk juga... kakiku beneran kaya mau copot rasanya.",
+      "expression": "scared-13",
+      "bg": "13.3"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Tepat saat Livia bersandar di tatami, pintu geser ruangan perlahan terbuka.",
+      "expression": "normal",
+      "bg": "13.3"
+    },
+    {
+      "speaker": "Ayame",
+      "text": "Kerja bagus, kalian berdua. Ibu bawakan amazake hangat dan mochi panggang.",
+      "expression": "normal",
+      "bg": "13.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ibu! T-terima kasih banyak! Ini pas banget buat ngusir dingin...",
+      "expression": "happy-13",
+      "bg": "13.3"
+    },
+    {
+      "speaker": "Ayame",
+      "text": "Awalnya Ibu khawatir kamu akan kewalahan, Livia. Berdiri melayani ribuan orang bukanlah hal yang mudah.",
+      "expression": "normal",
+      "bg": "13.3"
+    },
+    {
+      "speaker": "Ayame",
+      "text": "Ternyata kau punya kegigihan yang luar biasa. Ayahnya di Honden pasti bangga mendengarnya.",
+      "expression": "normal",
+      "bg": "13.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "A-aku cuma ingin... menjadi menantu yang bisa diandalkan oleh keluarga ini.",
+      "expression": "blushing-13",
+      "bg": "13.3"
+    },
+    {
+      "speaker": "Ayame",
+      "text": "Kalian sudah melakukan yang terbaik. Habiskan ini, lalu beristirahatlah. Sisa malam biar ditangani staf lain.",
+      "expression": "normal",
+      "bg": "13.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ternyata Ibumu baik banget ya... Aku bener-bener ngerasa diterima utuh di sini.",
+      "expression": "happy-13",
+      "bg": "13.3"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Menjelang fajar, kalian melangkah keluar menuju teras belakang kuil yang sangat sunyi.",
+      "expression": "normal",
+      "bg": "13.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Haaa... lelahnya... tapi ini pengalaman yang nggak akan pernah aku lupain.",
+      "expression": "clingy-13",
+      "bg": "13.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia merebahkan kepalanya di bahumu. Hembusan napasnya mengepul putih, melebur dengan embun pagi.",
+      "expression": "normal",
+      "bg": "13.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tahun lalu... aku cuma bisa berdoa diam-diam supaya kita bisa terus sama-sama.",
+      "expression": "blushing-13",
+      "bg": "13.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Sekarang, aku malah jualan jimat asmara buat orang lain. Lucu ya, padahal doaku sendiri udah terkabul dengan sempurna.",
+      "expression": "happy-13",
+      "bg": "13.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Di ufuk timur, semburat oranye mulai memecah langit. Matahari terbit pertama (Hatsuhinode) menampakkan diri.",
+      "expression": "normal",
+      "bg": "13.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Wah... cantik banget cahayanya...",
+      "expression": "happy-13",
+      "bg": "13.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Di bawah cahaya keemasan itu, Livia menarik kerah bajumu dan mendaratkan kecupan hangat di pipimu.",
+      "expression": "normal",
+      "bg": "13.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Selamat tahun baru, Suamiku. Mohon bimbingannya lagi untuk tahun ini, ya.",
+      "expression": "blushing-13",
+      "bg": "13.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Hatsumode kali ini mengikat janji suci kalian dalam harmoni yang tak akan pernah pudar.",
+      "expression": "normal",
+      "bg": "13.4"
+    }
+  ]
+}

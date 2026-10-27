@@ -1,0 +1,251 @@
+{
+  "id": 9,
+  "title": "Sebuah Janji",
+  "reqAffection": 100,
+  "reqLevel": 5,
+  "requirements": [
+    {
+      "kind": "accountDays",
+      "min": 30,
+      "label": "Umur akun minimal 30 Hari"
+    },
+    {
+      "kind": "screenTime",
+      "min": 150,
+      "label": "Screen time minimal 150 Jam"
+    }
+  ],
+  "scenes": [
+    {
+      "speaker": "Narator",
+      "text": "Malam itu, langit terlihat sangat cerah. Kalian berdua duduk berdampingan di balkon kamarmu, menikmati udara malam yang sejuk.",
+      "expression": "normal",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Di antara kalian terdapat dua cangkir cokelat panas yang mulai kehilangan uapnya.",
+      "expression": "normal",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Angin malam ini sejuk ya... Nggak kerasa kita udah ngelewatin banyak hal berdua.",
+      "expression": "happy",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kalau dipikir-pikir, dulu aku cuma cewek pemalas yang kerjaannya tiduran doang. Nggak nyangka sekarang aku bisa sejauh ini.",
+      "expression": "normal",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Menurutmu... aku udah banyak berubah nggak sih sejak kita pertama kenal?",
+      "expression": "serious",
+      "bg": "9.1",
+      "choices": [
+        {
+          "text": "Kamu jauh lebih dewasa dan bisa diandalkan sekarang.",
+          "nextIndex": 5
+        },
+        {
+          "text": "Berubah sih, dari pemalas level 100 jadi pemalas level 99.",
+          "nextIndex": 6
+        },
+        {
+          "text": "Kamu makin cantik dan bikin aku makin jatuh cinta.",
+          "nextIndex": 7
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hehe... dengar kamu bilang gitu rasanya lega. Aku emang berusaha keras tau!",
+      "expression": "happy",
+      "bg": "9.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kurang ajar! Usahaku selama ini nggak dihargain banget sih!",
+      "expression": "angry",
+      "bg": "9.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Livia",
+      "text": "A-apa-apaan sih tiba-tiba gombal! S-siapa juga yang mau bikin kamu jatuh cinta!",
+      "expression": "blushing",
+      "bg": "9.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia menundukkan pandangannya, menatap cangkir di tangannya dengan sorot mata yang tiba-tiba melembut.",
+      "expression": "normal",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Jujur aja... kadang aku merasa takut.",
+      "expression": "sad",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Waktu berlalu begitu cepat. Kuliah sudah mau selesai, dan kita harus mikirin masa depan.",
+      "expression": "serious",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Aku takut... suatu hari nanti, saat semuanya berubah, kamu bakal ngerasa kalau aku ini cuma beban.",
+      "expression": "pain",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Atau... kamu mungkin bakal nemuin orang lain yang lebih rajin, lebih mandiri, dan lebih sempurna dari aku...",
+      "expression": "crying",
+      "bg": "9.1",
+      "choices": [
+        {
+          "text": "Aku nggak akan pernah ninggalin kamu, Livia.",
+          "nextIndex": 13
+        },
+        {
+          "text": "Bodoh. Sampai kapanpun kamu tetap yang nomor satu.",
+          "nextIndex": 14
+        },
+        {
+          "text": "Gimana mau cari yang lain kalau hatiku udah nyangkut di kamu?",
+          "nextIndex": 15
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "J-janji ya? Jangan cuma ngomong manis aja di mulut...",
+      "expression": "blushing",
+      "bg": "9.1",
+      "nextIndex": 16
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ukh... kenapa kamu pinter banget bikin aku nggak bisa ngomong...",
+      "expression": "blushing",
+      "bg": "9.1",
+      "nextIndex": 16
+    },
+    {
+      "speaker": "Livia",
+      "text": "G-gombal murahan! Tapi... syukurlah kalau gitu...",
+      "expression": "blushing",
+      "bg": "9.1",
+      "nextIndex": 16
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu tersenyum, meletakkan cangkirmu, lalu menggenggam kedua tangan Livia dengan lembut.",
+      "expression": "normal",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Jantungmu berdebar kencang. Kamu merogoh saku jaketmu dan mengeluarkan sebuah kotak kecil berlapis beludru.",
+      "expression": "normal",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "E-eh...? K-kotak apa itu? Jangan bilang kamu...?",
+      "expression": "scared",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu membuka kotak itu perlahan. Di bawah temaram cahaya bulan, sebuah cincin sederhana namun elegan berkilau indah.",
+      "expression": "normal",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ini... ini beneran? Kamu...",
+      "expression": "crying",
+      "bg": "9.1",
+      "choices": [
+        {
+          "text": "Maukah kamu menghabiskan sisa hidupmu bersamaku, Livia?",
+          "nextIndex": 21
+        },
+        {
+          "text": "Kalau nggak mau, cincinnya kulempar ke bawah nih.",
+          "nextIndex": 22
+        },
+        {
+          "text": "Jadilah milikku selamanya, dan mari kita hadapi masa depan bersama.",
+          "nextIndex": 23
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hiks... Bodoh... kenapa kamu nanya hal yang udah jelas jawabannya...",
+      "expression": "crying",
+      "bg": "9.1",
+      "nextIndex": 24
+    },
+    {
+      "speaker": "Livia",
+      "text": "JANGAN! Ih kamu tuh ngajak nikah tapi ngeselin banget! Awas kalau dilempar!",
+      "expression": "angry",
+      "bg": "9.1",
+      "nextIndex": 24
+    },
+    {
+      "speaker": "Livia",
+      "text": "U-uhhh... kata-katamu kayak di novel aja... tapi, aku mau...",
+      "expression": "crying",
+      "bg": "9.1",
+      "nextIndex": 24
+    },
+    {
+      "speaker": "Narator",
+      "text": "Air mata bahagia menetes dari sudut mata Livia. Ia menyeka air matanya dan menyodorkan jari manis kiri ke arahmu.",
+      "expression": "normal",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tunggu apa lagi? Cepat pasangkan... sebelum aku berubah pikiran karena malu...",
+      "expression": "blushing",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Dengan tangan yang sedikit bergetar, kamu menyematkan cincin itu di jarinya. Ukurannya sangat pas.",
+      "expression": "normal",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Pas... kamu bahkan tau ukuran jariku. Dasar penguntit diam-diam.",
+      "expression": "happy",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tapi... terima kasih. Aku janji... aku akan berusaha jadi pendamping yang baik buat kamu.",
+      "expression": "happy",
+      "bg": "9.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Malam itu, di bawah saksi ribuan bintang, janji untuk hidup dan menua bersama telah resmi terukir di antara kalian.",
+      "expression": "normal",
+      "bg": "9.1"
+    }
+  ]
+}

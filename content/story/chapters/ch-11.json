@@ -1,0 +1,264 @@
+{
+  "id": 11,
+  "title": "Pernikahan Suci",
+  "reqAffection": 100,
+  "reqLevel": 5,
+  "requirements": [
+    {
+      "kind": "item",
+      "item": "gaun_pengantin",
+      "label": "Membeli Gaun Pengantin"
+    }
+  ],
+  "scenes": [
+    {
+      "speaker": "Narator",
+      "text": "Suara alunan organ menggema di seluruh penjuru kapel. Cahaya matahari pagi menembus kaca patri, menciptakan pendaran warna-warni yang indah di altar.",
+      "expression": "normal",
+      "bg": "11.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu berdiri dengan setelan jas rapi, jantungmu berdebar kencang. Hari yang ditunggu-tunggu akhirnya tiba.",
+      "expression": "normal",
+      "bg": "11.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Tiba-tiba, lonceng gereja berdentang, dan pintu utama kapel terbuka lebar.",
+      "expression": "normal",
+      "bg": "11.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia berjalan perlahan menyusuri lorong. Gaun pengantin putih bersih membalut tubuhnya dengan sempurna, membuat semua mata terpana.",
+      "expression": "normal",
+      "bg": "11.3"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Di sebelahnya, Ibu Laura menggandeng tangannya sambil sesekali menyeka air mata haru.",
+      "expression": "normal",
+      "bg": "11.3"
+    },
+    {
+      "speaker": "Laura",
+      "text": "Tolong jaga putri kesayanganku ya. Ibu serahkan dia padamu sepenuhnya.",
+      "expression": "normal",
+      "bg": "11.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu mengangguk mantap. Ibu Laura tersenyum, melepaskan genggamannya, dan membiarkan Livia melangkah mendekatimu.",
+      "expression": "normal",
+      "bg": "11.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "B-bagaimana? A-aku kelihatan aneh ya pakai gaun semahal dan semewah ini?",
+      "expression": "blushing",
+      "bg": "11.4",
+      "choices": [
+        {
+          "text": "Kamu adalah pengantin paling cantik dan sempurna di mataku.",
+          "nextIndex": 8
+        },
+        {
+          "text": "Lumayan, sayangnya orangnya tetep aja galak seperti biasa.",
+          "nextIndex": 9
+        },
+        {
+          "text": "Kamu terlihat sangat menggoda. Aku jadi ingin acaranya cepat selesai.",
+          "nextIndex": 10
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Makasih... Kamu juga... terlihat sangat tampan hari ini. Sampai bikin aku deg-degan...",
+      "expression": "blushing",
+      "bg": "11.4",
+      "nextIndex": 11
+    },
+    {
+      "speaker": "Livia",
+      "text": "Dih! Di hari pernikahan kita kamu masih aja ngajak berantem?! Awas aja nanti malam ya!",
+      "expression": "angry",
+      "bg": "11.4",
+      "nextIndex": 11
+    },
+    {
+      "speaker": "Livia",
+      "text": "M-mesum! Jaga ucapanmu, ini di depan altar suci tau! Malu didenger tamu!",
+      "expression": "scared",
+      "bg": "11.4",
+      "nextIndex": 11
+    },
+    {
+      "speaker": "Narator",
+      "text": "Sang pendeta berdehem pelan, mengembalikan fokus kalian pada upacara sakral yang akan segera dimulai.",
+      "expression": "normal",
+      "bg": "11.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Tiba saatnya mengucap janji suci. Livia menatap matamu dalam-dalam, suaranya sedikit bergetar karena gugup dan terharu.",
+      "expression": "normal",
+      "bg": "11.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Aku... yang awalnya hanya seorang gadis penakut yang mengurung diri di kamar sempit...",
+      "expression": "crying",
+      "bg": "11.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Bersyukur karena Tuhan mengirimkan seseorang sepertimu ke dalam hidupku.",
+      "expression": "crying",
+      "bg": "11.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kamu memberiku keberanian untuk keluar dari zona nyamanku, untuk bermimpi, dan... untuk mencintai.",
+      "expression": "happy",
+      "bg": "11.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Aku berjanji, mulai detik ini, aku akan selalu ada di sisimu. Di saat sehat maupun sakit, di saat suka maupun duka...",
+      "expression": "happy",
+      "bg": "11.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Air matanya menetes, namun senyumnya memancarkan kebahagiaan murni. Kini giliranmu untuk mengucapkan janji (Ucapkan di dalam hati).",
+      "expression": "normal",
+      "bg": "11.4",
+      "choices": [
+        {
+          "text": "[Janji Penuh Cinta] Aku akan selalu melindungimu dan mencintaimu selamanya.",
+          "nextIndex": 18
+        },
+        {
+          "text": "[Janji Kocak] Aku berjanji akan sabar menghadapi ngambekmu setiap hari.",
+          "nextIndex": 19
+        },
+        {
+          "text": "[Janji Tegas] Aku akan jadi kepala keluarga yang tak akan pernah mengecewakanmu.",
+          "nextIndex": 20
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hiks... bodoh... kamu bikin make-up ku luntur...",
+      "expression": "crying",
+      "bg": "11.4",
+      "nextIndex": 21
+    },
+    {
+      "speaker": "Livia",
+      "text": "Pfft... janji macam apa itu?! Tapi... makasih karena udah selalu sabar...",
+      "expression": "happy",
+      "bg": "11.4",
+      "nextIndex": 21
+    },
+    {
+      "speaker": "Livia",
+      "text": "Aku pegang janjimu. Jangan sampai kamu mengingkarinya ya, Suamiku.",
+      "expression": "blushing",
+      "bg": "11.4",
+      "nextIndex": 21
+    },
+    {
+      "speaker": "Narator",
+      "text": "Setelah saling menyematkan cincin, sang pendeta akhirnya menutup upacara dengan kalimat pamungkas.",
+      "expression": "normal",
+      "bg": "11.4"
+    },
+    {
+      "speaker": "Pendeta",
+      "text": "Sekarang, kalian berdua telah resmi menjadi sepasang suami istri. Pengantin pria, dipersilakan untuk mencium pengantin wanita.",
+      "expression": "normal",
+      "bg": "11.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "E-eh?! S-sekarang?! T-tapi kan di sini banyak orang...! Ibu, temen-temen kos, semuanya ngeliatin!",
+      "expression": "scared",
+      "bg": "11.4",
+      "choices": [
+        {
+          "text": "Cium keningnya dengan penuh kelembutan.",
+          "nextIndex": 24
+        },
+        {
+          "text": "Cium bibirnya perlahan dengan penuh perasaan.",
+          "nextIndex": 25
+        },
+        {
+          "text": "Tarik pinggangnya dan berikan ciuman romantis yang dramatis (Dip Kiss).",
+          "nextIndex": 26
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Mmm... syukurlah, kamu pengertian. Jantungku bisa meledak kalau lebih dari ini...",
+      "expression": "blushing",
+      "bg": "11.4",
+      "nextIndex": 27
+    },
+    {
+      "speaker": "Livia",
+      "text": "Nnnm... bodoh... padahal malu banget... tapi rasanya hangat...",
+      "expression": "blushing",
+      "bg": "11.4",
+      "nextIndex": 27
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kyaa! K-kamu ngapain narik-narik! Nnnmh--! I-ini terlalu ekstrem untuk ditonton publik bodoh!",
+      "expression": "scared",
+      "bg": "11.4",
+      "nextIndex": 27
+    },
+    {
+      "speaker": "Narator",
+      "text": "Riuh tepuk tangan dan sorakan meriah seketika memenuhi kapel. Bunga-bunga ditaburkan ke arah kalian saat kalian berjalan keluar altar.",
+      "expression": "normal",
+      "bg": "11.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Akhirnya selesai juga... kakiku sampai pegal tahu, pakai hak tinggi begini.",
+      "expression": "pain",
+      "bg": "11.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Namun, seburuk apapun ia mengeluh, senyum tak pernah lepas dari wajahnya.",
+      "expression": "normal",
+      "bg": "11.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hei... mulai detik ini, panggil aku istrimu ya. Jangan berani-berani lirik perempuan lain!",
+      "expression": "clingy",
+      "bg": "11.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Karena sekarang, kamu seutuhnya adalah milikku. I love you, Suamiku.",
+      "expression": "happy",
+      "bg": "11.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Babak baru dalam hidup kalian sebagai keluarga baru saja dimulai.",
+      "expression": "normal",
+      "bg": "11.1"
+    }
+  ]
+}

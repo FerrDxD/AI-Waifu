@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { generateDateResponse, extractLanguage, resolveApiKey } from '@/lib/gemini';
 import { db } from '@/lib/db';
 import { userProfiles } from '@/lib/db/schema';
-import { applyAffectionUpdate } from '@/lib/livia/affection.server';
+import { applyAffectionAtomic } from '@/lib/livia/affection.server';
 import { apiHandler } from '@/lib/api-handler';
 import { aiRateLimit, aiDailyQuota } from '@/lib/rate-limit';
 import { getCycleInfo } from '@/lib/livia/cycle';
@@ -85,15 +85,14 @@ export const POST = apiHandler(
     } = { newAffection: profile?.affection, unlockedChapter: null };
 
     if (profile) {
-      const updateData: Record<string, unknown> = { lastSeen: new Date() };
-
+      // M5.4: afeksi di-update atomik (affection + delta, clamp) + lastSeen +
+      // unlock chapter dalam satu jalur. Delta 0 cukup catat lastSeen.
       if (affectionDelta !== 0) {
-        updateResult = await applyAffectionUpdate(userId, profile.affection || 0, affectionDelta);
-        updateData.affection = updateResult.newAffection;
-        updateData.affectionLevel = updateResult.affectionLevel;
+        const res = await applyAffectionAtomic(userId, affectionDelta);
+        if (res) updateResult = res;
+      } else {
+        await db.update(userProfiles).set({ lastSeen: new Date() }).where(eq(userProfiles.userId, userId));
       }
-
-      await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, userId));
 
       // M3.2: fakta dari kencan ikut masuk tabel memori. Di-await dengan alasan
       // sama seperti chat: promise tanpa penunggu bisa dibekukan serverless.

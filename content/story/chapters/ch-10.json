@@ -1,0 +1,261 @@
+{
+  "id": 10,
+  "title": "Persiapan Pernikahan",
+  "reqAffection": 100,
+  "reqLevel": 5,
+  "requirements": [
+    {
+      "kind": "item",
+      "item": "cincin_nikah",
+      "label": "Memiliki Cincin Nikah"
+    },
+    {
+      "kind": "item",
+      "item": "berkas_kua",
+      "label": "Mengurus Berkas KUA"
+    },
+    {
+      "kind": "item",
+      "item": "gedung_resepsi",
+      "label": "Memesan Gedung Resepsi"
+    },
+    {
+      "kind": "item",
+      "item": "katering",
+      "label": "Memesan Katering"
+    }
+  ],
+  "scenes": [
+    {
+      "speaker": "Narator",
+      "text": "Hari demi hari berlalu. Kamarmu yang dulu sepi kini penuh dengan tumpukan berkas dari balai kota, brosur gaun pengantin, dan denah gedung.",
+      "expression": "normal",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia terlihat duduk bersila di tengah kekacauan kertas, memegang kalkulator di satu tangan dan pulpen di tangan lainnya.",
+      "expression": "normal",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Huft... Coba aku cek lagi. Pendaftaran pernikahan udah lengkap, DP kapel udah beres, undangan udah dicetak...",
+      "expression": "normal",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tapi milih kateringnya ini lho yang bikin pusing! Kenapa pilihannya harus sebanyak ini sih?!",
+      "expression": "angry",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ada menu tradisional, western, oriental... Aku kan jadi laper lihat gambarnya doang!",
+      "expression": "pain",
+      "bg": "6.1",
+      "choices": [
+        {
+          "text": "Pilih yang banyak dagingnya aja, pasti pada suka.",
+          "nextIndex": 5
+        },
+        {
+          "text": "Gimana kalau kita sajikan mie instan? Hemat budget.",
+          "nextIndex": 6
+        },
+        {
+          "text": "Pilih menu tradisional aja biar keluarga besar senang.",
+          "nextIndex": 7
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Bener juga! Apalagi rendang sapi, wajib ada tuh!",
+      "expression": "happy",
+      "bg": "6.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kamu gila ya?! Bisa-bisa ibu ngamuk kalau tamu disuguhin mie instan doang!",
+      "expression": "angry",
+      "bg": "6.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Livia",
+      "text": "Masuk akal sih. Ibu pasti lebih suka masakan lokal ketimbang pasta-pastaan.",
+      "expression": "normal",
+      "bg": "6.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia mencoret salah satu menu di brosur, lalu merebahkan tubuhnya ke karpet sambil membuang napas panjang.",
+      "expression": "normal",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ternyata nyiapin pernikahan itu capek banget ya! Punggungku sampai pegal, mataku juga sepet.",
+      "expression": "pain",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Belum lagi nyocokin jadwal fitting baju. Aku takut gaunnya nanti nggak cocok sama badanku...",
+      "expression": "sad",
+      "bg": "6.1",
+      "choices": [
+        {
+          "text": "Kamu pasti lelah, sini aku pijat pundakmu.",
+          "nextIndex": 11
+        },
+        {
+          "text": "Nggak usah khawatir, kamu pakai karung goni aja tetap cantik kok.",
+          "nextIndex": 12
+        },
+        {
+          "text": "Kamu pasti bakal jadi pengantin paling cantik di dunia.",
+          "nextIndex": 13
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Mmm... makasih. Tanganmu selalu tahu titik yang bikin pegalku hilang.",
+      "expression": "happy",
+      "bg": "6.1",
+      "nextIndex": 14
+    },
+    {
+      "speaker": "Livia",
+      "text": "E-enak aja! Masa hari paling bersejarah disuruh pakai karung goni!",
+      "expression": "angry",
+      "bg": "6.1",
+      "nextIndex": 14
+    },
+    {
+      "speaker": "Livia",
+      "text": "D-dunia?! L-lebay banget sih! Tapi... makasih...",
+      "expression": "blushing",
+      "bg": "6.1",
+      "nextIndex": 14
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia perlahan merangkak mendekatimu, lalu menyenderkan kepalanya dengan manja ke bahumu.",
+      "expression": "normal",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Eh... ini cuma perasaan aku aja, atau waktu emang kerasa cepat banget?",
+      "expression": "normal",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Rasanya baru kemarin aku marah-marah gara-gara kamu lelet pas bantu aku pindahan.",
+      "expression": "happy",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Dan sekarang... kita lagi milih menu katering buat resepsi pernikahan kita sendiri.",
+      "expression": "blushing",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu tersenyum dan mengelus rambutnya perlahan.",
+      "expression": "normal",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Makasih ya, kamu udah mau nerima aku apa adanya. Bertahan sama semua kekurangan dan sifat jelekku.",
+      "expression": "clingy",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Aku beneran nggak sabar nunggu hari H-nya tiba. Nanti kita tinggal serumah beneran... tidur di kasur yang sama...",
+      "expression": "blushing",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Wajah Livia perlahan memerah saat menyadari arah omongannya sendiri.",
+      "expression": "normal",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "E-ekhem! M-maksudku, ya intinya begitu lah! P-pokoknya jangan mikir yang aneh-aneh buat malam pertama kita nanti!",
+      "expression": "blushing",
+      "bg": "6.1",
+      "choices": [
+        {
+          "text": "Siapa juga yang mikir aneh-aneh? Kamu tuh yang otaknya ngeres.",
+          "nextIndex": 23
+        },
+        {
+          "text": "Waduh, padahal aku udah nyiapin mental buat itu.",
+          "nextIndex": 24
+        },
+        {
+          "text": "Tenang aja, aku bakal bersikap sangat lembut padamu.",
+          "nextIndex": 25
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "A-aku nggak ngeres! Cuma mengingatkan aja biar kamu nggak macem-macem!",
+      "expression": "angry",
+      "bg": "6.1",
+      "nextIndex": 26
+    },
+    {
+      "speaker": "Livia",
+      "text": "M-mental apa?! B-belum juga sah udah mikir ke sana! Dasar mesum!",
+      "expression": "scared",
+      "bg": "6.1",
+      "nextIndex": 26
+    },
+    {
+      "speaker": "Livia",
+      "text": "L-lembut apanya?! K-kata-katamu malah bikin kedengeran makin mencurigakan tau!",
+      "expression": "blushing",
+      "bg": "6.1",
+      "nextIndex": 26
+    },
+    {
+      "speaker": "Narator",
+      "text": "Melihat Livia yang salah tingkah selalu berhasil membuatmu tertawa lepas.",
+      "expression": "normal",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Uuugh... nyebelin! Yaudah, bantuin aku milih menu ini aja biar cepet selesai!",
+      "expression": "angry",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu pun membantunya menyelesaikan daftar panjang persiapan resepsi tersebut.",
+      "expression": "normal",
+      "bg": "6.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Meskipun sangat melelahkan, kamu menyadari bahwa perjalanan ini bukanlah akhir, melainkan awal dari cerita baru kalian yang sesungguhnya.",
+      "expression": "normal",
+      "bg": "6.1"
+    }
+  ]
+}

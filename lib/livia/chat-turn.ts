@@ -16,7 +16,7 @@ import { extractLanguage, resolveApiKey } from '@/lib/gemini';
 import { buildChatContext } from '@/lib/ai/context';
 import { loadSummaries } from '@/lib/livia/summary';
 import { logger } from '@/lib/logger';
-import { applyAffectionUpdate } from '@/lib/livia/affection.server';
+import { applyAffectionAtomic } from '@/lib/livia/affection.server';
 import { getCycleInfo } from '@/lib/livia/cycle';
 import { importLegacyMemory, recordMemories, retrieveMemoryLines } from '@/lib/livia/memory';
 import type { ExtractedMemory } from '@/lib/ai/schemas';
@@ -173,7 +173,7 @@ export function statsFromContext(ctx: ChatTurnContext) {
 export interface PersistChatTurnResult {
   /** Kolom profil boleh null — route mengembalikannya apa adanya. */
   newAffection: number | null;
-  /** Nama field dari `applyAffectionUpdate`. Route memetakan ke `newLevel`. */
+  /** Nama field dari `applyAffectionAtomic`. Route memetakan ke `newLevel`. */
   affectionLevel: number | null;
   unlockedChapter: number | null;
 }
@@ -207,9 +207,12 @@ export async function persistChatTurn(
   const updateData: Record<string, unknown> = { lastSeen: new Date() };
 
   if (affectionDelta !== 0) {
-    updateResult = await applyAffectionUpdate(userId, profile.affection || 0, affectionDelta);
-    updateData.affection = updateResult.newAffection;
-    updateData.affectionLevel = updateResult.affectionLevel;
+    // M5.4: afeksi di-update atomik (affection + delta, clamp) + lastSeen +
+    // unlock chapter dalam satu jalur; tidak lagi baca-lalu-tulis.
+    const res = await applyAffectionAtomic(userId, affectionDelta);
+    if (res) {
+      updateResult = res;
+    }
   }
 
   await db.update(userProfiles).set(updateData).where(eq(userProfiles.userId, userId));

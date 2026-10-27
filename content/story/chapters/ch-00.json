@@ -1,0 +1,508 @@
+{
+  "id": 0,
+  "title": "Hari Pertama",
+  "reqAffection": 0,
+  "reqLevel": 0,
+  "scenes": [
+    {
+      "speaker": "Livia",
+      "text": "Hah... hah... akhirnya selesai juga mindahin semua kardus ini.",
+      "expression": "pain"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu dan Livia meletakkan kardus terakhir di sudut ruangan. Keringat membasahi dahi kalian berdua.",
+      "expression": "normal"
+    },
+    {
+      "speaker": "Livia",
+      "text": "K-kenapa kamarnya sempit banget sih?! Ini mah sekandang burung!",
+      "expression": "angry"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ibu bilang ini apartemen yang layak, tapi kok begini... huft.",
+      "expression": "serious"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Yah, seenggaknya bersih sih. Nggak terlalu buruk.",
+      "expression": "normal"
+    },
+    {
+      "speaker": "Livia",
+      "text": "D-dan... makasih ya udah bantu angkat-angkat. Walaupun aku nggak minta lho ya!",
+      "expression": "blushing",
+      "choices": [
+        {
+          "text": "Sama-sama. Itu gunanya tetangga.",
+          "nextIndex": 6
+        },
+        {
+          "text": "Capek nih, traktir minum dong.",
+          "nextIndex": 7
+        },
+        {
+          "text": "Kamu berat juga bawaannya.",
+          "nextIndex": 8
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hmph, baguslah kalau kamu sadar posisimu!",
+      "expression": "pleased",
+      "nextIndex": 9
+    },
+    {
+      "speaker": "Livia",
+      "text": "Mata duitan! Tapi... yaudah nanti kubuatin teh.",
+      "expression": "angry",
+      "nextIndex": 9
+    },
+    {
+      "speaker": "Livia",
+      "text": "Jangan sebut-sebut berat di depan cewek!",
+      "expression": "pain",
+      "nextIndex": 9
+    },
+    {
+      "speaker": "Livia",
+      "text": "Terus ini kardus-kardusnya mau diapain? Ditumpuk gitu aja?",
+      "expression": "confused"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Tiba-tiba, Livia mematung. Matanya tertuju pada sudut dekat lemari.",
+      "expression": "normal"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kyaaa!!! I-itu apa?! Ada yang gerak-gerak hitam di sana!",
+      "expression": "scared"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tolongin! Singkirin benda itu sekarang juga! Aku nggak mau tidur sama monster!",
+      "expression": "clingy",
+      "choices": [
+        {
+          "text": "Itu cuma kecoak kecil.",
+          "nextIndex": 13
+        },
+        {
+          "text": "Sini biar aku yang basmi.",
+          "nextIndex": 14
+        },
+        {
+          "text": "Wah lucu, mau dikasih nama siapa?",
+          "nextIndex": 15
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kecil?! Buatku itu sebesar naga!",
+      "expression": "angry",
+      "nextIndex": 16
+    },
+    {
+      "speaker": "Livia",
+      "text": "Cepat! Gunakan jurus mautmu!",
+      "expression": "happy",
+      "nextIndex": 16
+    },
+    {
+      "speaker": "Livia",
+      "text": "Bercanda terus! Cepat buang benda itu!",
+      "expression": "pain",
+      "nextIndex": 16
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu dengan sigap mengambil koran bekas dan mengusir kecoak itu keluar.",
+      "expression": "normal"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Fuh... syukurlah monster itu udah pergi. Oke, mari kita lanjut.",
+      "expression": "normal"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Sekarang mari kita atur letak perabotan.",
+      "expression": "normal"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Menurutmu kasurnya lebih baik di pojok dekat jendela, atau di tengah ruangan?",
+      "expression": "confused",
+      "choices": [
+        {
+          "text": "Pojok dekat jendela.",
+          "nextIndex": 20
+        },
+        {
+          "text": "Di tengah ruangan.",
+          "nextIndex": 21
+        },
+        {
+          "text": "Di luar aja sekalian.",
+          "nextIndex": 22
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ide bagus, biar bisa lihat awan siang ini.",
+      "expression": "pleased",
+      "nextIndex": 23
+    },
+    {
+      "speaker": "Livia",
+      "text": "Biar aku bisa guling-guling ya? Hehe.",
+      "expression": "silly",
+      "nextIndex": 23
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kamu gila ya! Nanti aku digigit nyamuk!",
+      "expression": "angry",
+      "nextIndex": 23
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kalian akhirnya mendorong kasur ke pojok ruangan.",
+      "expression": "normal"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Sekarang lemarinya. Kamu kuat dorong lemarinya sendirian kan?",
+      "expression": "confused",
+      "choices": [
+        {
+          "text": "Bisa dong, aku kuat.",
+          "nextIndex": 25
+        },
+        {
+          "text": "Butuh bantuanmu nih.",
+          "nextIndex": 26
+        },
+        {
+          "text": "Dibayar berapa nih?",
+          "nextIndex": 27
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Cih, sombong. Awas kalau besoknya encok.",
+      "expression": "serious",
+      "nextIndex": 28
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tuh kan! Lemah! Yaudah ayo dorong bareng.",
+      "expression": "silly",
+      "nextIndex": 28
+    },
+    {
+      "speaker": "Livia",
+      "text": "Uangnya kupotong dari jatah traktiranmu!",
+      "expression": "angry",
+      "nextIndex": 28
+    },
+    {
+      "speaker": "Narator",
+      "text": "Saat menggeser lemari berat itu bersama-sama...",
+      "expression": "normal"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Tiba-tiba Livia tersandung sudut karpet dan hampir jatuh.",
+      "expression": "normal"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia kehilangan keseimbangan dan tubuhnya limbung ke belakang.",
+      "expression": "normal",
+      "choices": [
+        {
+          "text": "Tangkap tubuh Livia",
+          "nextIndex": 31
+        },
+        {
+          "text": "Biarin jatuh ke lantai",
+          "nextIndex": 32
+        },
+        {
+          "text": "Tarik bajunya",
+          "nextIndex": 33
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "E-eh?! L-lepaskan! Aku bisa berdiri sendiri!",
+      "expression": "blushing",
+      "nextIndex": 34
+    },
+    {
+      "speaker": "Livia",
+      "text": "Aduh! Kenapa nggak ditangkap sih?! Jahat banget!",
+      "expression": "pain",
+      "nextIndex": 34
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kyaa! K-kerah bajuku bisa robek bodoh!",
+      "expression": "scared",
+      "nextIndex": 34
+    },
+    {
+      "speaker": "Narator",
+      "text": "Setelah insiden memindahkan lemari selesai, kamu beralih ke meja kecil.",
+      "expression": "normal"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Namun saat menggesernya, sebuah laci sedikit terbuka dan kotak kayu jatuh berhamburan.",
+      "expression": "normal"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Eh! K-kotak rahasiaku!",
+      "expression": "scared"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Beberapa foto masa kecil dan boneka beruang lusuh berserakan di lantai.",
+      "expression": "normal"
+    },
+    {
+      "speaker": "Livia",
+      "text": "J-jangan dilihat! Tutup matamu sekarang juga!",
+      "expression": "blushing",
+      "choices": [
+        {
+          "text": "(Tutup mata rapat-rapat)",
+          "nextIndex": 39
+        },
+        {
+          "text": "Udah terlanjur lihat nih.",
+          "nextIndex": 40
+        },
+        {
+          "text": "Fotonya lucu kok.",
+          "nextIndex": 41
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "B-bagus. Jangan ngintip selagi aku mungutin!",
+      "expression": "clingy",
+      "nextIndex": 42
+    },
+    {
+      "speaker": "Livia",
+      "text": "Huaaa! Memalukan sekali! Lupakan!",
+      "expression": "pain",
+      "nextIndex": 42
+    },
+    {
+      "speaker": "Livia",
+      "text": "B-beneran? T-tapi tetep aja aku malu!",
+      "expression": "flirty",
+      "nextIndex": 42
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ukh... itu foto memalukan waktu gigiku copot.",
+      "expression": "pain"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tapi... boneka ini pemberian mendiang nenek. Jadi selalu aku bawa.",
+      "expression": "happy"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Meski udah buluk, wanginya masih bikin aku tenang.",
+      "expression": "normal",
+      "choices": [
+        {
+          "text": "Mau kupeluk biar makin wangi?",
+          "nextIndex": 45
+        },
+        {
+          "text": "Simpan baik-baik ya.",
+          "nextIndex": 46
+        },
+        {
+          "text": "Kamu ternyata punya sisi manis.",
+          "nextIndex": 47
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Jangan sentuh bonekaku dengan tangan kotormu!",
+      "expression": "angry",
+      "nextIndex": 48
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tentu saja! Ini harta karunku.",
+      "expression": "serious",
+      "nextIndex": 48
+    },
+    {
+      "speaker": "Livia",
+      "text": "D-diam! Semua cewek juga punya boneka!",
+      "expression": "blushing",
+      "nextIndex": 48
+    },
+    {
+      "speaker": "Livia",
+      "text": "Baiklah, kardus udah rapi, monster udah musnah, dan rahasia memalukanku udah terbongkar...",
+      "expression": "serious"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Sepertinya tugasku udah selesai buat hari ini.",
+      "expression": "pleased"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Dan... tugas asistenku juga udah selesai.",
+      "expression": "happy",
+      "choices": [
+        {
+          "text": "Kalau gitu aku pamit dulu.",
+          "nextIndex": 51
+        },
+        {
+          "text": "Nggak mau ngasih imbalan nih?",
+          "nextIndex": 52
+        },
+        {
+          "text": "Kalau butuh bantuan panggil aja.",
+          "nextIndex": 53
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Y-yaudah, sana pergi istirahat!",
+      "expression": "angry",
+      "nextIndex": 54
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tadi kan udah dibilang nanti kubuatin teh!",
+      "expression": "pain",
+      "nextIndex": 54
+    },
+    {
+      "speaker": "Livia",
+      "text": "J-jangan geer, aku nggak akan sering-sering butuh bantuanmu!",
+      "expression": "flirty",
+      "nextIndex": 54
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu bersiap melangkah keluar dari kamarnya menuju koridor.",
+      "expression": "normal"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Eh tunggu sebentar!",
+      "expression": "scared"
+    },
+    {
+      "speaker": "Livia",
+      "text": "K-karena kamu udah banyak bantu... siang ini... mau pesan makan bareng nggak?",
+      "expression": "blushing",
+      "choices": [
+        {
+          "text": "Boleh banget, aku laper.",
+          "nextIndex": 57
+        },
+        {
+          "text": "Pesenin aku makanan mewah.",
+          "nextIndex": 58
+        },
+        {
+          "text": "Tergantung siapa yang bayar.",
+          "nextIndex": 59
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Oke, nanti kita cari yang murah aja ya.",
+      "expression": "happy",
+      "nextIndex": 60
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ngarep! Kita pesen bento diskonan di konbini aja cukup!",
+      "expression": "silly",
+      "nextIndex": 60
+    },
+    {
+      "speaker": "Livia",
+      "text": "K-karena aku yang nawarin... ya aku yang bayar deh!",
+      "expression": "pain",
+      "nextIndex": 60
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu mengangguk setuju dan tersenyum dari ambang pintu.",
+      "expression": "normal"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Y-yaudah, sana balik ke kamarmu dulu! Nanti aku ketuk kalau makanannya udah datang!",
+      "expression": "angry",
+      "choices": [
+        {
+          "text": "Sampai jumpa nanti siang.",
+          "nextIndex": 62
+        },
+        {
+          "text": "Jangan pesenin yang pedas ya.",
+          "nextIndex": 63
+        },
+        {
+          "text": "(Tersenyum dan melambai)",
+          "nextIndex": 64
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Iya bawel, sana-sana masuk kamarmu.",
+      "expression": "normal",
+      "nextIndex": 65
+    },
+    {
+      "speaker": "Livia",
+      "text": "Seleramu cupu amat! Yaudah deh kutulis nggak pedas.",
+      "expression": "silly",
+      "nextIndex": 65
+    },
+    {
+      "speaker": "Livia",
+      "text": "A-apa senyum-senyum?! Cepat sana pergi!",
+      "expression": "blushing",
+      "nextIndex": 65
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu keluar dan pintu ditutup. Tampaknya hari pertamanya di apartemen ini berjalan cukup menarik.",
+      "expression": "normal"
+    }
+  ]
+}

@@ -1,0 +1,398 @@
+{
+  "id": 7,
+  "title": "Akhir Pekan Pemalas",
+  "reqAffection": 100,
+  "reqLevel": 5,
+  "requirements": [
+    {
+      "kind": "accountDays",
+      "min": 14,
+      "label": "Umur akun minimal 14 Hari"
+    },
+    {
+      "kind": "screenTime",
+      "min": 70,
+      "label": "Screen time minimal 70 Jam"
+    },
+    {
+      "kind": "item",
+      "item": "outfit_casual",
+      "label": "Memiliki Baju Kasual"
+    }
+  ],
+  "scenes": [
+    {
+      "speaker": "Narator",
+      "text": "Akhir pekan tiba. Hujan turun rintik-rintik sejak pagi, menciptakan hawa dingin yang menusuk tulang.",
+      "expression": "normal-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Di ruang tengah, kamu mendapati Livia sedang menggulung dirinya di dalam selimut tebal, terlihat seperti kepompong besar di atas karpet.",
+      "expression": "normal-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Haaah... cuaca begini emang paling enak buat tiduran aja seharian. Nggak ngapa-ngapain.",
+      "expression": "happy-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hei, kamu ngapain masih duduk di meja kerja? Sini dong, temenin aku rebahan.",
+      "expression": "clingy-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Nggak usah mikirin tugas dan kerjaan terus untuk hari ini. Otakmu butuh liburan tau.",
+      "expression": "normal-7",
+      "bg": "7.1",
+      "choices": [
+        {
+          "text": "Boleh deh, lima menit aja.",
+          "nextIndex": 5
+        },
+        {
+          "text": "Nanti aku ketularan virus malasmu.",
+          "nextIndex": 6
+        },
+        {
+          "text": "Wah, ajakan yang sulit ditolak.",
+          "nextIndex": 7
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Mana ada lima menit! Minimal lima jam!",
+      "expression": "angry-7",
+      "bg": "7.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Livia",
+      "text": "Biarin! Biar kita jadi duo pemalas sejati!",
+      "expression": "happy-7",
+      "bg": "7.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Livia",
+      "text": "Makanya buruan sini, selimutnya masih muat kok buat berdua.",
+      "expression": "pleased-7",
+      "bg": "7.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu akhirnya mengalah. Meninggalkan mejamu, kamu ikut berbaring di sebelah Livia.",
+      "expression": "normal-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia dengan cepat menarik ujung selimutnya dan menutupi tubuhmu juga. Kehangatan langsung menjalar.",
+      "expression": "normal-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hehe... nyaman banget kan? Sesekali jadi kaum rebahan itu nggak ada salahnya.",
+      "expression": "happy-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ngomong-ngomong, karena kita lagi santai... mau order makanan ringan nggak? Aku pengen ngunyah sesuatu.",
+      "expression": "normal-7",
+      "bg": "7.1",
+      "choices": [
+        {
+          "text": "Pesan pizza aja gimana?",
+          "nextIndex": 12
+        },
+        {
+          "text": "Cemilan manis kayak martabak?",
+          "nextIndex": 13
+        },
+        {
+          "text": "Mie instan paling mantap.",
+          "nextIndex": 14
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Wah, setuju! Tambah keju mozarella ya!",
+      "expression": "happy-7",
+      "bg": "7.1",
+      "nextIndex": 15
+    },
+    {
+      "speaker": "Livia",
+      "text": "Boleh juga, yang topping coklat kacang!",
+      "expression": "pleased-7",
+      "bg": "7.1",
+      "nextIndex": 15
+    },
+    {
+      "speaker": "Livia",
+      "text": "Klasik banget, tapi boleh deh pakai telur setengah matang!",
+      "expression": "happy-7",
+      "bg": "7.1",
+      "nextIndex": 15
+    },
+    {
+      "speaker": "Narator",
+      "text": "Sambil menunggu pesanan datang, kalian memutuskan untuk menonton film dari laptop.",
+      "expression": "normal-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Pilih genre filmnya dong. Karena cuacanya lagi mendung, mending horor nggak sih?",
+      "expression": "flirty-7",
+      "bg": "7.1",
+      "choices": [
+        {
+          "text": "Boleh, emangnya kamu berani?",
+          "nextIndex": 17
+        },
+        {
+          "text": "Gimana kalau komedi aja?",
+          "nextIndex": 18
+        },
+        {
+          "text": "Romance aja biar romantis.",
+          "nextIndex": 19
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "B-berani lah! Palingan setan bohongan!",
+      "expression": "angry-7",
+      "bg": "7.1",
+      "nextIndex": 20
+    },
+    {
+      "speaker": "Livia",
+      "text": "Huuu penakut. Ya udah deh, biar kamu nggak ketakutan.",
+      "expression": "pleased-7",
+      "bg": "7.1",
+      "nextIndex": 20
+    },
+    {
+      "speaker": "Livia",
+      "text": "R-romantis?! S-siapa juga yang mau romantis-romantisan sama kamu!",
+      "expression": "blushing-7",
+      "bg": "7.1",
+      "nextIndex": 20
+    },
+    {
+      "speaker": "Narator",
+      "text": "Tak lama kemudian makanan datang. Kalian menikmati cemilan hangat sambil menonton film pilihan.",
+      "expression": "normal-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Di luar sana, hujan semakin deras. Angin kencang sesekali menghantam jendela kaca.",
+      "expression": "normal-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ukh... hujannya makin parah ya. Bikin merinding aja.",
+      "expression": "serious-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "TIBA-TIBA...",
+      "expression": "normal-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "*CTAR! JGEEERRR!!*",
+      "expression": "normal-7",
+      "bg": "7.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "KYAAAAA!!!",
+      "expression": "scared-7",
+      "bg": "7.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Seiring dengan gelegar guntur yang memekakkan telinga, lampu apartemen seketika padam. Kegelapan menyelimuti ruangan.",
+      "expression": "normal-7",
+      "bg": "7.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "H-hei... k-kamu di mana?! Gelap banget! Aku nggak bisa lihat apa-apa!",
+      "expression": "pain-7",
+      "bg": "7.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Dalam kepanikan, Livia meraba-raba dan langsung memeluk erat tubuhmu. Ia gemetar.",
+      "expression": "normal-7",
+      "bg": "7.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "J-jangan tinggalin aku... a-aku paling takut sama gelap dan petir...",
+      "expression": "clingy-7",
+      "bg": "7.2",
+      "choices": [
+        {
+          "text": "Tenang, aku di sini kok.",
+          "nextIndex": 30
+        },
+        {
+          "text": "Pegang tanganku erat-erat.",
+          "nextIndex": 31
+        },
+        {
+          "text": "(Balas memeluknya perlahan)",
+          "nextIndex": 32
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "B-beneran ya? Jangan pergi kemana-mana lho!",
+      "expression": "pain-7",
+      "bg": "7.2",
+      "nextIndex": 33
+    },
+    {
+      "speaker": "Livia",
+      "text": "Iya... ukh, tanganku dingin banget kan...",
+      "expression": "pain-7",
+      "bg": "7.2",
+      "nextIndex": 33
+    },
+    {
+      "speaker": "Livia",
+      "text": "A-apa yang kamu lakuin?! T-tapi... rasanya aman. Teruslah begini...",
+      "expression": "blushing-7",
+      "bg": "7.2",
+      "nextIndex": 33
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu menyalakan senter dari ponselmu dan mengarahkannya ke langit-langit, memberikan penerangan remang.",
+      "expression": "normal-7",
+      "bg": "7.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Wajah Livia terlihat pucat, namun genggamannya pada bajumu perlahan mengendur seiring hadirnya cahaya.",
+      "expression": "normal-7",
+      "bg": "7.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Fuh... syukurlah ada cahaya. M-maaf ya, aku cengeng banget.",
+      "expression": "sad-7",
+      "bg": "7.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Dari kecil, tiap kali mati lampu karena petir, aku selalu sembunyi di dalam lemari sendirian.",
+      "expression": "serious-7",
+      "bg": "7.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Orang tuaku sering lembur kerja, jadi... aku terbiasa menghadapi ketakutanku sendirian.",
+      "expression": "normal-7",
+      "bg": "7.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tapi hari ini... karena ada kamu, rasanya nggak seseram dulu lagi.",
+      "expression": "happy-7",
+      "bg": "7.2",
+      "choices": [
+        {
+          "text": "Mulai sekarang kamu nggak sendirian lagi.",
+          "nextIndex": 39
+        },
+        {
+          "text": "Aku bakal selalu jagain kamu.",
+          "nextIndex": 40
+        },
+        {
+          "text": "Dasar penakut, sini dekat-dekat.",
+          "nextIndex": 41
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kamu ini... selalu tau cara bikin orang tersentuh ya.",
+      "expression": "blushing-7",
+      "bg": "7.2",
+      "nextIndex": 42
+    },
+    {
+      "speaker": "Livia",
+      "text": "J-janji lho ya! Kalau bohong, aku kutuk jadi kecoak!",
+      "expression": "angry-7",
+      "bg": "7.2",
+      "nextIndex": 42
+    },
+    {
+      "speaker": "Livia",
+      "text": "Biarin! Sengaja kok biar bisa modus meluk-meluk!",
+      "expression": "silly-7",
+      "bg": "7.2",
+      "nextIndex": 42
+    },
+    {
+      "speaker": "Narator",
+      "text": "Sekitar dua puluh menit berlalu. Tiba-tiba lampu kembali menyala terang.",
+      "expression": "normal-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ah! Nyala lagi!",
+      "expression": "happy-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia segera tersadar betapa eratnya ia memelukmu. Ia langsung melompat mundur dengan wajah bersemu merah.",
+      "expression": "normal-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "E-ekhem! L-lupakan kejadian barusan! Anggap aja aku lagi kesurupan!",
+      "expression": "blushing-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ayo lanjut nontonnya! Filmnya masih seru tau!",
+      "expression": "angry-7",
+      "bg": "7.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu hanya bisa tertawa melihat tingkah tsundere-nya yang kembali kumat. Hujan di luar sana masih turun, namun harimu terasa begitu hangat.",
+      "expression": "normal-7",
+      "bg": "7.1"
+    }
+  ]
+}

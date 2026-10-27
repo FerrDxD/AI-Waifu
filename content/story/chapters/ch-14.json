@@ -1,0 +1,385 @@
+{
+  "id": 14,
+  "title": "Seporsi Kehangatan",
+  "reqAffection": 100,
+  "reqLevel": 5,
+  "requirements": [
+    {
+      "kind": "accountDays",
+      "min": 70,
+      "label": "Menyelesaikan Bab Sebelumnya"
+    }
+  ],
+  "scenes": [
+    {
+      "speaker": "Narator",
+      "text": "Siang hari setelah kesibukan panjang Hatsumode. Sinar mentari cerah menembus jendela ruang keluarga kuil.",
+      "expression": "normal",
+      "bg": "14.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Skak mat! Tuh kan, aku menang lagi! Kamu beneran ngga sengaja ngalah kan?",
+      "expression": "angry",
+      "bg": "14.1",
+      "choices": [
+        {
+          "text": "Aku kelelahan habis jaga stan semalaman.",
+          "nextIndex": 2
+        },
+        {
+          "text": "Strategimu memang jauh lebih hebat.",
+          "nextIndex": 4
+        },
+        {
+          "text": "Belum! Ayo kita tanding ulang!",
+          "nextIndex": 6
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Halah, alasan aja! Padahal tadi malam kan aku juga ikutan begadang lho.",
+      "expression": "silly",
+      "bg": "14.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Narator",
+      "text": "",
+      "expression": "normal",
+      "bg": "14.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hehe, tentu saja. Bidak-bidak catur ini sudah sehati denganku dari awal.",
+      "expression": "happy",
+      "bg": "14.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Narator",
+      "text": "",
+      "expression": "normal",
+      "bg": "14.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Livia",
+      "text": "Boleh banget! Kali ini aku bakal skak mat kamu dalam waktu kurang dari 10 langkah!",
+      "expression": "happy",
+      "bg": "14.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Narator",
+      "text": "",
+      "expression": "normal",
+      "bg": "14.1",
+      "nextIndex": 8
+    },
+    {
+      "speaker": "Narator",
+      "text": "Saat kalian asyik berdebat di depan papan catur, pintu ruang keluarga tiba-tiba bergeser terbuka.",
+      "expression": "normal",
+      "bg": "14.1"
+    },
+    {
+      "speaker": "Ayame",
+      "text": "Kalian berdua, maaf mengganggu waktu santai kalian di siang hari ini.",
+      "expression": "normal",
+      "bg": "14.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ah, Ibu! Ngga ganggu sama sekali kok. Ada yang bisa dibantu, Bu?",
+      "expression": "happy",
+      "bg": "14.1"
+    },
+    {
+      "speaker": "Ayame",
+      "text": "Sebenarnya... Ibu agak khawatir dengan Naomi. Kakak perempuanmu itu tidak pulang semalam.",
+      "expression": "normal",
+      "bg": "14.1"
+    },
+    {
+      "speaker": "Ayame",
+      "text": "Tolong kunjungi apartemennya dan bawakan beberapa bekal tahun baru ini. Pastikan dia setidaknya makan dengan benar.",
+      "expression": "normal",
+      "bg": "14.1"
+    },
+    {
+      "speaker": "Ayame",
+      "text": "Oh ya, tinggalkan saja mobil kalian di sini. Jalanan menuju pusat kota pasti sangat macet pasca-Hatsumode. Gunakan kereta saja, lebih cepat.",
+      "expression": "normal",
+      "bg": "14.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Naomi-nee-san? Tentu saja, Ibu! Kami akan segera berangkat ke sana sekarang juga!",
+      "expression": "happy",
+      "bg": "14.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Mengikuti saran ibumu, kalian meninggalkan mobil di kuil dan menaiki kereta menuju pusat kota tempat Naomi tinggal.",
+      "expression": "normal",
+      "bg": "14.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ngomong-ngomong, kakakmu itu orangnya seperti apa? Waktu pernikahan kita, dia cuma datang sebentar lalu buru-buru pergi.",
+      "expression": "blushing",
+      "bg": "14.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu menjelaskan bahwa Naomi adalah budak korporat yang sangat gila kerja, hingga hampir tidak punya waktu untuk mengurus dirinya sendiri.",
+      "expression": "normal",
+      "bg": "14.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hee... kasihan banget. Apalagi ini kan libur tahun baru. Masa iya dia masih kerja keras bagai kuda?",
+      "expression": "scared",
+      "bg": "14.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Sesampainya di apartemen, kalian berdiri di depan pintu bernomor 302.",
+      "expression": "normal",
+      "bg": "14.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Aku pencet belnya ya...",
+      "expression": "scared",
+      "bg": "14.3"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Ting-tong. Tidak ada jawaban. Livia iseng memutar kenop pintu, dan mengejutkannya, pintu itu tidak dikunci sama sekali.",
+      "expression": "normal",
+      "bg": "14.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Permisi... Naomi-nee-san...?",
+      "expression": "scared",
+      "bg": "14.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Begitu masuk, kalian disambut oleh pemandangan yang kacau balau. Tumpukan kertas, cangkir kopi kosong, dan kaleng bir berserakan di mana-mana layaknya kapal pecah.",
+      "expression": "normal",
+      "bg": "14.4"
+    },
+    {
+      "speaker": "Naomi",
+      "text": "Nggghhh... 5 menit lagi, Pak Bos... laporannya hampir selesai...",
+      "expression": "tired",
+      "bg": "14.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Seorang wanita berambut berantakan dengan kemeja kusut tampak tertidur pulas di lantai yang dingin, dengan laptop yang masih menyala redup.",
+      "expression": "normal",
+      "bg": "14.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ya ampun! Naomi-nee-san! Kamu ngga apa-apa?!",
+      "expression": "scared",
+      "bg": "14.4",
+      "choices": [
+        {
+          "text": "Biarkan saja dia tidur di sana.",
+          "nextIndex": 27
+        },
+        {
+          "text": "Ayo kita pindahkan dia ke kasur.",
+          "nextIndex": 29
+        },
+        {
+          "text": "Kita rapikan ruangannya pelan-pelan.",
+          "nextIndex": 31
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Jangan gila! Masa kita biarin dia kedinginan tidur di atas tumpukan dokumen begini?!",
+      "expression": "angry",
+      "bg": "14.4",
+      "nextIndex": 33
+    },
+    {
+      "speaker": "Narator",
+      "text": "",
+      "expression": "normal",
+      "bg": "14.4",
+      "nextIndex": 33
+    },
+    {
+      "speaker": "Livia",
+      "text": "Iya, bantu aku angkat bahunya. Hati-hati jangan sampai dia bangun ya.",
+      "expression": "serious",
+      "bg": "14.4",
+      "nextIndex": 33
+    },
+    {
+      "speaker": "Narator",
+      "text": "",
+      "expression": "normal",
+      "bg": "14.4",
+      "nextIndex": 33
+    },
+    {
+      "speaker": "Livia",
+      "text": "Boleh juga, mending kita beresin ruangannya dulu sebelum bangunin dia pelan-pelan.",
+      "expression": "blushing",
+      "bg": "14.4",
+      "nextIndex": 33
+    },
+    {
+      "speaker": "Narator",
+      "text": "",
+      "expression": "normal",
+      "bg": "14.4",
+      "nextIndex": 33
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kalian menghabiskan waktu dua jam untuk membersihkan apartemen yang kacau tersebut dan menghangatkan bekal bawaan dari Ayame.",
+      "expression": "normal",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Naomi",
+      "text": "Eugh... hidungku mencium bau masakan yang wangi... mungkinkah aku sudah masuk surga...?",
+      "expression": "tired",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ah, Naomi-nee-san udah bangun! Selamat tahun baru!",
+      "expression": "happy",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Naomi",
+      "text": "Eh? Livia-chan? Dan adik bodohku? S-sejak kapan kalian ada di dalam apartemenku?!",
+      "expression": "surprised",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Naomi langsung panik gelagapan menyadari ruangannya sudah disulap menjadi sangat bersih dan rapi.",
+      "expression": "normal",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Naomi",
+      "text": "Aaaargh! Padahal aku niatnya mau nyelesain sisa kerjaan semalam, malah ketiduran di lantai! Maafkan kakak iparmu yang memalukan ini, Livia-chan!",
+      "expression": "crying",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ngga apa-apa kok, Nee-san. Ibu mertua nyuruh kami bawain bekal tahun baru karena Nee-san ngga pulang dari kemarin.",
+      "expression": "happy",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Naomi",
+      "text": "Ugh... Ibu memang selalu bawel ngomelin aku, tapi... hiks... masakannya memang selalu yang terbaik.",
+      "expression": "crying",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kalian bertiga duduk melingkar di meja kotatsu yang baru saja dibersihkan. Naomi melahap makanan itu dengan linangan air mata haru.",
+      "expression": "normal",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Naomi",
+      "text": "Adikku, kau benar-benar beruntung mendapatkan istri sebaik Livia-chan. Kalau kau berani menyakitinya, aku yang akan memotong gajimu!",
+      "expression": "angry",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ehehe... tenang aja, dia suami yang paling pengertian kok, Nee-san.",
+      "expression": "blushing",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Naomi",
+      "text": "Haaah... ngeliat kalian berdua yang manis dan harmonis begini, aku jadi pengen cepet-cepet nikah juga... tapi ngga ada waktu...",
+      "expression": "tired",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tenang! Nanti aku bantuin cari calon yang pas deh! Asalkan Nee-san janji ngga boleh memforsir diri tidur di lantai lagi ya.",
+      "expression": "silly",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Naomi",
+      "text": "Beneran janji lho ya? Awas kalau calonnya kalah ganteng dari adikku yang bodoh ini!",
+      "expression": "surprised",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hehe, tentu saja! Aku kenal beberapa pengunjung tetap kuil yang ramah dan mapan kok!",
+      "expression": "happy",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Naomi tertawa lepas, beban kerja berat yang menumpuk di pundaknya seolah menguap untuk sesaat.",
+      "expression": "normal",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Naomi",
+      "text": "Ngomong-ngomong, aku dengar dari Ibu kalau kalian dalam waktu dekat ini ada rencana pindah dari kost-an ya?",
+      "expression": "normal",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Eh? Kok Nee-san udah tau duluan dari kita?",
+      "expression": "scared",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Naomi",
+      "text": "Ibu yang cerita sewaktu meneleponku kemarin. Beliau sangat mendukung kalian berdua untuk hidup mandiri di tempat yang lebih layak dan luas.",
+      "expression": "normal",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Wah... Ibu dan Nee-san bener-bener perhatian banget sama keluarga kecil kita...",
+      "expression": "blushing",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Naomi",
+      "text": "Tentu saja! Kita kan sudah jadi satu keluarga. Kalau kalian butuh bantuan tenaga pas pindahan nanti, telepon saja aku ya!",
+      "expression": "happy",
+      "bg": "14.5"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Siang itu diakhiri dengan gelak tawa dan obrolan hangat, menambah satu lagi ikatan keluarga yang makin tak terpisahkan.",
+      "expression": "normal",
+      "bg": "14.5"
+    }
+  ]
+}

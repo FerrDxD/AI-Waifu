@@ -1,0 +1,325 @@
+{
+  "id": 5,
+  "title": "Rumah Kita",
+  "reqAffection": 100,
+  "reqLevel": 5,
+  "scenes": [
+    {
+      "speaker": "Narator",
+      "text": "Beberapa bulan telah berlalu sejak awal Livia pindah ke apartemen ini.",
+      "expression": "normal",
+      "bg": "5.1",
+      "hideSprite": true
+    },
+    {
+      "speaker": "Narator",
+      "text": "Siang itu, kamu sedang menyapu koridor di depan kamarmu menikmati angin sejuk.",
+      "expression": "normal",
+      "bg": "5.1",
+      "hideSprite": true
+    },
+    {
+      "speaker": "Narator",
+      "text": "Terdengar suara pintu terbuka. Livia keluar dari kamarnya membawa sebuah pot kecil.",
+      "expression": "normal",
+      "bg": "5.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hei. Tumben siang-siang udah rajin nyapu.",
+      "expression": "normal",
+      "bg": "5.2",
+      "choices": [
+        {
+          "text": "Iya, biar bersih.",
+          "nextIndex": 4
+        },
+        {
+          "text": "Nyapu kenangan masa lalu nih.",
+          "nextIndex": 5
+        },
+        {
+          "text": "Kamu sendiri tumben nggak tidur siang?",
+          "nextIndex": 6
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Bagus deh, sekalian tolong sapuin depan kamarku ya!",
+      "expression": "happy",
+      "bg": "5.1",
+      "nextIndex": 7
+    },
+    {
+      "speaker": "Livia",
+      "text": "Puitis banget sih! Awas nyapunya kurang bersih!",
+      "expression": "silly",
+      "bg": "5.1",
+      "nextIndex": 7
+    },
+    {
+      "speaker": "Livia",
+      "text": "Enak aja! Aku bukan pemalas ya!",
+      "expression": "angry",
+      "bg": "5.1",
+      "nextIndex": 7
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia meletakkan pot berisi kaktus mini itu di dekat jendela kamarnya.",
+      "expression": "normal",
+      "bg": "5.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Lihat nih, aku baru beli kaktus mini. Biar kamarku nggak kelihatan terlalu suram.",
+      "expression": "pleased",
+      "bg": "5.1",
+      "choices": [
+        {
+          "text": "Wah, lucu juga kaktusnya.",
+          "nextIndex": 9
+        },
+        {
+          "text": "Cocok sama sifatmu yang berduri.",
+          "nextIndex": 10
+        },
+        {
+          "text": "Paling minggu depan udah layu lupa disiram.",
+          "nextIndex": 11
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hehe, makasih. Aku pilih yang potnya warna pink lho.",
+      "expression": "happy",
+      "bg": "5.1",
+      "nextIndex": 12
+    },
+    {
+      "speaker": "Livia",
+      "text": "Apa maksudmu?! Mau kulempar kaktus ini ke mukamu?!",
+      "expression": "angry",
+      "bg": "5.1",
+      "nextIndex": 12
+    },
+    {
+      "speaker": "Livia",
+      "text": "Nggak akan! Kaktus kan cuma perlu disiram seminggu sekali!",
+      "expression": "serious",
+      "bg": "5.1",
+      "nextIndex": 12
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia kemudian bersandar di pagar koridor, menatap langit siang yang cerah.",
+      "expression": "normal",
+      "bg": "5.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Waktu cepat banget berlalu ya. Nggak terasa udah beberapa bulan kita jadi tetangga.",
+      "expression": "normal",
+      "bg": "5.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Dulu waktu pertama pindah, aku benci banget tempat ini. Sempit, bau debu, banyak kecoak pula.",
+      "expression": "pain",
+      "bg": "5.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tapi sekarang... anehnya aku malah nggak mau pergi dari sini.",
+      "expression": "happy",
+      "bg": "5.1",
+      "choices": [
+        {
+          "text": "Karena suasana apartemennya udah nyaman?",
+          "nextIndex": 16
+        },
+        {
+          "text": "Adaptasi manusia memang butuh 3 bulan.",
+          "nextIndex": 17
+        },
+        {
+          "text": "Ngaku aja, kamu betah karena ada aku kan?",
+          "nextIndex": 18
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "I-iya sih... suasananya emang hangat. Tapi...",
+      "expression": "blushing",
+      "bg": "5.1",
+      "nextIndex": 19
+    },
+    {
+      "speaker": "Livia",
+      "text": "Halah, teori psikologimu mulai lagi! Padahal bukan cuma itu alasannya...",
+      "expression": "pain",
+      "bg": "5.1",
+      "nextIndex": 19
+    },
+    {
+      "speaker": "Livia",
+      "text": "P-pede banget sih! Walau... ya... sedikit bener sih...",
+      "expression": "blushing",
+      "bg": "5.1",
+      "nextIndex": 19
+    },
+    {
+      "speaker": "Livia",
+      "text": "Bukan cuma karena tempatnya. Tapi... karena orang-orangnya juga.",
+      "expression": "normal",
+      "bg": "5.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Maksudku...",
+      "expression": "scared",
+      "bg": "5.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia tiba-tiba berbalik menghadapmu dengan raut wajah serius namun pipinya memerah.",
+      "expression": "normal",
+      "bg": "5.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kamu itu nyebelin. Suka ngeledek, suka ngajak ribut, dan kadang nggak peka sama sekali...",
+      "expression": "angry",
+      "bg": "5.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tapi... kamu juga yang selalu ada tiap kali aku butuh.",
+      "expression": "serious",
+      "bg": "5.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Dari bantuin angkat kardus, basmi monster kecoak, sampai dengerin keluh kesahku tiap malam.",
+      "expression": "happy",
+      "bg": "5.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia melangkah maju dan menarik ujung lengan bajumu dengan pelan. Matanya menatap lurus ke matamu.",
+      "expression": "normal",
+      "bg": "5.1",
+      "choices": [
+        {
+          "text": "(Diam dan menatapnya kembali)",
+          "nextIndex": 26
+        },
+        {
+          "text": "(Mengusap kepalanya lembut)",
+          "nextIndex": 27
+        },
+        {
+          "text": "(Menggenggam tangannya)",
+          "nextIndex": 28
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "K-kenapa diam aja sih... bikin aku makin gugup tau...",
+      "expression": "blushing",
+      "bg": "5.1",
+      "nextIndex": 29
+    },
+    {
+      "speaker": "Livia",
+      "text": "E-eh... kebiasaan deh suka ngelus kepala... berantakan tau rambutku...",
+      "expression": "blushing",
+      "bg": "5.1",
+      "nextIndex": 29
+    },
+    {
+      "speaker": "Livia",
+      "text": "K-kamu berani banget pegang tanganku di luar gini...",
+      "expression": "scared",
+      "bg": "5.1",
+      "nextIndex": 29
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kamu tahu kan kalau kamu itu... spesial buatku?",
+      "expression": "clingy",
+      "bg": "5.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Terima kasih... karena selalu sabar menghadapiku.",
+      "expression": "happy",
+      "bg": "5.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Terima kasih sudah menjadi 'rumah' baruku di kota ini.",
+      "expression": "pleased",
+      "bg": "5.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Mulai sekarang, tolong terus berada di sisiku ya. Janji?",
+      "expression": "blushing",
+      "bg": "5.1",
+      "choices": [
+        {
+          "text": "Aku janji, Livia.",
+          "nextIndex": 33
+        },
+        {
+          "text": "Selamanya?",
+          "nextIndex": 34
+        },
+        {
+          "text": "Tergantung traktiranmu.",
+          "nextIndex": 35
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Bagus. Kalau kamu ingkar, aku bakal hantuin kamu seumur hidup!",
+      "expression": "happy",
+      "bg": "5.1",
+      "nextIndex": 36
+    },
+    {
+      "speaker": "Livia",
+      "text": "I-iya! S-selamanya kalau perlu! Jangan bikin aku ngulang kalimat memalukan ini lagi!",
+      "expression": "angry",
+      "bg": "5.1",
+      "nextIndex": 36
+    },
+    {
+      "speaker": "Livia",
+      "text": "Dasar mata duitan! Tapi... oke deh, aku traktir makan tiap akhir bulan!",
+      "expression": "pain",
+      "bg": "5.1",
+      "nextIndex": 36
+    },
+    {
+      "speaker": "Narator",
+      "text": "Angin siang berhembus lembut, meniup pelan rambut Livia yang sedang tersenyum cerah padamu.",
+      "expression": "normal",
+      "bg": "5.1",
+      "hideSprite": true
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu sadar, hidupmu di apartemen kecil ini tidak akan pernah membosankan lagi selama ada dia.",
+      "expression": "normal",
+      "bg": "5.1",
+      "hideSprite": true
+    }
+  ]
+}

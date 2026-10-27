@@ -1,0 +1,489 @@
+{
+  "id": 1,
+  "title": "Kenalan",
+  "reqAffection": 20,
+  "reqLevel": 1,
+  "scenes": [
+    {
+      "speaker": "Livia",
+      "text": "Hei. Boleh ganggu sebentar nggak?",
+      "expression": "normal",
+      "bg": "1",
+      "hideSprite": true
+    },
+    {
+      "speaker": "Narator",
+      "text": "Terdengar ketukan pelan di pintu kamarmu.",
+      "expression": "normal",
+      "bg": "1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Itu Livia. Dan sejak pertemuan pertama mu, dia selalu menggendor pintu mu jika kesulitan. Meski begitu, kamu tetap membukakan pintu",
+      "expression": "normal",
+      "bg": "1",
+      "choices": [
+        {
+          "text": "Ada apa siang-siang begini?",
+          "nextIndex": 3
+        },
+        {
+          "text": "Kangen ya sama aku?",
+          "nextIndex": 4
+        },
+        {
+          "text": "Aku lagi sibuk nih.",
+          "nextIndex": 5
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "I-ini soal tugas kuliah, ngerti?",
+      "expression": "serious",
+      "bg": "1.2",
+      "nextIndex": 6
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hah?! Pede gila! Jangan mimpi deh!",
+      "expression": "blushing",
+      "bg": "1.2",
+      "nextIndex": 6
+    },
+    {
+      "speaker": "Livia",
+      "text": "Cuma sebentar kok! Sebentaaar aja!",
+      "expression": "clingy",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Aku... aku nggak ngerti cara nyambungin Wi-Fi di laptopku.",
+      "expression": "pain",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tadi sore bisa, tapi tiba-tiba putus dan nggak mau konek lagi.",
+      "expression": "confused",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kamu kan kelihatan kayak cowok nerd yang pinter komputer. Bisa benerin nggak?",
+      "expression": "flirty",
+      "bg": "1.2",
+      "choices": [
+        {
+          "text": "Enak aja manggil nerd!",
+          "nextIndex": 9
+        },
+        {
+          "text": "Tentu, sini kulihat laptopnya.",
+          "nextIndex": 10
+        },
+        {
+          "text": "Mungkin tagihannya belum dibayar?",
+          "nextIndex": 11
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Halah, ngaku aja. Kacamata tebalmu itu buktinya!",
+      "expression": "silly",
+      "bg": "1.2",
+      "nextIndex": 12
+    },
+    {
+      "speaker": "Livia",
+      "text": "Wah... makasih. Ini, tolong ya.",
+      "expression": "happy",
+      "bg": "1.2",
+      "nextIndex": 12
+    },
+    {
+      "speaker": "Livia",
+      "text": "Udah bayar kok! Bapak kos yang bilang!",
+      "expression": "angry",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu mengambil laptopnya dan menekan beberapa tombol.",
+      "expression": "normal",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Gimana? Rusak parah ya? Harus dibawa ke tukang servis kah?",
+      "expression": "scared",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Ternyata Livia tidak sengaja menekan tombol Airplane Mode di keyboardnya.",
+      "expression": "normal",
+      "bg": "1.2",
+      "choices": [
+        {
+          "text": "Ini cuma Airplane Mode, Livia.",
+          "nextIndex": 15
+        },
+        {
+          "text": "Wah, ini virus mematikan.",
+          "nextIndex": 16
+        },
+        {
+          "text": "(Tekan tombol dan kembalikan)",
+          "nextIndex": 17
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "E-eh? Airplane apa? Pesawat?!",
+      "expression": "confused",
+      "bg": "1.2",
+      "nextIndex": 18
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kyaaa! Jangan bilang dataku ilang semua?!",
+      "expression": "pain",
+      "bg": "1.2",
+      "nextIndex": 18
+    },
+    {
+      "speaker": "Livia",
+      "text": "Lho, kok udah nyala lagi? Ajaib!",
+      "expression": "pleased",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu menjelaskan soal fitur mode pesawat yang mematikan koneksi internet.",
+      "expression": "normal",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ukh... j-jadi dari tadi aku cuma perlu mencet satu tombol itu?!",
+      "expression": "blushing",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Memalukan banget... Pasti kamu sekarang mikir aku gaptek kan?!",
+      "expression": "pain",
+      "bg": "1.2",
+      "choices": [
+        {
+          "text": "Memang iya kan?",
+          "nextIndex": 21
+        },
+        {
+          "text": "Gapapa, wajar kok buat pemula.",
+          "nextIndex": 22
+        },
+        {
+          "text": "Kamu lebih lucu kalau lagi bingung.",
+          "nextIndex": 23
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Jahat banget! Aku cuma kelepasan mencet tau!",
+      "expression": "angry",
+      "bg": "1.2",
+      "nextIndex": 24
+    },
+    {
+      "speaker": "Livia",
+      "text": "Siapa yang pemula! Aku cuma... khilaf!",
+      "expression": "clingy",
+      "bg": "1.2",
+      "nextIndex": 24
+    },
+    {
+      "speaker": "Livia",
+      "text": "G-gombalan macam apa itu! Nggak mempan!",
+      "expression": "flirty",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Yaudah deh, lupakan soal itu! Yang penting sekarang aku bisa lanjut nonton drakor.",
+      "expression": "happy",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Sebagai tanda terima kasih... ini.",
+      "expression": "normal",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia menyodorkan sebotol minuman kaleng dingin.",
+      "expression": "normal",
+      "bg": "1.2",
+      "choices": [
+        {
+          "text": "Wah, makasih.",
+          "nextIndex": 27
+        },
+        {
+          "text": "Tumben baik?",
+          "nextIndex": 28
+        },
+        {
+          "text": "Nggak ada racunnya kan?",
+          "nextIndex": 29
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Diminum ya, itu belinya di mesin depan.",
+      "expression": "pleased",
+      "bg": "1.2",
+      "nextIndex": 30
+    },
+    {
+      "speaker": "Livia",
+      "text": "Dikasih malah protes! Sini balikin kalau nggak mau!",
+      "expression": "angry",
+      "bg": "1.2",
+      "nextIndex": 30
+    },
+    {
+      "speaker": "Livia",
+      "text": "Pikiranmu nethink terus! Udah bagus dikasih!",
+      "expression": "serious",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Oh ya, tadi waktu di koridor aku ketemu bapak kos.",
+      "expression": "normal",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Katanya besok pagi ada jadwal kumpul warga apato buat bersih-bersih lingkungan.",
+      "expression": "serious",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kamu mau ikut turun nggak besok jam 7 pagi?",
+      "expression": "confused",
+      "bg": "1.2",
+      "choices": [
+        {
+          "text": "Tentu, sekalian olahraga.",
+          "nextIndex": 33
+        },
+        {
+          "text": "Jam 7?! Kepagian banget!",
+          "nextIndex": 34
+        },
+        {
+          "text": "Bareng kamu ya turunnya?",
+          "nextIndex": 35
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Baguslah, biar ada temennya. Aku segan sendirian.",
+      "expression": "happy",
+      "bg": "1.2",
+      "nextIndex": 36
+    },
+    {
+      "speaker": "Livia",
+      "text": "Pemalas! Pantesan kamarmu berantakan!",
+      "expression": "pain",
+      "bg": "1.2",
+      "nextIndex": 36
+    },
+    {
+      "speaker": "Livia",
+      "text": "B-boleh. Nanti kuketok pintumu.",
+      "expression": "blushing",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Katanya nanti dapet sarapan onigiri gratis dari istri bapak kos lho.",
+      "expression": "silly",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Lumayan kan buat ngehemat uang jajan sehari.",
+      "expression": "pleased",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Aku denger onigiri buatan beliau itu yang terenak di sekitar sini.",
+      "expression": "happy",
+      "bg": "1.2",
+      "choices": [
+        {
+          "text": "Wah, jadi semangat nih.",
+          "nextIndex": 39
+        },
+        {
+          "text": "Kamu yang masak aja besok.",
+          "nextIndex": 40
+        },
+        {
+          "text": "Aku cuma incer onigirinya.",
+          "nextIndex": 41
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hahaha, pikiranmu makanan terus ya.",
+      "expression": "silly",
+      "bg": "1.2",
+      "nextIndex": 42
+    },
+    {
+      "speaker": "Livia",
+      "text": "Enak aja! Aku mau libur masak besok!",
+      "expression": "angry",
+      "bg": "1.2",
+      "nextIndex": 42
+    },
+    {
+      "speaker": "Livia",
+      "text": "Sama! Kita sehati dalam hal makanan gratis.",
+      "expression": "flirty",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Angin siang berhembus masuk dari celah jendela, membuat Livia menggigil kecil.",
+      "expression": "normal",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Brrr... di sini lumayan berangin ya kalau siang.",
+      "expression": "pain",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kenapa kamu nggak tutup pintumu? Mau masuk angin?",
+      "expression": "confused",
+      "bg": "1.2",
+      "choices": [
+        {
+          "text": "Sengaja biar udaranya muter.",
+          "nextIndex": 45
+        },
+        {
+          "text": "Kan lagi ngobrol sama kamu.",
+          "nextIndex": 46
+        },
+        {
+          "text": "Nungguin malaikat lewat.",
+          "nextIndex": 47
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Logika yang aneh. Nanti flu baru tau rasa.",
+      "expression": "serious",
+      "bg": "1.2",
+      "nextIndex": 48
+    },
+    {
+      "speaker": "Livia",
+      "text": "O-oh... bener juga sih...",
+      "expression": "blushing",
+      "bg": "1.2",
+      "nextIndex": 48
+    },
+    {
+      "speaker": "Livia",
+      "text": "Malaikat pencabut nyawa iya! Cepat tutup!",
+      "expression": "scared",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Oke deh, urusanku udah selesai. Makasih udah benerin laptopku.",
+      "expression": "normal",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Besok jangan sampai ketiduran lho, awas aja kalau aku yang kena marah bapak kos gara-gara kamu!",
+      "expression": "angry",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Sampai jumpa besok pagi, tetangga.",
+      "expression": "happy",
+      "bg": "1.2",
+      "choices": [
+        {
+          "text": "Siang, Livia.",
+          "nextIndex": 51
+        },
+        {
+          "text": "Jangan mimpiin aku ya.",
+          "nextIndex": 52
+        },
+        {
+          "text": "Bangunin aku kalau telat.",
+          "nextIndex": 53
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Siang juga.",
+      "expression": "pleased",
+      "bg": "1.2",
+      "nextIndex": 54
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hih! Nggak akan pernah!",
+      "expression": "clingy",
+      "bg": "1.2",
+      "nextIndex": 54
+    },
+    {
+      "speaker": "Livia",
+      "text": "Iya, nanti kugedor pintumu sampai jebol!",
+      "expression": "silly",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia kembali ke kamarnya dan menutup pintu. Botol minuman dingin di tanganmu terasa menyegarkan.",
+      "expression": "normal",
+      "bg": "1.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Mungkin, masa perkuliahan ini tidak akan seburuk yang kamu bayangkan.",
+      "expression": "normal",
+      "bg": "1.2"
+    }
+  ]
+}

@@ -1,0 +1,458 @@
+{
+  "id": 4,
+  "title": "Sahabat",
+  "reqAffection": 80,
+  "reqLevel": 4,
+  "scenes": [
+    {
+      "speaker": "Narator",
+      "text": "Malam semakin larut. Kamu sedang bergelut dengan tugas kuliah yang menumpuk di depan laptop.",
+      "expression": "normal",
+      "bg": "4.1",
+      "hideSprite": true
+    },
+    {
+      "speaker": "Narator",
+      "text": "Keheningan kamarmu tiba-tiba dipecahkan oleh suara ketukan pelan dari arah pintu.",
+      "expression": "normal",
+      "bg": "2.1",
+      "hideSprite": true
+    },
+    {
+      "speaker": "Narator",
+      "text": "Saat kamu membukanya, Livia berdiri di sana.",
+      "expression": "normal",
+      "bg": "2.2",
+      "choices": [
+        {
+          "text": "Ada apa malam-malam begini?",
+          "nextIndex": 3
+        },
+        {
+          "text": "Kamu mengigau ya?",
+          "nextIndex": 4
+        },
+        {
+          "text": "Wah, ada bidadari nyasar.",
+          "nextIndex": 5
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "J-jangan pasang muka terganggu gitu dong!",
+      "expression": "angry",
+      "bg": "2.2",
+      "nextIndex": 6
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hah?! Aku sadar 100 persen tau!",
+      "expression": "pain",
+      "bg": "2.2",
+      "nextIndex": 6
+    },
+    {
+      "speaker": "Livia",
+      "text": "B-bidadari apanya?! Gombalanmu norak banget!",
+      "expression": "blushing",
+      "bg": "2.2",
+      "nextIndex": 6
+    },
+    {
+      "speaker": "Narator",
+      "text": "Tanpa menunggu persetujuanmu, Livia menyelinap masuk ke dalam unitmu sambil membawa kantong plastik kecil.",
+      "expression": "normal",
+      "bg": "2.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Nih. Aku tadi habis ke minimarket depan dan kebetulan ada promo buy 1 get 1.",
+      "expression": "normal",
+      "bg": "4.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Satu buatku, satu buatmu. Jangan protes, minum aja.",
+      "expression": "happy",
+      "bg": "4.2",
+      "choices": [
+        {
+          "text": "Wah, lagi butuh banget nih. Makasih.",
+          "nextIndex": 9
+        },
+        {
+          "text": "Awas nih, biasanya ada udangnya.",
+          "nextIndex": 10
+        },
+        {
+          "text": "Kafein di malam hari nggak sehat lho.",
+          "nextIndex": 11
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Baguslah kalau kepakai. Biar kamu nggak ketiduran ngerjain tugas.",
+      "expression": "pleased",
+      "bg": "4.2",
+      "nextIndex": 12
+    },
+    {
+      "speaker": "Livia",
+      "text": "Udang apa?! Pikirannya negatif terus! Balikin kalau nggak mau!",
+      "expression": "angry",
+      "bg": "4.2",
+      "nextIndex": 12
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ya ampun, dikasih gratis malah ceramah medis! Bodo amat!",
+      "expression": "pain",
+      "bg": "4.2",
+      "nextIndex": 12
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu mengambil gelas es kopi itu. Livia kemudian duduk menyila di dekat mejamu dan membuka laptopnya.",
+      "expression": "normal",
+      "bg": "4.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kenapa ngeliatin gitu? Wi-Fi di unitku lagi lambat banget tau!",
+      "expression": "angry",
+      "bg": "4.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Batas pengumpulan tugasku besok pagi, jadi malam ini aku numpang ngerjain di sini ya!",
+      "expression": "serious",
+      "bg": "4.2",
+      "choices": [
+        {
+          "text": "Boleh aja. Silakan.",
+          "nextIndex": 15
+        },
+        {
+          "text": "Bayar sewa tempat dong.",
+          "nextIndex": 16
+        },
+        {
+          "text": "(Lirik bantal yang dia bawa)",
+          "nextIndex": 17
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "S-syukurlah... kukira kamu bakal ngusir.",
+      "expression": "pleased",
+      "bg": "4.2",
+      "nextIndex": 18
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kan udah kubayar pakai es kopi tadi! Dasar perhitungan!",
+      "expression": "angry",
+      "bg": "4.2",
+      "nextIndex": 18
+    },
+    {
+      "speaker": "Livia",
+      "text": "I-ini... ini bantal penyangga punggung! Biar nggak pegal! Bukan buat tidur!",
+      "expression": "blushing",
+      "bg": "4.2",
+      "nextIndex": 18
+    },
+    {
+      "speaker": "Narator",
+      "text": "Waktu pun berlalu. Hanya terdengar suara ketikan keyboard dari kalian berdua.",
+      "expression": "normal",
+      "bg": "4.1",
+      "hideSprite": true
+    },
+    {
+      "speaker": "Narator",
+      "text": "Terkadang, kamu mencuri pandang ke arahnya. Wajah serius Livia saat belajar terlihat cukup manis.",
+      "expression": "normal",
+      "bg": "4.1",
+      "hideSprite": true
+    },
+    {
+      "speaker": "Narator",
+      "text": "Tiba-tiba, mata kalian saling bertatapan.",
+      "expression": "normal",
+      "bg": "4.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "A-apa?! Kenapa lihat-lihat?!",
+      "expression": "blushing",
+      "bg": "4.2",
+      "choices": [
+        {
+          "text": "Nggak, cuma merhatiin laptopmu.",
+          "nextIndex": 22
+        },
+        {
+          "text": "Kamu cantik juga kalau lagi serius.",
+          "nextIndex": 23
+        },
+        {
+          "text": "Ada noda di pipimu.",
+          "nextIndex": 24
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Awas ya kalau ngintip tugasku! Aku nggak mau dicontek!",
+      "expression": "serious",
+      "bg": "4.2",
+      "nextIndex": 25
+    },
+    {
+      "speaker": "Livia",
+      "text": "G-gombalan murahan! Berhenti ngomong gitu, aku jadi nggak fokus!",
+      "expression": "angry",
+      "bg": "4.2",
+      "nextIndex": 25
+    },
+    {
+      "speaker": "Livia",
+      "text": "Eh?! Di mana?! (Mengusap-usap pipinya panik) Boong ya?! Jahat!",
+      "expression": "scared",
+      "bg": "4.2",
+      "nextIndex": 25
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kamu nyadar nggak sih... belakangan ini kita sering banget bareng.",
+      "expression": "normal",
+      "bg": "4.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Maksudku... dulu aku segan banget mau keluar kamar, takut disapa tetangga aneh.",
+      "expression": "serious",
+      "bg": "4.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tapi sekarang... entah kenapa aku merasa lebih tenang dan aman kalau ada di dekatmu.",
+      "expression": "happy",
+      "bg": "4.2",
+      "choices": [
+        {
+          "text": "Itu karena aku bisa diandalkan.",
+          "nextIndex": 28
+        },
+        {
+          "text": "Aku juga merasa gitu, Livia.",
+          "nextIndex": 29
+        },
+        {
+          "text": "Cieee, mulai ngaku nih.",
+          "nextIndex": 30
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Cih, kepedean. Walau... ya, sedikit benar sih.",
+      "expression": "pleased",
+      "bg": "4.2",
+      "nextIndex": 31
+    },
+    {
+      "speaker": "Livia",
+      "text": "S-syukurlah kalau perasaannya nggak cuma sepihak...",
+      "expression": "blushing",
+      "bg": "4.2",
+      "nextIndex": 31
+    },
+    {
+      "speaker": "Livia",
+      "text": "A-aku cuma bilang kenyataan obyektif kok! Nggak bermaksud aneh-aneh!",
+      "expression": "angry",
+      "bg": "4.2",
+      "nextIndex": 31
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia salah tingkah dan tak sengaja menyenggol gelas kopinya sendiri.",
+      "expression": "normal",
+      "bg": "4.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kyaa! Tumpah!",
+      "expression": "scared",
+      "bg": "4.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Aduh, maaf! Maaf banget! Kertas kerjamu kena nggak?!",
+      "expression": "pain",
+      "bg": "4.2",
+      "choices": [
+        {
+          "text": "Nggak apa-apa, aman kok.",
+          "nextIndex": 34
+        },
+        {
+          "text": "Sini aku bantu lap.",
+          "nextIndex": 35
+        },
+        {
+          "text": "Ceroboh banget sih.",
+          "nextIndex": 36
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Fuh... untunglah. Aku ceroboh banget sih...",
+      "expression": "pain",
+      "bg": "4.2",
+      "nextIndex": 37
+    },
+    {
+      "speaker": "Livia",
+      "text": "M-makasih... maaf jadi ngerepotin.",
+      "expression": "pleased",
+      "bg": "4.2",
+      "nextIndex": 37
+    },
+    {
+      "speaker": "Livia",
+      "text": "Iya aku tau! Nggak usah diperjelas! Ukh...",
+      "expression": "angry",
+      "bg": "4.2",
+      "nextIndex": 37
+    },
+    {
+      "speaker": "Narator",
+      "text": "Setelah insiden kecil itu dibereskan, kamar kembali hening.",
+      "expression": "normal",
+      "bg": "4.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Satu jam kemudian, kamu menyadari suara ketikan Livia berhenti.",
+      "expression": "normal",
+      "bg": "4.1",
+      "hideSprite": true
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu menoleh dan melihatnya menelungkupkan wajahnya di lipatan lengan, tertidur pulas.",
+      "expression": "normal",
+      "bg": "4.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "(Dia bernapas pelan dan teratur)",
+      "expression": "normal",
+      "bg": "4.1",
+      "hideSprite": true,
+      "choices": [
+        {
+          "text": "Bangunkan dia.",
+          "nextIndex": 41
+        },
+        {
+          "text": "Pakaikan selimut padanya.",
+          "nextIndex": 45
+        },
+        {
+          "text": "Biarkan saja dan lanjut kerja.",
+          "nextIndex": 46
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Eungh... ah! A-aku ketiduran ya?! Jam berapa ini?!",
+      "expression": "scared",
+      "bg": "4.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "M-maaf! Rencananya aku nggak mau tidur! Tugasnya juga udah selesai sih...",
+      "expression": "blushing",
+      "bg": "4.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ukh... memalukan banget... Ya udah, aku balik ke kamarku sekarang!",
+      "expression": "pain",
+      "bg": "4.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Makasih Wi-Fi nya... dan tumpangannya... Selamat malam!",
+      "expression": "happy",
+      "bg": "2.1",
+      "choices": [
+        {
+          "text": "Malam, Livia. Mimpi indah.",
+          "nextIndex": 47
+        }
+      ]
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu menyampirkan selimut ke punggungnya. Livia sedikit menggeliat tapi kembali tenang.",
+      "expression": "normal",
+      "bg": "4.2",
+      "nextIndex": 48
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu membiarkannya tertidur hingga pagi menjemput. Livia sungguh kelelahan.",
+      "expression": "normal",
+      "bg": "4.1",
+      "nextIndex": 48
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia buru-buru keluar sambil membawa barang-barangnya. Pintu tertutup pelan.",
+      "expression": "normal",
+      "bg": "2.2",
+      "hideSprite": true,
+      "nextIndex": 50
+    },
+    {
+      "speaker": "Narator",
+      "text": "Melihatnya tertidur nyenyak di kamarmu, kamu tersenyum pelan. Kehadirannya kini menjadi bagian yang menyenangkan.",
+      "expression": "normal",
+      "bg": "4.1",
+      "hideSprite": true
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu pun kembali melanjutkan tugasmu dengan tenang.",
+      "expression": "normal",
+      "bg": "4.1",
+      "hideSprite": true,
+      "nextIndex": 51
+    },
+    {
+      "speaker": "Narator",
+      "text": "Apartemen ini tidak lagi terasa sepi seperti dulu.",
+      "expression": "normal",
+      "bg": "2.1",
+      "hideSprite": true,
+      "nextIndex": 999
+    },
+    {
+      "speaker": "Narator",
+      "text": "Apartemen ini tidak lagi terasa sepi seperti dulu.",
+      "expression": "normal",
+      "bg": "4.1",
+      "hideSprite": true
+    }
+  ]
+}

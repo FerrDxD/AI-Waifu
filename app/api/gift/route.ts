@@ -1,8 +1,16 @@
 import { NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { userProfiles } from '@/lib/db/schema';
-import { applyAffectionUpdate } from '@/lib/livia/affection.server';
+import { ensureUnlockedChapters } from '@/lib/livia/affection.server';
+import { getUnlockedChapters } from '@/lib/livia/affection';
+import {
+  newAffectionExpr,
+  affectionLevelExpr,
+  clampStatExpr,
+  moneyMinusExpr,
+  moneyAtLeastExpr,
+} from '@/lib/livia/atomic-profile';
 import { ITEMS } from '@/lib/livia/items';
 import { jsonApiHandler } from '@/lib/api-handler';
 import { mutationRateLimit } from '@/lib/rate-limit';
@@ -74,18 +82,6 @@ export const POST = jsonApiHandler<GiftBody>(
 
     if (!profile) throw errors.notFound('Profil');
 
-    if ((profile.money || 0) < cost) {
-      throw errors.badRequest('Uang kamu tidak cukup untuk membeli ini.', 'INSUFFICIENT_FUNDS');
-    }
-
-    const {
-      newAffection,
-      affectionLevel: newLevel,
-      unlockedChapter,
-    } = await applyAffectionUpdate(userId, profile.affection || 0, affectionDelta);
-
-    const newMoney = (profile.money || 0) - cost;
-
     const currentItems = profile.itemsBrought || [];
     const newItems = [...currentItems];
     const isRecoveryItem = itemId ? Boolean(RECOVERY_STATS[itemId]) : false;
@@ -95,18 +91,14 @@ export const POST = jsonApiHandler<GiftBody>(
       newItems.push(itemId);
     }
 
-    let newHunger = profile.liviaHunger ?? 100;
-    let newEnergy = profile.liviaEnergy ?? 100;
-    let newHydration = profile.liviaHydration ?? 100;
-
-    if (itemId && isRecoveryItem) {
-      const stats = RECOVERY_STATS[itemId];
-      const isMenstruation = calculateCycleDay(profile.liviaCycleAnchor?.toISOString()) <= 5;
-      const energyMultiplier = isMenstruation ? 0.2 : 1.0; // 80% lebih lemah saat menstruasi
-      newHunger = Math.min(100, newHunger + (stats.hunger || 0));
-      newEnergy = Math.min(100, newEnergy + Math.round((stats.energy || 0) * energyMultiplier));
-      newHydration = Math.min(100, newHydration + (stats.hydration || 0));
-    }
+    // Delta stat pemulihan deterministik (dari itemId + fase siklus snapshot),
+    // jadi aman di-apply secara atomik: `clamp(stat + delta)`.
+    const isMenstruation = calculateCycleDay(profile.liviaCycleAnchor?.toISOString()) <= 5;
+    const energyMultiplier = isMenstruation ? 0.2 : 1.0; // 80% lebih lemah saat menstruasi
+    const stats = itemId && isRecoveryItem ? RECOVERY_STATS[itemId] : {};
+    const hungerDelta = stats.hunger || 0;
+    const energyDelta = Math.round((stats.energy || 0) * energyMultiplier);
+    const hydrationDelta = stats.hydration || 0;
 
     // Hitung ulang buff/debuff berdasarkan daftar item terbaru.
     const activeBuffs = newItems
@@ -120,20 +112,39 @@ export const POST = jsonApiHandler<GiftBody>(
       activeDebuffs.splice(randomIndex, 1);
     }
 
-    await db
+    // M5.4 — atomik: `WHERE money >= cost` mencegah double-spend; money &
+    // affection & stat di-update dari kolom lama + delta dalam satu statement.
+    const updated = await db
       .update(userProfiles)
       .set({
-        money: newMoney,
-        affection: newAffection,
-        affectionLevel: newLevel,
+        money: moneyMinusExpr(cost),
+        affection: newAffectionExpr(affectionDelta),
+        affectionLevel: affectionLevelExpr(affectionDelta),
         itemsBrought: newItems,
         activeBuffs,
         activeDebuffs,
-        liviaHunger: newHunger,
-        liviaEnergy: newEnergy,
-        liviaHydration: newHydration,
+        liviaHunger: clampStatExpr(userProfiles.liviaHunger, hungerDelta),
+        liviaEnergy: clampStatExpr(userProfiles.liviaEnergy, energyDelta),
+        liviaHydration: clampStatExpr(userProfiles.liviaHydration, hydrationDelta),
       })
-      .where(eq(userProfiles.userId, userId));
+      .where(and(eq(userProfiles.userId, userId), moneyAtLeastExpr(cost)))
+      .returning({ money: userProfiles.money, affection: userProfiles.affection });
+
+    if (updated.length === 0) {
+      const exists = (
+        await db
+          .select({ money: userProfiles.money })
+          .from(userProfiles)
+          .where(eq(userProfiles.userId, userId))
+      )[0];
+      if (!exists) throw errors.notFound('Profil');
+      throw errors.badRequest('Uang kamu tidak cukup untuk membeli ini.', 'INSUFFICIENT_FUNDS');
+    }
+
+    const newMoney = updated[0].money;
+    const newAffection = updated[0].affection ?? 0;
+    await ensureUnlockedChapters(userId, newAffection);
+    const unlockedChapter = getUnlockedChapters(-1, newAffection).pop() ?? null;
 
     return NextResponse.json({ success: true, newMoney, newAffection, unlockedChapter });
   }

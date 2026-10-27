@@ -1,0 +1,518 @@
+{
+  "id": 3,
+  "title": "Rumah Kedua",
+  "reqAffection": 60,
+  "reqLevel": 3,
+  "scenes": [
+    {
+      "speaker": "Narator",
+      "text": "Akhir pekan yang tenang. Kamu sedang menyeduh kopi saat terdengar bel pintumu berbunyi.",
+      "expression": "normal",
+      "bg": "3.1",
+      "hideSprite": true
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu berjalan ke arah pintu dan membukanya. Livia berdiri di sana membawa sebuah toples besar.",
+      "expression": "normal",
+      "bg": "3.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Nih. Ibu ngirim terlalu banyak kue kering dari kampung.",
+      "expression": "normal",
+      "choices": [
+        {
+          "text": "Wah, repot-repot amat.",
+          "nextIndex": 3
+        },
+        {
+          "text": "Buatku semua?",
+          "nextIndex": 4
+        },
+        {
+          "text": "Tumben bawain makanan.",
+          "nextIndex": 5
+        }
+      ],
+      "bg": "3.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Nggak repot kok. Ibuku yang ngirim.",
+      "expression": "pleased",
+      "bg": "3.2",
+      "nextIndex": 6
+    },
+    {
+      "speaker": "Livia",
+      "text": "Enak aja! Sebagian buatku juga tau!",
+      "expression": "angry",
+      "bg": "3.2",
+      "nextIndex": 6
+    },
+    {
+      "speaker": "Livia",
+      "text": "I-ini cuma bagi-bagi rezeki!",
+      "expression": "blushing",
+      "bg": "3.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Karena kamarku nggak muat, kamu ambil sebagian. Bukannya aku sengaja nyisihin buatmu, ya!",
+      "expression": "angry",
+      "bg": "3.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ini kue resep rahasia keluarga lho. Harusnya kamu bersyukur bisa mencicipinya.",
+      "expression": "serious",
+      "bg": "3.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ayo cepat terima, tanganku udah pegal nih megangin toples seberat ini.",
+      "expression": "clingy",
+      "choices": [
+        {
+          "text": "Oke, makasih.",
+          "nextIndex": 9
+        },
+        {
+          "text": "Sini kubantu pegang.",
+          "nextIndex": 10
+        },
+        {
+          "text": "Kuenya kelihatannya enak.",
+          "nextIndex": 11
+        }
+      ],
+      "bg": "3.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Sama-sama. Awas kalau nggak dihabisin.",
+      "expression": "happy",
+      "bg": "3.2",
+      "nextIndex": 12
+    },
+    {
+      "speaker": "Livia",
+      "text": "A-aku masih kuat pegang kok!",
+      "expression": "blushing",
+      "bg": "3.2",
+      "nextIndex": 12
+    },
+    {
+      "speaker": "Livia",
+      "text": "Jelas dong, buatan ibuku gitu lho!",
+      "expression": "pleased",
+      "bg": "3.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu mempersilakannya masuk karena angin lorong cukup dingin.",
+      "expression": "normal",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Eh... unitmu ternyata rapi juga ya. Nggak berantakan kayak cowok di film-film.",
+      "expression": "confused",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Wangi kopinya juga enak. Standar kebersihanmu boleh juga.",
+      "expression": "pleased",
+      "choices": [
+        {
+          "text": "Tentu saja, aku rajin.",
+          "nextIndex": 15
+        },
+        {
+          "text": "Biasa aja ah.",
+          "nextIndex": 16
+        },
+        {
+          "text": "Makasih atas pujiannya.",
+          "nextIndex": 17
+        }
+      ],
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Cih, sombong amat. Tapi yaudah deh kuakui.",
+      "expression": "silly",
+      "bg": "3.3",
+      "nextIndex": 18
+    },
+    {
+      "speaker": "Livia",
+      "text": "Sok merendah! Menyebalkan!",
+      "expression": "angry",
+      "bg": "3.3",
+      "nextIndex": 18
+    },
+    {
+      "speaker": "Livia",
+      "text": "I-itu bukan pujian tau!",
+      "expression": "blushing",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu meletakkan toples itu di atas meja dan menawarinya secangkir teh chamomile.",
+      "expression": "normal",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Makasih. Setidaknya kamu tau tata krama menjamu tamu.",
+      "expression": "normal",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Wah... teh chamomile. Wanginya bikin rileks banget.",
+      "expression": "happy",
+      "choices": [
+        {
+          "text": "Cocok buat santai.",
+          "nextIndex": 21
+        },
+        {
+          "text": "Kamu suka?",
+          "nextIndex": 22
+        },
+        {
+          "text": "Ini mahal lho.",
+          "nextIndex": 23
+        }
+      ],
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Iya, pas banget diminum pagi-pagi gini.",
+      "expression": "pleased",
+      "bg": "3.3",
+      "nextIndex": 24
+    },
+    {
+      "speaker": "Livia",
+      "text": "Suka banget! Seleramu lumayan juga.",
+      "expression": "happy",
+      "bg": "3.3",
+      "nextIndex": 24
+    },
+    {
+      "speaker": "Livia",
+      "text": "Perhitungan banget sih sama tamu!",
+      "expression": "angry",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu membuka toples dan mulai mencicipi kue cokelat tersebut.",
+      "expression": "normal",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Gimana rasanya? Beri aku review jujur dan objektif dari skala satu sampai sepuluh.",
+      "expression": "serious",
+      "choices": [
+        {
+          "text": "Sepuluh sempurna.",
+          "nextIndex": 26
+        },
+        {
+          "text": "Tujuh aja deh.",
+          "nextIndex": 27
+        },
+        {
+          "text": "Belum bisa dinilai.",
+          "nextIndex": 28
+        }
+      ],
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Wah! Pilihan yang sangat tepat!",
+      "expression": "happy",
+      "bg": "3.3",
+      "nextIndex": 29
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tujuh?! Lidahmu mati rasa ya?!",
+      "expression": "angry",
+      "bg": "3.3",
+      "nextIndex": 29
+    },
+    {
+      "speaker": "Livia",
+      "text": "Pelit review! Nggak asik!",
+      "expression": "pain",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kamu tahu... belakangan ini aku merasa tinggal di apato ini nggak seburuk yang kukira.",
+      "expression": "normal",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Awalnya aku benci banget ninggalin rumah lamaku. Rasanya asing dan menakutkan.",
+      "expression": "serious",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tiap malam rasanya sepi banget. Kadang aku sampai nangis mikirin kasurku yang lama.",
+      "expression": "pain",
+      "choices": [
+        {
+          "text": "Itu namanya homesick.",
+          "nextIndex": 32
+        },
+        {
+          "text": "Kamu udah berjuang keras.",
+          "nextIndex": 33
+        },
+        {
+          "text": "Anak mama banget sih.",
+          "nextIndex": 34
+        }
+      ],
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "I-iya, aku tahu istilahnya! Nggak usah sok pinter!",
+      "expression": "angry",
+      "bg": "3.3",
+      "nextIndex": 35
+    },
+    {
+      "speaker": "Livia",
+      "text": "M-makasih... denger itu bikin aku agak lega.",
+      "expression": "blushing",
+      "bg": "3.3",
+      "nextIndex": 35
+    },
+    {
+      "speaker": "Livia",
+      "text": "Biarin! Siapa sih yang nggak kangen rumah?!",
+      "expression": "pain",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tapi... setelah beberapa insiden memalukan yang melibatkan serangga dan tumpukan kardus...",
+      "expression": "blushing",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Anehnya, aku mulai merasa ada seseorang yang menjagaku di sini.",
+      "expression": "clingy",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Seseorang yang bisa kuandalkan kapan saja... walau kadang nyebelin.",
+      "expression": "happy",
+      "choices": [
+        {
+          "text": "Siapa tuh? Bapak kos?",
+          "nextIndex": 38
+        },
+        {
+          "text": "Aku juga merasa gitu.",
+          "nextIndex": 39
+        },
+        {
+          "text": "Cieee, mulai suka ya?",
+          "nextIndex": 40
+        }
+      ],
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "B-bukan bodoh! Kenapa kamu nggak peka sih?!",
+      "expression": "angry",
+      "bg": "3.3",
+      "nextIndex": 41
+    },
+    {
+      "speaker": "Livia",
+      "text": "B-beneran? Tumben kamu jujur.",
+      "expression": "blushing",
+      "bg": "3.3",
+      "nextIndex": 41
+    },
+    {
+      "speaker": "Livia",
+      "text": "J-jangan ngaco! Ini cuma sebatas tetangga!",
+      "expression": "scared",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Rasanya tempat ini sedikit demi sedikit terasa seperti... rumah kedua.",
+      "expression": "pleased",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kamu mau bertanggung jawab nggak karena udah bikin aku ketergantungan gini?",
+      "expression": "flirty",
+      "choices": [
+        {
+          "text": "Aku janji bakal menjagamu.",
+          "nextIndex": 43
+        },
+        {
+          "text": "Berani bayar berapa?",
+          "nextIndex": 44
+        },
+        {
+          "text": "Kita saling jaga aja.",
+          "nextIndex": 45
+        }
+      ],
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kamu udah janji lho! Jangan ditarik lagi!",
+      "expression": "blushing",
+      "bg": "3.3",
+      "nextIndex": 46
+    },
+    {
+      "speaker": "Livia",
+      "text": "Dasar rentenir! Kupotong uang jajanmu nanti!",
+      "expression": "angry",
+      "bg": "3.3",
+      "nextIndex": 46
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hmm... tawaran yang cukup adil. Setuju.",
+      "expression": "pleased",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia menghabiskan teh chamomile-nya dan berdiri merapikan roknya.",
+      "expression": "normal",
+      "bg": "3.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Oke, makasih buat tehnya. Aku harus balik ke kamar buat lanjutin tugas kuliah.",
+      "expression": "normal",
+      "bg": "3.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kalau... kalau kamu butuh teman ngobrol, pintuku juga selalu terbuka kok.",
+      "expression": "blushing",
+      "choices": [
+        {
+          "text": "Oke, nanti aku ketuk.",
+          "nextIndex": 49
+        },
+        {
+          "text": "Tumben nawarin.",
+          "nextIndex": 50
+        },
+        {
+          "text": "Pasti kangen ya?",
+          "nextIndex": 51
+        }
+      ],
+      "bg": "3.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "J-jangan kemalaman ngetuknya!",
+      "expression": "scared",
+      "bg": "3.1",
+      "nextIndex": 52
+    },
+    {
+      "speaker": "Livia",
+      "text": "B-bukan berarti aku kesepian ya! Cuma nawarin!",
+      "expression": "angry",
+      "bg": "3.1",
+      "nextIndex": 52
+    },
+    {
+      "speaker": "Livia",
+      "text": "D-diam! Cepat bukain pintunya, aku mau keluar!",
+      "expression": "pain",
+      "bg": "3.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu mengangguk pelan sambil membukakan pintu untuknya.",
+      "expression": "normal",
+      "bg": "3.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Sampai jumpa nanti sore, tetangga. Jangan kangen ya!",
+      "expression": "happy",
+      "choices": [
+        {
+          "text": "Sampai jumpa.",
+          "nextIndex": 54
+        },
+        {
+          "text": "Nggak bakal kangen kok.",
+          "nextIndex": 55
+        },
+        {
+          "text": "Mungkin aku bakal kangen.",
+          "nextIndex": 56
+        }
+      ],
+      "bg": "3.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Dadah~",
+      "expression": "pleased",
+      "bg": "3.2",
+      "nextIndex": 57
+    },
+    {
+      "speaker": "Livia",
+      "text": "Awas kalau nanti kamu yang duluan nyariin aku!",
+      "expression": "flirty",
+      "bg": "3.2",
+      "nextIndex": 57
+    },
+    {
+      "speaker": "Livia",
+      "text": "U-uhh... t-tuh kan mulai ngegombal lagi!",
+      "expression": "blushing",
+      "bg": "3.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Pintu tertutup. Kamarmu kembali hening, namun entah kenapa terasa lebih hangat dari sebelumnya.",
+      "expression": "normal",
+      "bg": "3.1",
+      "hideSprite": true
+    }
+  ]
+}

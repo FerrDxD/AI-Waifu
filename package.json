@@ -16,6 +16,10 @@
     "verify": "bun run typecheck && bun run lint && bun run test",
     "evals": "bun evals/run.ts",
     "evals:live": "bun evals/run.ts --live",
+    "db:migrate": "drizzle-kit migrate",
+    "db:generate": "drizzle-kit generate",
+    "db:prune": "bun scripts/prune-expired-data.ts",
+    "db:check-drift": "bun scripts/check-db-drift.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "prepare": "husky || true"

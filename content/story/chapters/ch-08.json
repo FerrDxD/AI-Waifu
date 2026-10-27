@@ -1,0 +1,715 @@
+{
+  "id": 8,
+  "title": "Pulang Kampung",
+  "reqAffection": 100,
+  "reqLevel": 5,
+  "requirements": [
+    {
+      "kind": "accountDays",
+      "min": 21,
+      "label": "Umur akun minimal 21 Hari"
+    },
+    {
+      "kind": "screenTime",
+      "min": 120,
+      "label": "Screen time minimal 120 Jam"
+    },
+    {
+      "kind": "item",
+      "item": "visited_festival",
+      "label": "Sudah pernah ke Festival"
+    },
+    {
+      "kind": "item",
+      "item": "trench_coat",
+      "label": "Memiliki Trench Coat"
+    }
+  ],
+  "scenes": [
+    {
+      "speaker": "Narator",
+      "text": "Kereta melaju membelah kegelapan malam. Kalian sengaja mengambil jadwal keberangkatan pukul 3 dini hari agar tiba di kampung halaman Livia pagi ini.",
+      "expression": "normal-8",
+      "bg": "8.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Suasana gerbong masih sangat sepi. Sebagian besar penumpang masih terlelap, termasuk Livia yang duduk di sebelahmu.",
+      "expression": "normal-8",
+      "bg": "8.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Nghh... jam berapa sekarang...?",
+      "expression": "pain-8",
+      "bg": "8.1"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hoam... mataku masih berat banget. Padahal di kereta susah tidur nyenyak.",
+      "expression": "sad-8",
+      "bg": "8.1",
+      "choices": [
+        {
+          "text": "Tidur lagi aja, perjalanan masih panjang kok.",
+          "nextIndex": 4
+        },
+        {
+          "text": "Pundakku kosong nih kalau kamu mau nyender.",
+          "nextIndex": 5
+        },
+        {
+          "text": "Makanya, siapa suruh milih tiket jam 3 pagi?",
+          "nextIndex": 6
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Iya deh... bangunin aku kalau langitnya udah terang ya.",
+      "expression": "sad-8",
+      "bg": "8.1",
+      "nextIndex": 7
+    },
+    {
+      "speaker": "Livia",
+      "text": "M-modus! ...tapi boleh deh, lagi ngantuk banget soalnya.",
+      "expression": "blushing-8",
+      "bg": "8.1",
+      "nextIndex": 7
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kan biar tiketnya lebih murah! Kamu ini nggak tau cara berhemat ya?!",
+      "expression": "angry-8",
+      "bg": "8.1",
+      "nextIndex": 7
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia menyandarkan kepalanya di pundakmu dan kembali terlelap. Kamu pun ikut menikmati sisa perjalanan sambil melihat fajar perlahan menyingsing.",
+      "expression": "normal-8",
+      "bg": "8.1"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Semburat warna jingga keemasan mulai menghiasi langit di luar jendela. Pemandangan hamparan sawah yang terkena sinar matahari pagi tampak begitu indah.",
+      "expression": "normal-8",
+      "bg": "8.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Nghh... udah pagi ya... wah, mataharinya cantik banget...",
+      "expression": "happy-8",
+      "bg": "8.2"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Aku selalu suka lihat sunrise dari kereta. Sebentar lagi kita sampai nih.",
+      "expression": "pleased-8",
+      "bg": "8.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Suara pengumuman dari pengeras suara bergema, menandakan bahwa kereta akan segera tiba di stasiun tujuan.",
+      "expression": "normal-8",
+      "bg": "8.2"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kalian melangkah turun dari kereta tepat pukul delapan pagi. Udara pagi yang sejuk namun cukup menusuk langsung menyapa kulit.",
+      "expression": "normal-8",
+      "bg": "8.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Brrr... ternyata udara pagi di sini lebih dingin dari dugaanku.",
+      "expression": "scared-8",
+      "bg": "8.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Untung kita pakai mantel yang tebal. Kalau nggak, kita berdua udah jadi es serut sekarang.",
+      "expression": "happy-8",
+      "bg": "8.3"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia menggosok-gosokkan kedua tangannya, mencoba mencari kehangatan. Ia melirikmu dengan pandangan penuh harap.",
+      "expression": "normal-8",
+      "bg": "8.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Sini, tanganku masukin ke sakumu dong... biar anget barengan.",
+      "expression": "clingy-8",
+      "bg": "8.3"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu membiarkan Livia menyelipkan tangannya ke dalam saku mantelmu, saling menggenggam satu sama lain.",
+      "expression": "normal-8",
+      "bg": "8.3"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hehe... saku ini hangat... tapi genggamanmu jauh lebih hangat.",
+      "expression": "blushing-8",
+      "bg": "8.3"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kalian berjalan keluar dari stasiun, menyusuri jalanan desa yang mulai diwarnai aktivitas warga di pagi hari.",
+      "expression": "normal-8",
+      "bg": "8.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Udara pagi di sini seger banget kan? Beda jauh sama udara kota yang isinya polusi.",
+      "expression": "happy-8",
+      "bg": "8.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Dulu waktu SD, jam segini aku biasanya lagi lari-larian ngejar layangan di lapangan dekat sini.",
+      "expression": "silly-8",
+      "bg": "8.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tapi lapangannya sekarang udah jadi bangunan... agak sayang sih.",
+      "expression": "sad-8",
+      "bg": "8.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia memandang sekeliling dengan mata yang berbinar, memancarkan rindu yang tertahan selama ini.",
+      "expression": "normal-8",
+      "bg": "8.4"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Aku senang bisa ngajak kamu jalan-jalan pagi di tempat masa kecilku.",
+      "expression": "flirty-8",
+      "bg": "8.4"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Sepanjang jalan, beberapa ruko dan toko kue tua baru saja membuka pintunya. Aroma roti yang baru dipanggang semerbak di udara.",
+      "expression": "normal-8",
+      "bg": "8.5"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Eh, cium baunya nggak? Itu toko roti langgananku dari kecil!",
+      "expression": "happy-8",
+      "bg": "8.5"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Rotinya masih panas karena baru matang! Kita mampir beli dulu yuk buat oleh-oleh Ibu dan Papa?",
+      "expression": "clingy-8",
+      "bg": "8.5"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kalian mampir sejenak, membeli sekantong roti hangat yang aromanya sangat menggoda selera.",
+      "expression": "normal-8",
+      "bg": "8.5"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kalian melanjutkan perjalanan. Perlahan, jalanan berubah menjadi jalan berbatu dengan pepohonan rindang yang masih berembun.",
+      "expression": "normal-8",
+      "bg": "8.6"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Nah, kita udah hampir sampai. Lewati turunan ini, terus belok kanan.",
+      "expression": "normal-8",
+      "bg": "8.6"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Duh... Ibu pasti kaget banget kita nyampe sepagi ini.",
+      "expression": "scared-8",
+      "bg": "8.6",
+      "choices": [
+        {
+          "text": "Nggak usah khawatir, aku bakal bersikap sangat sopan kok.",
+          "nextIndex": 32
+        },
+        {
+          "text": "Asal kita bawa roti hangat ini, pasti mereka senang.",
+          "nextIndex": 33
+        },
+        {
+          "text": "Bawa calon menantu tampan di pagi hari, siapa yang nggak kaget?",
+          "nextIndex": 34
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Aku tahu kok kamu bisa diandalkan. Pegang tanganku lebih erat ya.",
+      "expression": "happy-8",
+      "bg": "8.6",
+      "nextIndex": 35
+    },
+    {
+      "speaker": "Livia",
+      "text": "Bener juga! Apalagi Papaku suka banget sarapan pakai roti ini.",
+      "expression": "pleased-8",
+      "bg": "8.6",
+      "nextIndex": 35
+    },
+    {
+      "speaker": "Livia",
+      "text": "T-tampan dari mananya! Nanti Ibu malah ketawa ngeliat gombalanmu!",
+      "expression": "angry-8",
+      "bg": "8.6",
+      "nextIndex": 35
+    },
+    {
+      "speaker": "Narator",
+      "text": "Tak lama kemudian, sebuah rumah kayu dua lantai yang tampak asri diterangi sinar matahari pagi mulai terlihat.",
+      "expression": "normal-8",
+      "bg": "8.7"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Jendelanya terbuka lebar, membiarkan udara pagi masuk dengan leluasa.",
+      "expression": "normal-8",
+      "bg": "8.7"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Huuft... oke. Ini dia rumahnya.",
+      "expression": "serious-8",
+      "bg": "8.7"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Siap-siap ya, jangan malu-malu.",
+      "expression": "flirty-8",
+      "bg": "8.7"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia melangkah maju dan mengetuk pintu kayu tebal itu sebanyak tiga kali.",
+      "expression": "normal-8",
+      "bg": "8.8"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Terdengar suara langkah kaki yang cukup berat menghampiri dari dalam.",
+      "expression": "normal-8",
+      "bg": "8.8"
+    },
+    {
+      "speaker": "Laura",
+      "text": "Iya, iya, sebentar... eh?!",
+      "expression": "confused-8",
+      "bg": "8.9"
+    },
+    {
+      "speaker": "Laura",
+      "text": "Ya ampun! Livia, sayangku! Kalian berangkat jam berapa dari kota?! Kok pagi-pagi buta begini sudah sampai?",
+      "expression": "happy-8",
+      "bg": "8.9"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kita sengaja ambil kereta jam 3 pagi, Bu. K-kejutan dong!",
+      "expression": "blushing-8",
+      "bg": "8.9"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Laura memeluk putrinya yang masih tercium aroma embun pagi. Setelah itu, pandangannya beralih padamu.",
+      "expression": "normal-8",
+      "bg": "8.9"
+    },
+    {
+      "speaker": "Laura",
+      "text": "Tunggu... wajahmu sepertinya tidak asing. Kamu pemuda yang Tante titipi untuk bantu Livia pindahan waktu itu, kan?",
+      "expression": "confused-8",
+      "bg": "8.9"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Iya, Bu. D-dia nemenin aku pulang...",
+      "expression": "blushing-8",
+      "bg": "8.9"
+    },
+    {
+      "speaker": "Laura",
+      "text": "Astaga, akhirnya kita bisa bertemu langsung! Padahal Tante baru mau mulai masak buat sarapan lho.",
+      "expression": "happy-8",
+      "bg": "8.9",
+      "choices": [
+        {
+          "text": "Senang bisa bertemu langsung, Tante Laura.",
+          "nextIndex": 48
+        },
+        {
+          "text": "Sesuai janji, anak Tante sudah saya antarkan pagi-pagi buta.",
+          "nextIndex": 49
+        },
+        {
+          "text": "Senang bertemu dengan calon Ibu Mertua di pagi yang cerah ini.",
+          "nextIndex": 50
+        }
+      ]
+    },
+    {
+      "speaker": "Laura",
+      "text": "Tante juga sangat senang! Ayo masuk, udaranya dingin kan?",
+      "expression": "pleased-8",
+      "bg": "8.9",
+      "nextIndex": 51
+    },
+    {
+      "speaker": "Laura",
+      "text": "Hahaha, kamu ini kaku amat. Santai aja sama Tante mah.",
+      "expression": "flirty-8",
+      "bg": "8.9",
+      "nextIndex": 51
+    },
+    {
+      "speaker": "Livia",
+      "text": "I-I-Ibu M-mertua?! M-masih pagi lho ini, udah ngelantur aja!",
+      "expression": "angry-8",
+      "bg": "8.9",
+      "nextIndex": 51
+    },
+    {
+      "speaker": "Narator",
+      "text": "Laura tertawa riang, tawanya menghangatkan suasana di ruang tamu.",
+      "expression": "normal-8",
+      "bg": "8.9"
+    },
+    {
+      "speaker": "Laura",
+      "text": "Pasti repot ya ngadepin Livia. Tante tahu anak ini memang keras kepala kalau disuruh bangun pagi.",
+      "expression": "flirty-8",
+      "bg": "8.9"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Ibuuu! Jangan ngerusak citra ku di depan dia dong!",
+      "expression": "pain-8",
+      "bg": "8.9"
+    },
+    {
+      "speaker": "Laura",
+      "text": "Hahaha, bercanda sayang. Ngomong-ngomong, Papa lagi minum kopi di ruang tengah. Kalian temui dia dulu gih sambil Tante bikinin sarapan.",
+      "expression": "pleased-8",
+      "bg": "8.9"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kalian berjalan menuju ruang tengah. Sinar mentari masuk melalui jendela besar, menyinari ruangan yang rapi.",
+      "expression": "normal-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Di sofa tunggal, duduk seorang pria paruh baya berkacamata yang memancarkan aura ketenangan. Di mejanya terdapat secangkir kopi hitam dan koran pagi.",
+      "expression": "normal-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Enji",
+      "text": "Oh... kalian sudah sampai.",
+      "expression": "normal-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Papa! Livia pulang...",
+      "expression": "happy-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Enji",
+      "text": "Iya, Papa lihat. Kamu pasti ngantuk kan di kereta. Kantung matamu tebal begitu.",
+      "expression": "normal-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Papa!! Baru juga nyampe udah dikatain mata panda! Ngeselin banget sih!",
+      "expression": "angry-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Pria itu hanya tersenyum tipis, menyeruput kopinya sejenak sebelum pandangannya beralih menilaimu.",
+      "expression": "normal-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Enji",
+      "text": "Jadi... kamu pemuda yang sering diceritakan istriku ya.",
+      "expression": "normal-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Enji",
+      "text": "Duduklah. Jangan berdiri terus seperti patung.",
+      "expression": "normal-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu duduk di sofa seberang dengan sedikit gugup. Auranya terasa berwibawa, namun ia tampak sama sekali tak berniat mengintimidasimu.",
+      "expression": "normal-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Enji",
+      "text": "Dengar, anak muda. Saya bukan tipikal ayah yang akan menodongkan senapan pada pacar anak perempuannya.",
+      "expression": "serious-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Enji",
+      "text": "Apalagi di pagi hari yang cerah ini. Saya sudah terlalu tua untuk hal dramatis semacam itu. Mengurus anak muda itu melelahkan.",
+      "expression": "normal-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Papa ngomong apa sih... kita belum pacaran tau...",
+      "expression": "blushing-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Enji",
+      "text": "Belum? Ah, sudahlah. Saya hanya punya satu aturan mutlak di rumah ini.",
+      "expression": "normal-8",
+      "bg": "8.10",
+      "choices": [
+        {
+          "text": "Apa itu, Om?",
+          "nextIndex": 69
+        },
+        {
+          "text": "Jangan menyakiti Livia?",
+          "nextIndex": 70
+        },
+        {
+          "text": "Harus bangun pagi setiap hari?",
+          "nextIndex": 71
+        }
+      ]
+    },
+    {
+      "speaker": "Enji",
+      "text": "Aturannya sangat sederhana.",
+      "expression": "normal-8",
+      "bg": "8.10",
+      "nextIndex": 72
+    },
+    {
+      "speaker": "Enji",
+      "text": "Bukan itu. Itu terlalu klise.",
+      "expression": "normal-8",
+      "bg": "8.10",
+      "nextIndex": 72
+    },
+    {
+      "speaker": "Enji",
+      "text": "Saya memang bangun jam 4 pagi, tapi aturannya bukan itu.",
+      "expression": "normal-8",
+      "bg": "8.10",
+      "nextIndex": 72
+    },
+    {
+      "speaker": "Enji",
+      "text": "Aturannya adalah: Jangan pernah membuat Laura marah. Hidup dan ketenangan saya sangat bergantung pada senyumnya.",
+      "expression": "serious-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Laura",
+      "text": "Papa ngomong apa sih ke anak orang?! Bantuin siapin piring sini!",
+      "expression": "angry-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Enji",
+      "text": "Tuh kan... baru saja dibilang. Saya pamit ke dapur dulu.",
+      "expression": "scared-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamu tak kuasa menahan senyum. Terlepas dari aura seriusnya, ternyata Enji hanyalah seorang ayah yang sangat menyayangi kedamaian keluarganya.",
+      "expression": "normal-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hahaha, Papa emang nggak pernah berubah. Cuma Ibu pawangnya.",
+      "expression": "silly-8",
+      "bg": "8.10"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Tak lama kemudian, kalian berkumpul di ruang makan. Tersaji hidangan sarapan yang hangat, dilengkapi dengan roti yang kalian beli tadi.",
+      "expression": "normal-8",
+      "bg": "8.11"
+    },
+    {
+      "speaker": "Laura",
+      "text": "Ayo sarapan, kalian pasti kelaparan dari subuh belum makan kan?",
+      "expression": "happy-8",
+      "bg": "8.11"
+    },
+    {
+      "speaker": "Enji",
+      "text": "Biasanya Laura hanya membuatkan saya roti bakar kosong. Kamu benar-benar beruntung, Nak.",
+      "expression": "normal-8",
+      "bg": "8.11"
+    },
+    {
+      "speaker": "Laura",
+      "text": "Pa! Lauknya dikurangin lho nanti siangnya!",
+      "expression": "angry-8",
+      "bg": "8.11"
+    },
+    {
+      "speaker": "Enji",
+      "text": "Iya, iya, saya makan dalam diam.",
+      "expression": "scared-8",
+      "bg": "8.11"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Sarapan berlangsung dengan riang. Gelak tawa sesekali pecah berkat respons datar Enji yang tanpa ampun ditepis oleh Laura.",
+      "expression": "normal-8",
+      "bg": "8.11"
+    },
+    {
+      "speaker": "Laura",
+      "text": "Habis sarapan, kalian istirahat ya. Pasti capek banget perjalanan semalaman.",
+      "expression": "pleased-8",
+      "bg": "8.11"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Iya, Bu. Aku juga rasanya udah mau pingsan saking ngantuknya.",
+      "expression": "pain-8",
+      "bg": "8.11"
+    },
+    {
+      "speaker": "Enji",
+      "text": "Baguslah. Pemuda memang butuh banyak istirahat biar otak dan hatinya berfungsi dengan baik.",
+      "expression": "normal-8",
+      "bg": "8.11"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Selesai sarapan, Livia mengantarmu menaiki tangga menuju kamarnya di lantai dua untuk beristirahat.",
+      "expression": "normal-8",
+      "bg": "8.12"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Sinar matahari pagi menjelang siang masuk melalui celah gorden kamarnya yang dipenuhi aroma lavender.",
+      "expression": "normal-8",
+      "bg": "8.12"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Tadaa! Selamat datang di markas rahasiaku!",
+      "expression": "happy-8",
+      "bg": "8.12"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Kamarnya tertata rapi. Di dinding terdapat poster usang, dan di rak buku tersusun komik-komik masa kecilnya.",
+      "expression": "normal-8",
+      "bg": "8.12"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Agak sedikit berdebu sih, soalnya lama nggak kutempatin. Tapi semua kenanganku ada di sini.",
+      "expression": "blushing-8",
+      "bg": "8.12"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Jujur, dari dulu aku udah bayangin momen ini...",
+      "expression": "serious-8",
+      "bg": "8.12"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Membawa seseorang yang spesial buat ngeliat kamar masa kecilku.",
+      "expression": "happy-8",
+      "bg": "8.12"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Jadi... gimana rasanya ketemu keluargaku pagi-pagi begini?",
+      "expression": "flirty-8",
+      "bg": "8.12",
+      "choices": [
+        {
+          "text": "Sangat menyenangkan, sambutan yang luar biasa hangat.",
+          "nextIndex": 94
+        },
+        {
+          "text": "Papamu lucu sekali, aku sangat menyukainya.",
+          "nextIndex": 95
+        },
+        {
+          "text": "Pantas kamu tumbuh jadi anak yang hangat dan penyayang.",
+          "nextIndex": 96
+        }
+      ]
+    },
+    {
+      "speaker": "Livia",
+      "text": "Syukurlah kalau kamu nyaman. Sempet takut kamu bakal risih sama mereka.",
+      "expression": "pleased-8",
+      "bg": "8.12",
+      "nextIndex": 97
+    },
+    {
+      "speaker": "Livia",
+      "text": "Hahaha! Baru kali ini ada yang bilang Papa lucu. Biasanya orang-orang takut duluan.",
+      "expression": "happy-8",
+      "bg": "8.12",
+      "nextIndex": 97
+    },
+    {
+      "speaker": "Livia",
+      "text": "Gombal di pagi hari! Udah mending kita istirahat aja deh!",
+      "expression": "blushing-8",
+      "bg": "8.12",
+      "nextIndex": 97
+    },
+    {
+      "speaker": "Narator",
+      "text": "Livia duduk di tepi tempat tidurnya sambil menguap lebar, pertahanan dirinya melawan kantuk akhirnya runtuh.",
+      "expression": "normal-8",
+      "bg": "8.12"
+    },
+    {
+      "speaker": "Livia",
+      "text": "Kamu istirahat di kasur tambahan yang disiapin Ibu di bawah ya... aku mau tidur dulu...",
+      "expression": "clingy-8",
+      "bg": "8.12"
+    },
+    {
+      "speaker": "Narator",
+      "text": "Hanya dalam beberapa menit, Livia tertidur lelap. Hari pertamamu di kampung halamannya dimulai dengan pagi yang manis dan menenangkan.",
+      "expression": "normal-8",
+      "bg": "8.12"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, boolean, integer, date, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, boolean, integer, date, jsonb, index } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 export const users = pgTable('users', {
@@ -68,7 +68,10 @@ export const chatMessages = pgTable('chatMessages', {
   content: text('content').notNull(),
   affectionDelta: integer('affection_delta').default(0),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  /** M5.3: akses riwayat selalu per-user + urut waktu terbaru dulu. */
+  chatUserCreatedAt: index('idx_chat_user_created_at').on(table.userId, table.createdAt).desc(),
+}));
 
 /**
  * Ringkasan bergulir percakapan lama (M2.5).
@@ -123,7 +126,10 @@ export const memoryItems = pgTable('memoryItems', {
   createdAt: timestamp('created_at').defaultNow(),
   /** Terakhir kali memori ini masuk konteks — dasar perhitungan decay. */
   lastRecalledAt: timestamp('last_recalled_at'),
-});
+}, (table) => ({
+  /** M5.3: ranking memori = per-user, urut yang paling baru diingat dulu. */
+  memoriesUserRecalled: index('idx_memories_user_last_recalled').on(table.userId, table.lastRecalledAt),
+}));
 
 export const screenTimeLogs = pgTable('screenTimeLogs', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -133,7 +139,10 @@ export const screenTimeLogs = pgTable('screenTimeLogs', {
   durationSeconds: integer('duration_seconds').default(0),
   date: date('date').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  /** M5.3: total harian per user (SUM group by user+date) + laporan bulanan. */
+  screentimeUserDate: index('idx_screentime_user_date').on(table.userId, table.date),
+}));
 
 export const pomodoroSessions = pgTable('pomodoroSessions', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -142,7 +151,10 @@ export const pomodoroSessions = pgTable('pomodoroSessions', {
   completedAt: timestamp('completed_at').notNull(),
   wasCompleted: boolean('was_completed').default(true),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  /** M5.3: rangkuman pomodoro = per-user, urut selesai terbaru (statistik). */
+  pomodoroUserCompleted: index('idx_pomodoro_user_completed').on(table.userId, table.completedAt).desc(),
+}));
 
 export const storyProgress = pgTable('storyProgress', {
   id: uuid('id').primaryKey().defaultRandom(),
