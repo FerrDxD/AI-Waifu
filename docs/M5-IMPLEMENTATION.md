@@ -193,6 +193,13 @@ RETURNING count
 
 Dua request bersamaan di-queue oleh lock baris Postgres, bukan saling menimpa.
 
+**Fail-open (keputusan penting):** kalau store tidak bisa menulis (tabel
+belum di-migrasi, Neon free-tier tertidur, DB error), limiter **tidak**
+menggagalkan request — ia `logger.error` dan menganggap count = 1. Rate
+limit adalah lapisan pertahanan tambahan (bcrypt cost 12 + lockout tetap
+jalan), dan aplikasi yang 500 di semua tombol mutasi karena limiter-nya
+tidak bisa menulis lebih buruk dari limiter yang sekilas tidak aktif.
+
 ### 5.3 Multi-cap: per-menit + harian + bulanan
 
 Setiap limiter punya daftar `caps` (window terpendek dulu). `limit(key)`

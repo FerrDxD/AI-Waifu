@@ -4,9 +4,12 @@
  * Aturan: 5 kali gagal login untuk identifier yang sama → terkunci 15 menit.
  * Login sukses menghapus hitungan.
  *
- * ⚠️ Sama seperti `lib/rate-limit.ts`, ini in-memory: reset saat cold start dan
- * tidak dibagi antar instance. Cukup untuk menghentikan brute force naif dari
- * satu koneksi; M5.5 memindahkannya ke DB/Redis.
+ * ⚠️ Batasan: ini masih in-memory `Map` — reset saat cold start dan tidak
+ * dibagi antar instance. Ini diterima untuk aplikasi ini karena: (1) bcrypt
+ * cost 12 tetap memperlambat brute force di setiap instance, (2) target
+ * ancaman utamanya spam/naif, bukan serangan terdistribusi. Kalau nanti
+ * dibutuhkan lockout terdistribusi (mis. untuk rilis publik skala besar),
+ * pindahkan ke pola `rateLimitCounters` (M5.5) dengan key per-identifier.
  */
 
 const MAX_FAILED_ATTEMPTS = 5;
