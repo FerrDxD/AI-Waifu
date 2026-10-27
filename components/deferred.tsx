@@ -2,17 +2,28 @@
 
 import { useEffect, useRef, useState, type ComponentType } from 'react';
 
+type LazyComponentModule = { default: ComponentType<Record<never, never>> };
+
 /**
  * Mount komponen global opsional (mis. QuestTracker) SETELAH browser idle, lewat
  * dynamic import — modulnya tidak masuk initial JS chunk. Dipakai untuk komponen
  * yang tidak dibutuhkan pada first paint (M5.7).
+ *
+ * PERINGATAN: state-nya menyimpan OBJEK MODUL, bukan fungsi komponennya.
+ * `setX(fn)` dengan `fn` berupa fungsi akan diperlakukan React sebagai
+ * "functional updater" (`fn(prevState)` dipanggil di tengah render), sehingga
+ * hook komponen tereksekusi di fiber yang salah dan crash —
+ * `TypeError: Cannot read properties of undefined (reading 'length')` di
+ * `areHookInputsEqual` React 18. Insiden production 2026-10-27 (livia.qzz.io):
+ * halaman hidup sebentar lalu "Application error" beberapa detik setelah load
+ * (tepat saat requestIdleCallback memuat chunk QuestTracker).
  */
 export function Deferred({
   loader,
 }: {
-  loader: () => Promise<{ default: ComponentType<Record<never, never>> }>;
+  loader: () => Promise<LazyComponentModule>;
 }) {
-  const [Comp, setComp] = useState<ComponentType<Record<never, never>> | null>(null);
+  const [mod, setMod] = useState<LazyComponentModule | null>(null);
   const loaderRef = useRef(loader);
   loaderRef.current = loader;
 
@@ -22,8 +33,8 @@ export function Deferred({
     let timer: ReturnType<typeof setTimeout> | undefined;
     const mount = () => {
       if (cancelled) return;
-      loaderRef.current().then((mod) => {
-        if (!cancelled) setComp(mod.default);
+      loaderRef.current().then((m) => {
+        if (!cancelled) setMod(m);
       }).catch(() => {});
     };
     if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
@@ -42,5 +53,7 @@ export function Deferred({
     };
   }, []);
 
-  return Comp ? <Comp /> : null;
+  if (!mod) return null;
+  const Comp = mod.default;
+  return <Comp />;
 }

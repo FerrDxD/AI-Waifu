@@ -279,6 +279,19 @@ sebagai utang terpisah) — itu cache semantik, bukan cache in-proses.
   tidak masuk initial JS chunk. `Deferred` reusable untuk komponen global
   opsional lainnya.
 
+  **Perbaikan insiden (2026-10-27):** versi pertama `Deferred` menyimpan
+  fungsi komponennya di state (`setComp(mod.default)`). React 18
+  memperlakukan `setState(fn)` sebagai *functional updater* — `fn(prevState)`
+  dipanggil di tengah render, hook QuestTracker tereksekusi di fiber yang salah,
+  lalu `areHookInputsEqual` crash (`undefined.length`) begitu idle callback
+  memuat chunk. Gejalanya di production: halaman terbuka sebentar, lalu
+  "Application error: a client-side exception has occurred" beberapa detik
+  setelah load — konsisten di semua halaman. Perbaikan: state menyimpan objek
+  modul (`setMod(m)`), komponen dibaca saat render (`mod.default`).
+  Diagnosa: stack production dipotong via interceptor `console.error` di
+  headless browser (puppeteer-core + Edge), frame React
+  `basicStateAdapter` → `updateReducer` → render QuestTracker.
+
 ---
 
 ## 8. DoD — yang belum terukur
