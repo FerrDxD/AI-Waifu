@@ -112,6 +112,19 @@ punya nonce dan halaman mati.
 halaman story VN menyuntik `<style>` inline, dan `strict-dynamic` hanya berlaku
 untuk script. Utang teknis M5.
 
+**PENTING — `force-dynamic` di `app/layout.tsx` (fix 2026-10-27):** CSP nonce
+ini **tidak kompatibel dengan pre-render statis**. Next.js hanya menempelkan
+nonce ke tag `<script>` saat render per-request (mekanisme:
+`get-script-nonce-from-header` di `next/dist/server/app-render`). Halaman yang
+di-pre-render build-time (○) menghasilkan HTML tanpa nonce, sementara
+middleware tetap mengirim CSP `strict-dynamic` → browser memblokir script
+inline `__next_f` → React tidak ter-hydrate → seluruh interaksi frontend mati
+pada halaman statis production (toggle password, form, tombol submit),
+padahal HTML tetap tampil normal. Dev tidak pernah terdampak (dev selalu
+render on-demand). Solusinya: `export const dynamic = 'force-dynamic'` di root
+layout — semua halaman render dinamis, nonce selalu terpasang. Trade-off:
+tidak ada pre-render build-time (TTFB naik sedikit).
+
 **Bonus:** daftar halaman terproteksi diperluas. Sebelumnya hanya
 `/home`, `/chat`, `/pomodoro`, `/story`, `/onboarding` — sekarang `/settings`,
 `/date`, `/shop`, `/garden`, `/kitchen`, `/work`, `/wardrobe`, `/inventory`,
