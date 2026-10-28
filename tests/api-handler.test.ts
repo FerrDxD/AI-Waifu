@@ -1,12 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextResponse } from 'next/server';
-
-// Mock auth SEBELUM modul yang memakainya di-import.
-vi.mock('@/lib/auth', () => ({
-  auth: vi.fn(),
-}));
-
-import { auth } from '@/lib/auth';
 import {
   apiHandler,
   jsonApiHandler,
@@ -16,10 +9,15 @@ import {
 } from '@/lib/api-handler';
 import { AppError } from '@/lib/errors';
 import { createTestLimiter } from './helpers/limiter';
-
-// `auth` NextAuth punya overload untuk route handler, sehingga tipe aslinya
-// tidak cocok untuk `mockResolvedValue`. Cast ke Mock biasa.
-const mockedAuth = auth as unknown as Mock;
+// Mock `@/lib/auth` terdaftar GLOBAL di tests/setup.ts (M6.1) — dengan
+// isolate: false, vi.mock per file membuat instance terpisah per file dan
+// menghasilkan flake yang bergantung urutan (lihat komentar di setup.ts).
+import {
+  setMockAuth,
+  setMockAuthRejection,
+  getMockAuthCalls,
+  resetMockAuth,
+} from '@/tests/setup';
 
 const req = (headers: Record<string, string> = {}) =>
   new Request('http://localhost/api/test', { method: 'POST', headers });
@@ -33,7 +31,7 @@ beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.spyOn(console, 'warn').mockImplementation(() => {});
   vi.spyOn(console, 'log').mockImplementation(() => {});
-  mockedAuth.mockReset();
+  resetMockAuth();
 });
 
 afterEach(() => {
@@ -42,7 +40,7 @@ afterEach(() => {
 
 describe('apiHandler: autentikasi', () => {
   it('401 dan handler TIDAK dipanggil kalau belum login', async () => {
-    mockedAuth.mockResolvedValue(null);
+    setMockAuth(null);
     const handler = vi.fn(async () => NextResponse.json({ ok: true }));
 
     const res = await call(apiHandler({ route: '/t' }, handler));
@@ -55,7 +53,7 @@ describe('apiHandler: autentikasi', () => {
   });
 
   it('401 kalau session tanpa user.id', async () => {
-    mockedAuth.mockResolvedValue({ user: {} } as never);
+    setMockAuth({ user: {} });
     const handler = vi.fn(async () => NextResponse.json({ ok: true }));
 
     const res = await call(apiHandler({ route: '/t' }, handler));
@@ -64,7 +62,7 @@ describe('apiHandler: autentikasi', () => {
   });
 
   it('meneruskan userId ke handler', async () => {
-    mockedAuth.mockResolvedValue({ user: { id: 'user-42' } } as never);
+    setMockAuth({ user: { id: 'user-42' } });
 
     const handler = apiHandler({ route: '/t' }, async ({ userId }) =>
       NextResponse.json({ userId })
@@ -76,7 +74,7 @@ describe('apiHandler: autentikasi', () => {
   });
 
   it('publicApiHandler melewati pengecekan login dan userId bernilai null', async () => {
-    mockedAuth.mockResolvedValue(null);
+    setMockAuth(null);
     const handler = publicApiHandler({ route: '/t' }, async ({ userId }) =>
       NextResponse.json({ userId })
     );
@@ -84,13 +82,13 @@ describe('apiHandler: autentikasi', () => {
     const res = await call(handler);
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ userId: null });
-    expect(mockedAuth).not.toHaveBeenCalled();
+    expect(getMockAuthCalls()).toHaveLength(0);
   });
 });
 
 describe('apiHandler: rate limit', () => {
   it('429 dengan Retry-After saat limit habis, handler tidak dipanggil', async () => {
-    mockedAuth.mockResolvedValue({ user: { id: 'u1' } } as never);
+    setMockAuth({ user: { id: 'u1' } });
     const limiter = createTestLimiter({ limit: 1, windowMs: 60_000 });
     const handler = vi.fn(async () => NextResponse.json({ ok: true }));
 
@@ -105,7 +103,7 @@ describe('apiHandler: rate limit', () => {
   });
 
   it('pesan 429 bisa dikustomisasi', async () => {
-    mockedAuth.mockResolvedValue({ user: { id: 'u1' } } as never);
+    setMockAuth({ user: { id: 'u1' } });
     const limiter = createTestLimiter({ limit: 1, windowMs: 60_000 });
 
     const wrapped = apiHandler(
@@ -119,7 +117,7 @@ describe('apiHandler: rate limit', () => {
   });
 
   it('tanpa rateLimit, tidak ada pembatasan', async () => {
-    mockedAuth.mockResolvedValue({ user: { id: 'u1' } } as never);
+    setMockAuth({ user: { id: 'u1' } });
     const handler = apiHandler({ route: '/t' }, async () => NextResponse.json({}));
 
     for (let i = 0; i < 20; i++) {
@@ -128,7 +126,7 @@ describe('apiHandler: rate limit', () => {
   });
 
   it('rateLimitKey kustom dipakai (mis. per IP)', async () => {
-    mockedAuth.mockResolvedValue({ user: { id: 'u1' } } as never);
+    setMockAuth({ user: { id: 'u1' } });
     const limiter = createTestLimiter({ limit: 1, windowMs: 60_000 });
     const seen: string[] = [];
 
@@ -151,7 +149,7 @@ describe('apiHandler: rate limit', () => {
 
 describe('apiHandler: penanganan error', () => {
   it('AppError expose=true diteruskan ke client', async () => {
-    mockedAuth.mockResolvedValue({ user: { id: 'u1' } } as never);
+    setMockAuth({ user: { id: 'u1' } });
 
     const wrapped = apiHandler({ route: '/t' }, async () => {
       throw new AppError('BAD', 'Input salah.', 400, true);
@@ -163,7 +161,7 @@ describe('apiHandler: penanganan error', () => {
   });
 
   it('error tak dikenal jadi 500 generik tanpa bocor', async () => {
-    mockedAuth.mockResolvedValue({ user: { id: 'u1' } } as never);
+    setMockAuth({ user: { id: 'u1' } });
 
     const wrapped = apiHandler({ route: '/t' }, async () => {
       throw new Error('postgres://user:pass@host gagal');
@@ -178,7 +176,7 @@ describe('apiHandler: penanganan error', () => {
   });
 
   it('error dari auth() juga tidak bocor', async () => {
-    mockedAuth.mockRejectedValue(new Error('JWT secret mismatch'));
+    setMockAuthRejection(new Error('JWT secret mismatch'));
 
     const wrapped = apiHandler({ route: '/t' }, async () => NextResponse.json({}));
     const res = await call(wrapped);
@@ -190,7 +188,7 @@ describe('apiHandler: penanganan error', () => {
 
 describe('apiHandler: params', () => {
   it('meneruskan params route', async () => {
-    mockedAuth.mockResolvedValue({ user: { id: 'u1' } } as never);
+    setMockAuth({ user: { id: 'u1' } });
 
     const wrapped = apiHandler<{ id: string }>({ route: '/t' }, async ({ params }) =>
       NextResponse.json({ id: params.id })
@@ -206,7 +204,7 @@ describe('apiHandler: params', () => {
 
 describe('jsonApiHandler', () => {
   it('mem-parse body JSON dan meneruskannya', async () => {
-    mockedAuth.mockResolvedValue({ user: { id: 'u1' } } as never);
+    setMockAuth({ user: { id: 'u1' } });
 
     const wrapped = jsonApiHandler<{ nama: string }>({ route: '/t' }, async ({ body }) =>
       NextResponse.json({ nama: body.nama })
@@ -225,7 +223,7 @@ describe('jsonApiHandler', () => {
   });
 
   it('body rusak jadi 400 INVALID_JSON', async () => {
-    mockedAuth.mockResolvedValue({ user: { id: 'u1' } } as never);
+    setMockAuth({ user: { id: 'u1' } });
     const inner = vi.fn(async () => NextResponse.json({}));
 
     const wrapped = jsonApiHandler({ route: '/t' }, inner);

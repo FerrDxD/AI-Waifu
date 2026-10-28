@@ -31,6 +31,67 @@ vi.mock('@google/generative-ai', async () => {
 });
 
 /**
+ * Mock `@/lib/auth` (M6.1).
+ *
+ * `lib/api-handler` di-import oleh beberapa test route (api-handler,
+ * tts-route). Dengan `isolate: false`, `vi.mock('@/lib/auth')` PER FILE
+ * menghasilkan instance mock yang TIDAK identik antar file: modul yang
+ * sudah dievaluasi (lib/api-handler) memegang instance dari file yang
+ * lebih dulu dimuat, sehingga `mockResolvedValue` file kedua tidak pernah
+ * sampai ke route dan test dapat 401 — kegagalan bergantung urutan file.
+ *
+ * SOLUSI: daftarkan mock di sini (pola yang sama dengan Gemini SDK di
+ * atas) DAN biarkan implementasinya delegasi ke state di `globalThis`.
+ * Factory `vi.mock` tetap bisa dievaluasi berkali-kali per worker; dengan
+ * state global, instance mana pun yang dipegang route berperilaku sama.
+ *
+ * Helper untuk file test (import dari '@/tests/setup'):
+ *   setMockAuth({ user: { id: 'u' } })  — session yang dikembalikan auth()
+ *   setMockAuthRejection(err)           — auth() reject
+ *   getMockAuthCalls()                  — histori panggilan (asersi "tidak dipanggil")
+ *   resetMockAuth()                     — panggil di beforeEach
+ */
+function getAuthMockState(): { session: unknown; rejection: unknown; calls: unknown[][] } {
+  const g = globalThis as Record<string, unknown>;
+  if (!g.__authMockState) {
+    g.__authMockState = { session: null, rejection: null, calls: [] as unknown[][] };
+  }
+  return g.__authMockState as { session: unknown; rejection: unknown; calls: unknown[][] };
+}
+
+export function setMockAuth(session: unknown): void {
+  const s = getAuthMockState();
+  s.session = session;
+  s.rejection = null;
+}
+
+export function setMockAuthRejection(error: unknown): void {
+  getAuthMockState().rejection = error;
+}
+
+export function getMockAuthCalls(): unknown[][] {
+  return getAuthMockState().calls;
+}
+
+export function resetMockAuth(): void {
+  const s = getAuthMockState();
+  s.session = null;
+  s.rejection = null;
+  s.calls.length = 0;
+}
+
+vi.mock('@/lib/auth', () => ({
+  auth: (...args: unknown[]) => {
+    getAuthMockState().calls.push(args);
+    return new Promise((resolve, reject) => {
+      const s = getAuthMockState();
+      if (s.rejection !== null) reject(s.rejection);
+      else resolve(s.session);
+    });
+  },
+}));
+
+/**
  * Mock store rate limit (M5.5).
  *
  * Limiter produksi memakai `dbRateLimitStore` (Postgres/Neon). Suite vitest
@@ -44,6 +105,11 @@ vi.mock('@google/generative-ai', async () => {
  */
 vi.mock('@/lib/rate-limit/store', () => {
   const map = new Map<string, number>();
+  // Handle reset untuk test route yang memanggil satu user berulang (limit
+  // 5/menit aiRateLimit bisa tercapai dalam satu file test).
+  (globalThis as Record<string, unknown>).__mockRateLimitStore = {
+    reset: () => map.clear(),
+  };
   return {
     dbRateLimitStore: {
       increment: async (key: string) => {
@@ -57,3 +123,51 @@ vi.mock('@/lib/rate-limit/store', () => {
     },
   };
 });
+
+/**
+ * Mock HTMLAudioElement (M6.1).
+ *
+ * `TtsPipeline` (lib/tts/pipeline.ts) membuat `new Audio(...)` saat playback.
+ * Suite vitest jalan di Node tanpa DOM, jadi tersedia stub minimal —
+ * terdaftar global supaya tidak bergantung urutan file (isolate: false).
+ *
+ * Test mengendalikan berakhirnya playback lewat `audio.emitEnded()` dan bisa
+ * memeriksa instance lewat `globalThis.__mockAudio.instances`.
+ */
+class MockAudio {
+  src = '';
+  volume = 1;
+  onended: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  onplay: (() => void) | null = null;
+  paused = true;
+
+  play(): Promise<void> {
+    this.paused = false;
+    this.onplay?.();
+    return Promise.resolve();
+  }
+  pause(): void {
+    this.paused = true;
+  }
+  emitEnded(): void {
+    this.onended?.();
+  }
+}
+
+const audioInstances: MockAudio[] = [];
+class TrackedMockAudio extends MockAudio {
+  constructor(src: string) {
+    super();
+    this.src = src;
+    audioInstances.push(this);
+  }
+}
+
+(globalThis as Record<string, unknown>).Audio = TrackedMockAudio;
+(globalThis as Record<string, unknown>).__mockAudio = {
+  instances: audioInstances,
+  reset: () => {
+    audioInstances.length = 0;
+  },
+};

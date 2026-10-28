@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { PhoneOff, Mic, MicOff, Loader2, Volume2, Volume1 } from 'lucide-react';
-import LiviaSprite from '@/components/livia/LiviaSprite';
 import { LiviaExpression } from '@/lib/gemini';
+import { TtsPipeline } from '@/lib/tts/pipeline';
+import { takeCompleteSentences } from '@/lib/tts/sentences';
 
 // Web Speech API Types
 declare global {
@@ -14,13 +15,41 @@ declare global {
   }
 }
 
+/**
+ * Status call (M6.1/M6.2) — satu sumber kebenaran untuk turn cue UI.
+ * Ganti status string ad-hoc lama supaya indikator realtime konsisten.
+ */
+type CallStatus = 'connecting' | 'idle' | 'listening' | 'thinking' | 'speaking' | 'error';
+
+const STATUS_LABEL: Record<CallStatus, string> = {
+  connecting: 'Menghubungkan...',
+  idle: 'Terhubung',
+  listening: 'Mendengarkan...',
+  thinking: 'Menunggu respon...',
+  speaking: 'Livia sedang berbicara...',
+  error: '', // dipakai statusDetail
+};
+
+/** Bentuk event `done` dari /api/chat/stream yang dibutuhkan call. */
+type StreamDoneEvent = {
+  type: 'done';
+  reply?: string;
+  expression?: LiviaExpression;
+  crisis?: { message?: string; escalate?: boolean };
+};
+
+type StreamEvent =
+  | { type: 'delta'; text?: string }
+  | StreamDoneEvent
+  | { type: 'error'; message?: string };
+
 export default function CallPage() {
   const [isReady, setIsReady] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
-  const [status, setStatus] = useState('Menghubungkan...');
-  
+  const [status, setStatus] = useState<CallStatus>('connecting');
+  const [statusDetail, setStatusDetail] = useState('');
+
   const [outfit, setOutfit] = useState('default');
   const [expression, setExpression] = useState<LiviaExpression>('normal');
   const [affection, setAffection] = useState(0);
@@ -32,29 +61,33 @@ export default function CallPage() {
   const recognitionRef = useRef<any>(null);
   const speakerRef = useRef(true);
   const transcriptRef = useRef('');
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const pipelineRef = useRef<TtsPipeline | null>(null);
 
   const toggleSpeaker = () => {
     const newState = !speakerOn;
     setSpeakerOn(newState);
     speakerRef.current = newState;
-    if (audioRef.current) {
-      audioRef.current.volume = newState ? 1.0 : 0.25;
-    }
+    // Volume kalimat berikutnya diambil lewat getVolume() pipeline; audio
+    // yang sedang diputar tidak disetel retroaktif (perubahan di kalimat
+    // berikutnya terasa lebih alami daripada lompatan volume di tengah).
   };
 
   useEffect(() => {
     // Fetch profile for outfit & affection
-    fetch(`/api/affection`).then(r => r.ok && r.json()).then(d => {
-      if (d) {
-        setOutfit(d.activeOutfit || 'default');
-        setAffection(d.affection || 0);
-        setStatus('Terhubung');
-        setIsReady(true);
-      }
-    }).catch(() => {
-      setStatus('Gagal menghubungkan.');
-    });
+    fetch(`/api/affection`)
+      .then((r) => r.ok && r.json())
+      .then((d) => {
+        if (d) {
+          setOutfit(d.activeOutfit || 'default');
+          setAffection(d.affection || 0);
+          setStatus('idle');
+          setIsReady(true);
+        }
+      })
+      .catch(() => {
+        setStatus('error');
+        setStatusDetail('Gagal menghubungkan.');
+      });
 
     // Initialize Speech Recognition
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -66,7 +99,9 @@ export default function CallPage() {
 
       recognition.onstart = () => {
         setIsRecording(true);
-        setStatus('Livia sedang mendengarkan...');
+        // Barge-in dasar (M6.2): user mulai bicara → Livia jeda.
+        if (pipelineRef.current?.isSpeaking) pipelineRef.current.stop();
+        setStatus('listening');
       };
 
       recognition.onresult = (event: any) => {
@@ -81,7 +116,6 @@ export default function CallPage() {
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error', event.error);
         setIsRecording(false);
-        setStatus('Gagal mendengar suaramu.');
       };
 
       recognition.onend = () => {
@@ -91,42 +125,50 @@ export default function CallPage() {
           sendMessage(finalMsg.trim());
           transcriptRef.current = '';
           // Jangan setTranscript('') di sini agar teksnya masih terbaca selama Livia mikir.
+        } else {
+          // User berhenti bicara tanpa pesan — kembali ke kondisi terakhir.
+          setStatus((prev) =>
+            prev === 'listening' ? (pipelineRef.current?.isSpeaking ? 'speaking' : 'idle') : prev
+          );
         }
       };
 
       recognitionRef.current = recognition;
     } else {
-      setStatus('Browser tidak mendukung fitur suara.');
+      setStatus('error');
+      setStatusDetail('Browser tidak mendukung fitur suara.');
     }
 
     return () => {
       if (recognitionRef.current) recognitionRef.current.abort();
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-      }
+      pipelineRef.current?.stop();
     };
+    // sendMessage memakai state awal saja (status via functional update) —
+    // effect hanya perlu jalan sekali saat mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     let interval: any;
     if (timerStarted) {
       interval = setInterval(() => {
-        setCallDuration(prev => prev + 1);
+        setCallDuration((prev) => prev + 1);
       }, 1000);
     }
     return () => clearInterval(interval);
   }, [timerStarted]);
 
   const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const m = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
   };
 
   const handleMicClick = () => {
     if (!recognitionRef.current) return;
-    
+
     if (isRecording) {
       recognitionRef.current.stop(); // This will trigger onend
     } else {
@@ -136,74 +178,109 @@ export default function CallPage() {
     }
   };
 
+  /**
+   * M6.1: giliran percakapan = stream SSE → pipeline TTS.
+   *
+   * Balasan tidak menunggu utuh: tiap kalimat yang sudah lengkap langsung
+   * di-enqueue ke TtsPipeline — Livia mulai bicara sambil LLM masih
+   * menulis kalimat berikutnya.
+   */
   const sendMessage = async (message: string) => {
-    setStatus('Livia sedang berpikir...');
+    // Batalgilir manual: matikan giliran sebelumnya sebelum yang baru.
+    pipelineRef.current?.stop();
+    const pipeline = new TtsPipeline({
+      onStateChange: (state) => {
+        if (state === 'speaking') {
+          setStatus((prev) => (prev === 'listening' ? prev : 'speaking'));
+          setTimerStarted(true);
+        } else if (state === 'idle') {
+          // Kalimat terakhir selesai → balik ke idle (kecuali user sedang
+          // bicara / Livia belum selesai berpikir).
+          setStatus((prev) => (prev === 'speaking' ? 'idle' : prev));
+        }
+      },
+      getVolume: () => {
+        const savedLiviaVol = localStorage.getItem('livia_volume');
+        const liviaVol = savedLiviaVol !== null ? parseInt(savedLiviaVol, 10) / 100 : 0.8;
+        return speakerRef.current ? liviaVol : liviaVol * 0.25;
+      },
+    });
+    pipelineRef.current = pipeline;
+    setStatus('thinking');
     setExpression('normal');
 
+    let unspoken = ''; // teks belum diucapkan (kalimat tidak lengkap)
+    let gotAny = false;
+    let sseBuffer = '';
+    const decoder = new TextDecoder();
+
+    const handleEvent = (raw: string) => {
+      if (!raw.startsWith('data: ')) return;
+      let event: StreamEvent;
+      try {
+        event = JSON.parse(raw.slice(6)) as StreamEvent;
+      } catch {
+        return;
+      }
+
+      if (event.type === 'delta' && typeof event.text === 'string') {
+        gotAny = true;
+        unspoken += event.text;
+        const { sentences, tail } = takeCompleteSentences(unspoken);
+        unspoken = tail;
+        for (const sentence of sentences) pipeline.enqueue(sentence);
+      } else if (event.type === 'done') {
+        // Sisa buffer (kalimat terakhir tanpa penutup) diucapkan sekalian.
+        if (unspoken.trim()) pipeline.enqueue(unspoken);
+        unspoken = '';
+        if (event.expression) setExpression(event.expression);
+        if (event.crisis?.escalate) {
+          // Krisis (M4.2): persona dilepas — Livia berhenti bicara dan
+          // pesannya (sudah memuat hotline) ditampilkan. Panel krisis
+          // lengkap di call = utang M6.
+          pipeline.stop();
+          setStatus('error');
+          setStatusDetail(event.crisis.message || 'Perlu bantuan? Hubungi orang terdekatmu.');
+        }
+      } else if (event.type === 'error') {
+        pipeline.stop();
+        setStatus('error');
+        setStatusDetail(event.message || 'Koneksi terputus.');
+      }
+    };
+
     try {
-      const res = await fetch('/api/chat', {
+      const res = await fetch('/api/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, isVoiceCall: true }),
       });
 
-      const data = await res.json();
-      if (data.reply) {
-        setExpression(data.expression || 'normal');
-        speakText(data.reply);
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => null);
+        throw new Error((data as { error?: string } | null)?.error || 'Koneksi terputus.');
+      }
+
+      const reader = res.body.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        sseBuffer += decoder.decode(value, { stream: true });
+        const chunks = sseBuffer.split('\n\n');
+        sseBuffer = chunks.pop() ?? '';
+        for (const chunk of chunks) handleEvent(chunk.trim());
+      }
+      if (sseBuffer.trim()) handleEvent(sseBuffer.trim());
+
+      if (!gotAny) {
+        setStatus('error');
+        setStatusDetail('Livia tidak sempat menjawab.');
       }
     } catch (e) {
-      setStatus('Koneksi terputus.');
-    }
-  };
-
-  const speakText = async (text: string) => {
-    // Hentikan audio yang sedang berjalan jika ada
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
-    }
-
-    try {
-      const res = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
-      });
-
-      if (!res.ok) {
-        console.error('ElevenLabs API error');
-        setStatus('Terhubung (TTS Gagal)');
-        return;
-      }
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      
-      const audio = new Audio(url);
-      const savedLiviaVol = localStorage.getItem('livia_volume');
-      const liviaVol = savedLiviaVol !== null ? parseInt(savedLiviaVol, 10) / 100 : 0.8;
-      audio.volume = speakerRef.current ? liviaVol : liviaVol * 0.25;
-      
-      audio.onplay = () => {
-        setIsSpeaking(true);
-        if (!timerStarted) setTimerStarted(true);
-        setStatus('Livia sedang berbicara...');
-      };
-
-      audio.onended = () => {
-        setIsSpeaking(false);
-        setStatus('Terhubung');
-        setTranscript('');
-        URL.revokeObjectURL(url);
-      };
-
-      audioRef.current = audio;
-      audio.play();
-
-    } catch (error) {
-      console.error('Failed to play TTS:', error);
-      setStatus('Terhubung (TTS Gagal)');
+      console.error(e);
+      pipeline.stop();
+      setStatus('error');
+      setStatusDetail('Koneksi terputus.');
     }
   };
 
@@ -211,16 +288,27 @@ export default function CallPage() {
     return (
       <div className="h-[100dvh] w-full bg-slate-900 flex flex-col items-center justify-center text-white font-sans">
         <Loader2 className="animate-spin text-pink-500 mb-4" size={40} />
-        <p className="font-display animate-pulse">{status}</p>
+        <p className="font-display animate-pulse">
+          {status === 'error' ? statusDetail : STATUS_LABEL[status]}
+        </p>
       </div>
     );
   }
 
+  const isSpeaking = status === 'speaking';
+  const shownStatus =
+    isRecording && status === 'listening'
+      ? 'Mendengarkan...'
+      : status === 'idle' && timerStarted
+        ? formatTime(callDuration)
+        : status === 'error'
+          ? statusDetail || STATUS_LABEL.error
+          : STATUS_LABEL[status];
+
   return (
     <div className="h-[100dvh] w-full bg-[#1a1a1c] relative overflow-hidden flex flex-col font-sans select-none text-white">
-      
       {/* Blurred Background Image */}
-      <div 
+      <div
         className="absolute inset-0 opacity-20 pointer-events-none"
         style={{
           backgroundImage: `url(/livia/${outfit}/${expression}.png)`,
@@ -252,13 +340,13 @@ export default function CallPage() {
           {isRecording && (
             <>
               <div className="absolute inset-0 rounded-full border-2 border-pink-400 animate-ping opacity-30" />
-              <div className="absolute inset-0 rounded-full border-4 border-pink-500/30 scale-110" />
+              <div className="absolute inset-0 rounded-full border-4 border-pink-400/30 scale-110" />
             </>
           )}
-          
+
           <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden bg-slate-800 border-2 border-[#2c2c2f] shadow-2xl relative z-10">
-            <img 
-              src={`/livia/${outfit}/${expression}.png`} 
+            <img
+              src={`/livia/${outfit}/${expression}.png`}
               alt="Livia Profile"
               className="w-full h-[150%] object-cover object-top -mt-4"
             />
@@ -269,22 +357,23 @@ export default function CallPage() {
           Livia Einhart
         </h1>
         <p className={`text-sm mt-2 font-mono transition-colors duration-300 ${isRecording ? 'text-pink-400 font-medium' : isSpeaking ? 'text-green-400 font-medium' : 'text-[#8b8b8f]'}`}>
-          {isRecording ? 'Mendengarkan...' : 
-           status === 'Livia sedang berpikir...' ? 'Menunggu respon...' :
-           timerStarted ? formatTime(callDuration) : status}
+          {shownStatus}
         </p>
 
-        {transcript && (
+        {status === 'error' && statusDetail ? (
+          <div className="mt-8 px-6 py-3 bg-emerald-900/60 backdrop-blur-md rounded-2xl border border-emerald-400/30 max-w-[85%] text-center text-sm text-emerald-100 shadow-inner whitespace-pre-line">
+            {statusDetail}
+          </div>
+        ) : transcript ? (
           <div className="mt-8 px-6 py-2 bg-black/40 backdrop-blur-md rounded-2xl border border-white/5 max-w-[80%] text-center text-sm text-gray-300 shadow-inner">
             "{transcript}"
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Bottom Controls (LINE Desktop Style) */}
       <div className="h-32 w-full z-20 flex flex-col items-center justify-center border-t border-white/5 bg-[#202022]/80 backdrop-blur-xl">
         <div className="flex items-center gap-6 md:gap-10">
-          
           {/* Speaker Button */}
           <button onClick={toggleSpeaker} className="flex flex-col items-center gap-2 group">
             <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${speakerOn ? 'bg-[#353538] text-green-400 group-hover:bg-[#454548]' : 'bg-white/10 text-gray-400 hover:bg-white/20'}`}>
@@ -296,19 +385,19 @@ export default function CallPage() {
           {/* Camera (Disabled) */}
           <button className="flex flex-col items-center gap-2 group opacity-50 cursor-not-allowed">
             <div className="w-12 h-12 rounded-full bg-[#353538] flex items-center justify-center text-gray-300">
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
             </div>
             <span className="text-[10px] text-gray-400 font-medium tracking-wide">Kamera</span>
           </button>
 
           {/* Microphone (PTT) */}
-          <button 
+          <button
             onClick={handleMicClick}
             className="flex flex-col items-center gap-2 group"
           >
             <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-lg active:scale-95 ${
-              isRecording 
-                ? 'bg-white text-black ring-4 ring-white/20' 
+              isRecording
+                ? 'bg-white text-black ring-4 ring-white/20'
                 : 'bg-[#353538] text-white hover:bg-[#454548]'
             }`}>
               {isRecording ? <MicOff size={24} /> : <Mic size={24} />}
@@ -319,13 +408,10 @@ export default function CallPage() {
           </button>
 
           {/* End Call */}
-          <Link 
+          <Link
             href="/chat"
             onClick={() => {
-              if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.src = '';
-              }
+              pipelineRef.current?.stop();
             }}
             className="flex flex-col items-center gap-2 group"
           >
