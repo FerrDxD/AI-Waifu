@@ -141,7 +141,7 @@ sebelum DoD terpenuhi + ada test yang lulus.
 
 ## M7 — Observability, Cost & Eval Loop (Bulan 6)
 
-- [ ] **M7.1** **Token & cost dashboard**: tiap request tercatat (provider, model, token in/out, biaya, user). Agregasi harian + alert kalau budget meledak.
+- [x] **M7.1** **Token & cost dashboard**: tiap request tercatat (provider, model, token in/out, biaya, user). Agregasi harian + alert kalau budget meledak. (docs/M7-IMPLEMENTATION.md)
 - [ ] **M7.2** **Product analytics** privacy-first (PostHog self-host atau Plausible): retention D1/D7/D30, jumlah pesman per session, drop-off.
 - [ ] **M7.3** **Eval loop otomatis** dalam CI: persona test, guardrail test (prompt injection, usaha "lewatkan filter"), memory recall test → gate deployment.
 - [ ] **M7.4** **Feedback loop in-app**: tombol "jawaban buruk/baik" di chat → masuk dataset evals.

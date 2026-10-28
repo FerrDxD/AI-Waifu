@@ -30,6 +30,7 @@ import {
   type ExtractedMemory,
   type ExtractedMemoryType,
 } from '@/lib/ai/schemas';
+import { recordProviderUsage } from '@/lib/ai/usage';
 import { logger } from '@/lib/logger';
 
 // ---------------------------------------------------------------------------
@@ -625,6 +626,9 @@ export async function maybeConsolidateMemory(
       maxOutputTokens: 220,
       apiKey,
     });
+
+    // M7.1: catat pemakaian (fire-and-forget, fail-open di dalam).
+    recordProviderUsage(result, { userId, provider: 'gemini', operation: 'memory.consolidate', userKey: Boolean(apiKey) });
 
     if (result.blocked || !result.data) {
       logger.warn('memory.consolidate_blocked', { userId });

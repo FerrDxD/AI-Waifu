@@ -89,7 +89,8 @@ export const POST = apiHandler(
         cycleDay: dayOfCycle,
       },
       customApiKey,
-      language
+      language,
+      userId
     );
 
     return NextResponse.json({ scene: dialogue, timeOfDay });

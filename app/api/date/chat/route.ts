@@ -75,7 +75,8 @@ export const POST = apiHandler(
         },
         memoryLines,
         customApiKey,
-        language
+        language,
+        userId
       );
 
     let updateResult: {

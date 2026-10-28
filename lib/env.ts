@@ -68,6 +68,16 @@ const serverSchema = z.object({
     .string()
     .optional()
     .refine((v) => v === undefined || (!Number.isNaN(Number(v)) && Number(v) >= 0 && Number(v) <= 600_000), 'AI_BREAKER_COOLDOWN_MS harus angka 0..600000'),
+
+  // Penggunaan & biaya AI (M7.1).
+  // Email owner: satu-satunya yang boleh membuka dashboard /usage.
+  // Kosong = dashboard terkunci untuk semua orang (default aman).
+  OWNER_EMAIL: z.string().optional(),
+  // Cap biaya AI per hari (USD) sebelum alert `ai.budget_alert` di log.
+  AI_DAILY_COST_LIMIT_USD: z
+    .string()
+    .optional()
+    .refine((v) => v === undefined || (Number.isFinite(Number(v)) && Number(v) > 0), 'AI_DAILY_COST_LIMIT_USD harus angka > 0'),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;

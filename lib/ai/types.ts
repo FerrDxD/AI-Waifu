@@ -54,6 +54,13 @@ export interface GenerateResult<T> {
   /** `true` kalau jawaban datang dari model fallback. */
   usedFallback: boolean;
   latencyMs: number;
+  /**
+   * M7.1: pemakaian token dari `usageMetadata` provider. Diisi kalau model
+   * merespons — termasuk hasil `blocked` (prompt tetap mengonsumi input token).
+   * Dipakai pencatatan biaya di `lib/ai/usage.ts`; domain tidak perlu tahu
+   * lebih dari ini.
+   */
+  usage?: { inputTokens: number; outputTokens: number; totalTokens: number };
 }
 
 /**

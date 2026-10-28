@@ -60,6 +60,7 @@ export const POST = apiHandler(
       language: ctx.language,
       highestChapter: ctx.highestChapter,
       earlierSummary: ctx.earlierSummary,
+      userId,
     });
 
     const encoder = new TextEncoder();

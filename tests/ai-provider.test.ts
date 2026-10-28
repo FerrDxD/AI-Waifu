@@ -392,3 +392,82 @@ describe('GeminiProvider circuit breaker', () => {
     expect((provider as unknown as { circuitState(): string }).circuitState()).toBe('closed');
   });
 });
+
+describe('GeminiProvider usage metadata (M7.1)', () => {
+  it('generate: usageMetadata → result.usage (input/output/total)', async () => {
+    mockGenerateContent.mockResolvedValue({
+      response: {
+        text: () => JSON.stringify({ reply: 'hai', affectionDelta: 0 }),
+        candidates: [{ finishReason: 'STOP' }],
+        promptFeedback: {},
+        usageMetadata: { promptTokenCount: 1200, candidatesTokenCount: 250, totalTokenCount: 1450 },
+      },
+    });
+
+    const result = await getProvider().generate(makeOptions());
+
+    expect(result.usage).toEqual({ inputTokens: 1200, outputTokens: 250, totalTokens: 1450 });
+  });
+
+  it('generate: hasil blocked TETAP membawa usage (prompt sudah terkonsumsi)', async () => {
+    mockGenerateContent.mockResolvedValue({
+      response: {
+        text: () => {
+          throw new Error('no candidate');
+        },
+        candidates: [{ finishReason: 'SAFETY' }],
+        promptFeedback: { blockReason: 'SAFETY' },
+        usageMetadata: { promptTokenCount: 900, candidatesTokenCount: 0, totalTokenCount: 900 },
+      },
+    });
+
+    const result = await getProvider().generate(makeOptions());
+
+    expect(result.blocked).toBe(true);
+    expect(result.usage).toEqual({ inputTokens: 900, outputTokens: 0, totalTokens: 900 });
+  });
+
+  it('generate: tanpa usageMetadata → result.usage undefined (pencatat skip sunyi)', async () => {
+    mockGenerateContent.mockResolvedValue(okResponse({ reply: 'ok', affectionDelta: 0 }));
+
+    const result = await getProvider().generate(makeOptions());
+
+    expect(result.usage).toBeUndefined();
+  });
+
+  it('generate: usageMetadata semua nol → undefined (bukan data bermakna)', async () => {
+    mockGenerateContent.mockResolvedValue({
+      response: {
+        text: () => JSON.stringify({ reply: 'ok', affectionDelta: 0 }),
+        candidates: [{ finishReason: 'STOP' }],
+        promptFeedback: {},
+        usageMetadata: { promptTokenCount: 0, candidatesTokenCount: 0, totalTokenCount: 0 },
+      },
+    });
+
+    const result = await getProvider().generate(makeOptions());
+
+    expect(result.usage).toBeUndefined();
+  });
+
+  it('stream: final membawa usage dari respons agregat', async () => {
+    mockGenerateContentStream.mockResolvedValue({
+      stream: (async function* () {
+        yield {
+          candidates: [{ content: { parts: [{ text: '{"reply":"halo","affectionDelta":1}' }] } }],
+        };
+      })(),
+      response: Promise.resolve({
+        candidates: [{ finishReason: 'STOP' }],
+        promptFeedback: {},
+        usageMetadata: { promptTokenCount: 1500, candidatesTokenCount: 40, totalTokenCount: 1540 },
+      }),
+    } as never);
+
+    const { final } = getProvider().stream(makeOptions());
+    const result = await final;
+
+    expect(result.blocked).toBe(false);
+    expect(result.usage).toEqual({ inputTokens: 1500, outputTokens: 40, totalTokens: 1540 });
+  });
+});

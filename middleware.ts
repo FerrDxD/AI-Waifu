@@ -75,6 +75,8 @@ const PROTECTED_PREFIXES = [
   '/schedule',
   '/radio',
   '/bedroom',
+  // M7.1: dashboard biaya AI (owner-only, cek OWNER_EMAIL di dalam halaman).
+  '/usage',
 ];
 
 const AUTH_ROUTES = ['/login', '/register'];

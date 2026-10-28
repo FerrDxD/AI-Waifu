@@ -23,6 +23,7 @@ import { chatMessages, messageSummaries } from '@/lib/db/schema';
 import { getProvider } from '@/lib/ai';
 import { DEFAULT_CONTEXT_BUDGET_TOKENS, approximateTokens } from '@/lib/ai/context';
 import { chatSummaryResponseSchema, chatSummaryValidator } from '@/lib/ai/schemas';
+import { recordProviderUsage } from '@/lib/ai/usage';
 import { logger } from '@/lib/logger';
 
 /** Menunggak pesan belum-terringkas sebanyak ini sebelum summarizer bekerja. */
@@ -145,6 +146,9 @@ export async function maybeSummarizeChats(
       maxOutputTokens: SUMMARY_MAX_OUTPUT_TOKENS,
       apiKey,
     });
+
+    // M7.1: catat pemakaian (fire-and-forget, fail-open di dalam).
+    recordProviderUsage(result, { userId, provider: 'gemini', operation: 'chat.summary', userKey: Boolean(apiKey) });
 
     // Diblok safety filter = hasil sah, bukan error. Coba lagi giliran
     // berikutnya; jangan simpen ringkasan kosong.

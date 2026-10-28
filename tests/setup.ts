@@ -125,6 +125,73 @@ vi.mock('@/lib/rate-limit/store', () => {
 });
 
 /**
+ * Mock `@/lib/ai/usage` (M7.1).
+ *
+ * Alasannya sama dengan `@/lib/auth` di atas: `isolate: false` membuat
+ * `vi.mock` per file tidak andal. `lib/gemini.ts` (di-import test evals)
+ * menarik modul ini ke registry worker; kalau route `/api/usage` kemudian
+ * di-test di file lain, mock per-file-nya bisa kalah urutan — dan test
+ * route akan menyentuh `db` asli.
+ *
+ * Fungsi MURNI modul ini (aiDailyCostLimitUsd, shouldAlertBudget,
+ * dayBucketUtc) TIDAK di-mock — `importOriginal` + spread membuat test
+ * `tests/ai-usage.test.ts` tetap menguji implementasi aslinya. Yang
+ * digantikan hanya dua fungsi DB (recordAiUsage, getUsageOverview) dengan
+ * state global:
+ *   setMockUsageOverview(v)        — nilai yang dikembalikan getUsageOverview
+ *   getMockUsageRecords()          — histori pemanggilan recordAiUsage
+ *   getMockUsageOverviewCalls()    — argumen getUsageOverview
+ *   resetMockUsage()               — panggil di beforeEach
+ */
+function getUsageMockState(): {
+  records: unknown[];
+  overview: unknown;
+  overviewCalls: unknown[];
+} {
+  const g = globalThis as Record<string, unknown>;
+  if (!g.__aiUsageMockState) {
+    g.__aiUsageMockState = { records: [] as unknown[], overview: null, overviewCalls: [] as unknown[] };
+  }
+  return g.__aiUsageMockState as { records: unknown[]; overview: unknown; overviewCalls: unknown[] };
+}
+
+export function setMockUsageOverview(value: unknown): void {
+  getUsageMockState().overview = value;
+}
+
+export function getMockUsageRecords(): unknown[] {
+  return getUsageMockState().records;
+}
+
+export function getMockUsageOverviewCalls(): unknown[] {
+  return getUsageMockState().overviewCalls;
+}
+
+export function resetMockUsage(): void {
+  const s = getUsageMockState();
+  s.records.length = 0;
+  s.overview = null;
+  s.overviewCalls.length = 0;
+}
+
+vi.mock('@/lib/ai/usage', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/ai/usage')>();
+  return {
+    ...actual,
+    recordAiUsage: async (entry: unknown) => {
+      getUsageMockState().records.push(entry);
+    },
+    getUsageOverview: async (opts?: unknown) => {
+      getUsageMockState().overviewCalls.push(opts);
+      const v = getUsageMockState().overview;
+      // Kalau nilainya fungsi, panggil — test bisa memakai fungsi yang
+      // melempar untuk mensimulasikan error DB.
+      return typeof v === 'function' ? (v as () => unknown)() : v;
+    },
+  };
+});
+
+/**
  * Mock HTMLAudioElement (M6.1).
  *
  * `TtsPipeline` (lib/tts/pipeline.ts) membuat `new Audio(...)` saat playback.

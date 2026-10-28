@@ -1,6 +1,7 @@
 import { AppError } from './errors';
 import { logger, serializeError } from './logger';
 import { getProvider } from './ai';
+import { recordProviderUsage } from './ai/usage';
 import { buildLiviaIdentity, INJECTION_GUARD } from './ai/persona';
 import { describePhysiologicalState } from './livia/cycle';
 import {
@@ -234,7 +235,9 @@ export async function generateLiviaResponse(
   customApiKey?: string,
   language: 'id' | 'en' = 'id',
   highestChapter: number = 0,
-  earlierSummary?: string
+  earlierSummary?: string,
+  /** M7.1: untuk pencatatan pemakaian (opsional — tanpa ini request tetap jalan, cuma tidak tercatat). */
+  userId?: string
 ): Promise<{
   reply: string;
   affectionDelta: number;
@@ -285,6 +288,9 @@ export async function generateLiviaResponse(
 
   try {
     const result = await requestReply({ operation: 'chat', systemPrompt, turns, customApiKey });
+
+    // M7.1: catat pemakaian (fire-and-forget, fail-open di dalam).
+    recordProviderUsage(result, { userId, provider: 'gemini', operation: 'chat', userKey: Boolean(customApiKey) });
 
     if (result.blocked) {
       logger.warn('generateLiviaResponse blocked_by_safety', { userId: undefined });
@@ -339,6 +345,8 @@ export function streamLiviaReply(input: {
   highestChapter: number;
   /** Ringkasan obrolan lama dari M2.5 (`''`/undefined kalau belum ada). */
   earlierSummary?: string;
+  /** M7.1: untuk pencatatan pemakaian (opsional). */
+  userId?: string;
 }): {
   deltas: AsyncIterableIterator<string>;
   final: Promise<{
@@ -363,6 +371,7 @@ export function streamLiviaReply(input: {
     language,
     highestChapter,
     earlierSummary,
+    userId,
   } = input;
 
   const systemInstruction = buildChatPrompt({
@@ -424,6 +433,11 @@ export function streamLiviaReply(input: {
     deltas: makePiiRestoringStream(deltas, prepared.piiMatches),
     final: final
       .then((result) => {
+        // M7.1: catat pemakaian begitu final resolve (fire-and-forget,
+        // fail-open di dalam). Di sini juga karena `final` baru berisi
+        // `usage` setelah seluruh stream selesai.
+        recordProviderUsage(result, { userId, provider: 'gemini', operation: 'chat', userKey: Boolean(customApiKey) });
+
         if (result.blocked) {
           logger.warn('streamLiviaReply blocked_by_safety', {});
           return deflectionReply(language);
@@ -467,7 +481,9 @@ export async function generateDateDialogue(
   userName: string,
   stats?: Stats,
   customApiKey?: string,
-  language: 'id' | 'en' = 'id'
+  language: 'id' | 'en' = 'id',
+  /** M7.1: untuk pencatatan pemakaian (opsional). */
+  userId?: string
 ): Promise<{ scene: { speaker: string; text: string; expression?: LiviaExpression }[]; timeOfDay: 'pagi' | 'sore' | 'malam' }> {
   const currentHour = new Date().getHours();
   const defaultTimeOfDay: 'pagi' | 'sore' | 'malam' =
@@ -516,6 +532,9 @@ Jangan tambahkan teks lain di luar JSON.${INJECTION_GUARD}`;
       apiKey: customApiKey,
     });
 
+    // M7.1: catat pemakaian (fire-and-forget, fail-open di dalam).
+    recordProviderUsage(result, { userId, provider: 'gemini', operation: 'date.dialogue', userKey: Boolean(customApiKey) });
+
     if (result.blocked) {
       logger.warn('generateDateDialogue blocked_by_safety', { location });
       throw new AppError(
@@ -548,7 +567,9 @@ export async function generateDateResponse(
   stats?: Stats,
   memoryLines?: string,
   customApiKey?: string,
-  language: 'id' | 'en' = 'id'
+  language: 'id' | 'en' = 'id',
+  /** M7.1: untuk pencatatan pemakaian (opsional). */
+  userId?: string
 ): Promise<{
   reply: string;
   expression: LiviaExpression;
@@ -589,6 +610,9 @@ Hanya kembalikan JSON. Tidak ada teks lain.${INJECTION_GUARD}`;
 
   try {
     const result = await requestReply({ operation: 'date.chat', systemPrompt, turns, customApiKey });
+
+    // M7.1: catat pemakaian (fire-and-forget, fail-open di dalam).
+    recordProviderUsage(result, { userId, provider: 'gemini', operation: 'date.chat', userKey: Boolean(customApiKey) });
 
     if (result.blocked) {
       logger.warn('generateDateResponse blocked_by_safety', { location });

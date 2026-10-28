@@ -73,6 +73,22 @@ async function main() {
       error
     );
   }
+
+  // Log pemakaian AI (M7.1): retensi 30 hari. Ini riwayat biaya, bukan data
+  // user — agregasi `aiUsageDaily` tidak pernah disentuh di sini.
+  try {
+    const usageResults = await sql.transaction(
+      () => [sql`DELETE FROM "aiUsageLogs" WHERE "created_at" < now() - interval '30 day'`],
+      { fullResults: true }
+    );
+    const usageCount = Number(((usageResults[0] as { rowCount: number | string }).rowCount ?? 0));
+    console.log(`AI usage: ${usageCount} log >30 hari dihapus.`);
+  } catch (error) {
+    console.warn(
+      'Lewat: pembersihan aiUsageLogs gagal (tabel mungkin belum dibuat — jalankan db:push/db:migrate dulu).',
+      error
+    );
+  }
 }
 
 main().catch((error: unknown) => {

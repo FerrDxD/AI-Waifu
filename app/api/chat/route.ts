@@ -44,7 +44,8 @@ export const POST = apiHandler(
         ctx.customApiKey,
         ctx.language,
         ctx.highestChapter,
-        ctx.earlierSummary
+        ctx.earlierSummary,
+        userId
       );
 
     const updateResult = await persistChatTurn(ctx, message, {

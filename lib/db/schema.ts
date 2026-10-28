@@ -278,3 +278,63 @@ export const ttsUsage = pgTable(
     pk: primaryKey({ columns: [t.userId, t.day] }),
   })
 );
+
+/**
+ * Log pemakaian AI per request (M7.1).
+ *
+ * Tiap panggilan ke LLM (chat, date, ringkasan, konsolidasi memori)
+ * dicatat di sini: provider, model, operasi, user, token in/out, dan
+ * estimasi biaya. Ini sumber "tiap request tercatat" di milestone M7.1 —
+ * agregasi & tampilan di `lib/ai/usage.ts` + halaman `/usage`.
+ *
+ * `costMicros` = micro-USD (1e-6 USD), integer: akumulasi tanpa error
+ * pembulatan float (satu micro = $0.000001). int4 cukup besar (~$2.146
+ * per baris-hari) — alert budget jauh lebih dulu menyala sebelum batas itu.
+ *
+ * Retensi: dibuang `db:prune` setelah 30 hari (riwayat biaya, bukan data
+ * user — agregasi harian di `aiUsageDaily` tidak pernah dihapus).
+ */
+export const aiUsageLogs = pgTable(
+  'aiUsageLogs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull(),
+    provider: text('provider').notNull(),
+    model: text('model').notNull(),
+    /** Nama operasi dari provider (`chat`, `date.dialogue`, `chat.summary`, ...). */
+    operation: text('operation').notNull(),
+    inputTokens: integer('input_tokens').notNull().default(0),
+    outputTokens: integer('output_tokens').notNull().default(0),
+    costMicros: integer('cost_micros').notNull().default(0),
+    /** `true` kalau memakai API key pribadi user — biayanya ditanggung user, bukan server. */
+    userKey: boolean('user_key').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    createdAtIdx: index('ai_usage_logs_created_at_idx').on(t.createdAt),
+  })
+);
+
+/**
+ * Agregasi pemakaian AI harian, global (M7.1) — 1 baris per hari UTC.
+ *
+ * Increment atomik `INSERT ... ON CONFLICT DO UPDATE` per request (pola
+ * `ttsUsage`/`rateLimitCounters`) supaya total hari ini selalu konsisten
+ * walau banyak request konkuren di serverless — dan alert budget cukup
+ * membaca baris yang baru di-upsert, tanpa query tambahan.
+ *
+ * `capExceededAt` = stempel waktu cap harian LEBIH dulu dilewati (env
+ * `AI_DAILY_COST_LIMIT_USD`). Di-set sekali per hari supaya warning
+ * `ai.budget_alert` tidak spam — satu warning per hari yang melewati,
+ * bukan per request.
+ */
+export const aiUsageDaily = pgTable('aiUsageDaily', {
+  /** Awal hari UTC (epoch-aligned) — 1 baris per hari. */
+  day: timestamp('day', { withTimezone: true }).primaryKey().notNull(),
+  requests: integer('requests').notNull().default(0),
+  inputTokens: integer('input_tokens').notNull().default(0),
+  outputTokens: integer('output_tokens').notNull().default(0),
+  costMicros: integer('cost_micros').notNull().default(0),
+  capExceededAt: timestamp('cap_exceeded_at', { withTimezone: true }),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});

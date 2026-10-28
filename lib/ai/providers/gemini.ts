@@ -101,6 +101,29 @@ function chunkTextOf(response: GenerateContentResponse): string {
     .join('');
 }
 
+type UsageMetadataLike =
+  | { promptTokenCount?: number; candidatesTokenCount?: number; totalTokenCount?: number }
+  | null
+  | undefined;
+
+/**
+ * M7.1: ubah `usageMetadata` SDK menjadi bentuk netral `GenerateResult.usage`.
+ *
+ * Diisi bahkan untuk respons `blocked` — prompt tetap dikirim dan tetap
+ * mengonsumi input token, jadi biayanya nyata. `undefined` kalau SDK tidak
+ * memberi metadata (atau semuanya nol) — pemencatat skip sunyi.
+ */
+function usageOf(meta: UsageMetadataLike):
+  | { inputTokens: number; outputTokens: number; totalTokens: number }
+  | undefined {
+  if (!meta) return undefined;
+  const inputTokens = Math.max(0, Math.trunc(meta.promptTokenCount ?? 0));
+  const outputTokens = Math.max(0, Math.trunc(meta.candidatesTokenCount ?? 0));
+  const totalTokens = Math.max(0, Math.trunc(meta.totalTokenCount ?? inputTokens + outputTokens));
+  if (inputTokens === 0 && outputTokens === 0 && totalTokens === 0) return undefined;
+  return { inputTokens, outputTokens, totalTokens };
+}
+
 export class GeminiProvider implements LLMProvider {
   readonly name = 'gemini' as const;
 
@@ -384,6 +407,10 @@ export class GeminiProvider implements LLMProvider {
         // Respons lengkap dipakai untuk deteksi blokir + validasi.
         const aggregated = await streamResult.response;
 
+        // M7.1: pemakaian token (diisi juga untuk hasil blocked — prompt
+        // tetap mengonsumi input token).
+        const usage = usageOf(aggregated?.usageMetadata);
+
         // M0/H0.2: penolakan safety bukan error, ini hasil yang sah.
         if (isBlocked({ response: aggregated })) {
           return {
@@ -393,6 +420,7 @@ export class GeminiProvider implements LLMProvider {
             model: resolvedModel,
             usedFallback: false,
             latencyMs: Date.now() - startedAt,
+            usage,
           };
         }
 
@@ -405,6 +433,7 @@ export class GeminiProvider implements LLMProvider {
             model: resolvedModel,
             usedFallback: false,
             latencyMs: Date.now() - startedAt,
+            usage,
           };
         }
 
@@ -444,6 +473,7 @@ export class GeminiProvider implements LLMProvider {
           model: resolvedModel,
           usedFallback: false,
           latencyMs: Date.now() - startedAt,
+          usage,
         };
       } catch (error) {
         // Timeout/abort dari SDK → AI_TIMEOUT yang jelas, tidak diulang.
@@ -509,6 +539,8 @@ export class GeminiProvider implements LLMProvider {
     }
 
     const latencyMs = Date.now() - startedAt;
+    // M7.1: pemakaian token dari respons (diisi juga untuk hasil blocked).
+    const usage = usageOf(result.response?.usageMetadata);
 
     // M0/H0.2: safety filter aktif — penolakan bukan error, ini hasil yang sah.
     const blocked = isBlocked(result);
@@ -520,6 +552,7 @@ export class GeminiProvider implements LLMProvider {
         model: resolvedModel,
         usedFallback: false,
         latencyMs,
+        usage,
       };
     }
 
@@ -535,6 +568,7 @@ export class GeminiProvider implements LLMProvider {
         model: resolvedModel,
         usedFallback: false,
         latencyMs,
+        usage,
       };
     }
 
@@ -575,6 +609,7 @@ export class GeminiProvider implements LLMProvider {
       model: resolvedModel,
       usedFallback: false,
       latencyMs,
+      usage,
     };
   }
 }
