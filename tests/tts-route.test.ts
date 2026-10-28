@@ -7,6 +7,45 @@ import { setMockAuth, resetMockAuth } from '@/tests/setup';
 import { __resetEnvCacheForTests } from '@/lib/env';
 import { POST } from '@/app/api/tts/route';
 
+// M6.4: modul cache di-mock per file (SATU-SATUNYA konsumen selain test
+// ini — aman dengan isolate: false). Fake in-memory meniru perilaku yang
+// diamati route: key → audio, dan pencatatan usage per user.
+const cacheState = vi.hoisted(() => ({
+  cache: new Map<string, { audio: string; mimeType: string }>(),
+  usage: new Map<string, { requests: number; cacheHits: number; charsBilled: number }>(),
+  dailyChars: 0,
+}));
+
+vi.mock('@/lib/tts/cache', () => ({
+  TTS_CACHE_MAX_ROWS: 1000,
+  DEFAULT_TTS_MAX_CHARS_PER_DAY: 30_000,
+  ttsMaxCharsPerDay: () => {
+    const raw = process.env.TTS_MAX_CHARS_PER_DAY;
+    const n = raw ? Number.parseInt(raw, 10) : 30_000;
+    return Number.isFinite(n) && n > 0 ? n : 30_000;
+  },
+  ttsCacheKey: (text: string, voiceId: string, modelId: string) =>
+    `key:${voiceId}|${modelId}|${text}`,
+  dayBucketNow: () => new Date('2026-01-01T00:00:00Z'),
+  getTtsCache: vi.fn(async (key: string) => {
+    const hit = cacheState.cache.get(key);
+    return hit ? { audio: new TextEncoder().encode(hit.audio), mimeType: hit.mimeType } : null;
+  }),
+  putTtsCache: vi.fn(
+    async (key: string, audio: Uint8Array, mimeType: string) => {
+      cacheState.cache.set(key, { audio: new TextDecoder().decode(audio), mimeType });
+    }
+  ),
+  getTtsDailyCharsBilled: vi.fn(async () => cacheState.dailyChars),
+  recordTtsUsage: vi.fn(async (userId: string, o: { cacheHit: boolean; charsBilled: number }) => {
+    const u = cacheState.usage.get(userId) ?? { requests: 0, cacheHits: 0, charsBilled: 0 };
+    u.requests += 1;
+    u.cacheHits += o.cacheHit ? 1 : 0;
+    u.charsBilled += o.charsBilled;
+    cacheState.usage.set(userId, u);
+  }),
+}));
+
 const call = (request: Request) =>
   (POST as unknown as (r: Request, c: { params: Record<string, string> }) => Promise<Response>)(
     request,
@@ -44,6 +83,9 @@ const streamBody = (payload: string): ReadableStream<Uint8Array> =>
     },
   });
 
+/** Key yang dipakai route untuk teks tertentu (model + voice dari env test). */
+const routeKey = (text: string) => `key:voice-test-123|eleven_multilingual_v2|${text}`;
+
 let snapshot: NodeJS.ProcessEnv;
 
 beforeEach(() => {
@@ -53,23 +95,29 @@ beforeEach(() => {
   // tidak kehabisan antar test dalam file ini (user sama).
   (globalThis as { __mockRateLimitStore?: { reset: () => void } }).__mockRateLimitStore
     ?.reset();
+  // State cache fake: kosongkan per test.
+  cacheState.cache.clear();
+  cacheState.usage.clear();
+  cacheState.dailyChars = 0;
   vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.spyOn(console, 'warn').mockImplementation(() => {});
   vi.spyOn(console, 'log').mockImplementation(() => {});
   resetMockAuth();
   setMockAuth({ user: { id: 'user-tts' } });
   setTtsEnv('el-test-key', 'voice-test-123');
+  delete process.env.TTS_MAX_CHARS_PER_DAY;
 });
 
 afterEach(() => {
   process.env = snapshot;
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   setTtsEnv();
   __resetEnvCacheForTests();
 });
 
-describe('POST /api/tts (M6.1)', () => {
-  it('mengalirkan audio upstream apa adanya (streaming, bukan buffer utuh)', async () => {
+describe('POST /api/tts (M6.1 + M6.4)', () => {
+  it('miss: audio utuh dikembalikan (buffer untuk cache) + tersimpan + usage tercatat', async () => {
     const fetchMock = vi.fn(async () => new Response(streamBody('AUDIO-BYTES'), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
 
@@ -78,11 +126,78 @@ describe('POST /api/tts (M6.1)', () => {
     expect(res.status).toBe(200);
     expect(res.headers.get('Content-Type')).toBe('audio/mpeg');
     expect(res.headers.get('Cache-Control')).toBe('no-store, max-age=0');
-
-    // Body harus stream yang bisa dibaca (byte-nya utuh dari upstream).
-    expect(res.body).toBeInstanceOf(ReadableStream);
+    expect(res.headers.get('X-Tts-Cache')).toBe('miss');
     const text = await new Response(res.body).text();
     expect(text).toBe('AUDIO-BYTES');
+
+    // M6.4: tersimpan ke cache dengan key sha256(voice|model|text).
+    expect(cacheState.cache.has(routeKey('Halo!'))).toBe(true);
+    // M6.4: usage — miss, charsBilled = panjang teks.
+    expect(cacheState.usage.get('user-tts')).toEqual({
+      requests: 1,
+      cacheHits: 0,
+      charsBilled: 5,
+    });
+  });
+
+  it('hit: tidak memanggil ElevenLabs, audio lama dikembalikan, hit tercatat', async () => {
+    const fetchMock = vi.fn(async () => new Response(streamBody('AUDIO-BYTES'), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const first = await call(ttsRequest('Halo!')); // miss
+    expect(first.headers.get('X-Tts-Cache')).toBe('miss');
+
+    const second = await call(ttsRequest('Halo!')); // hit
+    expect(second.headers.get('X-Tts-Cache')).toBe('hit');
+    expect(await new Response(second.body).text()).toBe('AUDIO-BYTES');
+
+    // ElevenLabs hanya dipanggil SATU kali (miss pertama).
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    // Usage: 2 request, 1 hit, charsBilled hanya dari miss.
+    expect(cacheState.usage.get('user-tts')).toEqual({
+      requests: 2,
+      cacheHits: 1,
+      charsBilled: 5,
+    });
+  });
+
+  it('teks berbeda = key cache berbeda (tidak cross-contaminate)', async () => {
+    const fetchMock = vi.fn(async () => new Response(streamBody('X'), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await call(ttsRequest('Halo!'));
+    await call(ttsRequest('Apa kabar?'));
+
+    expect(fetchMock).toHaveBeenCalledTimes(2); // keduanya miss
+    expect(cacheState.cache.size).toBe(2);
+  });
+
+  it('cap harian karakter terlampaui → 429, tanpa memanggil ElevenLabs & tanpa cek cache', async () => {
+    cacheState.dailyChars = 30_000; // >= default cap
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await call(ttsRequest('Halo!'));
+
+    expect(res.status).toBe(429);
+    const body = await res.json();
+    expect(body.code).toBe('RATE_LIMITED');
+    expect(body.error).toContain('Kuota suara');
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(cacheState.usage.size).toBe(0); // tidak ada yang dicatat
+  });
+
+  it('cap env TTS_MAX_CHARS_PER_DAY diturunkan → 429 lebih awal', async () => {
+    process.env.TTS_MAX_CHARS_PER_DAY = '10';
+    cacheState.dailyChars = 10;
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await call(ttsRequest('Halo!'));
+
+    expect(res.status).toBe(429);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('memakai voice-ID dari env (hardcode lama sudah dihapus)', async () => {
@@ -123,7 +238,7 @@ describe('POST /api/tts (M6.1)', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('upstream 500 → 503 ramah, detail provider tidak bocor ke client', async () => {
+  it('upstream 500 → 503 ramah, detail tidak bocor, TIDAK dicatat/di-cache', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async () =>
@@ -139,9 +254,12 @@ describe('POST /api/tts (M6.1)', () => {
     const body = await res.json();
     expect(body.code).toBe('UPSTREAM_UNAVAILABLE');
     expect(body.error).toBe('Layanan suara sedang tidak tersedia. Coba lagi sebentar.');
+    expect(JSON.stringify(body)).not.toContain('el-supersecret');
 
-    const text = JSON.stringify(body);
-    expect(text).not.toContain('el-supersecret');
+    // M6.4: gagal upstream = tidak ada biaya → tidak boleh masuk cache
+    // dan tidak boleh menambah charsBilled.
+    expect(cacheState.cache.size).toBe(0);
+    expect(cacheState.usage.size).toBe(0);
   });
 
   it('teks >300 karakter → 400 (batas biaya), tidak memanggil ElevenLabs', async () => {

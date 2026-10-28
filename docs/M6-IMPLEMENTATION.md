@@ -3,10 +3,10 @@
 Dokumen ini mencatat apa yang **sudah** dikerjakan di M6, keputusan desain yang
 mengikat, dan utang teknis yang tersisa.
 
-Status: **M6.1 + M6.2 + M6.3 selesai (kode + test).** TTS streaming
-end-to-end, voice-ID hardcode terhapus, call memakai continuous listening +
-barge-in + turn cue realtime, dan halaman chat punya diktasi suara.
-M6.4–M6.5 belum dimulai — lihat §7.
+Status: **M6.1–M6.4 selesai (kode + test + migration).** TTS streaming
+end-to-end, voice-ID hardcode terhapus, call continuous listening + barge-in
++ turn cue realtime, diktasi suara di chat, dan TTS cache + pencatatan biaya
+harian. M6.5 belum dimulai — lihat §8.
 
 ---
 
@@ -228,30 +228,91 @@ sumber kebenaran tunggal untuk `onresult`:
 
 ---
 
-## 4. Perubahan file
+## 4. M6.4 — TTS cache + pencatatan biaya
+
+Tujuan: hemat biaya ElevenLabs (di-tagih per karakter) untuk kalimat yang
+berulang, + pencatatan "biaya TTS per DAU" (bagian DoD M6: *biaya TTS per
+DAU tercatat & dibatasi*).
+
+> **Soal angka "90%"**: itu estimasi di MILESTONES.md untuk kalimat
+> repetitif, **bukan** jaminan terukur. Penghematan aktual = rasio hit
+> cache, yang sekarang terukur lewat `ttsUsage.cacheHits` / `requests`.
+
+### 4.1 Skema (migration `drizzle/0002`, sudah di-apply)
+
+- **`ttsCache`** — `key` (PK) = `sha256(voiceId|modelId|text)`, `audio`
+  (bytea), `mime_type`, `created_at`, `last_hit_at` (dasar LRU).
+  Penyimpanan: **Neon `bytea`, bukan R2/S3** — tanpa infra baru, dan skala
+  cache (puluhan MB, dibatasi 1000 baris) aman untuk Postgres serverless.
+- **`ttsUsage`** — per (user, hari-UTC): `requests`, `cacheHits`,
+  `charsBilled` (hanya miss — hit tidak di-billing). PK komposit
+  (user_id, day).
+
+### 4.2 Perilaku route `/api/tts`
+
+Urutan: validasi teks → env → **cap harian karakter** → **cek cache** →
+ElevenLabs.
+
+- **Hit** = audio lama dari DB, header `X-Tts-Cache: hit`, nol biaya,
+  latency lebih rendah. `last_hit_at` di-touch (LRU).
+- **Miss** = buffer PENUH respons ElevenLabs (perubahan dari streaming
+  M6.1 — audio harus utuh untuk disimpan), simpan ke cache, header
+  `X-Tts-Cache: miss`. Tradeoff: sintesis satu kalimat pendek ~1–2 detik
+  kini menunggu utuh, tapi pipeline call prefetch kalimat N+1 saat N
+  diputar sehingga tambahan latency tersembunyi; hit justru lebih cepat.
+- **Gagal upstream** = tidak masuk cache, tidak menambah `charsBilled`
+  (tidak ada yang di-billing) — diuji eksplisit.
+- **Fail-open** (pola M5.5): kegagalan cache/usage hanya di-log, tidak
+  menggagalkan pemutaran.
+- **Eviction LRU**: setelah insert, kalau baris > `TTS_CACHE_MAX_ROWS`
+  (1000), baris terlama (urut `last_hit_at`, `created_at`) dibuang.
+
+### 4.3 Cap biaya
+
+- **Cap karakter/hari per user**: `TTS_MAX_CHARS_PER_DAY` (env, default
+  30.000). Terlewat → 429 "Kuota suara hari ini sudah habis". Di atas
+  rate limit request yang sudah ada (5/menit, 200/hari, 2000/bulan) —
+  request cap membatasi jumlah, char cap membatasi ukuran.
+- **Pencatatan**: `ttsUsage` per user per hari — metrik biaya TTS per DAU
+  (requests, hit ratio, chars di-billing) tinggal di-query dari tabel.
+
+### 4.4 Catatan drizzle 0.30
+
+drizzle-orm 0.30 **tidak punya kolom `bytea` bawaan** — didefinisikan via
+`customType` (mapping identitas; driver neon-http memberi `Buffer`).
+Normalisasi defensive (kalau datang string hex/base64) ada di
+`lib/tts/cache.ts`.
+
+---
+
+## 5. Perubahan file
 
 | File | Perubahan |
 | --- | --- |
-| `app/api/tts/route.ts` | rewrite: streaming pass-through, `requireEnvVar`, tanpa hardcode |
+| `app/api/tts/route.ts` | M6.1: streaming pass-through, `requireEnvVar`, tanpa hardcode; M6.4: cek cache + cap harian + buffer penuh + pencatatan usage (X-Tts-Cache) |
 | `lib/tts/sentences.ts` | baru: `splitSentences`, `takeCompleteSentences`, `TTS_MAX_LEN` |
 | `lib/tts/pipeline.ts` | baru: `TtsPipeline` (enqueue/prefetch/stop) |
 | `lib/call/session.ts` | baru: `CallSession` (continuous listening, barge-in, giliran, status); M6.3 refactor pakai `collectTranscript` |
 | `lib/speech/transcript.ts` | baru: `collectTranscript` (pure, isomorphic — rebuild transkrip per event) |
 | `lib/speech/use-speech-recognition.ts` | baru: hook diktasi PTT (PTT, interim live, supported post-mount) |
+| `lib/tts/cache.ts` | baru (M6.4): key sha256, get/put + eviction LRU, usage harian, fail-open |
+| `lib/db/schema.ts` | M6.4: tabel `ttsCache` (bytea via customType) + `ttsUsage` (PK komposit) |
+| `drizzle/0002_*.sql` | baru: migration tabel ttsCache + ttsUsage (sudah di-apply) |
 | `features/chat/ChatClient.tsx` | M6.3: tombol mic + diktasi ke input (append, editable, hint izin) |
 | `features/call/CallClient.tsx` | rework 2x: M6.1 SSE→pipeline; M6.2 jadi tipis (wiring+UI), pill status header, mic mute/unmute |
 | `tests/setup.ts` | + mock `Audio` global, + handle reset store rate-limit, + mock `@/lib/auth` (pola holder) |
 | `tests/tts-sentences.test.ts` | baru (15 test) |
 | `tests/tts-pipeline.test.ts` | baru (6 test) |
-| `tests/tts-route.test.ts` | baru (6 test) |
+| `tests/tts-route.test.ts` | M6.1: 6 test streaming/env/upstream; M6.4: + hit/miss, kuota harian, gagal upstream tidak tercatat |
 | `tests/call-session.test.ts` | baru (9 test) |
 | `tests/speech-transcript.test.ts` | baru (7 test) |
+| `tests/tts-cache.test.ts` | baru (M6.4, 10 test: key, bucket harian, parsing cap) |
 | `tests/api-handler.test.ts` | pakai mock auth global dari setup.ts |
-| `.env.example` | catatan: kedua variabel ElevenLabs wajib untuk TTS |
+| `.env.example` | ElevenLabs wajib (M6.1) + `TTS_MAX_CHARS_PER_DAY` opsional (M6.4) |
 
 ---
 
-## 5. Keputusan yang mengikat
+## 6. Keputusan yang mengikat
 
 1. **SSE/chunked, bukan WebSocket** — Vercel serverless; kebutuhan satu arah.
 2. **Unit playback = kalimat (audio element), bukan byte (MSE)** —
@@ -276,10 +337,21 @@ sumber kebenaran tunggal untuk `onresult`:
     `event.results` adalah state kumulatif sesi (interim diperbarui di
     tempat); append per event = double hitung. Logikanya satu tempat
     (`collectTranscript`) untuk call & chat.
+11. **Cache TTS di Neon `bytea`, bukan R2/S3** — tanpa infra baru;
+    skala cache (≤1000 baris, puluhan MB) aman untuk Postgres serverless.
+    Kalau tumbuh besar nanti, tabel ini mudah dimigrasi ke object storage.
+12. **Cache key = `sha256(voiceId|modelId|text)`** — voice & model masuk
+    key supaya ganti suara/model tidak memakai audio lama.
+13. **`charsBilled` hanya dihitung saat MISS** — hit tidak di-billing ke
+    ElevenLabs; pencatatannya harus memisahkan keduanya supaya metrik
+    biaya per DAU akurat.
+14. **Cap biaya TTS dua lapis** — rate limit request (jumlah) + cap
+    karakter/hari per user (`TTS_MAX_CHARS_PER_DAY`, ukuran). Gagal
+    upstream tidak menambah `charsBilled` (tidak ada yang dibayar).
 
 ---
 
-## 6. Checklist deploy
+## 7. Checklist deploy
 
 - [ ] Vercel: pastikan `ELEVENLABS_API_KEY` terisi.
 - [ ] Vercel: **isi `ELEVENLABS_VOICE_ID`** (wajib sejak commit M6.1).
@@ -301,10 +373,17 @@ sumber kebenaran tunggal untuk `onresult`:
     listening;
   - ketik separuh kalimat, tap mic, lanjut bicara → hasil = teks lama +
     diktasi (append, bukan timpa).
+- [ ] Test M6.4 di production (verifikasi via Vercel logs / DevTools):
+  - call/chat beberapa kalimat, lalu ulangi kalimat sama → response
+    `X-Tts-Cache: hit` (tanpa hit ke ElevenLabs);
+  - query Neon: tabel `ttsCache` terisi, `ttsUsage` mencatat requests &
+    `chars_billed` per user per hari;
+  - (opsional) set `TTS_MAX_CHARS_PER_DAY` kecil di env + redeploy untuk
+    mencoba 429 kuota — kembalikan setelahnya.
 
 ---
 
-## 7. Utang M6 (untuk sub-milestone berikutnya)
+## 8. Utang M6 (untuk sub-milestone berikutnya)
 
 - **Mitigasi feedback loop**: mic menangkap suara Livia sendiri (speaker
   besar) — barge-in bisa dipicu suara Livia; dimitigasi speaker toggle
@@ -312,9 +391,18 @@ sumber kebenaran tunggal untuk `onresult`:
 - **STT fallback server (Whisper/endpoint)** — hanya diperlukan untuk
   rilis native (Web Speech API tidak tersedia di native). Evaluasi saat
   itu, bukan sekarang.
-- **M6.4**: TTS cache `sha256(text+voice)` → penyimpanan audio
-  (R2/S3, atau Postgres `bytea` tanpa infra baru — pilihan saat
-  implementasi), + pencatatan biaya TTS per DAU.
+- **Metrik "hemat 90%" belum terukur** — M6.4 sudah mencatat
+  `ttsUsage.cacheHits`/`requests`/`charsBilled`, tapi belum ada dashboard
+  / laporan yang menghitung rasio hit aktual. Penghematan sesungguhnya
+  bergantung frekuensi pengulangan kalimat Livia; ukur dari `ttsUsage`
+  setelah berjalan beberapa hari.
+- **Eviction LRU hanya jalan per-insert** — kalau tidak ada miss baru,
+  baris cache tidak dibuang. Aman untuk sekarang (tabel kecil, insert
+  sering di awal), tapi kalau tabel membesar perlu jadwal eviction
+  terpisah (cron / prune).
+- **Cache TTS di Postgres `bytea`** — praktis, tapi membesar seiring
+  variabilitas kalimat. Kalau tumbuh > ratusan MB, migrasi ke R2/S3
+  (schema `ttsCache` tinggal ganti `audio` → URL).
 - **M6.5**: voice persona dinamis per expression (voice_settings per
   mood: happy → energik, scared → cepat).
 - Panel krisis lengkap di call (resources clickable) — saat ini hanya

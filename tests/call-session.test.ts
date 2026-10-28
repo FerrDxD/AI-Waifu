@@ -168,7 +168,7 @@ describe('CallSession (M6.2)', () => {
     expect(lastStatus(recorded)[0]).toBe('listening');
 
     rec.emitEnd(); // hening tanpa ucapan
-    await flush(10);
+    await flush(25);
     expect(rec.starts).toBe(2); // auto-restart
     expect(lastStatus(recorded)[0]).toBe('listening');
   });
@@ -191,7 +191,7 @@ describe('CallSession (M6.2)', () => {
 
     rec.emitUtterance('', 'halo');
     rec.emitEnd();
-    await flush(30);
+    await flush(50);
 
     expect(pipelines.length).toBe(1);
     expect(pipelines[0].enqueued).toEqual(['Halo.', 'Apa kabar?']);
@@ -199,7 +199,7 @@ describe('CallSession (M6.2)', () => {
     expect(lastStatus(recorded)[0]).toBe('speaking');
 
     pipelines[0].stop(); // audio selesai
-    await flush(5);
+    await flush(15);
     expect(lastStatus(recorded)[0]).toBe('listening');
   });
 
@@ -213,19 +213,19 @@ describe('CallSession (M6.2)', () => {
 
     rec.emitUtterance('', 'hai');
     rec.emitEnd();
-    await flush(10);
+    await flush(25);
     expect(lastStatus(recorded)[0]).toBe('thinking');
 
     ctrl.send({ type: 'delta', text: 'Halo, ' });
     ctrl.send({ type: 'delta', text: 'aku di sini.' });
     ctrl.send({ type: 'done', reply: 'Halo, aku di sini.' });
-    await flush(10);
+    await flush(25);
     expect(pipelines[0].enqueued).toEqual(['Halo, aku di sini.']);
     expect(lastStatus(recorded)[0]).toBe('speaking');
 
     // User mulai bicara lagi → barge-in (M6.2).
     rec.emitUtterance('', 'tunggu');
-    await flush(5);
+    await flush(15);
     expect(pipelines[0].stopped).toBe(true);
     expect(lastStatus(recorded)[0]).toBe('listening');
   });
@@ -240,18 +240,18 @@ describe('CallSession (M6.2)', () => {
 
     rec.emitUtterance('', 'heh');
     rec.emitEnd();
-    await flush(10);
+    await flush(25);
     expect(lastStatus(recorded)[0]).toBe('thinking');
 
     // User memotong sebelum delta pertama datang.
     rec.emitUtterance('', 'diam dulu');
-    await flush(5);
+    await flush(15);
     expect(lastStatus(recorded)[0]).toBe('listening');
 
     // Event stream yang terlambat harus dibuang (turn aborted).
     ctrl.send({ type: 'delta', text: 'Jangan. ' });
     ctrl.send({ type: 'done', reply: 'Jangan.', expression: 'angry' });
-    await flush(20);
+    await flush(40);
     expect(pipelines[0].enqueued).toEqual([]);
     expect(recorded.expressions).toEqual([]);
   });
@@ -270,7 +270,7 @@ describe('CallSession (M6.2)', () => {
     expect(lastStatus(recorded)[0]).toBe('idle');
 
     rec.emitEnd(); // onend ganda (safety) — tetap tidak restart saat muted
-    await flush(10);
+    await flush(25);
     expect(rec.starts).toBe(1);
     expect(pipelines.length).toBe(0);
 
@@ -289,7 +289,7 @@ describe('CallSession (M6.2)', () => {
     expect(lastStatus(recorded)[1]).toContain('mikrofon');
 
     rec.emitEnd();
-    await flush(10);
+    await flush(25);
     expect(rec.starts).toBe(1); // tidak restart
   });
 
@@ -307,7 +307,7 @@ describe('CallSession (M6.2)', () => {
 
     rec.emitUtterance('', 'hai');
     rec.emitEnd();
-    await flush(10);
+    await flush(25);
     expect(pipelines.length).toBe(1);
 
     session.dispose();
@@ -332,13 +332,13 @@ describe('CallSession (M6.2)', () => {
 
     rec.emitUtterance('', 'halo');
     rec.emitEnd();
-    await flush(20);
+    await flush(40);
     expect(lastStatus(recorded)[0]).toBe('error');
     expect(lastStatus(recorded)[1]).toBe('Kuota habis');
 
     rec.emitUtterance('', 'lagi');
     rec.emitEnd();
-    await flush(20);
+    await flush(40);
     expect(lastStatus(recorded)[0]).toBe('speaking');
   });
 });

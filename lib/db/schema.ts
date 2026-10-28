@@ -1,5 +1,14 @@
-import { pgTable, uuid, text, timestamp, boolean, integer, date, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, boolean, integer, date, jsonb, index, customType, primaryKey } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
+
+/**
+ * Kolom `bytea` (M6.4). drizzle-orm 0.30 belum punya kolom bytea bawaan —
+ * `customType` dengan mapping identitas (driver neon-http mengembalikan
+ * `Buffer` untuk bytea; normalisasi defensive ada di `lib/tts/cache.ts`).
+ */
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType: () => 'bytea',
+});
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -222,3 +231,50 @@ export const rateLimitCounters = pgTable('rateLimitCounters', {
   /** Awal bucket window (epoch-aligned). Dipakai `db:prune` untuk membuang baris tua. */
   windowStart: timestamp('window_start', { withTimezone: true }).notNull(),
 });
+
+/**
+ * Cache audio TTS (M6.4).
+ *
+ * Menghemat biaya ElevenLabs untuk kalimat yang berulang (Livia banyak
+ * mengulang sapaan/gambaran kasarnya). Key = `sha256(voiceId|modelId|text)`
+ * sehingga cache otomatis berbeda per suara & model. Audio disimpan `bytea`
+ * (tanpa infra storage baru — Neon cukup untuk skala ini). Baris paling lama
+ * tidak dipakai dibuang oleh eviction LRU di `lib/tts/cache.ts`
+ * (dibatasi `TTS_CACHE_MAX_ROWS`).
+ */
+export const ttsCache = pgTable('ttsCache', {
+  /** `sha256(voiceId|modelId|text)` — deterministik, unik per kombinasi. */
+  key: text('key').primaryKey(),
+  audio: bytea('audio').notNull(),
+  mimeType: text('mime_type').notNull().default('audio/mpeg'),
+  createdAt: timestamp('created_at').defaultNow(),
+  /** Waktu akses terakhir — dasar urut LRU untuk eviction. */
+  lastHitAt: timestamp('last_hit_at', { withTimezone: true }).defaultNow(),
+});
+
+/**
+ * Penggunaan TTS per user per hari (M6.4) — pencatatan biaya & cap harian.
+ *
+ * `charsBilled` hanya dihitung saat cache MISS (saat benar-benar memanggil
+ * ElevenLabs); hit tidak membebani. Baris per (user, hari-UTC). Increment
+ * atomik `INSERT ... ON CONFLICT DO UPDATE` dalam satu statement (pola
+ * `rateLimitCounters`) — aman di driver neon-http tanpa koneksi persisten.
+ */
+export const ttsUsage = pgTable(
+  'ttsUsage',
+  {
+    userId: uuid('user_id').notNull(),
+    /** Awal hari UTC (epoch-aligned) — 1 baris per user per hari. */
+    day: timestamp('day', { withTimezone: true }).notNull(),
+    /** Total request TTS (hit + miss) hari ini. */
+    requests: integer('requests').notNull().default(0),
+    /** Berapa request yang terlayani dari cache (tanpa biaya). */
+    cacheHits: integer('cache_hits').notNull().default(0),
+    /** Jumlah karakter yang benar-benar dikirim ke ElevenLabs (miss saja). */
+    charsBilled: integer('chars_billed').notNull().default(0),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.day] }),
+  })
+);
