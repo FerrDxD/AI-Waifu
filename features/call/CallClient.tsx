@@ -7,14 +7,6 @@ import { LiviaExpression } from '@/lib/gemini';
 import { TtsPipeline } from '@/lib/tts/pipeline';
 import { CallSession, type CallStatus } from '@/lib/call/session';
 
-// Web Speech API Types
-declare global {
-  interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
-  }
-}
-
 /**
  * Halaman voice call (M6.2).
  *

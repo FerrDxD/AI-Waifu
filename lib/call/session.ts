@@ -2,6 +2,10 @@
 
 import type { TtsPipeline, TtsPlaybackState } from '@/lib/tts/pipeline';
 import { takeCompleteSentences } from '@/lib/tts/sentences';
+import { collectTranscript, type RecognitionResultEvent } from '@/lib/speech/transcript';
+
+/** Re-export supaya import lama (tests) tetap jalan. */
+export type { RecognitionResultEvent };
 
 /**
  * Sesi voice call (M6.2) — barge-in & turn cue.
@@ -36,12 +40,6 @@ export type CallStatus =
   | 'thinking'
   | 'speaking'
   | 'error';
-
-/** Bentuk event `onresult` Web Speech API (subset yang dipakai). */
-export type RecognitionResultEvent = {
-  results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>;
-  resultIndex: number;
-};
 
 /** Recognition Web Speech API (subset) — memudahkan injeksi fake di test. */
 export type RecognitionLike = {
@@ -171,20 +169,13 @@ export class CallSession {
     // dipakai untuk barge-in (lihat dokumentasi kelas).
 
     rec.onresult = (event: RecognitionResultEvent) => {
-      let finalText = '';
-      let interimText = '';
-      for (let i = 0; i < event.results.length; i++) {
-        const r = event.results[i];
-        const t = r?.[0]?.transcript ?? '';
-        if (r?.isFinal) finalText += t;
-        else interimText += t;
-      }
       // Rebuild utuh per sesi: interim terus update, mengakumulasi per
-      // event akan mendouble hitung.
-      this.utterance = (finalText + interimText).trim();
+      // event akan mendouble hitung (detail di lib/speech/transcript).
+      const { interim, full } = collectTranscript(event);
+      this.utterance = full;
       this.opts.events.onTranscript(this.utterance);
 
-      const hearingNow = interimText.trim().length > 0;
+      const hearingNow = interim.trim().length > 0;
       if (hearingNow && !this.hearing) {
         // Suara TEREDETEKSI → barge-in (M6.2).
         this.setHearing(true);

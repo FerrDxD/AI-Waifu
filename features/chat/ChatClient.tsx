@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, ArrowLeft, CheckCircle2, Phone, LifeBuoy, ExternalLink } from 'lucide-react';
+import { Send, ArrowLeft, CheckCircle2, Phone, LifeBuoy, ExternalLink, Mic, MicOff } from 'lucide-react';
 import Link from 'next/link';
 import { playSfx } from '@/lib/sfx';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useSpeechRecognition } from '@/lib/speech/use-speech-recognition';
 
 
 interface ChatMessage {
@@ -119,6 +120,47 @@ export default function ChatPage() {
   const [crisis, setCrisis] = useState<CrisisInfo | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // M6.3: diktasi suara ke input (Web Speech API). Transkrip mengalir
+  // live ke input; saat diktasi selesai, teks final tertinggal di input
+  // dan bisa DIEDIT sebelum dikirim.
+  const [micHint, setMicHint] = useState('');
+  const {
+    supported: micSupported,
+    listening: micListening,
+    transcript: micTranscript,
+    start: startMic,
+    stop: stopMic,
+  } = useSpeechRecognition((code) => {
+    if (code === 'not-allowed' || code === 'service-not-allowed') {
+      setMicHint('Izin mikrofon ditolak — nyalakan di pengaturan browser.');
+    }
+  });
+  const dictationBaseRef = useRef('');
+
+  useEffect(() => {
+    // Saat diktasi aktif, input = teks yang sudah diketik + transkrip live.
+    // Saat berhenti, isi terakhir dipertahankan (bukan dikosongkan).
+    if (micListening) {
+      setInput(dictationBaseRef.current + micTranscript);
+    }
+  }, [micListening, micTranscript]);
+
+  useEffect(() => {
+    if (!micHint) return;
+    const t = setTimeout(() => setMicHint(''), 4000);
+    return () => clearTimeout(t);
+  }, [micHint]);
+
+  const handleMicClick = () => {
+    if (micListening) {
+      stopMic();
+      return;
+    }
+    // Diktasi MENAMBAHKAN ke teks yang sudah ada, bukan menimpa.
+    dictationBaseRef.current = input;
+    startMic();
+  };
 
   // Load chat history on mount
   useEffect(() => {
@@ -375,27 +417,52 @@ export default function ChatPage() {
           </div>
 
             {/* Input area */}
-          <div className="px-4 md:px-6 py-2 md:py-3 bg-slate-50 flex items-end gap-2 md:gap-3 z-20 border-t border-gray-200">
+          <div className="relative px-4 md:px-6 py-2 md:py-3 bg-slate-50 flex items-end gap-2 md:gap-3 z-20 border-t border-gray-200">
+            {micHint && (
+              <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-rose-500 whitespace-nowrap">
+                {micHint}
+              </span>
+            )}
             <textarea
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
+                  // M6.3: Enter saat diktasi aktif tidak mengirim (transkrip
+                  // masih bisa berubah) — hentikan diktasi dulu.
+                  if (micListening) return;
                   handleSend();
                 }
               }}
-              placeholder="Ketik balasan..."
+              placeholder={micListening ? 'Mendengarkan...' : 'Ketik balasan...'}
               rows={1}
               disabled={loading}
               className="flex-1 resize-none py-3 md:py-3.5 px-5 md:px-6 text-[16px] text-gray-800 focus:outline-none transition-all placeholder:text-gray-400 bg-white rounded-3xl border border-transparent focus:border-gray-300 shadow-sm min-h-[50px] max-h-[120px]"
             />
+            {/* M6.3: diktasi suara — PTT (tap mulai, tap lagi/hening berhenti) */}
+            {micSupported && (
+              <button
+                onClick={handleMicClick}
+                title={micListening ? 'Hentikan diktasi' : 'Diktasi suara'}
+                className={`shrink-0 w-12 h-12 flex items-center justify-center rounded-full transition-all shadow-sm relative ${
+                  micListening
+                    ? 'bg-rose-500 text-white'
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                {micListening && (
+                  <span className="absolute inset-0 rounded-full border-2 border-rose-400 animate-ping opacity-40" />
+                )}
+                {micListening ? <MicOff size={18} /> : <Mic size={18} />}
+              </button>
+            )}
             <button
               onClick={handleSend}
-              disabled={loading || !input.trim()}
+              disabled={loading || micListening || !input.trim()}
               className="shrink-0 w-12 h-12 flex items-center justify-center rounded-full transition-all shadow-sm bg-rose-500 text-white disabled:bg-gray-200 disabled:text-gray-400 scale-100 disabled:scale-95"
             >
-              <Send size={18} className={`${input.trim() && !loading ? "ml-1" : ""}`} />
+              <Send size={18} className={`${input.trim() && !loading && !micListening ? "ml-1" : ""}`} />
             </button>
           </div>
         </div>

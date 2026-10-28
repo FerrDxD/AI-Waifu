@@ -3,9 +3,10 @@
 Dokumen ini mencatat apa yang **sudah** dikerjakan di M6, keputusan desain yang
 mengikat, dan utang teknis yang tersisa.
 
-Status: **M6.1 + M6.2 selesai (kode + test).** TTS streaming end-to-end,
-voice-ID hardcode terhapus, call memakai continuous listening + barge-in +
-turn cue realtime. M6.3–M6.5 belum dimulai — lihat §6.
+Status: **M6.1 + M6.2 + M6.3 selesai (kode + test).** TTS streaming
+end-to-end, voice-ID hardcode terhapus, call memakai continuous listening +
+barge-in + turn cue realtime, dan halaman chat punya diktasi suara.
+M6.4–M6.5 belum dimulai — lihat §7.
 
 ---
 
@@ -176,26 +177,81 @@ realtime — tanpa perlu tap tombol.
 
 ---
 
-## 3. Perubahan file
+## 3. M6.3 — STT input (diktasi suara di /chat)
+
+Tujuan: input suara di halaman chat via Web Speech API — user tap mic,
+bicara, transkrip masuk ke input, bisa diedit, baru kirim. Fallback
+Whisper/endpoint server **belum** diimplementasi: itu hanya relevan untuk
+rilis native (lihat utang).
+
+### 3.1 `useSpeechRecognition` (lib/speech/use-speech-recognition.ts)
+
+Hook React tipis di atas Web Speech API:
+
+- **Pola PTT** — tap mulai, tap lagi (atau hening) berhenti. Beda dengan
+  `CallSession` di call yang continuous + auto-restart: di chat satu
+  ucapan per tap sudah pas (satu pesan = satu utterance).
+- `interimResults: true`, `lang: 'id-ID'`, `continuous: false`.
+- `supported` baru true **setelah mount** (Web Speech API tidak ada di
+  server — hindari hydration mismatch; tombol mic tidak muncul saat SSR).
+- `rec.start()` dipanggil dari handler klik (user gesture) — requirement
+  iOS Safari.
+- Cleanup unmount: `abort()` (tanpa onend).
+- Semua error code diteruskan ke callback `onError`; caller deciding mana
+  yang ditampilkan ('no-speech'/'aborted' = wajar, 'not-allowed' = izin
+  mic ditolak → hint di UI).
+
+### 3.2 `collectTranscript` (lib/speech/transcript.ts)
+
+Logika akumulasi transkrip di-extract jadi fungsi pure isomorphic —
+sumber kebenaran tunggal untuk `onresult`:
+
+- `event.results` berisi **seluruh hasil sesi** (bukan delta), dan interim
+  diperbarui di tempat → transkrip di-**rebuild** per event, bukan
+  di-append (append = double hitung). Diuji eksplisit.
+- Dipakai dua konsumen: `CallSession` (di-refactor, behavior sama — 9
+  test call-session tetap hijau) dan `useSpeechRecognition`.
+
+### 3.3 Integrasi UI (features/chat/ChatClient.tsx)
+
+- Tombol mic muncul di antara textarea dan tombol kirim; hanya jika
+  `supported`. State: idle (Mic abu-abu) / listening (MicOff merah +
+  pulse).
+- Transkrip live **ditulis langsung ke input**: `input = base +
+  transcript`. `base` = teks yang sudah diketik user sebelum tap mic
+  (diktasi MENAMBAHKAN, bukan menimpa).
+- Saat diktasi selesai, isi input terakhir (base + final) **dipertahankan**
+  → user bisa mengedit sebelum kirim.
+- Enter & tombol kirim **disabled selama listening** (transkrip masih bisa
+  berubah).
+- Izin mic ditolak → hint merah di atas input, auto-clear 4 detik.
+
+---
+
+## 4. Perubahan file
 
 | File | Perubahan |
 | --- | --- |
 | `app/api/tts/route.ts` | rewrite: streaming pass-through, `requireEnvVar`, tanpa hardcode |
 | `lib/tts/sentences.ts` | baru: `splitSentences`, `takeCompleteSentences`, `TTS_MAX_LEN` |
 | `lib/tts/pipeline.ts` | baru: `TtsPipeline` (enqueue/prefetch/stop) |
-| `lib/call/session.ts` | baru: `CallSession` (continuous listening, barge-in, giliran, status) |
+| `lib/call/session.ts` | baru: `CallSession` (continuous listening, barge-in, giliran, status); M6.3 refactor pakai `collectTranscript` |
+| `lib/speech/transcript.ts` | baru: `collectTranscript` (pure, isomorphic — rebuild transkrip per event) |
+| `lib/speech/use-speech-recognition.ts` | baru: hook diktasi PTT (PTT, interim live, supported post-mount) |
+| `features/chat/ChatClient.tsx` | M6.3: tombol mic + diktasi ke input (append, editable, hint izin) |
 | `features/call/CallClient.tsx` | rework 2x: M6.1 SSE→pipeline; M6.2 jadi tipis (wiring+UI), pill status header, mic mute/unmute |
 | `tests/setup.ts` | + mock `Audio` global, + handle reset store rate-limit, + mock `@/lib/auth` (pola holder) |
 | `tests/tts-sentences.test.ts` | baru (15 test) |
 | `tests/tts-pipeline.test.ts` | baru (6 test) |
 | `tests/tts-route.test.ts` | baru (6 test) |
 | `tests/call-session.test.ts` | baru (9 test) |
+| `tests/speech-transcript.test.ts` | baru (7 test) |
 | `tests/api-handler.test.ts` | pakai mock auth global dari setup.ts |
 | `.env.example` | catatan: kedua variabel ElevenLabs wajib untuk TTS |
 
 ---
 
-## 4. Keputusan yang mengikat
+## 5. Keputusan yang mengikat
 
 1. **SSE/chunked, bukan WebSocket** — Vercel serverless; kebutuhan satu arah.
 2. **Unit playback = kalimat (audio element), bukan byte (MSE)** —
@@ -213,10 +269,17 @@ realtime — tanpa perlu tap tombol.
    file** (`@/lib/auth`, gemini SDK, rate-limit store) — dengan
    `isolate: false` instance mock terpisah per file → flake 401
    bergantung urutan. Semua mock global di `tests/setup.ts`.
+9. **Diktasi chat = PTT + transkrip ke input (bukan auto-kirim)** —
+   user selalu melihat & bisa mengedit sebelum pesan terkirim; risiko
+   salah dengar terkompensasi manusia, bukan dibuang sistem.
+10. **Akumulasi transkrip rebuild per event, bukan append** —
+    `event.results` adalah state kumulatif sesi (interim diperbarui di
+    tempat); append per event = double hitung. Logikanya satu tempat
+    (`collectTranscript`) untuk call & chat.
 
 ---
 
-## 5. Checklist deploy
+## 6. Checklist deploy
 
 - [ ] Vercel: pastikan `ELEVENLABS_API_KEY` terisi.
 - [ ] Vercel: **isi `ELEVENLABS_VOICE_ID`** (wajib sejak commit M6.1).
@@ -230,16 +293,25 @@ realtime — tanpa perlu tap tombol.
     (barge-in) dan giliran lamanya dibatalkan;
   - tap tombol mic → `Mic off` (mute), status `SIAGA`; tap lagi →
     listening kembali.
+- [ ] Test M6.3 di production (halaman `/chat`):
+  - tombol mic muncul di samping input; tap → merah + pulse, placeholder
+    `Mendengarkan...`;
+  - ucapkan kalimat → transkrip muncul di input; berhenti bicara → teks
+    final tertinggal dan bisa diedit; Enter/kirim disabled selama
+    listening;
+  - ketik separuh kalimat, tap mic, lanjut bicara → hasil = teks lama +
+    diktasi (append, bukan timpa).
 
 ---
 
-## 6. Utang M6 (untuk sub-milestone berikutnya)
+## 7. Utang M6 (untuk sub-milestone berikutnya)
 
 - **Mitigasi feedback loop**: mic menangkap suara Livia sendiri (speaker
   besar) — barge-in bisa dipicu suara Livia; dimitigasi speaker toggle
-  (0.25x) saja. VAD/echo-cancel proper = ranah native (M6.3).
-- **M6.3**: voice input di halaman `/chat` (Web Speech API) + evaluasi
-  fallback Whisper endpoint untuk rilis native.
+  (0.25x) saja. VAD/echo-cancel proper = ranah native.
+- **STT fallback server (Whisper/endpoint)** — hanya diperlukan untuk
+  rilis native (Web Speech API tidak tersedia di native). Evaluasi saat
+  itu, bukan sekarang.
 - **M6.4**: TTS cache `sha256(text+voice)` → penyimpanan audio
   (R2/S3, atau Postgres `bytea` tanpa infra baru — pilihan saat
   implementasi), + pencatatan biaya TTS per DAU.
@@ -247,5 +319,6 @@ realtime — tanpa perlu tap tombol.
   mood: happy → energik, scared → cepat).
 - Panel krisis lengkap di call (resources clickable) — saat ini hanya
   teks pesan.
-- Quirk iOS Safari untuk `SpeechRecognition` continuous belum divalidasi
-  (perlu perangkat fisik) — fallbacknya mute/unmute tetap berfungsi.
+- Quirk iOS Safari untuk `SpeechRecognition` (continuous di call, PTT di
+  chat) belum divalidasi di perangkat fisik — fallbacknya mute/unmute
+  dan input ketik tetap berfungsi.
