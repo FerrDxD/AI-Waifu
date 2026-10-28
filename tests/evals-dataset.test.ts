@@ -10,8 +10,8 @@ import { buildChatPrompt } from '@/lib/gemini';
  */
 
 describe('integritas dataset', () => {
-  it('punya tepat 50 skenario', () => {
-    expect(DATASET).toHaveLength(50);
+  it('punya tepat 55 skenario (50 M2.7 + 5 bypass M7.3)', () => {
+    expect(DATASET).toHaveLength(55);
   });
 
   it('id unik dan berformat kategori.subjek', () => {

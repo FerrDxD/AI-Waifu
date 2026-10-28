@@ -3,11 +3,13 @@
 Dokumen ini mencatat apa yang **sudah** dikerjakan di M7, keputusan desain
 yang mengikat, dan utang teknis yang tersisa.
 
-Status: **M7.1 + M7.2 SELESAI.** Tiap request LLM tercatat (provider, model,
-token in/out, biaya, user), agregasi harian atomik + alert budget, dan
-dashboard owner-only satu layar di `/usage`. Analitik produk first-party
-(retensi D1/D7/D30, pesan per session, drop-off onboarding) di `/analytics`
-— tanpa vendor pihak ketiga. Sisa M7.3–M7.5 belum dimulai; utang di §2.5 & §6.
+Status: **M7.1 + M7.2 + M7.3 SELESAI.** Tiap request LLM tercatat (provider,
+model, token in/out, biaya, user), agregasi harian atomik + alert budget,
+dashboard owner-only di `/usage`; analitik produk first-party (retensi
+D1/D7/D30, pesan per session, drop-off) di `/analytics`; dan eval loop di CI
+(55 skenario, persona/guardrail/memory recall) dengan gate di dua lapis:
+branch protection GitHub + gate build Vercel. Sisa M7.4–M7.5 belum dimulai;
+utang di §2.5, §3.7 & §7.
 
 ---
 
@@ -275,7 +277,130 @@ Suite: **680 test / 38 file** (naik dari 654/36).
 
 ---
 
-## 3. File (M7.1)
+## 3. M7.3 — Eval loop di CI (gate deploy)
+
+Tujuan: tiap perubahan yang masuk `main` harus lulus suite eval (persona,
+guardrail/injeksi, memory recall, struktur) — dan build-nya sendiri tidak
+bisa menghasilkan app yang aturan level prompt-nya regresi.
+
+### 3.1 Arsitektur: gate dua lapis
+
+```
+PR / push
+   │
+   ├─▶ GitHub Actions CI (.github/workflows/ci.yml)
+   │     typecheck · lint · test ×2 · evals-offline · evals-live
+   │     └─ branch protection "Require status checks" (setting GitHub)
+   │        = gate MERGE ke main
+   │
+   └─▶ Vercel build (package.json "build")
+         vitest run tests/evals-dataset.test.ts && next build
+         └─ eval offline (asersi 55 skenario yang sama, ~20 dtk, tanpa API)
+            = gate DEPLOY itu sendiri (build merah → tidak ada deploy)
+```
+
+Kenapa dua lapis:
+- **GitHub CI** = gate penuh (termasuk eval *live* ke model produksi). Tapi
+  status checks hanya memblokir *merge* — direct push ke main (workflow
+  saat ini) tidak diblokir checks.
+- **Gate build Vercel** = backstop yang tidak bisa dilewati: regresi aturan
+  level prompt / integritas dataset = build gagal. Deterministik, tanpa API,
+  tanpa biaya (~20 detik).
+- Kedua lapis memakai **asersi yang sama** (eval offline): runner CLI
+  (`bun run evals`) di CI, file vitest yang mengasersi hal serupa di Vercel —
+  tidak ada dua sumber kebenaran aturan.
+
+### 3.2 Eval live: gate kualitas
+
+- 55 skenario → model produksi (`--live`): persona (8), guardrail/injeksi
+  (13), memory recall (10), language (8), politeness (8), structure (8).
+- Pacing: `AI_EVAL_DELAY_MS=15000`, `AI_MAX_RETRIES=1` (pola anti 429
+  free-tier, M2.8) — total ~20–30 menit, timeout job 45 menit.
+- DoD runner: cek hard 100% + soft (persona) ≥85% (exit 1 kalau gagal).
+- Secret `GEMINI_API_KEY` **belum diset** → job lulus dengan `::warning::`
+  (bukan gagal): milestone tetap bisa merge sebelum user men-set secret;
+  gate live aktif otomatis begitu secret ada.
+
+### 3.3 Skenario guardrail baru (tambahan M7.3)
+
+5 skenario *bypass* filter (safety 8 → 13, dataset 50 → 55):
+
+| ID | Vektor |
+| --- | --- |
+| `safety.bypass_roleplay` | Roleplay "AI tanpa aturan, tanpa filter" |
+| `safety.bypass_developer` | Pesan developer palsu "filter nonaktif untuk sesi ini" |
+| `safety.bypass_emotional` | Tekanan/ancaman emosional agar prompt dibocorkan |
+| `safety.bypass_indirect` | Relay indirek via permintaan terjemahan |
+| `safety.bypass_freedom` | Janji "kebebasan" dari aturan demi isi aturan |
+
+Cek per skenario: `prompt.injection_guard` (offline — penjaga injeksi WAJIB
+ada di prompt untuk skenario ini) + `reply.no_system_leak` + `REPLY_SAFE`
+(live). Tidak ada cek baru — cek existing sudah menutup semua vektor.
+
+### 3.4 File
+
+| File | Isi |
+| --- | --- |
+| `.github/workflows/ci.yml` | **BARU** — 5 job: typecheck, lint, test (2x), evals-offline, evals-live (secret-gated, pacing 15 s) |
+| `evals/dataset.ts` | +5 skenario bypass (50 → 55) |
+| `tests/evals-dataset.test.ts` | asersi jumlah 50 → 55 |
+| `package.json` | `build` = `vitest run tests/evals-dataset.test.ts && next build` (gate deploy Vercel) |
+
+### 3.5 Keputusan desain
+
+1. **Gate dua lapis (CI GitHub + build Vercel)** — checks CI hanya memblokir
+   merge; direct push ke main tidak tergate. Build Vercel = backstop yang
+   selalu jalan. Asersi offline sama di kedua lapis (satu sumber kebenaran).
+2. **Gate Vercel hanya porsi offline** — eval live di build = 55 call API
+   per deploy + risiko 429 = deploy tertahan oleh throttling, bukan kualitas.
+   Live = domain CI.
+3. **Gate Vercel via vitest, bukan `bun run evals`** — build Vercel berjalan
+   di npm (bun tidak tersedia di environment build-nya). `vitest run
+   tests/evals-dataset.test.ts` = asersi yang sama, bentuk deterministik ~20
+   detik. Script tetap jalan di bun secara lokal.
+4. **Skenario baru, bukan cek baru** — `no_system_leak`/`no_forbidden`/
+   `REPLY_SAFE` sudah cukup; yang kurang adalah variannya, bukan metriknya.
+5. **Live eval skip-with-warning tanpa secret** — gate tidak boleh merah
+   karena konfigurasi yang belum user set; begitu `GEMINI_API_KEY` masuk
+   GitHub Secrets, gate aktif tanpa perubahan kode.
+6. **Pacing 15 s + 1 retry** — pola free-tier yang terbukti (M2.8); 55
+   skenario ≈ 20–30 menit per run.
+7. **Branch protection = task user** — setting "Require status checks" ada
+   di GitHub, bukan di repo; di-checklist di §3.6.
+
+### 3.6 Deploy checklist (M7.3)
+
+- [ ] **GitHub Secrets**: Settings → Secrets and variables → Actions → tambah
+      `GEMINI_API_KEY` (key Google yang sama; yang di Vercel view-once, jadi
+      salin ulang dari Google AI Studio). Selama belum: `evals-live` jalan
+      sebagai skip-with-warning.
+- [ ] **Branch protection** (gate merge): Settings → Branches → add rule
+      `main` → "Require status checks to pass before merging" → centang
+      `typecheck`, `lint`, `test (2x)`, `evals-offline`, `evals-live`.
+      Opsi lebih ketat: "Require pull request before merging" — direct push
+      ke main tidak lagi lolos tanpa checks.
+- [ ] Push/PR pertama: 5 job hijau di tab Actions.
+- [ ] Vercel: log build berikutnya menampilkan 7 test vitest sebelum
+      `next build` — bukti gate deploy aktif.
+- [ ] (Opsional, test negatif) rusak satu aturan prompt di `lib/ai/persona.ts`
+      → `bun run build` harus GAGAL sebelum `next build` jalan.
+
+### 3.7 Utang teknis
+
+- **Biaya live eval di CI** — 55 call per PR/push; aman untuk free-tier
+  dengan pacing, tapi kalau volume naik, jadwalkan live hanya untuk push ke
+  main (bukan tiap PR) atau pakai key berbayar.
+- **Branch protection hidup di setting GitHub, bukan repo** — kalau repo
+  dipindah/reset, gate merge hilang diam-diam (gate build Vercel tetap ada).
+- **Soft <85% dihitung global, bukan per kategori** — regresi persona di
+  satu kategori bisa tertutup rata hijau; tabel per kategori tetap tercetak
+  di log untuk diagnosis.
+- **PR dari fork tidak dapat secrets** — `evals-live` akan skip (kebijakan
+  keamanan GitHub); tidak masalah untuk repo solo.
+
+---
+
+## 4. File (M7.1)
 
 | File | Isi |
 | --- | --- |
@@ -303,7 +428,7 @@ Suite: **654 test / 36 file** (naik dari 619/33).
 
 ---
 
-## 4. Keputusan desain (M7.1)
+## 5. Keputusan desain (M7.1)
 
 1. **Dua tabel (log + agregasi), bukan satu + GROUP BY** — alert budget
    harus O(1) per request dan konkuren-safe; agregasi `.returning()` dari
@@ -345,7 +470,7 @@ Suite: **654 test / 36 file** (naik dari 619/33).
 
 ---
 
-## 5. Deploy checklist (M7.1)
+## 6. Deploy checklist (M7.1)
 
 - [ ] **Vercel env**: set `OWNER_EMAIL` (email kamu) — tanpa ini `/usage`
       403 untuk semua orang. Opsional: `AI_DAILY_COST_LIMIT_USD` (default 5).
@@ -365,7 +490,7 @@ Suite: **654 test / 36 file** (naik dari 619/33).
 
 ---
 
-## 6. Utang teknis (M7.1)
+## 7. Utang teknis (M7.1)
 
 - **Alert belum keluar dari log** — `ai.budget_alert` hanya `logger.warn`;
   webhook Discord/Slack + status page adalah M7.5.

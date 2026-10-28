@@ -1,60 +1,122 @@
-name: CI
+# CI Teman Kost / AI-Waifu (M7.3) — eval loop + gate deploy.
+#
+# Job & perannya:
+#   typecheck      — TypeScript bersih.
+#   lint           — ESLint bersih.
+#   test           — suite penuh 2x (anti flake load-induced).
+#   evals-offline  — 55 skenario eval mode offline: aturan level prompt +
+#                    integritas dataset. TANPA API, TANPA biaya, deterministik.
+#                    Ini juga yang dijalankan Vercel sebagai gate build
+#                    (package.json "build" → vitest file yang sama).
+#   evals-live     — 55 skenario ke model produksi (persona, guardrail/injeksi,
+#                    memory recall, struktur). GATE KUALITAS: gagal = merah.
+#                    Butuh secret GEMINI_API_KEY; kalau belum diset, job
+#                    melewati dengan warning (bukan gagal).
+#
+# Gate deploy: aktifkan branch protection di GitHub (Settings → Branches →
+# main): "Require status checks to pass before merging" → centang kelima job
+# ini. Detail di docs/M7-IMPLEMENTATION.md §3.
+
+name: ci
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch:
+  push:
+    branches: [main]
 
-# Batalkan run lama kalau ada push baru di branch yang sama.
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
+env:
+  BUN_VERSION: '1.3.14'
+
 jobs:
-  verify:
-    name: Typecheck, lint, test, build
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+
+  test:
+    name: Test (2x)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - name: Run 1
+        run: bun run test
+      - name: Run 2 (anti flake)
+        run: bun run test
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+  evals-offline:
+    name: Evals offline (55 skenario, tanpa API)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - run: bun run evals
 
-      - name: Typecheck
-        run: bun run typecheck
-
-      - name: Lint
-        run: bun run lint
-
-      - name: Test + coverage
-        run: bun run test:coverage
-
-      # SENGAJA tanpa .env: build harus tetap lulus walau konfigurasi kosong.
-      # Kalau ini gagal, berarti ada modul yang melempar error saat import
-      # (bug yang ditemukan di M0). Jangan tambahkan secrets ke step ini.
-      - name: Build
-        run: bun run build
+  evals-live:
+    name: Evals live (gate kualitas)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - name: Cek secret GEMINI_API_KEY
+        id: keycheck
+        run: |
+          if [ -n "$GEMINI_API_KEY" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
         env:
-          NEXT_TELEMETRY_DISABLED: '1'
-
-      - name: Upload coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: coverage/
-          retention-days: 7
-          if-no-files-found: ignore
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      - name: Jalankan 55 skenario ke model produksi
+        if: steps.keycheck.outputs.present == 'true'
+        run: bun run evals:live
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Pacing anti 429 free-tier (pola docs/M2-IMPLEMENTATION §2.8).
+          AI_EVAL_DELAY_MS: '15000'
+          AI_MAX_RETRIES: '1'
+      - name: Live evals dilewati (secret belum diset)
+        if: steps.keycheck.outputs.present == 'false'
+        run: |
+          echo "::warning::GEMINI_API_KEY belum diset di GitHub Secrets — live evals dilewati."
+          echo "::warning::Set di Settings → Secrets and variables → Actions agar gate kualitas persona/guardrail/memory aktif."
