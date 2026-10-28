@@ -2,6 +2,7 @@ import { desc, eq, gte, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { aiUsageDaily, aiUsageLogs, ttsUsage, users } from '@/lib/db/schema';
 import { logger } from '@/lib/logger';
+import { sendWebhookAlert } from '@/lib/alerting';
 import { costMicrosFor, costUsd } from './pricing';
 
 /**
@@ -129,6 +130,19 @@ export async function recordAiUsage(entry: AiUsageEntry): Promise<void> {
         costUsd: costUsd(row.costMicros),
         limitUsd: limitMicros / 1_000_000,
       });
+
+      // M7.5: alert keluar dari log (menghapus utang M7.1). `sendWebhookAlert`
+      // fail-open + timeout 3 dtk; gagal kirim tidak membatalkan pencatatan.
+      const delivered = await sendWebhookAlert('Cap biaya AI harian terlampaui — Livia', [
+        `Hari: ${day.toISOString().slice(0, 10)}`,
+        `Biaya: $${costUsd(row.costMicros)} (cap $${(limitMicros / 1_000_000).toFixed(2)})`,
+        'Cek dashboard /usage.',
+      ]);
+      if (!delivered.sent) {
+        logger.warn('ai.budget_alert_webhook_not_delivered (fail-open)', {
+          reason: delivered.reason,
+        });
+      }
     }
   } catch (error) {
     // FAIL-OPEN: pencatatan down tidak boleh menggagalkan percakapan.

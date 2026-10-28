@@ -3,14 +3,15 @@
 Dokumen ini mencatat apa yang **sudah** dikerjakan di M7, keputusan desain
 yang mengikat, dan utang teknis yang tersisa.
 
-Status: **M7.1 + M7.2 + M7.3 + M7.4 SELESAI.** Tiap request LLM tercatat
-(provider, model, token in/out, biaya, user), agregasi harian atomik + alert
-budget, dashboard owner-only di `/usage`; analitik produk first-party
-(retensi D1/D7/D30, pesan per session, drop-off) di `/analytics`; eval loop
-di CI (55 skenario, persona/guardrail/memory recall) dengan gate di dua
-lapis: branch protection GitHub + gate build Vercel; dan feedback in-app
-(👍/👎 di chat) yang menjadi bahan kurasi dataset eval via `/feedback`.
-Sisa M7.5 (uptime & alerting) belum dimulai; utang di §2.5, §3.7, §4.8 & §11.
+Status: **M7 SELESAI (M7.1–M7.5).** Tiap request LLM tercatat (provider,
+model, token in/out, biaya, user), agregasi harian atomik + alert budget,
+dashboard owner-only di `/usage`; analitik produk first-party (retensi
+D1/D7/D30, pesan per session, drop-off) di `/analytics`; eval loop di CI
+(55 skenario, persona/guardrail/memory recall) dengan gate di dua lapis:
+branch protection GitHub + gate build Vercel; feedback in-app (👍/👎 di
+chat) menjadi bahan kurasi dataset eval via `/feedback`; dan uptime &
+alerting (monitor eksternal `/api/health` + webhook error-rate/budget
+Discord/Slack, §5). Utang tersisa di §2.5, §3.7, §4.8, §5.7 & §9.
 
 ---
 
@@ -500,7 +501,114 @@ Suite: **692 test / 40 file** (naik dari 680/38).
 
 ---
 
-## 8. File (M7.1)
+## 5. M7.5 — Uptime & alerting
+
+**Yang dikirim**: status page eksternal (UptimeRobot/Better Stack)
+memantau `/api/health` (cek DB); webhook error-rate + alert budget
+(Discord/Slack) keluar dari log.
+
+### 5.1 Status page: monitor eksternal `/api/health`
+
+- Status page ditahan layanan eksternal (UptimeRobot/Better Stack) — nol
+  infra di repo. User men-set monitor ke `https://livia.qzz.io/api/health`.
+- `GET /api/health` publik, TANPA rate limit (monitor harus selalu bisa
+  menjangkau, termasuk saat aplikasi bermasalah; kuerinya cuma `select 1`
+  per poll 30–60 dtk). 200 = DB terjawab; 503 = DB down. Vercel serverless
+  bisa 200 walau aplikasi mati — cek DB membuat status page mencerminkan
+  yang dirasakan user.
+- DB down → monitor menandai down; webhook error-rate biasanya ikut menyala
+  (semua route API 5xx) — dua jalur, satu insiden.
+
+### 5.2 Webhook error-rate (5xx saja)
+
+- Pemicu: `apiErrorResponse` (choke point SEMUA route API — pola M1.4).
+  4xx TIDAK dihitung: itu kesalahan user (input salah, rate limit, not
+  found), bukan insiden.
+- Jendela 5 menit, dihitung di `rateLimitCounters` (store yang SAMA dengan
+  limiter produksi). Increment atomik `ON CONFLICT ... RETURNING count`
+  → hanya SATU pemanggil yang melihat `count === threshold` → tepat satu
+  alert per jendela, tanpa lock tambahan.
+- `apiErrorResponse` menjadi **async**: increment di-AWAIT sebelum response
+  (bukan fire-and-forget) — serverless yang membeku kehilangan hitungan,
+  dan alert bisa tidak pernah menyala (pola M7.2).
+- Env: `ALERT_WEBHOOK_URL` (Discord/Slack — payload dideteksi dari URL;
+  host lain dapat kedua field `content`+`text`) + `ALERT_5XX_THRESHOLD`
+  (default 10). Kosong = no-op sunyi.
+- Webhook: timeout 3 dtk, fail-open — Discord mati tidak boleh mengubah
+  response user.
+
+### 5.3 Alert budget keluar dari log (utang M7.1 tertutup)
+
+- Titik `ai.budget_alert` di `lib/ai/usage.ts` kini juga memanggil
+  `sendWebhookAlert` (sekali/hari, stempel `capExceededAt` yang sama).
+  Gagal kirim hanya ke log — `logger.warn` tetap sumber kebenaran.
+
+### 5.4 File
+
+| File | Isi |
+| --- | --- |
+| `lib/alerting.ts` | **BARU** — `alertBucketStart`, `detectWebhookKind`, `buildWebhookBody`, `errorThreshold` (murni) + `sendWebhookAlert`, `reportRouteError5xx` (IO fail-open) |
+| `lib/errors.ts` | `apiErrorResponse` → async + `reportRouteError5xx` untuk 5xx |
+| `lib/api-handler.ts` | `await apiErrorResponse(...)` |
+| `lib/ai/usage.ts` | webhook budget setelah `ai.budget_alert` |
+| `lib/health.ts` | **BARU** — `checkHealth` (`select 1`) |
+| `app/api/health/route.ts` | **BARU** — GET publik, 200/503 |
+| `lib/env.ts` + `.env.example` | `ALERT_WEBHOOK_URL`, `ALERT_5XX_THRESHOLD` (opsional) |
+| `tests/alerting.test.ts` | **BARU** — 19 test (murni + IO fetch-stub + jendela) |
+| `tests/errors.test.ts` | semua call `await` + 4 test integrasi alert |
+| `tests/health-route.test.ts` | **BARU** — 3 test |
+| `tests/setup.ts` | mock store rate-limit: objek stabil lintas file (pola holder globalThis) — menutup flake urutan pada test alerting |
+
+Suite: **718 test / 42 file** (naik dari 692/40).
+
+### 5.5 Keputusan desain
+
+- **5xx saja** — menghitung 4xx akan membanjiri webhook dengan typo user
+  dan percobaan hammering; insiden = server yang tidak berfungsi.
+- **Hitungan di `rateLimitCounters`** (bukan tabel baru) — increment
+  atomik sudah ada & terbukti di produksi (M5.5); `db:prune` mengurus
+  baris lama. DB down → hitungan 5xx tak terjamin → detector UTAMA tetap
+  status page (monitor eksternal, tidak bergantung DB yang sama).
+- **Status page eksternal** — halaman self-host di host yang sama tak
+  bermakna (host mati = halaman mati); UptimeRobot/Better Stack memberi
+  URL publik + histori + email alert gratis di tier awal.
+- **Webhook budget best-effort** — `recordProviderUsage` dipanggil
+  fire-and-forget (M7.1); kalau fungsi membeku sebelum kirim, alert hari
+  itu bisa hilang — log + badge `capExceededAt` di `/usage` tetap ada.
+- **Tanpa paging (PagerDuty)** — overkill di skala ini; webhook + log
+  cukup. Ulangi kalau jumlah user tumbuh besar.
+
+### 5.6 Deploy checklist (M7.5)
+
+- [ ] User: buat akun UptimeRobot/Better Stack → monitor
+  `https://livia.qzz.io/api/health` (interval 30–60 dtk) → aktifkan
+  status page publik + notifikasi email.
+- [ ] User: buat webhook Discord/Slack → set `ALERT_WEBHOOK_URL` di
+  Vercel (`ALERT_5XX_THRESHOLD` opsional) → redeploy.
+- [ ] User: uji webhook manual — `curl -X POST <URL> -H
+  "Content-Type: application/json" -d "{\"content\":\"uji dari terminal\"}"`
+  → pesan muncul di channel.
+- [ ] User: buka `https://livia.qzz.io/api/health` → 200
+  `{"ok":true,"db":"ok",...}`.
+- [ ] (Opsional) uji lonjakan: set `ALERT_5XX_THRESHOLD=1` sementara,
+  picu satu 5xx → pesan "Lonjakan error 5xx" muncul di channel.
+
+### 5.7 Utang teknis
+
+- **Error halaman (server component) tidak terhitung** — choke point
+  hanya route API; error render halaman hanya terlihat di log Vercel
+  (monitor `/api/health` menutup skenario app-down secara parsial).
+- **Counter 5xx & rate limit berbagi tabel** — `db:prune` membuang
+  jendela lama; prune di tengah jendela (jarang) bisa mereset hitungan →
+  max satu alert terlewat, jendela berikutnya alert lagi.
+- **Kunci webhook ada di URL** — URL bocor = siapa pun bisa mem-post ke
+  channel (profil risiko Discord/Slack); rotasi kalau dicurigai.
+- **Tanpa dedup antar-jendela** — insiden 30 menit = 6 pesan.
+  Diterima: tujuannya owner PASTI melihat.
+
+---
+
+## 6. File (M7.1)
 
 | File | Isi |
 | --- | --- |
@@ -528,7 +636,7 @@ Suite: **654 test / 36 file** (naik dari 619/33).
 
 ---
 
-## 9. Keputusan desain (M7.1)
+## 7. Keputusan desain (M7.1)
 
 1. **Dua tabel (log + agregasi), bukan satu + GROUP BY** — alert budget
    harus O(1) per request dan konkuren-safe; agregasi `.returning()` dari
@@ -570,7 +678,7 @@ Suite: **654 test / 36 file** (naik dari 619/33).
 
 ---
 
-## 10. Deploy checklist (M7.1)
+## 8. Deploy checklist (M7.1)
 
 - [ ] **Vercel env**: set `OWNER_EMAIL` (email kamu) — tanpa ini `/usage`
       403 untuk semua orang. Opsional: `AI_DAILY_COST_LIMIT_USD` (default 5).
@@ -590,10 +698,10 @@ Suite: **654 test / 36 file** (naik dari 619/33).
 
 ---
 
-## 11. Utang teknis (M7.1)
+## 9. Utang teknis (M7.1)
 
-- **Alert belum keluar dari log** — `ai.budget_alert` hanya `logger.warn`;
-  webhook Discord/Slack + status page adalah M7.5.
+- ~~**Alert belum keluar dari log**~~ — **TERTUTUP di M7.5** (`§5.3`):
+  `ai.budget_alert` kini juga dikirim ke webhook Discord/Slack.
 - **Harga model tidak live** — tabel statis di `lib/ai/pricing.ts`; kalau
   Google mengubah harga, harus deploy. (Skala biaya app ini: tidak
   sepadan fetch pricing API.)

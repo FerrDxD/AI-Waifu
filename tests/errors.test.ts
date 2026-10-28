@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AppError, errors, apiErrorResponse, readJsonBody } from '@/lib/errors';
+import { __resetEnvCacheForTests } from '@/lib/env';
 
 beforeEach(() => {
   // Logging tidak perlu berisik saat tes.
@@ -71,7 +72,7 @@ describe('factory errors', () => {
 
 describe('apiErrorResponse', () => {
   it('mengirim pesan AppError yang expose=true', async () => {
-    const res = apiErrorResponse(errors.badRequest('Input tidak valid'), { route: '/test' });
+    const res = await apiErrorResponse(errors.badRequest('Input tidak valid'), { route: '/test' });
     expect(res.status).toBe(400);
 
     const body = await res.json();
@@ -80,7 +81,7 @@ describe('apiErrorResponse', () => {
   });
 
   it('menyembunyikan pesan AppError yang expose=false', async () => {
-    const res = apiErrorResponse(new AppError('DB_DOWN', 'password=rahasia123 gagal', 500, false), {
+    const res = await apiErrorResponse(new AppError('DB_DOWN', 'password=rahasia123 gagal', 500, false), {
       route: '/test',
     });
     expect(res.status).toBe(500);
@@ -91,7 +92,7 @@ describe('apiErrorResponse', () => {
   });
 
   it('error tak dikenal → 500 generik, tidak bocor', async () => {
-    const res = apiErrorResponse(new Error('connection string postgres://user:pass@host'), {
+    const res = await apiErrorResponse(new Error('connection string postgres://user:pass@host'), {
       route: '/test',
     });
     expect(res.status).toBe(500);
@@ -104,7 +105,7 @@ describe('apiErrorResponse', () => {
 
   it('error upstream 429/503 dipetakan ke 503 ramah', async () => {
     const upstream = Object.assign(new Error('quota exceeded'), { status: 429 });
-    const res = apiErrorResponse(upstream, { route: '/test' });
+    const res = await apiErrorResponse(upstream, { route: '/test' });
 
     expect(res.status).toBe(503);
     const body = await res.json();
@@ -114,26 +115,26 @@ describe('apiErrorResponse', () => {
 
   it('error upstream 502/504 juga dipetakan', async () => {
     for (const status of [502, 504]) {
-      const res = apiErrorResponse(Object.assign(new Error('x'), { status }), { route: '/t' });
+      const res = await apiErrorResponse(Object.assign(new Error('x'), { status }), { route: '/t' });
       expect(res.status).toBe(503);
     }
   });
 
   it('error 400 dari upstream TIDAK dianggap upstream failure', async () => {
-    const res = apiErrorResponse(Object.assign(new Error('bad'), { status: 400 }), { route: '/t' });
+    const res = await apiErrorResponse(Object.assign(new Error('bad'), { status: 400 }), { route: '/t' });
     expect(res.status).toBe(500);
   });
 
   it('menerima error non-object (string/undefined)', async () => {
     for (const value of ['boom', undefined, null, 42]) {
-      const res = apiErrorResponse(value, { route: '/t' });
+      const res = await apiErrorResponse(value, { route: '/t' });
       expect(res.status).toBe(500);
     }
   });
 
-  it('menulis log tanpa membocorkan secret', () => {
+  it('menulis log tanpa membocorkan secret', async () => {
     const spy = vi.spyOn(console, 'error');
-    apiErrorResponse(new Error('x'), {
+    await apiErrorResponse(new Error('x'), {
       route: '/test',
       meta: { apiKey: 'AIzaSySECRET', authorization: 'Bearer token123' },
     });
@@ -141,6 +142,80 @@ describe('apiErrorResponse', () => {
     const logged = spy.mock.calls.map((c) => String(c[0])).join('\n');
     expect(logged).not.toContain('AIzaSySECRET');
     expect(logged).not.toContain('token123');
+  });
+});
+
+/**
+ * M7.5: error 5xx masuk penghitung error-rate → webhook (fail-open).
+ * Store rate limit di-mock in-memory global (tests/setup.ts); fetch di-stub.
+ */
+describe('apiErrorResponse + alerting (M7.5)', () => {
+  const REQUIRED = {
+    DATABASE_URL: 'postgresql://user:pass@localhost:5432/db',
+    NEXTAUTH_SECRET: 'a'.repeat(40),
+    GEMINI_API_KEY: 'gemini-key',
+  };
+  const WEBHOOK = 'https://discord.com/api/webhooks/123/abc';
+
+  let snapshot: NodeJS.ProcessEnv;
+  let fetchMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    snapshot = { ...process.env };
+    Object.assign(process.env, REQUIRED, {
+      ALERT_5XX_THRESHOLD: '2',
+      ALERT_WEBHOOK_URL: WEBHOOK,
+    });
+    __resetEnvCacheForTests();
+    // Store in-memory global (tests/setup.ts) — reset agar counter 5xx
+    // tidak warisan dari test lain di worker yang sama.
+    (globalThis as unknown as Record<string, { reset: () => void } | undefined>)['__mockRateLimitStore']
+      ?.reset();
+    fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    process.env = snapshot;
+    __resetEnvCacheForTests();
+    vi.unstubAllGlobals();
+  });
+
+  it('dua error 5xx (ambang 2) → tepat satu webhook, menyebut route', async () => {
+    await apiErrorResponse(new AppError('X', 'boom', 500, false), { route: '/api/chat.POST' });
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    const res = await apiErrorResponse(new AppError('Y', 'boom lagi', 500, false), { route: '/api/chat.POST' });
+    expect(res.status).toBe(500);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    const body = JSON.parse(
+      String((fetchMock.mock.calls[0] as [string, RequestInit])[1].body)
+    ) as Record<string, string>;
+    expect(body.content).toContain('/api/chat.POST');
+  });
+
+  it('4xx tidak dihitung (threshold 1 pun tidak memicu)', async () => {
+    await apiErrorResponse(errors.badRequest('rusak'), { route: '/t' });
+    await apiErrorResponse(errors.notFound('Data'), { route: '/t' });
+    await apiErrorResponse(errors.tooManyRequests(), { route: '/t' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('webhook mati → response tetap 500 (fail-open)', async () => {
+    fetchMock.mockRejectedValueOnce(new Error('network down'));
+    await apiErrorResponse(new AppError('A', 'x', 500, false), { route: '/t' });
+    const res = await apiErrorResponse(new AppError('B', 'y', 500, false), { route: '/t' });
+    expect(res.status).toBe(500);
+    expect((await res.json()).error).toBe('Terjadi kesalahan pada server.');
+  });
+
+  it('webhook belum dikonfigurasi → tidak ada fetch, response tetap benar', async () => {
+    delete process.env.ALERT_WEBHOOK_URL;
+    __resetEnvCacheForTests();
+    const res = await apiErrorResponse(new AppError('A', 'x', 500, false), { route: '/t' });
+    expect(res.status).toBe(500);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 

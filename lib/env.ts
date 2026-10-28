@@ -78,6 +78,20 @@ const serverSchema = z.object({
     .string()
     .optional()
     .refine((v) => v === undefined || (Number.isFinite(Number(v)) && Number(v) > 0), 'AI_DAILY_COST_LIMIT_USD harus angka > 0'),
+
+  // Uptime & alerting (M7.5). Keduanya opsional: kosong = aplikasi jalan
+  // persis seperti sebelumnya (tidak ada webhook, tidak ada yang dikirim).
+  // Webhook Discord (discord.com/api/webhooks/...) atau Slack
+  // (hooks.slack.com/services/...) — format payload dideteksi otomatis.
+  ALERT_WEBHOOK_URL: z.string().url().optional(),
+  // Jumlah error 5xx dalam jendela 5 menit sebelum webhook menyala (default 10).
+  ALERT_5XX_THRESHOLD: z
+    .string()
+    .optional()
+    .refine(
+      (v) => v === undefined || (/^\d+$/.test(v) && Number(v) >= 1 && Number(v) <= 1000),
+      'ALERT_5XX_THRESHOLD harus integer 1..1000'
+    ),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;

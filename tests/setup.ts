@@ -104,23 +104,39 @@ vi.mock('@/lib/auth', () => ({
  * lewat migrasi + skrip prune).
  */
 vi.mock('@/lib/rate-limit/store', () => {
-  const map = new Map<string, number>();
-  // Handle reset untuk test route yang memanggil satu user berulang (limit
-  // 5/menit aiRateLimit bisa tercapai dalam satu file test).
-  (globalThis as Record<string, unknown>).__mockRateLimitStore = {
-    reset: () => map.clear(),
-  };
-  return {
-    dbRateLimitStore: {
+  const g = globalThis as Record<string, unknown>;
+
+  // OBJEK store harus STABIL antar evaluasi factory (factory bisa berjalan
+  // ulang tiap file test — setup.ts dijalankan per file dengan isolate:
+  // false). Kalau tiap evaluasi membuat objek baru, importer yang sudah
+  // dievaluasi (mis. lib/alerting) memegang objek lama, sedangkan reset/patch
+  // di test menyentuh objek baru → state berbeda, flake bergantung urutan.
+  // (Pola holder globalThis yang sama dengan mock `@/lib/auth` di atas.)
+  if (!g.__mockRateLimitStoreObj) {
+    const getState = () =>
+      g.__mockRateLimitState as { map: Map<string, number> };
+    g.__mockRateLimitStoreObj = {
       increment: async (key: string) => {
+        const map = getState().map;
         const count = (map.get(key) ?? 0) + 1;
         map.set(key, count);
         return count;
       },
       delete: async (key: string) => {
-        map.delete(key);
+        getState().map.delete(key);
       },
-    },
+    };
+  }
+
+  // Map BARU per file test (setup berjalan per file): menjaga isolasi state
+  // antar file yang memakai key identik (mis. `u:u1`) dalam window yang sama.
+  g.__mockRateLimitState = { map: new Map<string, number>() };
+  (globalThis as Record<string, unknown>).__mockRateLimitStore = {
+    reset: () => ((g.__mockRateLimitState as { map: Map<string, number> }).map.clear()),
+  };
+
+  return {
+    dbRateLimitStore: g.__mockRateLimitStoreObj,
   };
 });
 

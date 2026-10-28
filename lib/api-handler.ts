@@ -121,7 +121,7 @@ async function run<TParams>(
 
     return await handler({ req, params, ip, ...resolved });
   } catch (error) {
-    return apiErrorResponse(error, { route: options.route, userId: resolved.userId });
+    return await apiErrorResponse(error, { route: options.route, userId: resolved.userId });
   }
 }
 

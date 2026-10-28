@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { logger, serializeError } from './logger';
+import { reportRouteError5xx } from './alerting';
 
 /**
  * Error class standar (M0/H0.6, dipakai penuh di M1.4).
@@ -49,11 +50,18 @@ function upstreamStatus(error: unknown): number | undefined {
 /**
  * Ubah error apa pun menjadi NextResponse yang aman.
  * Selalu log detail lengkap di server; client hanya dapat pesan yang sudah disaring.
+ *
+ * Async (M7.5): error 5xx di-feed ke penghitung error-rate (`reportRouteError5xx`)
+ * SEBELUM response dikembalikan — increment harus di-await, bukan
+ * fire-and-forget, supaya tidak hilang saat serverless membeku (pola M7.2).
+ * Harganya satu upsert kecil, dan hanya terjadi di jalur yang sudah gagal.
  */
-export function apiErrorResponse(
+export async function apiErrorResponse(
   error: unknown,
   context: { route: string; userId?: string | null; meta?: Record<string, unknown> } = { route: 'unknown' }
-): NextResponse {
+): Promise<NextResponse> {
+  let response: NextResponse;
+
   if (error instanceof AppError) {
     const logPayload = {
       route: context.route,
@@ -72,35 +80,43 @@ export function apiErrorResponse(
       logger.warn(error.message, logPayload);
     }
 
-    return NextResponse.json(
+    response = NextResponse.json(
       { error: error.expose ? error.message : 'Terjadi kesalahan pada server.', code: error.code },
       { status: error.statusCode }
     );
+  } else {
+    const status = upstreamStatus(error);
+    const isUpstreamFailure = status === 429 || status === 502 || status === 503 || status === 504;
+
+    logger.error('Unhandled route error', {
+      route: context.route,
+      userId: context.userId ?? undefined,
+      upstreamStatus: status,
+      ...context.meta,
+      error: serializeError(error),
+    });
+
+    if (isUpstreamFailure) {
+      response = NextResponse.json(
+        { error: 'Server AI sedang sibuk. Coba lagi sebentar lagi.', code: 'UPSTREAM_UNAVAILABLE' },
+        { status: 503 }
+      );
+    } else {
+      // Pesan generic — JANGAN pernah kirim error.message mentah ke client.
+      response = NextResponse.json(
+        { error: 'Terjadi kesalahan pada server.', code: 'INTERNAL_ERROR' },
+        { status: 500 }
+      );
+    }
   }
 
-  const status = upstreamStatus(error);
-  const isUpstreamFailure = status === 429 || status === 502 || status === 503 || status === 504;
-
-  logger.error('Unhandled route error', {
-    route: context.route,
-    userId: context.userId ?? undefined,
-    upstreamStatus: status,
-    ...context.meta,
-    error: serializeError(error),
-  });
-
-  if (isUpstreamFailure) {
-    return NextResponse.json(
-      { error: 'Server AI sedang sibuk. Coba lagi sebentar lagi.', code: 'UPSTREAM_UNAVAILABLE' },
-      { status: 503 }
-    );
+  // M7.5: hanya 5xx yang dihitung — 4xx (input user salah, rate limit, dll.)
+  // bukan insiden dan tidak boleh memicu alert.
+  if (response.status >= 500) {
+    await reportRouteError5xx(context.route);
   }
 
-  // Pesan generic — JANGAN pernah kirim error.message mentah ke client.
-  return NextResponse.json(
-    { error: 'Terjadi kesalahan pada server.', code: 'INTERNAL_ERROR' },
-    { status: 500 }
-  );
+  return response;
 }
 
 /**
