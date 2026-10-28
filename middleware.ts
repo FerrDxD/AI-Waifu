@@ -77,6 +77,8 @@ const PROTECTED_PREFIXES = [
   '/bedroom',
   // M7.1: dashboard biaya AI (owner-only, cek OWNER_EMAIL di dalam halaman).
   '/usage',
+  // M7.2: dashboard produk (owner-only, cek OWNER_EMAIL di dalam halaman).
+  '/analytics',
 ];
 
 const AUTH_ROUTES = ['/login', '/register'];

@@ -338,3 +338,28 @@ export const aiUsageDaily = pgTable('aiUsageDaily', {
   capExceededAt: timestamp('cap_exceeded_at', { withTimezone: true }),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Hari aktif user (M7.2) — 1 baris per (user, hari-UTC).
+ *
+ * Sumber metrik retensi D1/D7/D30 & DAU di dashboard `/analytics`.
+ * "Aktif" didefinisikan sempit: minimal SATU interaksi chat atau kencan
+ * yang selesai tersimpan (chat turn, date, date chat). Sengaja TIDAK
+ * mencakup kunjungan halaman — signal-nya terlalu bising untuk retensi.
+ *
+ * Tabel ini TIDAK PERNAH di-prune (kecuali cascade hapus akun): 1 baris
+ * kecil per user per hari aktif, dan menghapusnya akan merusak retensi
+ * kohort lama. chatMessages sendiri tetap di-prune 90 hari — tabel ini
+ * itulah yang membuat retensi tetap akurat setelah pesan mentah dibuang.
+ */
+export const userActivityDaily = pgTable(
+  'userActivityDaily',
+  {
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    /** Awal hari UTC (epoch-aligned). */
+    day: timestamp('day', { withTimezone: true }).notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.day] }),
+  })
+);

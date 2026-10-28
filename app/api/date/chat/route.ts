@@ -4,6 +4,7 @@ import { generateDateResponse, extractLanguage, resolveApiKey } from '@/lib/gemi
 import { db } from '@/lib/db';
 import { userProfiles } from '@/lib/db/schema';
 import { applyAffectionAtomic } from '@/lib/livia/affection.server';
+import { recordUserActivity } from '@/lib/analytics/activity';
 import { apiHandler } from '@/lib/api-handler';
 import { aiRateLimit, aiDailyQuota } from '@/lib/rate-limit';
 import { getCycleInfo } from '@/lib/livia/cycle';
@@ -99,6 +100,10 @@ export const POST = apiHandler(
       // sama seperti chat: promise tanpa penunggu bisa dibekukan serverless.
       await recordMemories(userId, { memories, memoryUpdate }, customApiKey);
     }
+
+    // M7.2: catat hari-aktif (retensi/DAU). Fail-open di dalam
+    // recordUserActivity; di-await agar tidak dibekukan serverless.
+    await recordUserActivity(userId);
 
     return NextResponse.json({
       reply,

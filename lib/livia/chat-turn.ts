@@ -19,6 +19,7 @@ import { logger } from '@/lib/logger';
 import { applyAffectionAtomic } from '@/lib/livia/affection.server';
 import { getCycleInfo } from '@/lib/livia/cycle';
 import { importLegacyMemory, recordMemories, retrieveMemoryLines } from '@/lib/livia/memory';
+import { recordUserActivity } from '@/lib/analytics/activity';
 import type { ExtractedMemory } from '@/lib/ai/schemas';
 
 type Profile = typeof userProfiles.$inferSelect;
@@ -197,6 +198,11 @@ export async function persistChatTurn(
     { userId, role: 'user', content: message, affectionDelta: 0 },
     { userId, role: 'livia', content: reply, affectionDelta },
   ]);
+
+  // M7.2: catat hari-aktif (retensi/DAU di /analytics). Di-await — baris yang
+  // hilang = undercount retensi permanen untuk hari itu; `recordUserActivity`
+  // menelan errornya sendiri (fail-open), jadi tidak bisa membatalkan persist.
+  await recordUserActivity(userId);
 
   let updateResult = {
     newAffection: profile.affection,

@@ -3,9 +3,11 @@
 Dokumen ini mencatat apa yang **sudah** dikerjakan di M7, keputusan desain
 yang mengikat, dan utang teknis yang tersisa.
 
-Status: **M7.1 SELESAI.** Tiap request LLM tercatat (provider, model, token
-in/out, biaya, user), agregasi harian atomik + alert budget, dan dashboard
-owner-only satu layar di `/usage`. Sisa M7.2–M7.5 belum dimulai; utang di §5.
+Status: **M7.1 + M7.2 SELESAI.** Tiap request LLM tercatat (provider, model,
+token in/out, biaya, user), agregasi harian atomik + alert budget, dan
+dashboard owner-only satu layar di `/usage`. Analitik produk first-party
+(retensi D1/D7/D30, pesan per session, drop-off onboarding) di `/analytics`
+— tanpa vendor pihak ketiga. Sisa M7.3–M7.5 belum dimulai; utang di §2.5 & §6.
 
 ---
 
@@ -109,7 +111,171 @@ negatif di-klamp 0.
 
 ---
 
-## 2. File
+## 2. M7.2 — Product analytics (first-party)
+
+Tujuan: satu layar bisa menjawab "User puas & betah? Apakah kualitas Livia
+membuat mereka kembali?" — metrik milestone: retensi D1/D7/D30, pesan per
+session, drop-off.
+
+### 2.1 Keputusan stack: first-party, bukan PostHog/Plausible
+
+Teks milestone menyebut "PostHog self-host atau Plausible", tapi keduanya
+butuh hosting VPS terpisah (infra baru) dan data terpisah dari Neon.
+**Dikonfirmasi dengan user**: semua metrik disyaratkan bisa dihitung dari
+data milik sendiri — `users.createdAt` (kohort), `userProfiles.onboardingDone`
+(drop-off), `chatMessages` (semua pesan ber-timestamp) + 1 tabel baru kecil
+`userActivityDaily`. Nol infra baru, nol pihak ketiga (privasi maksimum —
+tanpa SDK, tanpa cookie, tanpa tracking eksternal), konsisten pola M6.4
+(Neon bytea, bukan R2). DoD milestone tentang **jawaban**, bukan tool.
+Kalau kelak butuh event-level page view, Plausible self-hosted bisa ditambahkan
+sebagai pelengkap.
+
+### 2.2 Model data: `userActivityDaily`
+
+```
+Tiap interaksi yang selesai tersimpan (chat turn / date / date chat)
+   └─▶ recordUserActivity(userId)  — upsert idempotent
+         └─▶ userActivityDaily    1 baris per (user, hari-UTC)
+               FK cascade hapus akun
+               └─ TIDAK PERNAH di-prune
+```
+
+- **"Hari aktif" didefinisikan sempit**: minimal satu interaksi chat atau
+  kencan yang selesai tersimpan. Kunjungan halaman TIDAK dihitung (signal
+  terlalu bising untuk retensi); interaksi yang gagal (mis. AI overload)
+  tidak tercatat → undercount kecil saat outage, wajar untuk analitik.
+- **Tidak pernah di-prune** (kecuali cascade hapus akun): `chatMessages`
+  di-prune 90 hari — tanpa baris aktivitas permanen, retensi kohort lama
+  akan runtuh ke 0% begitu pesan mentahnya dibuang. 1 baris per user per
+  hari = negligibel.
+
+### 2.3 Pencatatan
+
+`lib/analytics/activity.ts` → `recordUserActivity(userId)`:
+- Upsert `ON CONFLICT DO NOTHING` (idempotent per hari UTC), **fail-open**
+  (gagal DB = baris hilang/undercount, interaksi user tidak rusak).
+- **Di-await, bukan fire-and-forget**: di Next serverless, promise yang tidak
+  ditunggu bisa dibekukan begitu response dikirim — baris hilang = undercount
+  retensi permanen untuk hari itu. Biayanya 1 upsert PK per interaksi.
+
+Call sites (3 titik, menutup 4 route):
+- `persistChatTurn` (`lib/livia/chat-turn.ts`) — menutup `/api/chat` **dan**
+  `/api/chat/stream` sekaligus (keduanya persist lewat sini).
+- `app/api/date/route.ts` — setelah `generateDateDialogue` sukses.
+- `app/api/date/chat/route.ts` — setelah balasan + persist.
+
+### 2.4 Metrik: fungsi murni (`lib/analytics/metrics.ts`)
+
+- `sessionize()` — pecah pesan per user jadi sesi; gap > `SESSION_GAP_MS`
+  (30 menit) = sesi baru; batas: tepat 30 menit masih satu sesi.
+- `sessionStats()` — avg/median/p90 pesan user per sesi +
+  `singleMessageSessionRate` (sesi "datang sekali, pergi" — proxy drop-off).
+- `retentionCohorts()` — **D+N = user aktif pada hari eksak** createdDay+N
+  (UTC, bukan "dalam N hari pertama"). Target di masa depan relatif `asOf`
+  = belum matang → `null` (bukan 0% — cohort baru tidak boleh terlihat
+  "retensi 0%"). `groupBy: 'week'` = awal-Senin ISO, dihitung per-user dulu
+  lalu diakumulasi (bukan rata-rata dari rata-rata harian).
+- `weightedCohortRetention()` — rata-rata tertimbang jumlah-user lintas
+  semua user (user kohort besar berbobot lebih besar).
+- `onboardingDropoff()` — bucket umur akun: `today` / `1` / `2` / `3-6` / `7+`.
+- `dailySeries()` — per hari: user aktif, user baru, pesan user.
+
+Semua tanpa DB, ter-unit-test penuh. `lib/analytics/queries.ts` = lapisan
+kueri tipis (ambil data mentah, delegasikan ke fungsi murni) — fungsi DB
+tidak di-unit-test (pola codebase), diverifikasi migrasi + drift + test route.
+
+Jendela (tetap, tanpa parameter query): retensi = kohort 28 hari (tampil 8
+minggu), sesi = 28 hari, tren = 14 hari. Jendela aktivitas = 28 + 31 hari
+(memuat D+30 kohort terlama yang ditampilkan).
+
+### 2.5 Dashboard: `/analytics` + `/api/analytics`
+
+Pola sama persis dengan `/usage` (M7.1): **server component** (tanpa client
+JS), owner-only — cek `OWNER_EMAIL` di dalam halaman/route, **env kosong =
+403 semua**, UI Bahasa Indonesia.
+
+- Baris KPI: user baru (28 hari), D1/D7/D30 tertimbang, % onboarding
+  selesai, pesan rata-rata per sesi.
+- Tabel retensi kohort mingguan (8 baris: minggu, user, D1, D7, D30).
+- Kartu sesi (jumlah, avg/median/p90, total pesan, % sesi pesan-1) +
+  tabel drop-off onboarding (per bucket umur) + "tidak pernah chat".
+- Tabel tren 14 hari (aktif, user baru, pesan).
+- Footer definisi ("hari aktif", UTC, first-party tanpa vendor).
+
+`GET /api/analytics` (owner-only) — JSON mentah, tanpa parameter (jendela tetap).
+
+### 2.6 File
+
+| File | Isi |
+| --- | --- |
+| `lib/analytics/metrics.ts` | **BARU** — fungsi murni: `sessionize`, `sessionStats`, `retentionCohorts`, `weightedCohortRetention`, `onboardingDropoff`, `dailySeries` + helper tanggal UTC |
+| `lib/analytics/activity.ts` | **BARU** — `recordUserActivity` (upsert idempotent, fail-open, awaited) |
+| `lib/analytics/queries.ts` | **BARU** — `getAnalyticsOverview` (kueri tipis → fungsi murni), konstanta jendela |
+| `lib/db/schema.ts` | tabel `userActivityDaily` (PK komposit user+day, FK cascade) |
+| `drizzle/0004_cloudy_captain_flint.sql` | migrasi (sudah applied, drift bersih) |
+| `lib/livia/chat-turn.ts` | `recordUserActivity` di `persistChatTurn` (menutup 2 route chat) |
+| `app/api/date/route.ts` | `recordUserActivity` setelah dialogue sukses |
+| `app/api/date/chat/route.ts` | `recordUserActivity` setelah balasan + persist |
+| `app/api/analytics/route.ts` | **BARU** — GET owner-only |
+| `app/(main)/analytics/page.tsx` | **BARU** — dashboard server component |
+| `middleware.ts` | `/analytics` masuk `PROTECTED_PREFIXES` |
+| `tests/analytics-metrics.test.ts` | **BARU** — 21 test fungsi murni |
+| `tests/analytics-route.test.ts` | **BARU** — 5 test route (401/403×2/200/DB-error), mock per-file `@/lib/analytics/queries` (pola `@/lib/tts/cache`) |
+
+Suite: **680 test / 38 file** (naik dari 654/36).
+
+### 2.7 Keputusan desain
+
+1. **First-party, bukan PostHog/Plausible** (dikonfirmasi user) — nol infra
+   baru; DoD milestone tentang jawaban ("user betah?"), bukan tool.
+2. **Definisi "hari aktif" sempit** — interaksi chat/kencan yang selesai
+   tersimpan; kunjungan halaman & interaksi gagal tidak dihitung.
+3. **`userActivityDaily` tidak pernah di-prune** — retensi kohort lama harus
+   tetap akurat setelah `chatMessages` dipangkas 90 hari.
+4. **D+N hari eksak; belum matang → `null`** — definisi standar retensi;
+   `null` (bukan 0%) supaya cohort baru tidak artifaktal buruk.
+5. **Pencatatan di-await, bukan fire-and-forget** — risiko freezing
+   serverless = undercount permanen; biayanya 1 upsert PK.
+6. **Fail-open** — analitik tidak boleh pernah merusak interaksi user.
+7. **Metrik murni + lapisan kueri tipis** — logika hitung teruji tanpa DB;
+   SQL tipis diverifikasi migrasi/drift/test route (pola M6.4/M7.1).
+8. **`everChatted` ≤ 90 hari** — konsekuensi prune `chatMessages`;
+   approximation yang cukup untuk drop-off (terdokumentasi di footer UI).
+
+### 2.8 Deploy checklist (M7.2)
+
+- [ ] Migrasi `drizzle/0004` sudah applied manual ke Neon — **tidak ada**
+      langkah migrasi di Vercel.
+- [ ] `OWNER_EMAIL` (wajib sejak M7.1) — tanpa ini `/analytics` 403 semua.
+- [ ] Buka `https://livia.qzz.io/analytics` sebagai owner → KPI + tabel
+      tampil. Angka retensi terisi **bertahap** seiring kohort menua:
+      D1 butuh 1 hari, D7 butuh 7 hari, D30 butuh 30 hari (baris baru
+      banyak yang "—" di awal — normal, bukan bug).
+- [ ] Chat/date beberapa interaksi, lalu query Neon:
+      `SELECT * FROM "userActivityDaily" ORDER BY "day" DESC LIMIT 5;`
+      → baris hari ini muncul (per user, 1 baris/hari).
+- [ ] Bukan-owner membuka `/analytics` → "Akses ditolak" (bukan 500).
+
+### 2.9 Utang teknis
+
+- **Tidak ada event-level page view / tracking fitur** — tanpa SDK; kalau
+  kelak perlu "halaman mana yang sering dibuka", Plausible self-hosted
+  sebagai pelengkap (data akan terpisah dari Neon).
+- **"Tidak pernah chat" tercap 90 hari** — konsekuensi prune `chatMessages`;
+  user yang chat >90 hari lalu tapi berhenti terlihat "pernah chat" selama
+  90 hari terakhir datanya.
+- **Waktu selesainya onboarding tidak tercatat** — hanya flag akhir
+  (`onboardingDone`); "berapa hari user ngendon di onboarding" belum bisa
+  dijawab (butuh stempel waktu selesai).
+- **Jendela tetap (28/14 hari)** — tanpa parameter `?days`; cukup untuk
+  skala sekarang.
+- **`chatMessages.createdAt` = timestamp tanpa tz** — parse benar di Vercel
+  (TZ driver = UTC, sama dengan server Neon); dev lokal dengan TZ lain
+  bergeser offset-nya — diabaikan (analitik dibaca di produksi).
+
+---
+
+## 3. File (M7.1)
 
 | File | Isi |
 | --- | --- |
@@ -137,7 +303,7 @@ Suite: **654 test / 36 file** (naik dari 619/33).
 
 ---
 
-## 3. Keputusan desain
+## 4. Keputusan desain (M7.1)
 
 1. **Dua tabel (log + agregasi), bukan satu + GROUP BY** — alert budget
    harus O(1) per request dan konkuren-safe; agregasi `.returning()` dari
@@ -179,7 +345,7 @@ Suite: **654 test / 36 file** (naik dari 619/33).
 
 ---
 
-## 4. Deploy checklist (M7.1)
+## 5. Deploy checklist (M7.1)
 
 - [ ] **Vercel env**: set `OWNER_EMAIL` (email kamu) — tanpa ini `/usage`
       403 untuk semua orang. Opsional: `AI_DAILY_COST_LIMIT_USD` (default 5).
@@ -199,7 +365,7 @@ Suite: **654 test / 36 file** (naik dari 619/33).
 
 ---
 
-## 5. Utang teknis
+## 6. Utang teknis (M7.1)
 
 - **Alert belum keluar dari log** — `ai.budget_alert` hanya `logger.warn`;
   webhook Discord/Slack + status page adalah M7.5.
@@ -211,7 +377,8 @@ Suite: **654 test / 36 file** (naik dari 619/33).
 - **`usageMetadata` tanpa `cachedContentTokenCount`** — Gemini cache
   (prompt caching) belum dimanfaatkan; token cached tetap dihitung penuh.
 - **Kualitas Livia** belum di dashboard ("kualitas naik gak?") — itu M7.3
-  (eval gate CI) + M7.4 (feedback in-app). "User betah?" — M7.2 (analytics).
+  (eval gate CI) + M7.4 (feedback in-app). "User betah?" — selesai di M7.2
+  (analytics first-party, §2).
 - **`costMicros` int4** — batas ~$2.146/baris-hari; kalau suatu hari traffic
   menembus itu (mustahil di skala sekarang), naikkan ke bigint + migrasi.
 - Halaman `/usage` tidak ada di navigasi (sengaja: fitur internal owner,

@@ -9,6 +9,7 @@ import { getCycleInfo } from '@/lib/livia/cycle';
 import { validateDateLocation, sanitizeUserName } from '@/lib/validation';
 import { errors } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { recordUserActivity } from '@/lib/analytics/activity';
 
 export const POST = apiHandler(
   {
@@ -92,6 +93,10 @@ export const POST = apiHandler(
       language,
       userId
     );
+
+    // M7.2: catat hari-aktif (retensi/DAU). Fail-open di dalam
+    // recordUserActivity; di-await agar tidak dibekukan serverless.
+    await recordUserActivity(userId);
 
     return NextResponse.json({ scene: dialogue, timeOfDay });
   }
