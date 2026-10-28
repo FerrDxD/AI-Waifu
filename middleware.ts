@@ -79,6 +79,8 @@ const PROTECTED_PREFIXES = [
   '/usage',
   // M7.2: dashboard produk (owner-only, cek OWNER_EMAIL di dalam halaman).
   '/analytics',
+  // M7.4: review feedback user → bahan kurasi dataset eval (owner-only).
+  '/feedback',
 ];
 
 const AUTH_ROUTES = ['/login', '/register'];

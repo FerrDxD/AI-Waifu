@@ -144,7 +144,7 @@ sebelum DoD terpenuhi + ada test yang lulus.
 - [x] **M7.1** **Token & cost dashboard**: tiap request tercatat (provider, model, token in/out, biaya, user). Agregasi harian + alert kalau budget meledak. (docs/M7-IMPLEMENTATION.md)
 - [x] **M7.2** **Product analytics** privacy-first: retention D1/D7/D30, jumlah pesan per session, drop-off. **Diputuskan first-party di Neon** (bukan PostHog/Plausible — nol infra baru, nol pihak ketiga; semua metrik dari data sendiri). Dashboard owner-only `/analytics`. (docs/M7-IMPLEMENTATION.md §2)
 - [x] **M7.3** **Eval loop otomatis** dalam CI: persona test, guardrail test (prompt injection, usaha "lewatkan filter"), memory recall test → gate deployment. CI GitHub (5 job, live eval secret-gated) + gate build Vercel (eval offline di `build`), +5 skenario bypass. (docs/M7-IMPLEMENTATION.md §3)
-- [ ] **M7.4** **Feedback loop in-app**: tombol "jawaban buruk/baik" di chat → masuk dataset evals.
+- [x] **M7.4** **Feedback loop in-app**: tombol "jawaban buruk/baik" di chat → masuk dataset evals. Tabel `chatFeedback` (1 rating/user/pesan, upsert) + `POST /api/chat/feedback` + tombol 👍/👎 di balasan Livia (`messageId` via `.returning()` di event `done`) + dashboard owner `/feedback` dengan sketsa skenario siap-salin (human-in-the-loop ke `evals/dataset.ts`). (docs/M7-IMPLEMENTATION.md §4)
 - [ ] **M7.5** **Uptime & alerting**: status page (UptimeRobot / Better Stack), webhook Discord/Slack saat route error rate naik.
 
 **DoD:** Dashboard satu layar bisa menjawab: "kualitas Livia hari ini naik gak? Biaya gak lepas kendali? User betah?"

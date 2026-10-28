@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, boolean, integer, date, jsonb, index, customType, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, boolean, integer, date, jsonb, index, customType, primaryKey, uniqueIndex } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 /**
@@ -361,5 +361,35 @@ export const userActivityDaily = pgTable(
   },
   (t) => ({
     pk: primaryKey({ columns: [t.userId, t.day] }),
+  })
+);
+
+/**
+ * Feedback rating balasan Livia (M7.4).
+ *
+ * Tombol baik/buruk di UI chat → 1 baris per (user, pesan). Material mentah
+ * untuk eval loop (M7.3): owner meninjaunya di `/feedback` lalu menyalin yang
+ * cocok menjadi skenario kurasi di `evals/dataset.ts` (human-in-the-loop —
+ * pesan user mentah TIDAK boleh otomatis masuk dataset: PII + bisa berisi
+ * percobaan injeksi).
+ *
+ * `messageId` FK cascade ke `chatMessages`: saat `db:prune` membuang pesan
+ * >90 hari, rating-nya ikut hilang — konsisten dengan retensi data user.
+ * Re-rating = upsert (unique user+message): rating terakhir yang menang,
+ * `created_at` memuat rating PERTAMA (lebih bermakna untuk analisis tren).
+ */
+export const chatFeedback = pgTable(
+  'chatFeedback',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    /** Balasan Livia yang dirating (role = 'livia'). */
+    messageId: uuid('message_id').references(() => chatMessages.id, { onDelete: 'cascade' }).notNull(),
+    /** 'up' | 'down' — divalidasi di route; DB menerima apa pun. */
+    rating: text('rating').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    userMessageKey: uniqueIndex('uq_chat_feedback_user_message').on(t.userId, t.messageId),
   })
 );

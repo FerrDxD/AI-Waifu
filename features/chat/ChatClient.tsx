@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, ArrowLeft, CheckCircle2, Phone, LifeBuoy, ExternalLink, Mic, MicOff } from 'lucide-react';
+import { Send, ArrowLeft, CheckCircle2, Phone, LifeBuoy, ExternalLink, Mic, MicOff, ThumbsUp, ThumbsDown } from 'lucide-react';
 import Link from 'next/link';
 import { playSfx } from '@/lib/sfx';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
@@ -13,6 +13,12 @@ interface ChatMessage {
   role: 'user' | 'livia';
   content: string;
   isNew?: boolean;
+  /**
+   * M7.4: ID baris pesan di DB. History membawanya langsung; pesan baru
+   * (ID sementara Date.now) dapat dbId dari event `done` setelah persist.
+   * Tanpa dbId, tombol feedback disembunyikan (tidak ada target untuk rating).
+   */
+  dbId?: string;
 }
 
 /** Bentuk data krisis yang dikirim server (M4.2). */
@@ -106,6 +112,54 @@ function TypewriterText({ text }: { text: string }) {
   return <span>{displayed}</span>;
 }
 
+/**
+ * M7.4: tombol baik/buruk untuk satu balasan Livia.
+ *
+ * Mungil disengaja (ikutan label "Now"): ini sinyal, bukan fitur utama.
+ * State terkirim dikirim parent (optimistic di ChatClient); `pending`
+ * mengecilkan tombol selama request jalan supaya dobel-klik tidak bikin
+ * request kembar.
+ */
+function FeedbackThumbs({
+  current,
+  pending,
+  onRate,
+}: {
+  current: 'up' | 'down' | undefined;
+  pending: boolean;
+  onRate: (rating: 'up' | 'down') => void;
+}) {
+  const btn = (active: boolean, activeColor: string) =>
+    `w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+      active
+        ? activeColor
+        : 'text-gray-400/70 hover:text-gray-600 hover:bg-gray-200/70'
+    } ${pending ? 'opacity-50 pointer-events-none' : ''}`;
+
+  return (
+    <div className="flex gap-0.5 mt-0.5">
+      <button
+        type="button"
+        aria-label="Balasan baik"
+        title="Jawaban baik"
+        onClick={() => onRate('up')}
+        className={btn(current === 'up', 'bg-emerald-100 text-emerald-600')}
+      >
+        <ThumbsUp size={11} />
+      </button>
+      <button
+        type="button"
+        aria-label="Balasan buruk"
+        title="Jawaban buruk"
+        onClick={() => onRate('down')}
+        className={btn(current === 'down', 'bg-rose-100 text-rose-500')}
+      >
+        <ThumbsDown size={11} />
+      </button>
+    </div>
+  );
+}
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -118,6 +172,14 @@ export default function ChatPage() {
    * terlewat karena terlihat seperti dialog biasa.
    */
   const [crisis, setCrisis] = useState<CrisisInfo | null>(null);
+
+  /**
+   * M7.4: rating feedback per ID pesan DB — `{ [dbId]: 'up' | 'down' }`.
+   * Diinisialisasi dari `/api/chat/history` (rating lama tetap tampil setelah
+   * reload); `pendingDbId` = dbId yang request rating-nya masih jalan.
+   */
+  const [feedback, setFeedback] = useState<Record<string, 'up' | 'down'>>({});
+  const [pendingDbId, setPendingDbId] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -169,11 +231,18 @@ export default function ChatPage() {
         const res = await fetch('/api/chat/history');
         const data = await res.json();
         if (data.messages) {
-          setMessages(data.messages.map((m: any) => ({
-            id: m.id,
-            role: m.role,
-            content: m.content,
-          })));
+          setMessages(
+            data.messages.map((m: any) => ({
+              id: m.id,
+              role: m.role,
+              content: m.content,
+              dbId: m.id,
+            }))
+          );
+        }
+        // M7.4: rating lama langsung terisi, tombol tidak mulai dari kosong.
+        if (data.feedback && typeof data.feedback === 'object') {
+          setFeedback(data.feedback);
         }
       } catch (e) {
         console.error('Failed to fetch history:', e);
@@ -231,7 +300,7 @@ export default function ChatPage() {
 
       const handleEvent = (raw: string) => {
         if (!raw.startsWith('data: ')) return;
-        let event: { type?: string; text?: string; reply?: string; message?: string };
+        let event: { type?: string; text?: string; reply?: string; message?: string; messageId?: string };
         try {
           event = JSON.parse(raw.slice(6));
         } catch {
@@ -250,7 +319,15 @@ export default function ChatPage() {
           // dari aliran mentah (validasi server sudah berjalan).
           setMessages(prev =>
             prev.map(m =>
-              m.id === liviaId ? { ...m, content: event.reply || m.content } : m
+              m.id === liviaId
+                ? {
+                    ...m,
+                    content: event.reply || m.content,
+                    // M7.4: ID baris di DB (baru ada setelah persist) —
+                    // membuka tombol feedback untuk balasan ini.
+                    dbId: event.messageId || m.dbId,
+                  }
+                : m
             )
           );
           // M4.2: panel bantuan hanya dari `done`, sama seperti afeksi —
@@ -306,6 +383,37 @@ export default function ChatPage() {
     }
   };
 
+  /**
+   * M7.4: kirim rating untuk satu balasan Livia.
+   *
+   * Optimistic: tombol langsung berubah; kalau request gagal, state
+   * dikembalikan dan user mendengar lewat sfx (bukan toast — ini fitur
+   * sekunder, jangan ributkan). Klik rating yang sama = no-op di server
+   * (upsert idempotent), jadi di sini langsung di-skip.
+   */
+  const handleRate = async (dbId: string, rating: 'up' | 'down') => {
+    if (pendingDbId || feedback[dbId] === rating) return;
+
+    const previous = feedback;
+    setFeedback((f) => ({ ...f, [dbId]: rating }));
+    setPendingDbId(dbId);
+    playSfx('click');
+
+    try {
+      const res = await fetch('/api/chat/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId: dbId, rating }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch (e) {
+      console.error('Failed to send feedback:', e);
+      setFeedback(previous);
+      playSfx('error');
+    } finally {
+      setPendingDbId(null);
+    }
+  };
 
   return (
     <div className="flex justify-center w-full h-[100dvh] overflow-hidden bg-[#f4f2ee] relative font-sans">
@@ -385,6 +493,13 @@ export default function ChatPage() {
                 {msg.role === 'livia' && (
                   <div className="flex flex-col justify-end items-start ml-2 mb-0.5">
                     <span className="text-[10px] text-gray-400 font-medium leading-tight">Now</span>
+                    {msg.dbId && (
+                      <FeedbackThumbs
+                        current={feedback[msg.dbId]}
+                        pending={pendingDbId === msg.dbId}
+                        onRate={(rating) => handleRate(msg.dbId!, rating)}
+                      />
+                    )}
                   </div>
                 )}
               </div>

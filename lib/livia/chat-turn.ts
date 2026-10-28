@@ -177,6 +177,11 @@ export interface PersistChatTurnResult {
   /** Nama field dari `applyAffectionAtomic`. Route memetakan ke `newLevel`. */
   affectionLevel: number | null;
   unlockedChapter: number | null;
+  /**
+   * ID baris balasan Livia yang baru tersimpan (M7.4) — route menyampaikannya
+   * ke client supaya tombol feedback bisa merujuk pesan yang nyata di DB.
+   */
+  liviaMessageId: string;
 }
 
 /**
@@ -194,10 +199,13 @@ export async function persistChatTurn(
   const { userId, profile } = ctx;
   const { reply, affectionDelta, memories, memoryUpdate } = aiReply;
 
-  await db.insert(chatMessages).values([
-    { userId, role: 'user', content: message, affectionDelta: 0 },
-    { userId, role: 'livia', content: reply, affectionDelta },
-  ]);
+  const inserted = await db
+    .insert(chatMessages)
+    .values([
+      { userId, role: 'user', content: message, affectionDelta: 0 },
+      { userId, role: 'livia', content: reply, affectionDelta },
+    ])
+    .returning();
 
   // M7.2: catat hari-aktif (retensi/DAU di /analytics). Di-await — baris yang
   // hilang = undercount retensi permanen untuk hari itu; `recordUserActivity`
@@ -232,5 +240,12 @@ export async function persistChatTurn(
   // sudah tersimpan. Konsolidasi (LLM call) TETAP fire-and-forget di dalamnya.
   await recordMemories(userId, { memories, memoryUpdate }, ctx.customApiKey);
 
-  return updateResult;
+  // M7.4: ID baris Livia dari `.returning()` di atas (insert 2 baris urut
+  // user → livia; cari berdasarkan role biar tidak bergantung urutan).
+  const liviaRow = inserted.find((m) => m.role === 'livia') ?? inserted[inserted.length - 1];
+
+  return {
+    ...updateResult,
+    liviaMessageId: liviaRow.id,
+  };
 }

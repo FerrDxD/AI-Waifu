@@ -69,6 +69,8 @@ export const POST = apiHandler(
       unlockedChapter: updateResult.unlockedChapter,
       // M4.2: hanya ada kalau pesan user memicu deteksi krisis.
       crisis,
+      // M7.4: ID baris Livia di DB (dipakai tombol feedback).
+      messageId: updateResult.liviaMessageId,
     });
   }
 );

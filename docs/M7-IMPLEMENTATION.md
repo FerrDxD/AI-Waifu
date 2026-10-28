@@ -3,13 +3,14 @@
 Dokumen ini mencatat apa yang **sudah** dikerjakan di M7, keputusan desain
 yang mengikat, dan utang teknis yang tersisa.
 
-Status: **M7.1 + M7.2 + M7.3 SELESAI.** Tiap request LLM tercatat (provider,
-model, token in/out, biaya, user), agregasi harian atomik + alert budget,
-dashboard owner-only di `/usage`; analitik produk first-party (retensi
-D1/D7/D30, pesan per session, drop-off) di `/analytics`; dan eval loop di CI
-(55 skenario, persona/guardrail/memory recall) dengan gate di dua lapis:
-branch protection GitHub + gate build Vercel. Sisa M7.4–M7.5 belum dimulai;
-utang di §2.5, §3.7 & §7.
+Status: **M7.1 + M7.2 + M7.3 + M7.4 SELESAI.** Tiap request LLM tercatat
+(provider, model, token in/out, biaya, user), agregasi harian atomik + alert
+budget, dashboard owner-only di `/usage`; analitik produk first-party
+(retensi D1/D7/D30, pesan per session, drop-off) di `/analytics`; eval loop
+di CI (55 skenario, persona/guardrail/memory recall) dengan gate di dua
+lapis: branch protection GitHub + gate build Vercel; dan feedback in-app
+(👍/👎 di chat) yang menjadi bahan kurasi dataset eval via `/feedback`.
+Sisa M7.5 (uptime & alerting) belum dimulai; utang di §2.5, §3.7, §4.8 & §11.
 
 ---
 
@@ -400,7 +401,106 @@ ada di prompt untuk skenario ini) + `reply.no_system_leak` + `REPLY_SAFE`
 
 ---
 
-## 4. File (M7.1)
+## 4. M7.4 — Feedback loop in-app (chat → dataset evals)
+
+**Yang dikirim**: tombol 👍/👎 di balasan Livia (halaman chat) → tersimpan
+ke `chatFeedback` → owner meninjau di `/feedback` → menyalin sketsa skenario
+→ mengkurasi ke `evals/dataset.ts` (menutup loop dengan M7.3).
+
+### 4.1 Model data: `chatFeedback`
+
+- 1 baris per (user, pesan): `UNIQUE (user_id, message_id)` — re-rating =
+  upsert (rating terakhir menang); `created_at` memuat rating **pertama**.
+- FK cascade ke `users` DAN `chatMessages`: hapus akun & `db:prune` pesan
+  chat >90 hari menghapus rating-nya otomatis — feedback tidak boleh
+  bertahan lebih lama dari pesan yang dirating-nya.
+
+### 4.2 Asal `messageId` (detail penting)
+
+Pesan baru di UI memakai ID sementara (`Date.now()`); ID baris DB baru ada
+setelah persist. Solusi:
+- `persistChatTurn` kini pakai `.returning()` → hasil menambah
+  `liviaMessageId` (dicari per `role`, tidak bergantung urutan insert).
+- Route stream: event `done` menambah `messageId`; route JSON: response
+  menambah `messageId`.
+- Client: `dbId` diisi dari event; tombol feedback hanya muncul kalau `dbId`
+  ada (balasan sudah selesai & tersimpan — bukan tengah ditypewriter).
+
+### 4.3 Jalur tulis: `POST /api/chat/feedback`
+
+- Body `{ messageId, rating: 'up' | 'down' }` — validasi manual (uuid +
+  enum), konsisten dengan `lib/validation` (tanpa zod).
+- Ownership dicek di `saveChatRating`: tidak ada **atau** bukan milik user
+  → 404 yang SAMA (keberadaan pesan orang lain tidak dibocorkan).
+- Rate limit `mutationRateLimit` — rating mutasi ringan, bukan endpoint AI.
+
+### 4.4 Jalur baca
+
+- `GET /api/chat/history` menambah peta `feedback` — rating lama langsung
+  tampil setelah reload (tombol tidak mulai dari kosong).
+- `/feedback` (owner-only, `OWNER_EMAIL`, pola `/usage`): ringkasan
+  (total / baik / buruk / rasio buruk) + 200 baris terbaru (termasuk pesan
+  user tepat sebelum balasan via subquery skalar — satu kueri, tanpa N+1) +
+  tombol "Salin skenario" per baris (`scenarioSnippet`, fungsi murni).
+
+### 4.5 File
+
+| File | Isi |
+| --- | --- |
+| `lib/feedback.ts` | **BARU** — `saveChatRating`, `getUserFeedbackMap`, `getFeedbackRows`, `scenarioSnippet` (murni) |
+| `lib/db/schema.ts` | tabel `chatFeedback` + `uniqueIndex` |
+| `drizzle/0005_pink_warbird.sql` | migrasi (sudah applied, drift bersih) |
+| `lib/livia/chat-turn.ts` | `.returning()` + `liviaMessageId` di `PersistChatTurnResult` |
+| `app/api/chat/stream/route.ts` | event `done` + `messageId` |
+| `app/api/chat/route.ts` | response + `messageId` |
+| `app/api/chat/feedback/route.ts` | **BARU** — POST rating |
+| `app/api/chat/history/route.ts` | + peta `feedback` |
+| `features/chat/ChatClient.tsx` | `FeedbackThumbs`, `dbId`, `handleRate` (optimistic) |
+| `app/(main)/feedback/page.tsx` | **BARU** — review owner |
+| `components/ui/CopySnippetButton.tsx` | **BARU** — clipboard (satu-satunya client component di halaman) |
+| `middleware.ts` | `/feedback` masuk `PROTECTED_PREFIXES` |
+| `tests/feedback-route.test.ts` | **BARU** — 7 test route |
+| `tests/feedback-scenario.test.ts` | **BARU** — 5 test (incl. round-trip escaping) |
+
+Suite: **692 test / 40 file** (naik dari 680/38).
+
+### 4.6 Keputusan desain
+
+- **Human-in-the-loop, bukan otomatis.** Pesan user mentah boleh berisi PII
+  atau percobaan injeksi — tidak boleh masuk dataset eval tanpa kurasi.
+  Loop: user rating → owner meninjau → salin sketsa → kurasi (id unik,
+  kategori, afeksi, cek) → `bun run evals` + CI (M7.3).
+- **Sketsa skenario hanya memuat yang diketahui baris feedback.** Afeksi
+  saat kejadian tidak tersimpan (yang ada: `affectionDelta` per pesan &
+  afeksi profil terkini) → snippet memakai placeholder `GANTI:` eksplisit.
+- **Tidak ada endpoint hapus rating.** Re-rating menimpa; hapus manual via
+  DB kalau suatu hari diperlukan (fitur internal).
+- **`/feedback` tidak di-link dari navigasi user** (sengaja, seperti
+  `/usage` & `/analytics`).
+- Tombol hanya di balasan **Livia** — rating pesan milik sendiri tidak
+  bermakna untuk kualitas jawaban.
+
+### 4.7 Deploy checklist (M7.4)
+
+- [ ] User: set `OWNER_EMAIL` di Vercel (bersama M7.1/M7.2 — tanpa itu
+  `/usage`, `/analytics`, `/feedback` semua 403).
+- [ ] User: chat beberapa pesan di prod → 👍/👎 di balasan Livia → baris
+  muncul di `/feedback` (hard refresh post-deploy).
+- [ ] User (Neon): `SELECT count(*) FROM "chatFeedback";`
+- [ ] Non-owner membuka `/feedback` → "Akses ditolak".
+
+### 4.8 Utang teknis
+
+- **Date chat (`/date`) belum punya tombol feedback** — milestone scope
+  "in chat" = halaman chat utama. `FeedbackThumbs` siap dipakai ulang.
+- **Label tanggal snippet** memakai `created_at` rating, bukan `created_at`
+  pesan (dekat, tidak memengaruhi kurasi).
+- **Rasio buruk dihitung dari 200 baris terbaru**, bukan seluruh sejarah
+  (sejarah rating ikut ter-prune bersama pesannya).
+
+---
+
+## 8. File (M7.1)
 
 | File | Isi |
 | --- | --- |
@@ -428,7 +528,7 @@ Suite: **654 test / 36 file** (naik dari 619/33).
 
 ---
 
-## 5. Keputusan desain (M7.1)
+## 9. Keputusan desain (M7.1)
 
 1. **Dua tabel (log + agregasi), bukan satu + GROUP BY** — alert budget
    harus O(1) per request dan konkuren-safe; agregasi `.returning()` dari
@@ -470,7 +570,7 @@ Suite: **654 test / 36 file** (naik dari 619/33).
 
 ---
 
-## 6. Deploy checklist (M7.1)
+## 10. Deploy checklist (M7.1)
 
 - [ ] **Vercel env**: set `OWNER_EMAIL` (email kamu) — tanpa ini `/usage`
       403 untuk semua orang. Opsional: `AI_DAILY_COST_LIMIT_USD` (default 5).
@@ -490,7 +590,7 @@ Suite: **654 test / 36 file** (naik dari 619/33).
 
 ---
 
-## 7. Utang teknis (M7.1)
+## 11. Utang teknis (M7.1)
 
 - **Alert belum keluar dari log** — `ai.budget_alert` hanya `logger.warn`;
   webhook Discord/Slack + status page adalah M7.5.

@@ -93,6 +93,8 @@ export const POST = apiHandler(
             unlockedChapter: update.unlockedChapter,
             // M4.2: hanya terisi kalau deteksi krisis terpicu.
             crisis: final.crisis,
+            // M7.4: ID baris Livia di DB — dipakai tombol feedback di client.
+            messageId: update.liviaMessageId,
           });
 
           // M2.5: pemicu ringkasan bergulir. Satu `done` = satu turn tersimpan,
