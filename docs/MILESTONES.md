@@ -130,7 +130,7 @@ sebelum DoD terpenuhi + ada test yang lulus.
 ## M6 — Voice & Realtime (Bulan 5)
 
 - [x] **M6.1** **TTS streaming** (ElevenLabs websocket/SSE) — suara mengalir saat teks masih dirender. Hapus voice-ID hardcode di `tts/route.ts:24` (sekaligus env cache yang benar). *(Implementasi: SSE `/api/chat/stream` → `takeCompleteSentences` → `TtsPipeline` per-kalimat + prefetch; route TTS pass-through stream; config via `requireEnvVar` — detail docs/M6-IMPLEMENTATION.md.)*
-- [ ] **M6.2** **Barge-in & turn cue**: saat user mulai bicara, Livia pause. Indikator status call realtime.
+- [x] **M6.2** **Barge-in & turn cue**: saat user mulai bicara, Livia pause. Indikator status call realtime. *(CallSession: continuous listening + auto-restart, barge-in via interim result (termasuk abort giliran thinking), pill status di header — detail docs/M6-IMPLEMENTATION.md §2.)*
 - [ ] **M6.3** **STT input**: browser SpeechRecognition-to-text untuk voice input chat (fallback Gemini Live API / Whisper endpoint bila ingin rilis native).
 - [ ] **M6.4** **TTS cache**: hash `sha256(text+voice)` → simpan audio di blob storage (R2/S3), menghemat 90% biaya ElevenLabs untuk kalimat yang berulang (Livia banyak bicara kasar repetitif).
 - [ ] **M6.5** **Voice persona**: voice settings dinamis berdasarkan expression (happy → energik, scared → cepat).

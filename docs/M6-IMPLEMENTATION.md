@@ -3,9 +3,9 @@
 Dokumen ini mencatat apa yang **sudah** dikerjakan di M6, keputusan desain yang
 mengikat, dan utang teknis yang tersisa.
 
-Status: **M6.1 selesai (kode + test).** TTS sekarang streaming end-to-end,
-voice-ID hardcode terhapus, dan call memakai pipeline "suara mengalir saat
-teks masih dirender". M6.2–M6.5 belum dimulai — lihat §5.
+Status: **M6.1 + M6.2 selesai (kode + test).** TTS streaming end-to-end,
+voice-ID hardcode terhapus, call memakai continuous listening + barge-in +
+turn cue realtime. M6.3–M6.5 belum dimulai — lihat §6.
 
 ---
 
@@ -129,23 +129,73 @@ Keputusan desain:
 
 ---
 
-## 2. Perubahan file
+## 2. M6.2 — Barge-in & turn cue
+
+Tujuan: "saat user mulai bicara, Livia pause" + indikator status call
+realtime — tanpa perlu tap tombol.
+
+### 2.1 Continuous listening (bukan PTT lagi)
+
+`CallSession` (lib/call/session.ts) kini memegang siklus mic:
+
+- Recognition jalan **sepanjang call aktif**: `continuous: true`, dan
+  setelah tiap `onend` (browser berhenti saat hening) sesi auto-restart
+  (jeda 100ms anti error-loop).
+- **Tombol mic = mute/unmute** (bukan PTT). Mute membuang ucapan yang
+  sedang berjalan, menghentikan loop, dan status jadi `idle`; unmute
+  langsung restart listening.
+- `onerror 'not-allowed'/'service-not-allowed'` (izin mic ditolak) →
+  status error + loop berhenti permanen sampai call baru.
+
+### 2.2 Barge-in yang benar
+
+- Pemicu: **interim result pertama** (suara TEREDETEKSI), bukan `onstart`
+  — di mode continuous, `onstart` fire di tiap auto-restart walau tanpa
+  suara, dan akan membuat Livia jeda sendiri tiap beberapa detik.
+- Efek: pipeline TTS `stop()` seketika; **kalau LLM masih generating,
+  giliran di-abort** — delta stream yang terlambat dibuang (test:
+  "stream terlambat dibuang").
+- Batasan yang dikenal (utang): mic bisa menangkap suara Livia sendiri
+  (feedback loop) — dimitigasi speaker toggle (volume 0.25x); VAD /
+  echo-cancel proper di ranah native (M6.3).
+
+### 2.3 Turn cue realtime
+
+- `recomputeStatus()` satu sumber kebenaran:
+  `error` (sticky, dibersihkan giliran baru) > `speaking` > `thinking` >
+  `listening` (mic on) > `idle`.
+- UI: **pill status di header** (dot berwarna + label singkat + timer
+  durasi setelah audio pertama), ring avatar (hijau = Livia bicara, pink
+  = suara user terdeteksi), tombol mic berstatus (Mic / Mic off + pulse
+  saat mendengar), baris status detail di bawah nama.
+- Komponen `CallClient.tsx` jadi tipis: hanya wiring + UI; seluruh logika
+  giliran (fetch SSE, pipeline, status) di `CallSession` — diuji tanpa
+  React (tests/call-session.test.ts, 9 test: continuous restart, alur
+  giliran, barge-in speaking/thinking, mute, izin mic, dispose, error
+  stream).
+
+---
+
+## 3. Perubahan file
 
 | File | Perubahan |
 | --- | --- |
 | `app/api/tts/route.ts` | rewrite: streaming pass-through, `requireEnvVar`, tanpa hardcode |
 | `lib/tts/sentences.ts` | baru: `splitSentences`, `takeCompleteSentences`, `TTS_MAX_LEN` |
 | `lib/tts/pipeline.ts` | baru: `TtsPipeline` (enqueue/prefetch/stop) |
-| `features/call/CallClient.tsx` | rework: SSE stream → pipeline, `CallStatus`, barge-in dasar, krisis |
-| `tests/setup.ts` | + mock `Audio` global, + handle reset store rate-limit |
+| `lib/call/session.ts` | baru: `CallSession` (continuous listening, barge-in, giliran, status) |
+| `features/call/CallClient.tsx` | rework 2x: M6.1 SSE→pipeline; M6.2 jadi tipis (wiring+UI), pill status header, mic mute/unmute |
+| `tests/setup.ts` | + mock `Audio` global, + handle reset store rate-limit, + mock `@/lib/auth` (pola holder) |
 | `tests/tts-sentences.test.ts` | baru (15 test) |
 | `tests/tts-pipeline.test.ts` | baru (6 test) |
 | `tests/tts-route.test.ts` | baru (6 test) |
+| `tests/call-session.test.ts` | baru (9 test) |
+| `tests/api-handler.test.ts` | pakai mock auth global dari setup.ts |
 | `.env.example` | catatan: kedua variabel ElevenLabs wajib untuk TTS |
 
 ---
 
-## 3. Keputusan yang mengikat
+## 4. Keputusan yang mengikat
 
 1. **SSE/chunked, bukan WebSocket** — Vercel serverless; kebutuhan satu arah.
 2. **Unit playback = kalimat (audio element), bukan byte (MSE)** —
@@ -155,24 +205,39 @@ Keputusan desain:
 4. **`ELEVENLABS_VOICE_ID` wajib** — tidak ada suara default diam-diam.
 5. **`TTS_MAX_LEN` di client disengaja duplikat** dari `LIMITS.ttsText`
    supaya `next/server` tidak masuk bundle client; drift diuji.
+6. **Barge-in dipicu interim result, bukan `onstart`** — `onstart` tidak
+   bisa dipercaya di mode continuous (fire tiap restart walau hening).
+7. **Logika call hidup di `CallSession` (bukan komponen React)** — bisa
+   diuji tanpa DOM; komponen hanya wiring + presentasi.
+8. **`vi.mock` per file dilarang untuk modul yang dipakai lintas test
+   file** (`@/lib/auth`, gemini SDK, rate-limit store) — dengan
+   `isolate: false` instance mock terpisah per file → flake 401
+   bergantung urutan. Semua mock global di `tests/setup.ts`.
 
 ---
 
-## 4. Checklist deploy (seleksi M6.1)
+## 5. Checklist deploy
 
 - [ ] Vercel: pastikan `ELEVENLABS_API_KEY` terisi.
-- [ ] Vercel: **isi `ELEVENLABS_VOICE_ID`** (wajib sejak commit ini).
-- [ ] Test di production: buka call, tap "Bicara", ucapkan sesuatu —
-  suara Livia harus mulai keluar sebelum seluruh teks selesai tertulis,
-  dan tap bicara lagi saat Livia bicara harus membuat Livia jeda.
+- [ ] Vercel: **isi `ELEVENLABS_VOICE_ID`** (wajib sejak commit M6.1).
+- [ ] Test M6.1 di production: buka call, ucapkan sesuatu — suara Livia
+  harus mulai keluar **sebelum** seluruh teks selesai disintesis.
+- [ ] Test M6.2 di production:
+  - tanpa tap apa pun, status header harus `MENDENGARKAN` (listening
+    continuous) dan bicara langsung terdeteksi (ring pink + tombol mic
+    pulse);
+  - saat Livia sedang berbicara, bicaralah → Livia harus jeda seketika
+    (barge-in) dan giliran lamanya dibatalkan;
+  - tap tombol mic → `Mic off` (mute), status `SIAGA`; tap lagi →
+    listening kembali.
 
 ---
 
-## 5. Utang M6 (untuk sub-milestone berikutnya)
+## 6. Utang M6 (untuk sub-milestone berikutnya)
 
-- **M6.2**: continuous listening (recognition auto-restart, bukan PTT),
-  turn cue visual lebih kaya (indikator status realtime di header),
-  mitigasi feedback loop (mic menangkap suara Livia).
+- **Mitigasi feedback loop**: mic menangkap suara Livia sendiri (speaker
+  besar) — barge-in bisa dipicu suara Livia; dimitigasi speaker toggle
+  (0.25x) saja. VAD/echo-cancel proper = ranah native (M6.3).
 - **M6.3**: voice input di halaman `/chat` (Web Speech API) + evaluasi
   fallback Whisper endpoint untuk rilis native.
 - **M6.4**: TTS cache `sha256(text+voice)` → penyimpanan audio
@@ -182,3 +247,5 @@ Keputusan desain:
   mood: happy → energik, scared → cepat).
 - Panel krisis lengkap di call (resources clickable) — saat ini hanya
   teks pesan.
+- Quirk iOS Safari untuk `SpeechRecognition` continuous belum divalidasi
+  (perlu perangkat fisik) — fallbacknya mute/unmute tetap berfungsi.
