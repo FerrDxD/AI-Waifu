@@ -37,6 +37,16 @@ describe('ttsCacheKey', () => {
     // ("a|b" | "c" vs "a" | "b|c" menghasilkan string berbeda).
     expect(ttsCacheKey('a|b', 'c', 'm')).not.toBe(ttsCacheKey('a', 'b|c', 'm'));
   });
+
+  it('mood (arg ke-4, M6.5) memengaruhi key — sama teks beda mood = beda audio', () => {
+    expect(ttsCacheKey('Halo', 'v1', 'm1', 'happy')).not.toBe(
+      ttsCacheKey('Halo', 'v1', 'm1', 'sad')
+    );
+  });
+
+  it('mood default = neutral (kompatibel pemanggil lama 3-arg)', () => {
+    expect(ttsCacheKey('Halo', 'v1', 'm1')).toBe(ttsCacheKey('Halo', 'v1', 'm1', 'neutral'));
+  });
 });
 
 describe('dayBucketNow', () => {

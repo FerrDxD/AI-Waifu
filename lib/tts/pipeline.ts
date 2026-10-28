@@ -1,6 +1,7 @@
 'use client';
 
 import { splitSentences } from './sentences';
+import { detectMood, playbackRateForMood } from './persona';
 
 /**
  * Pipeline TTS client (M6.1).
@@ -20,6 +21,10 @@ import { splitSentences } from './sentences';
  *  - Pipeline bersifat SATU kali pakai (per giliran percakapan). `stop()`
  *    mengakhiri; buat instance baru untuk giliran berikutnya.
  *  - Gagal TTS (429/5xx/jaringan) = kalimat dilewati, giliran tidak crash.
+ *  - M6.5: `playbackRate` per mood — mood dihitung dari teks kalimat via
+ *    `detectMood` (modul pure yang SAMA dengan route server, jadi rate
+ *    client selalu cocok dengan `voice_settings` yang disintesis).
+ *    `preservesPitch = true` → hanya tempo berubah, bukan nada.
  */
 
 export type TtsPlaybackState = 'idle' | 'speaking';
@@ -49,7 +54,7 @@ async function defaultFetchTts(text: string): Promise<Blob | null> {
 
 export class TtsPipeline {
   private queue: string[] = [];
-  private prefetch: Promise<Blob | null> | null = null;
+  private prefetch: Promise<{ text: string; audio: Blob | null } | null> | null = null;
   private running = false;
   private stopped = false;
   private current: HTMLAudioElement | null = null;
@@ -97,7 +102,11 @@ export class TtsPipeline {
   private ensurePrefetch(fetchTts: (text: string) => Promise<Blob | null>): void {
     if (this.prefetch || this.stopped) return;
     const next = this.queue.shift();
-    if (next) this.prefetch = fetchTts(next).catch(() => null);
+    if (!next) return;
+    // Text ikut dibawakan supaya play() bisa menghitung mood (M6.5).
+    this.prefetch = fetchTts(next)
+      .catch(() => null)
+      .then((audio) => ({ text: next, audio }));
   }
 
   private async run(): Promise<void> {
@@ -111,12 +120,12 @@ export class TtsPipeline {
           if (this.queue.length === 0) break;
           this.ensurePrefetch(fetchTts);
         }
-        const blob = await this.prefetch!;
+        const pending = await this.prefetch!;
         this.prefetch = null;
         // Prefetch kalimat berikutnya SEKARANG — overlap dengan playback.
         this.ensurePrefetch(fetchTts);
-        if (this.stopped || !blob) continue;
-        await this.play(blob);
+        if (this.stopped || !pending || !pending.audio) continue;
+        await this.play(pending.audio, pending.text);
       }
     } finally {
       this.running = false;
@@ -129,12 +138,15 @@ export class TtsPipeline {
     }
   }
 
-  private play(blob: Blob): Promise<void> {
+  private play(blob: Blob, text: string): Promise<void> {
     return new Promise((resolve) => {
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
       const vol = this.options.getVolume ? this.options.getVolume() : 0.8;
       audio.volume = Math.min(1, Math.max(0, vol));
+      // M6.5: tempo per mood (scared cepat, sad lambat) — pitch dipertahankan.
+      audio.playbackRate = playbackRateForMood(detectMood(text));
+      audio.preservesPitch = true;
 
       let finished = false;
       const finish = () => {

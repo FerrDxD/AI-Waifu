@@ -141,6 +141,9 @@ class MockAudio {
   onerror: (() => void) | null = null;
   onplay: (() => void) | null = null;
   paused = true;
+  /** M6.5: pipeline mengatur tempo per mood + preservesPitch. */
+  playbackRate = 1;
+  preservesPitch = false;
 
   play(): Promise<void> {
     this.paused = false;

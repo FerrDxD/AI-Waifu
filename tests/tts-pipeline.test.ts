@@ -6,6 +6,8 @@ type MockAudioRegistry = {
     src: string;
     volume: number;
     paused: boolean;
+    playbackRate: number;
+    preservesPitch: boolean;
     emitEnded: () => void;
   }>;
   reset: () => void;
@@ -172,5 +174,33 @@ describe('TtsPipeline', () => {
     await flush(10);
     expect(fetches).toEqual(['A', 'B']);
     expect(mockAudio().instances.length).toBe(2);
+  });
+
+  it('M6.5: playbackRate mengikuti mood kalimat + preservePitch aktif', async () => {
+    const p = new TtsPipeline({
+      fetchTts: async () => new Blob(['x']),
+    });
+
+    // scared → cepat; sad → lambat; netral → 1.0 (regresi).
+    p.enqueue('Aduh seram, aku takut banget!');
+    await flush(10);
+    mockAudio().instances[0].emitEnded();
+    await flush(10);
+
+    p.enqueue('Aku sedih dan kecewa sama kamu.');
+    await flush(10);
+    mockAudio().instances[1].emitEnded();
+    await flush(10);
+
+    p.enqueue('Halo, apa kabar hari ini?');
+    await flush(10);
+    const audios = mockAudio().instances;
+
+    expect(audios[0].playbackRate).toBeCloseTo(1.15); // scared
+    expect(audios[0].preservesPitch).toBe(true);
+    expect(audios[1].playbackRate).toBeCloseTo(0.92); // sad
+    expect(audios[1].preservesPitch).toBe(true);
+    expect(audios[2].playbackRate).toBe(1); // netral = baseline
+    expect(audios[2].preservesPitch).toBe(true);
   });
 });

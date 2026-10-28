@@ -44,11 +44,19 @@ export function ttsMaxCharsPerDay(): number {
 }
 
 /**
- * Key cache deterministik: `sha256(voiceId|modelId|text)`.
- * Voice & model masuk key karena audio berbeda per kombinasinya.
+ * Key cache deterministik: `sha256(voiceId|modelId|mood|text)`.
+ * Voice & model masuk key karena audio berbeda per kombinasinya. `mood`
+ * (M6.5) menentukan `voice_settings` — sama teks beda mood = audio berbeda,
+ * jadi harus dipisahkan di cache. Default `neutral` menjaga kompatibilitas
+ * pemanggil lama; di route mood selalu dihitung eksplisit dari teks.
  */
-export function ttsCacheKey(text: string, voiceId: string, modelId: string): string {
-  return createHash('sha256').update(`${voiceId}|${modelId}|${text}`).digest('hex');
+export function ttsCacheKey(
+  text: string,
+  voiceId: string,
+  modelId: string,
+  mood: string = 'neutral'
+): string {
+  return createHash('sha256').update(`${voiceId}|${modelId}|${mood}|${text}`).digest('hex');
 }
 
 /** Awal hari UTC (epoch-aligned) — bucket harian untuk `ttsUsage`. */

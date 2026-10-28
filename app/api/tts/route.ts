@@ -4,6 +4,7 @@ import { apiHandler } from '@/lib/api-handler';
 import { errors, readJsonBody } from '@/lib/errors';
 import { requireEnvVar } from '@/lib/env';
 import { validateTtsText } from '@/lib/validation';
+import { detectMood, voiceSettingsForMood } from '@/lib/tts/persona';
 import { logger } from '@/lib/logger';
 import {
   getTtsCache,
@@ -36,6 +37,13 @@ const MODEL_ID = 'eleven_multilingual_v2'; // Model multilingual untuk Indonesia
  *    Rate limiter request (5/menit, 200/hari, 2000/bulan) tetap jalan.
  *  - **Pencatatan biaya**: `ttsUsage` per user per hari (requests,
  *    cacheHits, charsBilled) — dasar metrik "biaya TTS per DAU".
+ *
+ * M6.5: `voice_settings` ElevenLabs kini DINAMIS per mood — mood dideteksi
+ * dari teks kalimat (`detectMood`, pure, `lib/tts/persona.ts`) karena
+ * `expression` turn-level baru dikirim di event `done` stream (terlambat
+ * untuk TTS per-kalimat). Mood masuk key cache; header `X-Tts-Mood` untuk
+ * observability (client pipeline memakai modul persona yang sama untuk
+ * `playbackRate`).
  */
 export const POST = apiHandler(
   {
@@ -48,6 +56,10 @@ export const POST = apiHandler(
     const body = await readJsonBody<{ text?: unknown }>(req);
     // M0/H0.5: teks TTS dibatasi 300 karakter (biaya ElevenLabs per karakter).
     const safeText = validateTtsText(body.text);
+
+    // M6.5: deteksi mood dari teks → voice_settings dinamis (happy=energik,
+    // scared=cepat). Mood deterministik dari teks, jadi aman masuk key cache.
+    const mood = detectMood(safeText);
 
     let apiKey: string;
     let voiceId: string;
@@ -63,7 +75,7 @@ export const POST = apiHandler(
       throw errors.internal('Konfigurasi TTS belum lengkap.');
     }
 
-    const key = ttsCacheKey(safeText, voiceId, MODEL_ID);
+    const key = ttsCacheKey(safeText, voiceId, MODEL_ID, mood);
 
     // M6.4: cap biaya harian per user (karakter yang di-billing).
     const charsSoFar = await getTtsDailyCharsBilled(userId);
@@ -88,6 +100,7 @@ export const POST = apiHandler(
           'Content-Type': cached.mimeType,
           'Cache-Control': 'no-store, max-age=0',
           'X-Tts-Cache': 'hit',
+          'X-Tts-Mood': mood,
         },
       });
     }
@@ -104,12 +117,8 @@ export const POST = apiHandler(
         body: JSON.stringify({
           text: safeText,
           model_id: MODEL_ID,
-          voice_settings: {
-            stability: 0.4,
-            similarity_boost: 0.8,
-            style: 0.0,
-            use_speaker_boost: true,
-          },
+          // M6.5: voice_settings dinamis per mood (happy=energik, scared=cepat).
+          voice_settings: voiceSettingsForMood(mood),
         }),
       }
     );
@@ -139,6 +148,7 @@ export const POST = apiHandler(
         'Content-Type': 'audio/mpeg',
         'Cache-Control': 'no-store, max-age=0',
         'X-Tts-Cache': 'miss',
+        'X-Tts-Mood': mood,
       },
     });
   }

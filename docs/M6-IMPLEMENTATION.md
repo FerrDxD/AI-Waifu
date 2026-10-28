@@ -3,10 +3,10 @@
 Dokumen ini mencatat apa yang **sudah** dikerjakan di M6, keputusan desain yang
 mengikat, dan utang teknis yang tersisa.
 
-Status: **M6.1–M6.4 selesai (kode + test + migration).** TTS streaming
+Status: **M6.1–M6.5 SELESAI (seluruh milestone M6).** TTS streaming
 end-to-end, voice-ID hardcode terhapus, call continuous listening + barge-in
-+ turn cue realtime, diktasi suara di chat, dan TTS cache + pencatatan biaya
-harian. M6.5 belum dimulai — lihat §8.
++ turn cue realtime, diktasi suara di chat, TTS cache + pencatatan biaya
+harian, dan voice persona dinamis per mood. Sisa utang M6 di §9.
 
 ---
 
@@ -285,34 +285,96 @@ Normalisasi defensive (kalau datang string hex/base64) ada di
 
 ---
 
-## 5. Perubahan file
+## 5. M6.5 — Voice persona dinamis
+
+Tujuan: suara Livia menyesuaikan suasana kalimat (DoD: *happy → energik,
+scared → cepat*) alih-alih satu nada datar untuk semua.
+
+### 5.1 Kendala timing — kenapa mood dari TEKS, bukan `expression`
+
+Di call (M6.1), kalimat disintesis & diputar SEWAKTU stream `delta` masih
+mengalir — `expression` turn-level baru dikirim di event `done` (setelah
+semua kalimat). Pakai `expression` untuk TTS streaming = audio keburu
+keluar dengan suara netral. Maka mood dideteksi dari TEKS kalimat via
+`detectMood()` (`lib/tts/persona.ts`, pure/isomorphic).
+
+### 5.2 Deteksi mood (heuristik kata kunci)
+
+`detectMood(text)` → salah satu dari 7 mood: `neutral, happy, excited,
+angry, sad, scared, tender`. Aturan:
+
+- Kata kunci Indonesia + emoji, dicocokkan **case-insensitif, kata utuh**
+  (supaya "maaf" tidak terhitung di "maafkan"); emoji sebagai substring.
+- Skor = jumlah kata kunci berbeda per mood. Skor 0 → `neutral`.
+- Tie skor → mood lebih "mendesak" menang: `scared > angry > excited >
+  sad > tender > happy`.
+- Sengaja sederhana & deterministik — false positive hanya soal
+  penjiwaan suara, bukan kegagalan fungsional. Daftar kata dapat ditambah
+  (lihat utang §9).
+
+### 5.3 Mood → suara: dua lapis
+
+1. **Server** (`/api/tts`): `voice_settings` ElevenLabs dari
+   `MOOD_VOICE_SETTINGS[mood]` — timbre/energi. Contoh: `happy` style
+   tinggi (energik), `scared` stability rendah (dinamis/terburu), `sad`
+   stability tinggi (lembut). **`neutral` dipatok SAMA PERSIS dengan
+   setting M6.1** (regresi: kalimat netral terdengar seperti sebelum
+   M6.5 — diuji eksplisit).
+2. **Client** (`TtsPipeline`): `playbackRate` dari
+   `MOOD_PLAYBACK_RATE[mood]` — tempo (ElevenLabs tidak punya parameter
+   kecepatan). `scared` 1.15× (cepat), `sad` 0.92× (lambat), `neutral`
+   1.0×. `preservesPitch = true` → hanya tempo berubah, nada tetap.
+
+Client menghitung mood dari kalimat yang sama dengan modul pure yang
+SAMA dengan server (satu sumber kebenaran, tanpa tambah field request).
+Header `X-Tts-Mood` ikut dikirim untuk observability di DevTools.
+
+### 5.4 Dampak cache (M6.4)
+
+Mood masuk key cache: `sha256(voiceId|modelId|mood|text)` — sama teks
+beda mood = audio berbeda, tidak boleh berbagi entry. Konsekuensi:
+rumusan key berubah dari M6.4 → entry lama tidak terpakai lagi (cache
+baru tumbuh; dibersihkan LRU seperti biasa).
+
+### 5.5 Scope yang TIDAK dilakukan
+
+- Per-kalimat `expression` dari LLM (butuh ubah protokol stream + prompt
+  — lebih besar, nilai marginal karena deteksi teks sudah menutup
+  mayoritas kasus).
+- VAD/echo-cancel, STT fallback server — tetap ranah native (lihat §9).
+
+---
+
+## 6. Perubahan file
 
 | File | Perubahan |
 | --- | --- |
-| `app/api/tts/route.ts` | M6.1: streaming pass-through, `requireEnvVar`, tanpa hardcode; M6.4: cek cache + cap harian + buffer penuh + pencatatan usage (X-Tts-Cache) |
+| `app/api/tts/route.ts` | M6.1: streaming pass-through, `requireEnvVar`, tanpa hardcode; M6.4: cek cache + cap harian + buffer penuh + pencatatan usage (X-Tts-Cache); M6.5: `voice_settings` dinamis per mood + header X-Tts-Mood |
 | `lib/tts/sentences.ts` | baru: `splitSentences`, `takeCompleteSentences`, `TTS_MAX_LEN` |
-| `lib/tts/pipeline.ts` | baru: `TtsPipeline` (enqueue/prefetch/stop) |
+| `lib/tts/pipeline.ts` | baru: `TtsPipeline` (enqueue/prefetch/stop); M6.5: `playbackRate` + `preservesPitch` per mood |
+| `lib/tts/persona.ts` | baru (M6.5): `detectMood`, `MOOD_VOICE_SETTINGS`, `MOOD_PLAYBACK_RATE` (pure/isomorphic) |
 | `lib/call/session.ts` | baru: `CallSession` (continuous listening, barge-in, giliran, status); M6.3 refactor pakai `collectTranscript` |
 | `lib/speech/transcript.ts` | baru: `collectTranscript` (pure, isomorphic — rebuild transkrip per event) |
 | `lib/speech/use-speech-recognition.ts` | baru: hook diktasi PTT (PTT, interim live, supported post-mount) |
-| `lib/tts/cache.ts` | baru (M6.4): key sha256, get/put + eviction LRU, usage harian, fail-open |
+| `lib/tts/cache.ts` | baru (M6.4): key sha256, get/put + eviction LRU, usage harian, fail-open; M6.5: `mood` masuk key |
 | `lib/db/schema.ts` | M6.4: tabel `ttsCache` (bytea via customType) + `ttsUsage` (PK komposit) |
 | `drizzle/0002_*.sql` | baru: migration tabel ttsCache + ttsUsage (sudah di-apply) |
 | `features/chat/ChatClient.tsx` | M6.3: tombol mic + diktasi ke input (append, editable, hint izin) |
 | `features/call/CallClient.tsx` | rework 2x: M6.1 SSE→pipeline; M6.2 jadi tipis (wiring+UI), pill status header, mic mute/unmute |
-| `tests/setup.ts` | + mock `Audio` global, + handle reset store rate-limit, + mock `@/lib/auth` (pola holder) |
+| `tests/setup.ts` | + mock `Audio` global (+ `playbackRate`/`preservesPitch`, M6.5), + handle reset store rate-limit, + mock `@/lib/auth` (pola holder) |
 | `tests/tts-sentences.test.ts` | baru (15 test) |
-| `tests/tts-pipeline.test.ts` | baru (6 test) |
-| `tests/tts-route.test.ts` | M6.1: 6 test streaming/env/upstream; M6.4: + hit/miss, kuota harian, gagal upstream tidak tercatat |
+| `tests/tts-pipeline.test.ts` | baru (6 test); M6.5: + playbackRate per mood |
+| `tests/tts-persona.test.ts` | baru (M6.5): deteksi mood, rentang parameter, pin baseline netral |
+| `tests/tts-route.test.ts` | M6.1: 6 test streaming/env/upstream; M6.4: + hit/miss, kuota harian, gagal upstream tidak tercatat; M6.5: + voice_settings per mood |
 | `tests/call-session.test.ts` | baru (9 test) |
 | `tests/speech-transcript.test.ts` | baru (7 test) |
-| `tests/tts-cache.test.ts` | baru (M6.4, 10 test: key, bucket harian, parsing cap) |
+| `tests/tts-cache.test.ts` | baru (M6.4, 10 test: key, bucket harian, parsing cap); M6.5: + mood di key |
 | `tests/api-handler.test.ts` | pakai mock auth global dari setup.ts |
 | `.env.example` | ElevenLabs wajib (M6.1) + `TTS_MAX_CHARS_PER_DAY` opsional (M6.4) |
 
 ---
 
-## 6. Keputusan yang mengikat
+## 7. Keputusan yang mengikat
 
 1. **SSE/chunked, bukan WebSocket** — Vercel serverless; kebutuhan satu arah.
 2. **Unit playback = kalimat (audio element), bukan byte (MSE)** —
@@ -348,10 +410,21 @@ Normalisasi defensive (kalau datang string hex/base64) ada di
 14. **Cap biaya TTS dua lapis** — rate limit request (jumlah) + cap
     karakter/hari per user (`TTS_MAX_CHARS_PER_DAY`, ukuran). Gagal
     upstream tidak menambah `charsBilled` (tidak ada yang dibayar).
+15. **Mood dari TEKS, bukan `expression` turn-level** — `expression`
+    baru dikirim di event `done` (setelah semua kalimat sudah disintesis),
+    jadi terlambat untuk TTS streaming per-kalimat. `detectMood` (pure,
+    satu modul untuk client & server) menutup mayoritas kasus.
+16. **Mood masuk key cache** — sama teks beda mood = audio berbeda;
+    key `sha256(voiceId|modelId|mood|text)`. Konsekuensi: rumusan key
+    M6.5 membatalkan entry cache M6.4 (cache tumbuh ulang, LRU).
+17. **Kecepatan via `playbackRate` + `preservesPitch` (client), timbre via
+    `voice_settings` (server)** — ElevenLabs tidak punya parameter
+    kecepatan, jadi tempo ditangani client; `neutral` dipatok identik
+    dengan setting & tempo M6.1 (regresi kalimat netral).
 
 ---
 
-## 7. Checklist deploy
+## 8. Checklist deploy
 
 - [ ] Vercel: pastikan `ELEVENLABS_API_KEY` terisi.
 - [ ] Vercel: **isi `ELEVENLABS_VOICE_ID`** (wajib sejak commit M6.1).
@@ -380,10 +453,19 @@ Normalisasi defensive (kalau datang string hex/base64) ada di
     `chars_billed` per user per hari;
   - (opsional) set `TTS_MAX_CHARS_PER_DAY` kecil di env + redeploy untuk
     mencoba 429 kuota — kembalikan setelahnya.
+- [ ] Test M6.5 di production (DevTools → Network → /api/tts):
+  - minta Livia bergembira (mis. "puji aku!") → header `X-Tts-Mood:
+    happy`/`excited` dan suara terdengar lebih energik;
+  - kalimat netral ("apa kabar?") → `X-Tts-Mood: neutral`, nada seperti
+    sebelum M6.5 (regresi);
+  - kalimat menyeramkan → `X-Tts-Mood: scared`, tempo terdengar lebih
+    cepat.
+  - (Catatan: deteksi = heuristik kata kunci — kalau sebuah kalimat
+    "salah mood", itu expected sampai daftar kata dituning, bukan bug.)
 
 ---
 
-## 8. Utang M6 (untuk sub-milestone berikutnya)
+## 9. Utang M6 (untuk sub-milestone berikutnya)
 
 - **Mitigasi feedback loop**: mic menangkap suara Livia sendiri (speaker
   besar) — barge-in bisa dipicu suara Livia; dimitigasi speaker toggle
@@ -403,8 +485,16 @@ Normalisasi defensive (kalau datang string hex/base64) ada di
 - **Cache TTS di Postgres `bytea`** — praktis, tapi membesar seiring
   variabilitas kalimat. Kalau tumbuh > ratusan MB, migrasi ke R2/S3
   (schema `ttsCache` tinggal ganti `audio` → URL).
-- **M6.5**: voice persona dinamis per expression (voice_settings per
-  mood: happy → energik, scared → cepat).
+- **Tuning daftar kata kunci mood (M6.5)** — `MOOD_KEYWORDS` di
+  `lib/tts/persona.ts` baru cover kosakata umum; leksikon khas Livia
+  (sapaan kasar repetitif, istilah inside-joke) perlu ditambah setelah
+  melihat kalimat aktual dari log. False positive hanya soal penjiwaan
+  suara, bukan kegagalan.
+- **`preservesPitch` belum divalidasi di semua browser (M6.5)** —
+  Chromium & Safari mendukung; perilaku Firefox perlu dicek di perangkat.
+- **Mood belum memakai `expression` LLM (M6.5)** — upgrade ke
+  per-kalimat expression dari model butuh ubah protokol stream + prompt;
+  nilai marginal dibanding deteksi teks untuk sekarang.
 - Panel krisis lengkap di call (resources clickable) — saat ini hanya
   teks pesan.
 - Quirk iOS Safari untuk `SpeechRecognition` (continuous di call, PTT di

@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // flake bergantung urutan (lihat komentar di setup.ts).
 import { setMockAuth, resetMockAuth } from '@/tests/setup';
 import { __resetEnvCacheForTests } from '@/lib/env';
+import { detectMood, MOOD_VOICE_SETTINGS } from '@/lib/tts/persona';
 import { POST } from '@/app/api/tts/route';
 
 // M6.4: modul cache di-mock per file (SATU-SATUNYA konsumen selain test
@@ -24,8 +25,8 @@ vi.mock('@/lib/tts/cache', () => ({
     const n = raw ? Number.parseInt(raw, 10) : 30_000;
     return Number.isFinite(n) && n > 0 ? n : 30_000;
   },
-  ttsCacheKey: (text: string, voiceId: string, modelId: string) =>
-    `key:${voiceId}|${modelId}|${text}`,
+  ttsCacheKey: (text: string, voiceId: string, modelId: string, mood: string = 'neutral') =>
+    `key:${voiceId}|${modelId}|${mood}|${text}`,
   dayBucketNow: () => new Date('2026-01-01T00:00:00Z'),
   getTtsCache: vi.fn(async (key: string) => {
     const hit = cacheState.cache.get(key);
@@ -84,7 +85,8 @@ const streamBody = (payload: string): ReadableStream<Uint8Array> =>
   });
 
 /** Key yang dipakai route untuk teks tertentu (model + voice dari env test). */
-const routeKey = (text: string) => `key:voice-test-123|eleven_multilingual_v2|${text}`;
+const routeKey = (text: string) =>
+  `key:voice-test-123|eleven_multilingual_v2|${detectMood(text)}|${text}`;
 
 let snapshot: NodeJS.ProcessEnv;
 
@@ -270,5 +272,50 @@ describe('POST /api/tts (M6.1 + M6.4)', () => {
 
     expect(res.status).toBe(400);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('mood happy → voice_settings energik ke ElevenLabs + header X-Tts-Mood', async () => {
+    const fetchMock = vi.fn(async () => new Response(streamBody('x'), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const text = 'Yeyy, hore! Aku senang banget!';
+
+    const res = await call(ttsRequest(text));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('X-Tts-Mood')).toBe('happy');
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const body = JSON.parse(init.body as string);
+    expect(body.voice_settings).toEqual(MOOD_VOICE_SETTINGS.happy);
+  });
+
+  it('teks netral → voice_settings baseline lama (regresi M6.1) + X-Tts-Mood: neutral', async () => {
+    const fetchMock = vi.fn(async () => new Response(streamBody('x'), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const text = 'Halo, apa kabar hari ini?';
+    expect(detectMood(text)).toBe('neutral'); // guard: kasus memang netral
+
+    const res = await call(ttsRequest(text));
+
+    expect(res.headers.get('X-Tts-Mood')).toBe('neutral');
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const body = JSON.parse(init.body as string);
+    expect(body.voice_settings).toEqual(MOOD_VOICE_SETTINGS.neutral);
+  });
+
+  it('dua kalimat beda mood → dua entry cache, settings masing-masing', async () => {
+    const fetchMock = vi.fn(async () => new Response(streamBody('x'), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await call(ttsRequest('Yeyy, hore! Aku senang banget!'));
+    await call(ttsRequest('Aduh seram, aku takut sekali!'));
+
+    expect(fetchMock).toHaveBeenCalledTimes(2); // keduanya miss
+    expect(cacheState.cache.size).toBe(2); // key berbeda (mood beda)
+
+    const settings = fetchMock.mock.calls.map(
+      (c) => JSON.parse((c as unknown as [string, RequestInit])[1].body as string).voice_settings
+    );
+    expect(settings[0]).toEqual(MOOD_VOICE_SETTINGS.happy);
+    expect(settings[1]).toEqual(MOOD_VOICE_SETTINGS.scared);
   });
 });
