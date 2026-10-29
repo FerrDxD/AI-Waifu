@@ -304,3 +304,66 @@ Gerbang: `typecheck` 0 · `test` 775/775 (dua kali) · `lint` hanya warning lama
    `deepseek-v4.1-flash-1017,gpt-6-luna,gemini-3.8-flash`).
 3. Redeploy, lalu cek `/settings` (dropdown muncul) dan `/usage`
    (provider tercatat benar).
+
+---
+
+## 5. M8.2 Phase A — engine karakter data-driven (selesai)
+
+Tujuan: persona bukan lagi kode, tapi **data**. Masih ada satu karakter
+yang aktif di app (Livia), tapi menambah karakter lain tidak lagi
+menyentuh `lib/ai/persona.ts` — cukup tambah satu file JSON.
+
+### 5.1 Struktur
+
+```
+content/characters/livia.json   ← data persona Livia (disalin persis dari kode lama)
+content/characters/ayame.json   ← senpai tegas, 20 th
+content/characters/enji.json    ← kouhai pemalu, 18 th
+content/characters/laura.json   ← IBU Livia (non-romantis), 42 th
+content/characters/naomi.json   ← onee-san lembut, 22 th
+lib/characters/registry.ts      ← zod validation + getCharacter() + resolveSpriteExpression()
+lib/ai/persona.ts               ← buildCharacterIdentity(character, input); buildLiviaIdentity = wrapper
+lib/livia/cycle.ts              ← describePhysiologicalState(..., name?) — default "Livia"
+components/livia/LiviaSprite.tsx ← prop `characterId`; folder datar + fallback ekspresi
+```
+
+Skema zod (`CharacterSchema`) menolak data rusak saat modul dimuat:
+stage afeksi harus persis tiga (0-1/2-3/4-5), `marriedAtChapter` wajib
+punya teks `married`, id tidak boleh duplikat, `defaultExpression`
+harus benar-benar ada di daftar ekspresi.
+
+### 5.2 Constraint yang dijaga
+
+- **Prompt Livia byte-identical.** `tests/characters.test.ts` membandingkan
+  `buildCharacterIdentity(getCharacter('livia'), input)` dengan
+  `buildLiviaIdentity(input)` (implementasi lama) untuk 7 kombinasi input
+  (menikah/belum, voice call, stats, memori, barang, EN/ID). Evalu
+  `Kamu adalah Livia Einhart, gadis`, `tsundere`, dan
+  `Kondisi Fisik & Biologis Livia` tetap lolos 55/55.
+- **Level afeksi (`Orang Asing`…`Rumah`) bersifat shared** — semua karakter
+  memakai ambang yang sama, hanya deskripsi per level yang berbeda.
+- **`INJECTION_GUARD` dan aturan voice call** universal (tidak menyebut
+  nama karakter), dipakai bersama oleh semua karakter.
+
+### 5.3 Keputusan persona
+
+Sesuai keputusan user: **Laura adalah ibu Livia** (Non-romantis — promptnya
+secara eksplisit menulis "Kamu adalah IBU, bukan pasangan romantis User";
+`marriedAtChapter` tidak diisi). Persona Ayame/Enji/Naomi diciptakan
+assistant sendiri, dirancang dari ekspresi sprite yang tersedia
+(mis. Naomi tidak punya pose `angry` → karakter yang tidak pernah marah).
+Sprite `laura/` adalah folder `story-bab`; `rikuto.webp` di `ayame/`
+adalah pose unik yang dipakai sebagai fallback `clingy`/`flirty`.
+
+### 5.4 Yang belum (fase berikutnya)
+
+- `characterId` di `userProfiles` + pemilih karakter di onboarding/settings.
+- Progres (afeksi, memori, chapter) **dipisah per karakter** — sudah
+  diputuskan, menunggu skema DB.
+- Konten bertema Livia (16 chapter, quest, items, resep, TTS voice, sprite
+  outfit) tetap milik Livia; karakter lain hanya punuh ekspresi datar.
+- `summary.ts` / `memory.ts` masih bertema Livia (prompt summarizer) —
+  akan diparameter saat karakter benar-benar bisa dipilih.
+
+Gerbang: `typecheck` 0 · `test` 799/799 (dua kali) · `lint` hanya warning
+lama · `evals` 55/55 offline.

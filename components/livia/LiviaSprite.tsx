@@ -1,11 +1,14 @@
 'use client';
 
 import { LiviaExpression } from '@/lib/gemini';
+import { getCharacter, resolveSpriteExpression } from '@/lib/characters/registry';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 interface LiviaSpriteProps {
   expression: LiviaExpression;
+  /** Karakter dari registry (M8.2). Selain Livia merender sprite folder datar karakter tersebut. */
+  characterId?: string;
   outfit?: string;
   className?: string;
   imgClassName?: string;
@@ -30,7 +33,7 @@ const glowStyles: Record<LiviaExpression, string> = {
   silly: 'drop-shadow-[0_0_25px_rgba(255,150,50,0.4)]',
 };
 
-export default function LiviaSprite({ expression, outfit = 'default', className = '',
+export default function LiviaSprite({ expression, characterId, outfit = 'default', className = '',
   imgClassName = '',
   disableFloat = false,
   mixBlendMultiply = false,
@@ -38,7 +41,10 @@ export default function LiviaSprite({ expression, outfit = 'default', className 
   chapterId
 }: LiviaSpriteProps) {
   const [imgError, setImgError] = useState(false);
-  
+
+  const character = characterId ? getCharacter(characterId) : null;
+  const flatCharacter = character && character.sprite.layout === 'flat' ? character : null;
+
   let fileName = expression as string;
   if (outfit === 'home-screen' && expression === 'happy') {
     fileName = 'hapyy';
@@ -68,11 +74,19 @@ export default function LiviaSprite({ expression, outfit = 'default', className 
   let folderPath = `home-screen/${homeFolderMap[normalizedOutfit] || normalizedOutfit}`;
   if (outfit === 'landing-page') folderPath = 'landing-page';
 
-  let src = `/livia/${folderPath}/${fileName}.webp`;
+  let src: string;
+  if (flatCharacter) {
+    // Karakter selain Livia (M8.2): folder datar, ekspresi di-resolve
+    // ke ekspresi yang benar-benar tersedia di folder karakter tersebut.
+    const resolved = resolveSpriteExpression(flatCharacter, expression);
+    src = `/${flatCharacter.sprite.folder}/${resolved}.webp`;
+  } else {
+    src = `/livia/${folderPath}/${fileName}.webp`;
+  }
 
   const mappedName = generalMap[normalizedOutfit] || normalizedOutfit;
 
-  if (variant === 'wardrobe') {
+  if (!flatCharacter && variant === 'wardrobe') {
     src = `/livia/wardrobe/${mappedName}.webp`;
   } else if (variant === 'focus') {
     src = `/livia/focus-page/${mappedName}.webp`;
@@ -118,7 +132,7 @@ export default function LiviaSprite({ expression, outfit = 'default', className 
     img.onerror = () => {
       if (!active) return;
       // Fallback for story variants with suffix like normal-6 -> normal
-      if (variant === 'story' && typeof expression === 'string' && expression.includes('-')) {
+      if (!flatCharacter && variant === 'story' && typeof expression === 'string' && expression.includes('-')) {
         const fallback = `/livia/Story-bab/${expression.replace(/-[0-9]+$/, '')}.webp`;
         const fbImg = new window.Image();
         fbImg.src = fallback;
@@ -139,7 +153,7 @@ export default function LiviaSprite({ expression, outfit = 'default', className 
     return () => {
       active = false;
     };
-  }, [src, displayedSrc, variant, expression]);
+  }, [src, displayedSrc, variant, expression, flatCharacter]);
 
   return (
     <div className={cn(
@@ -157,13 +171,13 @@ export default function LiviaSprite({ expression, outfit = 'default', className 
       {imgError ? (
         // Fallback hanya muncul kalau gambar benar-benar gagal load
         <div className="w-48 h-64 flex flex-col items-center justify-center rounded-xl border border-pink-200 bg-pink-50 shadow-inner">
-          <span className="text-pink-400 text-xs font-bold uppercase tracking-widest mb-1">Livia</span>
+          <span className="text-pink-400 text-xs font-bold uppercase tracking-widest mb-1">{character?.name ?? 'Livia'}</span>
           {outfit !== 'default' && <span className="text-pink-300 text-[10px] italic">({outfit})</span>}
         </div>
       ) : (
         <img
           src={displayedSrc}
-          alt={`Livia - ${expression}`}
+          alt={`${character?.name ?? 'Livia'} - ${expression}`}
           decoding="async"
           className={cn(
             "absolute inset-0 w-full h-full transition-opacity duration-150",

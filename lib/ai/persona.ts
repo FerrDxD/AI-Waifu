@@ -1,14 +1,17 @@
 import { generatePersonalityContext } from '@/lib/livia/personality';
 import { describePhysiologicalState } from '@/lib/livia/cycle';
+import { getCharacter, type Character } from '@/lib/characters/registry';
 
 /**
- * Satu sumber persona Livia (M2.3).
+ * Satu sumber persona (M2.3, M8.2 Phase A: sekarang data-driven).
  *
  * Sebelumnya fondasi "siapa Livia & bagaimana dia bicara" di-*copy-paste*
  * di 3 fungsi dalam `lib/gemini.ts` dengan variasi yang tidak konsisten
- * (ini yang bikin perilaku chat vs date chat beda-beda tipis). Sekarang
- * satu builder. Fungsi tugas (balasan chat vs adegan kencan) menambahkan
- * instruksi output-nya sendiri di atas fondasi ini.
+ * (ini yang bikin perilaku chat vs date chat beda-beda tipis). Lalu dirapihkan
+ * jadi satu builder `buildLiviaIdentity`. Sekarang buildernya generik:
+ * `buildCharacterIdentity(character, input)` menyusun prompt dari data
+ * karakter di `content/characters/*.json`. Fungsi tugas (balasan chat vs
+ * adegan kencan) menambahkan instruksi output-nya sendiri di atas fondasi ini.
  */
 
 export type Language = 'id' | 'en';
@@ -23,7 +26,7 @@ export interface PhysiologicalStats {
 
 export interface PersonaContextInput {
   affection: number;
-  /** Bab cerita tertinggi yang terbuka. ≥11 artinya sudah menikah. */
+  /** Bab cerita tertinggi yang terbuka. ≥11 artinya sudah menikah (Livia). */
   highestChapter?: number;
   stats?: PhysiologicalStats;
   itemsBrought?: string[];
@@ -51,65 +54,82 @@ function affectionStage(affection: number): string {
   return '4-5';
 }
 
-function relationshipContext(highestChapter: number | undefined): string {
-  return (highestChapter ?? 0) >= 11
-    ? 'Kamu dan User SEKARANG SUDAH MENIKAH (kalian adalah suami istri). Kamu bukan lagi sekadar tetangga kos, melainkan istrinya. Meski kadang masih tsundere, rasamu kepadanya sangat dalam dan kamu melayaninya layaknya seorang istri yang penuh perhatian.'
-    : 'Kamu dan User adalah tetangga kos yang saling mengenal (atau berpacaran jika afeksi tinggi).';
+function relationshipContext(character: Character, highestChapter: number | undefined): string {
+  const { relationship } = character;
+  return relationship.marriedAtChapter !== undefined &&
+    (highestChapter ?? 0) >= relationship.marriedAtChapter
+    ? relationship.married!
+    : relationship.default;
 }
 
-function languageRule(language: Language): string {
+function languageRule(language: Language, character: Character): string {
   return language === 'en'
-    ? '- MUST REPLY IN NATURAL, CONVERSATIONAL ENGLISH while keeping her tsundere personality intact\n- Keep answers concise (max 3-4 sentences)'
-    : '- Gunakan Bahasa Indonesia yang natural dan sehari-hari\n- Jangan terlalu panjang — maksimal 3-4 kalimat per respons';
+    ? `- MUST REPLY IN NATURAL, CONVERSATIONAL ENGLISH while keeping ${character.speech.enPersonalityPhrase} intact\n- Keep answers concise (max 3-4 sentences)`
+    : `- Gunakan Bahasa Indonesia yang natural dan sehari-hari\n- Jangan terlalu panjang — maksimal 3-4 kalimat per respons`;
 }
 
 /**
- * Fondasi persona Livia: siapakah dia, hubungan dengan user, kondisi fisik,
- * memori, dan aturan bicara. Task-specific instruction (output JSON, dll)
- * ditambahkan oleh pemanggil setelah blok ini.
+ * Aturan panggilan suara — bersifat universal (tidak menyebut nama
+ * karakter), jadi dipakai bersama oleh semua karakter.
  */
-export function buildLiviaIdentity(input: PersonaContextInput): string {
-  const levelName = getAffectionLevelName(input.affection);
-  const personalityContext = input.itemsBrought
-    ? generatePersonalityContext(input.itemsBrought)
-    : '';
-
-  let prompt = `Kamu adalah Livia Einhart, gadis 19 tahun. ${relationshipContext(input.highestChapter)} Kamu tsundere, temperamen, tapi sangat manja di dalam hati — walaupun kamu tidak akan pernah mengakuinya secara langsung.
-
-${personalityContext}
-
-Level kedekatan saat ini: ${levelName} (level ${affectionStage(input.affection)}/5)
-- Level 0-1: Kamu dingin, sering menjawab singkat, mudah tersinggung
-- Level 2-3: Kamu mulai terbuka tapi masih sering tsundere
-- Level 4-5: Kamu sangat manja dan protektif, tapi tetap tidak mau ngaku`;
-
-  if (input.stats) {
-    // Catatan: blok aturan TTS sengaja TIDAK dikirim lewat `voiceCall` di sini,
-    // karena buildLiviaIdentity menambahkannya sendiri di bawah (satu tempat
-    // saja). Kalau dikirim dua kali, prompt jadi berulang dan model mulai
-    // mengabaikan salah satunya.
-    prompt += `\n${describePhysiologicalState({ stats: input.stats })}`;
-  }
-
-  prompt += `\nMemori Jangka Panjang Livia tentang User:
-${input.memoryLines?.trim() || 'Belum ada memori khusus. Livia baru mengenal User.'}
-
-Aturan berbicara:
-${languageRule(input.language)}
-- JANGAN pernah campur bahasa Jepang
-- Tidak perlu selalu formal — boleh santai, ketus, atau manja sesuai mood
-- Tunjukkan emosi secara implisit melalui pilihan kata, bukan deskripsi eksplisit`;
-
-  if (input.isVoiceCall) {
-    prompt += `
+const VOICE_CALL_RULES = `
 ATURAN KHUSUS PANGGILAN TELEPON (VOICE CALL):
 - INI ADALAH PANGGILAN TELEPON SUARA, BUKAN CHAT TEKS!
 - SANGAT DILARANG menggunakan tanda bintang untuk aksi fisik atau roleplay (contoh: *tersenyum*, *mengambil barang*), karena teks ini akan dibaca oleh mesin Text-to-Speech.
 - Jika ingin menunjukkan emosi, gunakan kata-kata lisan seperti "Hahaha", "Uhm...", "Eh?!", "Ck", "Huft".
 - Buat kalimat terdengar seperti percakapan lisan yang natural.`;
+
+/**
+ * Fondasi persona karakter: siapakah dia, hubungan dengan user, kondisi fisik,
+ * memori, dan aturan bicara. Task-specific instruction (output JSON, dll)
+ * ditambahkan oleh pemanggil setelah blok ini.
+ *
+ * Karakter diambil dari registry (`content/characters/*.json`). Livia lewat
+ * `buildLiviaIdentity` menghasilkan teks yang persis sama dengan implementasi
+ * M2.3 lama — dijaga oleh `tests/characters.test.ts`.
+ */
+export function buildCharacterIdentity(character: Character, input: PersonaContextInput): string {
+  const levelName = getAffectionLevelName(input.affection);
+  const personalityContext =
+    character.usesBackstoryItems && input.itemsBrought
+      ? generatePersonalityContext(input.itemsBrought)
+      : '';
+
+  let prompt = `${character.identityLine} ${relationshipContext(character, input.highestChapter)} ${character.personalityLine}
+
+${personalityContext}
+
+Level kedekatan saat ini: ${levelName} (level ${affectionStage(input.affection)}/5)
+${character.affectionStages.map(stage => `- Level ${stage.range}: ${stage.description}`).join('\n')}`;
+
+  if (input.stats && character.hasPhysiology) {
+    // Catatan: blok aturan TTS sengaja TIDAK dikirim lewat `voiceCall` di sini,
+    // karena builder menambahkannya sendiri di bawah (satu tempat
+    // saja). Kalau dikirim dua kali, prompt jadi berulang dan model mulai
+    // mengabaikan salah satunya.
+    prompt += `\n${describePhysiologicalState({ stats: input.stats, name: character.shortName })}`;
+  }
+
+  prompt += `\n${character.memoryHeader}
+${input.memoryLines?.trim() || character.memoryEmpty}
+
+Aturan berbicara:
+${languageRule(input.language, character)}
+${character.speech.rules.map(rule => `- ${rule}`).join('\n')}`;
+
+  if (input.isVoiceCall) {
+    prompt += VOICE_CALL_RULES;
   }
 
   return prompt;
+}
+
+/**
+ * Wrapper ke karakter default (Livia). Mempertahankan signature lama agar
+ * pemanggil yang belum diberi `characterId` tetap jalan tanpa perubahan.
+ */
+export function buildLiviaIdentity(input: PersonaContextInput): string {
+  return buildCharacterIdentity(getCharacter('livia'), input);
 }
 
 /**
