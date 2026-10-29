@@ -361,7 +361,7 @@ adalah pose unik yang dipakai sebagai fallback `clingy`/`flirty`.
 - Progres (afeksi, memori, chapter) **dipisah per karakter** — sudah
   diputuskan, menunggu skema DB.
 - Konten bertema Livia (16 chapter, quest, items, resep, TTS voice, sprite
-  outfit) tetap milik Livia; karakter lain hanya punuh ekspresi datar.
+  outfit) tetap milik Livia; karakter lain hanya punya ekspresi datar.
 - `summary.ts` / `memory.ts` masih bertema Livia (prompt summarizer) —
   akan diparameter saat karakter benar-benar bisa dipilih.
 
