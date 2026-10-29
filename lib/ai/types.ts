@@ -1,8 +1,7 @@
-import type { ResponseSchema } from '@google/generative-ai';
 import type { z } from 'zod';
 
 /**
- * Kontrak provider LLM (M2.2).
+ * Kontrak provider LLM (M2.2, diperluas M8.1).
  *
  * Tujuan abstraksi ini bukan "biar keren", tapi supaya kode domain
  * (`lib/ai/persona.ts`, route chat/date) tidak tahu-menahu soal SDK Google.
@@ -14,7 +13,30 @@ import type { z } from 'zod';
  * (`blocked: true`). Domain yang memutuskan mau bilang apa ke user.
  */
 
-export type AIProviderName = 'gemini';
+export type AIProviderName = 'gemini' | 'openai' | 'anthropic' | 'openai-compat';
+
+/**
+ * Skema JSON netral (M8.1) — subset JSON Schema yang benar-benar dipakai app.
+ *
+ * Sebelumnya tipe ini dipinjam dari `@google/generative-ai`; nilai runtime-nya
+ * memang sudah JSON Schema (tipe lowercase: `'object'`, `'string'`, ...), jadi
+ * memindahkannya ke sini nol perubahan perilaku. Adapter yang menerjemahkan:
+ *  - Gemini   → dikirim apa adanya (API v1beta menerima bentuk ini);
+ *  - OpenAI   → `response_format: json_schema` (strict) setelah dinormalisasi;
+ *  - Anthropic→ dijadikan instruksi JSON di system prompt (tidak ada native
+ *               structured output di Messages API).
+ */
+export type JsonSchemaType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object';
+
+export interface JsonSchemaNode {
+  type: JsonSchemaType;
+  description?: string;
+  properties?: Record<string, JsonSchemaNode>;
+  items?: JsonSchemaNode;
+  required?: string[];
+}
+
+export type LlmResponseSchema = JsonSchemaNode;
 
 /** Satu giliran percakapan dalam bentuk yang dipahami provider. */
 export interface LlmTurn {
@@ -29,8 +51,8 @@ export interface GenerateOptions<T> {
   systemInstruction: string;
   /** Riwayat percakapan + pesan terbaru. Harus diawali & diakhiri `user`. */
   turns: LlmTurn[];
-  /** Skema JSON yang dipaksa ke model (native structured output). */
-  responseSchema: ResponseSchema;
+  /** Skema JSON yang dipaksa ke model (native structured output bila ada). */
+  responseSchema: LlmResponseSchema;
   /**
    * Validator untuk hasil parsing. Model bisa saja melanggar skema walau
    * `responseSchema` sudah dikirim, jadi output tetap divalidasi di sini.
@@ -38,6 +60,12 @@ export interface GenerateOptions<T> {
   outputSchema: z.ZodType<T>;
   temperature?: number;
   maxOutputTokens?: number;
+  /**
+   * Override model untuk request ini (M8.1 — pilihan user di settings).
+   * `undefined` = pakai model dari config (`AI_MODEL_CHAT`/`AI_MODEL_DIALOGUE`).
+   * Nilai WAJIB sudah lolos allowlist server sebelum sampai ke sini.
+   */
+  model?: string;
   /** API key milik user. `undefined` = pakai key server. */
   apiKey?: string;
 }

@@ -153,7 +153,8 @@ sebelum DoD terpenuhi + ada test yang lulus.
 
 ## M8 — Fitur Paritas agar Bertaraf Komersial (Bulan 7–9)
 
-- [ ] **M8.1** **Multi-model selector di settings** (gemini-flash / pro / gpt / claude / ollama) — biar user lihat kamu memposisikan Livia sebagai client cerdas, bukan terkurung Gemini.
+- [x] **M8.1 Phase 1** **Multi-provider engine** — adapter Gemini / OpenAI / Anthropic / OpenAI-compatible (provider pihak ketiga), helper retry–fallback–breaker bersama, skema respons netral, API key per provider. Detail: `docs/M8-IMPLEMENTATION.md`.
+- [ ] **M8.1 Phase 2** **Multi-model selector di settings** (gemini-flash / pro / gpt / claude / model provider pihak ketiga) + allowlist server + `userProfiles.preferredModel` — biar user lihat kamu memposisikan Livia sebagai client cerdas, bukan terkurung Gemini.
 - [ ] **M8.2** **Karakter lain** (ayah, legal): defensif vs Code Geass — engine-nya abstrak, `persona.ts` cukup file JSON. Di-app kamu tinggal Ayame/Enji/Laura/Naomi (public/ folder mereka sudah ada, tapi characternya belum dipakai engine?).
 - [ ] **M8.3** **Tool calling**: "Livia, ingetin aku jam 7", "Livia, tolong catat belanja", integrasi TODO/schedule/kitchen → dia benar-benar asisten (infrastruktur M2).
 - [ ] **M8.4** **Gamifikasi server-validated**: quest & achievement otoritas server (lihat M5.4), leaderboard opsional, daily challenge bervariasi.

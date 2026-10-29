@@ -1,7 +1,9 @@
 import { getUserApiKey } from '@/lib/ai/keys';
+import { getAIConfig } from './config';
+import type { AIProviderName } from './types';
 
 /**
- * Helper request-level AI (M2.2).
+ * Helper request-level AI (M2.2, multi-provider M8.1).
  *
  * Dipindah dari `lib/gemini.ts` karena tidak spesifik Gemini: bahasa dan
  * penentuan API key adalah urusan permintaan, bukan urusan provider.
@@ -17,19 +19,31 @@ import { getUserApiKey } from '@/lib/ai/keys';
  * disusupi), dan API key LLM = tagihan ke kartu kredit user.
  *
  * Prioritas:
- *  1. Key tersimpan milik user (terenkripsi di DB) — diambil lewat `userId`.
- *  2. Header `x-custom-api-key` (hanya untuk sesi tab, tidak persisten).
+ *  1. Key tersimpan milik user (terenkripsi di DB) — HANYA kalau provider key
+ *     sama dengan provider yang melayani request ini (key Gemini tidak boleh
+ *     dikirim ke OpenAI).
+ *  2. Header `x-custom-api-key` (hanya untuk sesi tab, tidak persisten) —
+ *     hanya untuk provider default server, karena header tidak membawa
+ *     informasi provider.
  *  3. `undefined` → pakai key server.
  */
 export async function resolveApiKey(
   userId: string,
-  req?: Request
+  req?: Request,
+  targetProvider: AIProviderName = getAIConfig().provider
 ): Promise<string | undefined> {
   const stored = await getUserApiKey(userId);
-  if (stored) return stored;
+  if (stored && stored.provider === targetProvider) {
+    return stored.key;
+  }
 
   const headerKey = req?.headers.get('x-custom-api-key')?.trim();
-  if (headerKey && headerKey.length >= 20 && headerKey.length <= 200) {
+  if (
+    headerKey &&
+    headerKey.length >= 20 &&
+    headerKey.length <= 200 &&
+    targetProvider === getAIConfig().provider
+  ) {
     return headerKey;
   }
 

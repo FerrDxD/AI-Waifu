@@ -18,6 +18,20 @@ const DEFAULT_PROVIDER: AIProviderName = 'gemini';
 const DEFAULT_CHAT_MODEL = 'gemini-3.6-flash';
 const DEFAULT_DIALOGUE_MODEL = 'gemini-3.6-flash';
 /**
+ * Model default per provider (M8.1).
+ *
+ * `openai-compat` sengaja TIDAK punya default: provider pihak ketiga punya
+ * daftar model sendiri, dan menebak nama model berarti request 400 yang
+ * membingungkan. Owner WAJIB mengisi `AI_MODEL_CHAT`/`AI_MODEL_DIALOGUE`;
+ * `resolveModelForOperation` melempar error jelas kalau kosong.
+ */
+const DEFAULT_MODELS: Record<AIProviderName, string> = {
+  gemini: DEFAULT_CHAT_MODEL,
+  openai: 'gpt-4o-mini',
+  anthropic: 'claude-3-5-haiku-latest',
+  'openai-compat': '',
+};
+/**
  * Fallback sengaja TIDAK default ke model lain: kalau nama model fallback
  * salah, kita hanya membuang waktu setelah model utama gagal. Biarkan kosong
  * (tanpa fallback) sampai user memilih model yang benar-benar ada.
@@ -72,11 +86,19 @@ function readInt(name: string, fallback: number, min: number, max: number): numb
   return Math.min(max, Math.max(min, Math.trunc(parsed)));
 }
 
+const PROVIDER_NAMES: readonly AIProviderName[] = [
+  'gemini',
+  'openai',
+  'anthropic',
+  'openai-compat',
+];
+
 function readProvider(): AIProviderName {
   const raw = readString('AI_PROVIDER')?.toLowerCase();
-  // Baru satu provider yang diimplementasikan. Nilai lain diabaikan dengan
-  // aman daripada bikin app mati karena typo env.
-  if (raw && raw !== DEFAULT_PROVIDER) return DEFAULT_PROVIDER;
+  // Nilai tak dikenal diabaikan dengan aman daripada bikin app mati karena typo.
+  if (raw && (PROVIDER_NAMES as readonly string[]).includes(raw)) {
+    return raw as AIProviderName;
+  }
   return DEFAULT_PROVIDER;
 }
 
@@ -85,12 +107,14 @@ let cached: AIEngineConfig | null = null;
 export function getAIConfig(): AIEngineConfig {
   if (cached) return cached;
 
-  const chatModel = readString('AI_MODEL_CHAT') ?? DEFAULT_CHAT_MODEL;
+  const provider = readProvider();
+  const providerDefaultModel = DEFAULT_MODELS[provider];
+  const chatModel = readString('AI_MODEL_CHAT') ?? providerDefaultModel;
 
   cached = {
-    provider: readProvider(),
+    provider,
     chatModel,
-    dialogueModel: readString('AI_MODEL_DIALOGUE') ?? DEFAULT_DIALOGUE_MODEL,
+    dialogueModel: readString('AI_MODEL_DIALOGUE') ?? chatModel ?? DEFAULT_DIALOGUE_MODEL,
     fallbackModel: readString('AI_MODEL_FALLBACK') ?? null,
     timeoutMs: readInt('AI_TIMEOUT_MS', DEFAULT_TIMEOUT_MS, 1_000, 120_000),
     maxRetries: readInt('AI_MAX_RETRIES', DEFAULT_MAX_RETRIES, 0, 5),

@@ -3,7 +3,7 @@ import { apiHandler, jsonApiHandler } from '@/lib/api-handler';
 import { errors } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { requireString, LIMITS } from '@/lib/validation';
-import { deleteUserApiKey, getApiKeyStatus, saveUserApiKey } from '@/lib/ai/keys';
+import { deleteUserApiKey, getApiKeyStatus, isSupportedKeyProvider, saveUserApiKey } from '@/lib/ai/keys';
 import { CryptoConfigError } from '@/lib/crypto';
 import { mutationRateLimit } from '@/lib/rate-limit';
 import { recordAuditEvent } from '@/lib/safety/audit';
@@ -24,7 +24,7 @@ export const GET = apiHandler({ route: `${ROUTE}.GET` }, async ({ userId }) => {
   return NextResponse.json(status, { headers: NO_STORE });
 });
 
-type ApiKeyBody = { apiKey?: unknown };
+type ApiKeyBody = { apiKey?: unknown; provider?: unknown };
 
 export const POST = jsonApiHandler<ApiKeyBody>(
   {
@@ -35,9 +35,12 @@ export const POST = jsonApiHandler<ApiKeyBody>(
   },
   async ({ userId, body }) => {
     const apiKey = requireString(body.apiKey, 'apiKey', { max: LIMITS.apiKey ?? 512 });
+    // M8.1: key disimpan bersama providernya; default lama (gemini) tetap
+    // berlaku untuk client yang belum mengirim field ini.
+    const provider = isSupportedKeyProvider(body.provider) ? body.provider : 'gemini';
 
     try {
-      const status = await saveUserApiKey(userId, apiKey);
+      const status = await saveUserApiKey(userId, apiKey, provider);
 
       // M4.6: yang dicatat hanya provider & route. API key-nya sendiri TIDAK
       // pernah masuk audit log — itu justru kebocoran yang ingin dicegah.

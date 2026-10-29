@@ -1,4 +1,4 @@
-import { SchemaType, type ResponseSchema } from '@google/generative-ai';
+import type { LlmResponseSchema } from './types';
 import { z } from 'zod';
 
 /**
@@ -208,47 +208,47 @@ export const liviaReplyValidator = z
 export type LiviaReply = z.infer<typeof liviaReplyValidator>;
 
 /** `responseSchema` untuk balasan Livia. */
-export const liviaReplyResponseSchema: ResponseSchema = {
-  type: SchemaType.OBJECT,
+export const liviaReplyResponseSchema: LlmResponseSchema = {
+  type: 'object',
   properties: {
     reply: {
-      type: SchemaType.STRING,
+      type: 'string',
       description: 'Teks balasan Livia, 1-4 kalimat, tanpa nama pembicara dan tanpa tanda kutip.',
     },
     affectionDelta: {
-      type: SchemaType.INTEGER,
+      type: 'integer',
       description: `Perubahan afeksi sebagai bilangan bulat antara -${MAX_AFFECTION_DELTA} dan ${MAX_AFFECTION_DELTA}.`,
     },
     expression: {
-      type: SchemaType.STRING,
+      type: 'string',
       // Catatan: SDK ini tidak mendukung `enum` di responseSchema
       // (StringSchema.enum bertipe `never`), jadi daftar nilai yang sah
       // ditulis di description dan ditegakkan oleh normalizeExpression().
       description: `Ekspresi wajah Livia. Pilih salah satu: ${LIVIA_EXPRESSIONS.join(', ')}.`,
     },
     memoryUpdate: {
-      type: SchemaType.STRING,
+      type: 'string',
       description:
         'Warisan lama. Kosongkan saja; fakta baru ditulis di field memories.',
     },
     memories: {
-      type: SchemaType.ARRAY,
+      type: 'array',
       description:
         'Fakta tahan lama BARU tentang user. Maksimal 2. Array kosong kalau tidak ada fakta baru.',
       items: {
-        type: SchemaType.OBJECT,
+        type: 'object',
         properties: {
           type: {
-            type: SchemaType.STRING,
+            type: 'string',
             description:
               'core (identitas inti: nama panggilan, alergi) | episodic (kejadian/rencana) | semantic (fakta stabil: hobi, kerja, makanan).',
           },
           content: {
-            type: SchemaType.STRING,
+            type: 'string',
             description: 'Satu kalimat fakta, maksimal 200 karakter, tanpa bullet.',
           },
           confidence: {
-            type: SchemaType.INTEGER,
+            type: 'integer',
             description: 'Keyakinan bahwa fakta ini benar, 0–100.',
           },
         },
@@ -292,26 +292,26 @@ export const dateDialogueValidator = z
 export type DateDialogue = z.infer<typeof dateDialogueValidator>;
 
 /** `responseSchema` untuk adegan kencan. */
-export const dateDialogueResponseSchema: ResponseSchema = {
-  type: SchemaType.OBJECT,
+export const dateDialogueResponseSchema: LlmResponseSchema = {
+  type: 'object',
   properties: {
     timeOfDay: {
-      type: SchemaType.STRING,
+      type: 'string',
       description: 'Waktu dalam adegan. Pilih salah satu: pagi, sore, malam.',
     },
     scene: {
-      type: SchemaType.ARRAY,
+      type: 'array',
       description: '5-7 baris dialog berurutan.',
       items: {
-        type: SchemaType.OBJECT,
+        type: 'object',
         properties: {
           speaker: {
-            type: SchemaType.STRING,
+            type: 'string',
             description: 'Nama pembicara: "Livia", nama user, atau "Narator".',
           },
-          text: { type: SchemaType.STRING, description: 'Isi dialog atau narasi.' },
+          text: { type: 'string', description: 'Isi dialog atau narasi.' },
           expression: {
-            type: SchemaType.STRING,
+            type: 'string',
             description: `Ekspresi wajah Livia. Pilih salah satu: ${LIVIA_EXPRESSIONS.join(', ')}.`,
           },
         },
@@ -335,11 +335,11 @@ export const chatSummaryValidator = z.object({
 
 export type ChatSummary = z.infer<typeof chatSummaryValidator>;
 
-export const chatSummaryResponseSchema: ResponseSchema = {
-  type: SchemaType.OBJECT,
+export const chatSummaryResponseSchema: LlmResponseSchema = {
+  type: 'object',
   properties: {
     summary: {
-      type: SchemaType.STRING,
+      type: 'string',
       description:
         'Ringkasan 3-5 kalimat Bahasa Indonesia, dari sudut pandang Livia. Fokus pada fakta user, janji/jadwal, dan konflik yang belum selesai.',
     },
@@ -359,11 +359,11 @@ export const memoryDigestValidator = z.object({
 
 export type MemoryDigest = z.infer<typeof memoryDigestValidator>;
 
-export const memoryDigestResponseSchema: ResponseSchema = {
-  type: SchemaType.OBJECT,
+export const memoryDigestResponseSchema: LlmResponseSchema = {
+  type: 'object',
   properties: {
     memory: {
-      type: SchemaType.STRING,
+      type: 'string',
       description:
         'Satu paragraf 2-4 kalimat, sudut pandang Livia, merangkum memori-memori tersebut menjadi satu ingatan yang utuh.',
     },

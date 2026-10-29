@@ -58,8 +58,28 @@ describe('getAIConfig', () => {
   });
 
   it('provider tak dikenal diabaikan, tidak membuat app mati', () => {
-    process.env.AI_PROVIDER = 'openai';
+    process.env.AI_PROVIDER = 'ollama';
     expect(getAIConfig().provider).toBe('gemini');
+  });
+
+  it('provider yang didukung dibaca apa adanya (M8.1)', () => {
+    for (const provider of ['gemini', 'openai', 'anthropic', 'openai-compat'] as const) {
+      process.env.AI_PROVIDER = provider;
+      __resetAIConfigForTests();
+      expect(getAIConfig().provider).toBe(provider);
+    }
+  });
+
+  it('model default mengikuti provider, bukan selalu Gemini', () => {
+    process.env.AI_PROVIDER = 'openai';
+    __resetAIConfigForTests();
+    expect(getAIConfig().chatModel).toBe('gpt-4o-mini');
+  });
+
+  it('openai-compat tanpa AI_MODEL_CHAT → model kosong (ditolak nanti, bukan ditebak)', () => {
+    process.env.AI_PROVIDER = 'openai-compat';
+    __resetAIConfigForTests();
+    expect(getAIConfig().chatModel).toBe('');
   });
 
   it('timeout di-clamp ke batas aman', () => {

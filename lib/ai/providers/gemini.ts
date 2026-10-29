@@ -13,7 +13,17 @@ import { CircuitBreaker } from '../circuit-breaker';
 import { createReplyExtractor } from '../stream/extract';
 import { createDeltaQueue, type DeltaQueue } from '../stream/queue';
 import { AppError } from '@/lib/errors';
-import { logger, serializeError } from '@/lib/logger';
+import { logger } from '@/lib/logger';
+import {
+  isBackendFailure,
+  normalizeTurns,
+  normalizeUsage,
+  resolveModelForOperation,
+  runGenerateWithRetry,
+  streamOnceWithRetry,
+  toTimeoutError,
+  type UsageTotals,
+} from './common';
 
 /**
  * Adapter Gemini (M2.2 + M2.6).
@@ -31,64 +41,6 @@ import { logger, serializeError } from '@/lib/logger';
  *  6. Error internal JANGAN bocor: `AppError` dengan pesan generik, detail
  *     hanya ke log.
  */
-
-const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
-
-function isRetryableError(error: unknown): boolean {
-  if (error && typeof error === 'object') {
-    const status = (error as { status?: unknown }).status;
-    if (typeof status === 'number' && RETRYABLE_STATUSES.has(status)) return true;
-    // Error tanpa status = TCP/timeout/jaringan. Layak diulang sekali.
-    if (status === undefined) return true;
-  }
-  return false;
-}
-
-/** Tidur dengan jitter ±25% untuk menghindari thundering herd. */
-function backoff(baseMs: number, attempt: number): Promise<void> {
-  const jitter = 0.75 + Math.random() * 0.5;
-  const delay = Math.min(8_000, baseMs * 2 ** attempt) * jitter;
-  return new Promise((resolve) => setTimeout(resolve, delay));
-}
-
-/**
- * Apakah error ini menandakan backend-nya sedang bermasalah?
- *
- * Dipakai circuit breaker. Error klasifikasi sendiri (`AI_BAD_STRUCTURE`,
- * `GEMINI_NOT_CONFIGURED`, `AI_EMPTY_CONTEXT`) TIDAK dihitung: backend jelas
- * merespons, yang salah ada di konfigurasi atau di output model.
- */
-function isBackendFailure(error: unknown): boolean {
-  if (error instanceof AppError) {
-    return error.code === 'AI_TIMEOUT' || error.code === 'AI_GENERATION_FAILED';
-  }
-  return true;
-}
-
-/**
- * Tandai error jaringan mentah jadi error klasifikasi tanpa membocorkan isi.
- * Raw error (`Error: broken pipe`, dsb.) tidak boleh sampai ke client.
- */
-function wrapProviderError(error: unknown): unknown {
-  if (error instanceof AppError) return error;
-  return new AppError('AI_GENERATION_FAILED', 'Gagal menghubungi server AI Google.', 503, true);
-}
-
-/**
- * Ubah kegagalan bertanda timeout/abort dari SDK menjadi `AI_TIMEOUT` yang
- * jelas. Dipakai `generateOnce` dan `streamOnce`.
- */
-function toTimeoutError(error: unknown): AppError | null {
-  if (error instanceof AppError) return null;
-  const status = (error as { status?: number } | null)?.status;
-  const msg = (error as Error | null)?.message ?? '';
-  const timedOut =
-    status === undefined &&
-    (msg.toLowerCase().includes('timeout') || msg.toLowerCase().includes('abort'));
-  return timedOut
-    ? new AppError('AI_TIMEOUT', 'Server AI terlalu lama merespons.', 504, true)
-    : null;
-}
 
 /**
  * Ambil teks dari satu chunk streaming tanpa memanggil `chunk.text()` yang
@@ -113,15 +65,9 @@ type UsageMetadataLike =
  * mengonsumi input token, jadi biayanya nyata. `undefined` kalau SDK tidak
  * memberi metadata (atau semuanya nol) — pemencatat skip sunyi.
  */
-function usageOf(meta: UsageMetadataLike):
-  | { inputTokens: number; outputTokens: number; totalTokens: number }
-  | undefined {
+function usageOf(meta: UsageMetadataLike): UsageTotals | undefined {
   if (!meta) return undefined;
-  const inputTokens = Math.max(0, Math.trunc(meta.promptTokenCount ?? 0));
-  const outputTokens = Math.max(0, Math.trunc(meta.candidatesTokenCount ?? 0));
-  const totalTokens = Math.max(0, Math.trunc(meta.totalTokenCount ?? inputTokens + outputTokens));
-  if (inputTokens === 0 && outputTokens === 0 && totalTokens === 0) return undefined;
-  return { inputTokens, outputTokens, totalTokens };
+  return normalizeUsage(meta.promptTokenCount, meta.candidatesTokenCount, meta.totalTokenCount);
 }
 
 export class GeminiProvider implements LLMProvider {
@@ -165,26 +111,12 @@ export class GeminiProvider implements LLMProvider {
   }
 
   private toContent(turns: { role: 'user' | 'model'; text: string }[]): GenerateContentRequest['contents'] {
-    const contents: GenerateContentRequest['contents'] = [];
-
-    for (const turn of turns) {
-      const text = turn.text?.trim();
-      if (!text) continue;
-
-      const role = turn.role;
-      const last = contents[contents.length - 1];
-      if (last && last.role === role && last.parts[0]) {
-        // Gabungkan giliran berurutan — Gemini menolak dua giliran dengan role sama.
-        last.parts[0].text += `\n${text}`;
-      } else {
-        contents.push({ role, parts: [{ text }] });
-      }
-    }
-
-    // Gemini mengharuskan contents diawali giliran 'user'.
-    if (contents.length > 0 && contents[0].role === 'model') contents.shift();
-
-    return contents;
+    // Normalisasi giliran identik dengan adapter lain (M8.1): gabung role
+    // berurutan, buang giliran kosong & `model` di awal.
+    return normalizeTurns(turns).map((turn) => ({
+      role: turn.role,
+      parts: [{ text: turn.text }],
+    }));
   }
 
   async generate<T>(options: GenerateOptions<T>): Promise<GenerateResult<T>> {
@@ -229,78 +161,18 @@ export class GeminiProvider implements LLMProvider {
       throw new AppError('AI_EMPTY_CONTEXT', 'Tidak ada isi percakapan untuk dikirim ke AI.', 400, true);
     }
 
-    // Model utama bergantung pada jenis operasi. Dulu pemilihan ini terjadi di
-    // dalam percobaan, sehingga jalur fallback untuk `date.dialogue` tidak
-    // pernah benar-benar memakai model fallback.
-    const primaryModel =
-      options.operation === 'date.dialogue' ? cfg.dialogueModel : cfg.chatModel;
+    // Model utama bergantung pada jenis operasi, dan bisa dioverride pilihan
+    // user (M8.1). Fallback TIDAK memakai override — kalau model pilihan user
+    // gagal, model cadangan milik server yang dicoba.
+    const primaryModel = resolveModelForOperation(options.operation, options.model, cfg);
 
-    const attempt = async (model: string) =>
-      this.generateOnce(options, cfg.timeoutMs, contents, model);
-
-    let lastError: unknown = null;
-    let attempts = 0;
-
-    for (let i = 0; i <= cfg.maxRetries; i++) {
-      attempts++;
-      try {
-        return await attempt(primaryModel);
-      } catch (error) {
-        lastError = error;
-
-        // AppError berarti kita SUDAH mengklasifikasikan masalahnya
-        // (struktur respons buruk, konfigurasi hilang, timeout). Jangan
-        // diulang, jangan ditimpa pesan generik — user berhak tahu bedanya
-        // "AI belum dikonfigurasi" vs "server Google sedang sibuk".
-        if (error instanceof AppError) {
-          logger.warn('ai.generate_aborted', {
-            operation: options.operation,
-            model: primaryModel,
-            attempt: i + 1,
-            code: error.code,
-          });
-          throw error;
-        }
-
-        logger.warn('ai.generate_retryable_failed', {
-          operation: options.operation,
-          model: primaryModel,
-          attempt: i + 1,
-          status: (error as { status?: number })?.status,
-        });
-        if (i < cfg.maxRetries && isRetryableError(error)) {
-          await backoff(cfg.retryBaseMs, i);
-          continue;
-        }
-        break;
-      }
-    }
-
-    // Fallback model (M2.6): model utama gagal, coba yang lebih murah/padat.
-    if (cfg.fallbackModel && cfg.fallbackModel !== primaryModel) {
-      logger.warn('ai.fallback_model', {
-        operation: options.operation,
-        from: primaryModel,
-        to: cfg.fallbackModel,
-      });
-      try {
-        const result = await attempt(cfg.fallbackModel);
-        return { ...result, usedFallback: true };
-      } catch (error) {
-        // AppError dari fallback (mis. struktur buruk) juga tidak perlu
-        // ditimpa pesan generik.
-        if (error instanceof AppError) throw error;
-        lastError = error;
-      }
-    }
-
-    logger.error('ai.generate_failed', {
+    return runGenerateWithRetry({
       operation: options.operation,
-      model: primaryModel,
-      attempts,
-      error: serializeError(lastError),
+      providerLabel: 'AI Google',
+      primaryModel,
+      fallbackModel: cfg.fallbackModel,
+      attempt: (model) => this.generateOnce(options, cfg.timeoutMs, contents, model),
     });
-    throw new AppError('AI_GENERATION_FAILED', 'Gagal menghubungi server AI Google.', 503, true);
   }
 
   stream<T>(options: GenerateOptions<T>): StreamingGenerate<T> {
@@ -326,9 +198,9 @@ export class GeminiProvider implements LLMProvider {
       );
     }
 
-    // Model utama bergantung pada jenis operasi — sama dengan `generate`.
-    const primaryModel =
-      options.operation === 'date.dialogue' ? cfg.dialogueModel : cfg.chatModel;
+    // Model utama bergantung pada jenis operasi, dan bisa dioverride pilihan
+    // user (M8.1) — sama dengan `generate`.
+    const primaryModel = resolveModelForOperation(options.operation, options.model, cfg);
 
     const queue = createDeltaQueue();
 
@@ -354,12 +226,11 @@ export class GeminiProvider implements LLMProvider {
   }
 
   /**
-   * Satu percobaan streaming.
+   * Satu operasi streaming.
    *
-   * Aturan retry: boleh diulang SELAMA belum ada satu delta pun yang terkirim
-   * ke konsumen. Kalau sudah ada teks yang mengalir dan koneksi putus,
-   * mengulang berarti teks akan terulang dua kali di layar — lebih aman
-   * menyuruh user coba lagi.
+   * Retry + aturan "jangan ulang setelah ada delta terkirim" ditangani
+   * `streamOnceWithRetry` (helper bersama M8.1) — perilakunya identik dengan
+   * implementasi M2.6 sebelumnya, dan kini berlaku sama untuk semua adapter.
    */
   private async streamOnce<T>(
     options: GenerateOptions<T>,
@@ -369,6 +240,26 @@ export class GeminiProvider implements LLMProvider {
     queue: DeltaQueue
   ): Promise<GenerateResult<T>> {
     const startedAt = Date.now();
+
+    return streamOnceWithRetry({
+      operation: options.operation,
+      providerLabel: 'AI Google',
+      model: resolvedModel,
+      queue,
+      attempt: (push) =>
+        this.streamAttempt(options, timeoutMs, contents, resolvedModel, startedAt, push),
+    });
+  }
+
+  /** Satu percobaan penuh streaming (tanpa loop retry). */
+  private async streamAttempt<T>(
+    options: GenerateOptions<T>,
+    timeoutMs: number,
+    contents: GenerateContentRequest['contents'],
+    resolvedModel: string,
+    startedAt: number,
+    push: (delta: string) => void
+  ): Promise<GenerateResult<T>> {
     const client = this.clientForKey(options.apiKey);
 
     const model = client.getGenerativeModel({
@@ -379,126 +270,94 @@ export class GeminiProvider implements LLMProvider {
         temperature: options.temperature ?? 0.7,
         maxOutputTokens: options.maxOutputTokens ?? 1_024,
         responseMimeType: 'application/json',
-        responseSchema: options.responseSchema,
+        responseSchema: options.responseSchema as unknown as ResponseSchema,
       },
     });
 
-    let emitted = false;
+    const extractor = createReplyExtractor();
 
-    for (let i = 0; ; i++) {
-      const extractor = createReplyExtractor();
+    const streamResult = await model.generateContentStream(
+      { contents },
+      { timeout: timeoutMs } as SingleRequestOptions
+    );
 
-      try {
-        const streamResult = await model.generateContentStream(
-          { contents },
-          { timeout: timeoutMs } as SingleRequestOptions
-        );
-
-        for await (const chunk of streamResult.stream) {
-          const raw = chunkTextOf(chunk);
-          if (!raw) continue;
-          const delta = extractor.push(raw);
-          if (delta) {
-            emitted = true;
-            queue.push(delta);
-          }
-        }
-
-        // Respons lengkap dipakai untuk deteksi blokir + validasi.
-        const aggregated = await streamResult.response;
-
-        // M7.1: pemakaian token (diisi juga untuk hasil blocked — prompt
-        // tetap mengonsumi input token).
-        const usage = usageOf(aggregated?.usageMetadata);
-
-        // M0/H0.2: penolakan safety bukan error, ini hasil yang sah.
-        if (isBlocked({ response: aggregated })) {
-          return {
-            data: null,
-            blocked: true,
-            blockReason: blockReasonOf({ response: aggregated }),
-            model: resolvedModel,
-            usedFallback: false,
-            latencyMs: Date.now() - startedAt,
-            usage,
-          };
-        }
-
-        const raw = extractor.raw;
-        if (!raw.trim()) {
-          return {
-            data: null,
-            blocked: true,
-            blockReason: 'NO_CANDIDATE',
-            model: resolvedModel,
-            usedFallback: false,
-            latencyMs: Date.now() - startedAt,
-            usage,
-          };
-        }
-
-        // JSON.parse bisa melempar SyntaxError mentah; itu BUKAN error
-        // jaringan, jadi jangan diulang sampai satu percobaan penuh (M2.2).
-        let parsedJson: unknown;
-        try {
-          parsedJson = JSON.parse(raw);
-        } catch {
-          logger.warn('ai.stream_output_not_json', { operation: options.operation, model: resolvedModel });
-          throw new AppError(
-            'AI_BAD_STRUCTURE',
-            'Respons AI tidak sesuai format. Coba lagi ya.',
-            502,
-            true
-          );
-        }
-
-        const parsed = options.outputSchema.safeParse(parsedJson);
-        if (!parsed.success) {
-          logger.warn('ai.output_validation_failed', {
-            operation: options.operation,
-            model: resolvedModel,
-            issues: parsed.error.issues.slice(0, 5).map((iss) => iss.path.join('.')),
-          });
-          throw new AppError(
-            'AI_BAD_STRUCTURE',
-            'Respons AI tidak sesuai format. Coba lagi ya.',
-            502,
-            true
-          );
-        }
-
-        return {
-          data: parsed.data,
-          blocked: false,
-          model: resolvedModel,
-          usedFallback: false,
-          latencyMs: Date.now() - startedAt,
-          usage,
-        };
-      } catch (error) {
-        // Timeout/abort dari SDK → AI_TIMEOUT yang jelas, tidak diulang.
-        const timeoutError = toTimeoutError(error);
-        if (timeoutError) throw timeoutError;
-
-        // Error yang sudah terklasifikasi (struktur/konfigurasi/timeout)
-        // tidak diulang dan tidak ditimpa — sama seperti di `generate`.
-        if (error instanceof AppError) throw error;
-
-        // Error mentah tidak boleh lolos apa adanya ke route (bisa bocor ke
-        // log client), dibungkus supaya tipe errornya konsisten.
-        if (!isRetryableError(error) || emitted) throw wrapProviderError(error);
-        if (i >= getAIConfig().maxRetries) throw wrapProviderError(error);
-
-        logger.warn('ai.stream_retryable_failed', {
-          operation: options.operation,
-          model: resolvedModel,
-          attempt: i + 1,
-          status: (error as { status?: number })?.status,
-        });
-
-        await backoff(getAIConfig().retryBaseMs, i);
-      }
+    for await (const chunk of streamResult.stream) {
+      const raw = chunkTextOf(chunk);
+      if (!raw) continue;
+      push(extractor.push(raw));
     }
+
+    // Respons lengkap dipakai untuk deteksi blokir + validasi.
+    const aggregated = await streamResult.response;
+
+    // M7.1: pemakaian token (diisi juga untuk hasil blocked — prompt
+    // tetap mengonsumi input token).
+    const usage = usageOf(aggregated?.usageMetadata);
+
+    // M0/H0.2: penolakan safety bukan error, ini hasil yang sah.
+    if (isBlocked({ response: aggregated })) {
+      return {
+        data: null,
+        blocked: true,
+        blockReason: blockReasonOf({ response: aggregated }),
+        model: resolvedModel,
+        usedFallback: false,
+        latencyMs: Date.now() - startedAt,
+        usage,
+      };
+    }
+
+    const raw = extractor.raw;
+    if (!raw.trim()) {
+      return {
+        data: null,
+        blocked: true,
+        blockReason: 'NO_CANDIDATE',
+        model: resolvedModel,
+        usedFallback: false,
+        latencyMs: Date.now() - startedAt,
+        usage,
+      };
+    }
+
+    // JSON.parse bisa melempar SyntaxError mentah; itu BUKAN error
+    // jaringan, jadi jangan diulang sampai satu percobaan penuh (M2.2).
+    let parsedJson: unknown;
+    try {
+      parsedJson = JSON.parse(raw);
+    } catch {
+      logger.warn('ai.stream_output_not_json', { operation: options.operation, model: resolvedModel });
+      throw new AppError(
+        'AI_BAD_STRUCTURE',
+        'Respons AI tidak sesuai format. Coba lagi ya.',
+        502,
+        true
+      );
+    }
+
+    const parsed = options.outputSchema.safeParse(parsedJson);
+    if (!parsed.success) {
+      logger.warn('ai.output_validation_failed', {
+        operation: options.operation,
+        model: resolvedModel,
+        issues: parsed.error.issues.slice(0, 5).map((iss) => iss.path.join('.')),
+      });
+      throw new AppError(
+        'AI_BAD_STRUCTURE',
+        'Respons AI tidak sesuai format. Coba lagi ya.',
+        502,
+        true
+      );
+    }
+
+    return {
+      data: parsed.data,
+      blocked: false,
+      model: resolvedModel,
+      usedFallback: false,
+      latencyMs: Date.now() - startedAt,
+      usage,
+    };
   }
 
   private async generateOnce<T>(
@@ -518,7 +377,7 @@ export class GeminiProvider implements LLMProvider {
         temperature: options.temperature ?? 0.7,
         maxOutputTokens: options.maxOutputTokens ?? 1_024,
         responseMimeType: 'application/json',
-        responseSchema: options.responseSchema,
+        responseSchema: options.responseSchema as unknown as ResponseSchema,
       },
     });
 
@@ -533,7 +392,7 @@ export class GeminiProvider implements LLMProvider {
       );
     } catch (error) {
       // Timeout dari SDK melempar versi-nya sendiri; ubah jadi AppError jelas.
-      const timeoutError = toTimeoutError(error);
+      const timeoutError = toTimeoutError(error, 'AI Google');
       if (timeoutError) throw timeoutError;
       throw error;
     }

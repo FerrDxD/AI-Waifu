@@ -48,3 +48,7 @@ Thumbs.db
 
 # Vercel
 .vercel
+.serena
+
+# Provider/kredensial lokal — JANGAN PERNAH di-commit
+docs/provider.json

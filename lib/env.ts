@@ -43,11 +43,18 @@ const serverSchema = z.object({
   ELEVENLABS_VOICE_ID: z.string().optional(),
   NEXTAUTH_URL: z.string().url().optional(),
 
-  // Mesin AI (M2.2): semuanya opsional — default baca dari lib/ai/config.ts.
-  AI_PROVIDER: z.enum(['gemini']).optional(),
+  // Mesin AI (M2.2, multi-provider di M8.1): semuanya opsional — default baca
+  // dari lib/ai/config.ts.
+  AI_PROVIDER: z.enum(['gemini', 'openai', 'anthropic', 'openai-compat']).optional(),
   AI_MODEL_CHAT: z.string().optional(),
   AI_MODEL_DIALOGUE: z.string().optional(),
   AI_MODEL_FALLBACK: z.string().optional(),
+  // Kunci server per provider. Hanya provider yang dipakai yang perlu diisi.
+  OPENAI_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  // Provider pihak ketiga berprotokol OpenAI (TipRouter, OpenRouter, Ollama, ...).
+  OPENAI_COMPAT_BASE_URL: z.string().url().optional(),
+  OPENAI_COMPAT_API_KEY: z.string().optional(),
   AI_TIMEOUT_MS: z
     .string()
     .optional()
