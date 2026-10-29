@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, Camera, Image as ImageIcon, Heart, Calendar, BookHeart, Lock } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import CharacterGate from '@/components/characters/CharacterGate';
 
 const EMOJIS = ["👋", "🍜", "📚", "🪴", "☕", "🎮", "🌧️", "🧳", "🎥", "🍳", "🎉", "🎁", "📝", "⛩️", "🍲", "🏢"];
 const GRADIENTS = [
@@ -123,7 +122,6 @@ export default function AlbumPage() {
   }));
 
   return (
-    <CharacterGate feature="story">
     <div className="min-h-[100dvh] w-full bg-[#f4ebd8] relative overflow-hidden flex flex-col font-sans select-none">
       
       {/* Scrapbook Background Texture */}
@@ -265,6 +263,5 @@ export default function AlbumPage() {
       )}
 
     </div>
-    </CharacterGate>
   );
 }

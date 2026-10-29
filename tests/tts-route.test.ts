@@ -17,18 +17,6 @@ const cacheState = vi.hoisted(() => ({
   dailyChars: 0,
 }));
 
-// M8.2 Phase B: gate `voiceCall` di route membaca karakter aktif dari DB.
-// Suite tidak punya database — modul switch di-mock supaya gate lolos
-// (perilaku gate sendiri diuji di tests/characters-features.test.ts).
-vi.mock('@/lib/characters/switch', async () => {
-  const { getCharacter } = await import('@/lib/characters/registry');
-  return {
-    getActiveCharacter: vi.fn(async () => getCharacter('livia')),
-    getCharacterChoice: vi.fn(),
-    switchActiveCharacter: vi.fn(),
-  };
-});
-
 vi.mock('@/lib/tts/cache', () => ({
   TTS_CACHE_MAX_ROWS: 1000,
   DEFAULT_TTS_MAX_CHARS_PER_DAY: 30_000,

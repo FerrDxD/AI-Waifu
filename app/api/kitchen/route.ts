@@ -14,8 +14,6 @@ import { RECIPES } from '@/lib/livia/recipes';
 import { jsonApiHandler } from '@/lib/api-handler';
 import { mutationRateLimit } from '@/lib/rate-limit';
 import { AppError, errors } from '@/lib/errors';
-import { getActiveCharacter } from '@/lib/characters/switch';
-import { assertFeature } from '@/lib/characters/gates';
 
 /**
  * POST /api/kitchen — memasak lewat mini-game.
@@ -36,10 +34,6 @@ export const POST = jsonApiHandler<KitchenBody>(
     rateLimitMessage: 'Dapur sedang ramai. Tunggu sebentar ya.',
   },
   async ({ userId, body }) => {
-    // M8.2 Phase B: dapur & resep adalah sistem life-sim milik Livia.
-    const character = await getActiveCharacter(userId);
-    assertFeature(character, 'lifeSim');
-
     const recipe =
       typeof body.recipeId === 'string' ? RECIPES.find((r) => r.id === body.recipeId) : undefined;
 
@@ -101,7 +95,7 @@ export const POST = jsonApiHandler<KitchenBody>(
     const newHunger = updated[0].liviaHunger;
     const newEnergy = updated[0].liviaEnergy;
     const newAffection = updated[0].affection ?? 0;
-    await ensureUnlockedChapters(userId, newAffection, character);
+    await ensureUnlockedChapters(userId, newAffection);
 
     return NextResponse.json({
       success: true,

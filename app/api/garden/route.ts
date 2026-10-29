@@ -15,8 +15,6 @@ import {
 import { apiHandler, jsonApiHandler } from '@/lib/api-handler';
 import { mutationRateLimit } from '@/lib/rate-limit';
 import { errors } from '@/lib/errors';
-import { getActiveCharacter } from '@/lib/characters/switch';
-import { assertFeature } from '@/lib/characters/gates';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,9 +60,6 @@ function calculateStageAndHydration(pot: GardenPot): PotWithGrowth {
 }
 
 export const GET = apiHandler({ route: '/api/garden.GET' }, async ({ userId }) => {
-  // M8.2 Phase B: kebun adalah sistem life-sim milik Livia.
-  assertFeature(await getActiveCharacter(userId), 'lifeSim');
-
   let pots = await db.select().from(gardenPots).where(eq(gardenPots.userId, userId));
 
   // Kalau belum punya pot, buat 6 pot kosong.
@@ -111,10 +106,6 @@ export const POST = jsonApiHandler<GardenBody>(
     rateLimitMessage: 'Kebun sedang sibuk. Tunggu sebentar ya.',
   },
   async ({ userId, body }) => {
-    // M8.2 Phase B: kebun adalah sistem life-sim milik Livia.
-    const character = await getActiveCharacter(userId);
-    assertFeature(character, 'lifeSim');
-
     const action = typeof body.action === 'string' ? body.action : '';
     if (!GARDEN_ACTIONS.includes(action as (typeof GARDEN_ACTIONS)[number])) {
       throw errors.badRequest('Aksi kebun tidak dikenal.', 'INVALID_ACTION');
@@ -210,7 +201,7 @@ export const POST = jsonApiHandler<GardenBody>(
         .returning({ affection: userProfiles.affection });
 
       if (updated.length > 0) {
-        await ensureUnlockedChapters(userId, updated[0].affection ?? 0, character);
+        await ensureUnlockedChapters(userId, updated[0].affection ?? 0);
       }
 
       await db

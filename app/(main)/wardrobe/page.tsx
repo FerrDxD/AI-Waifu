@@ -7,7 +7,6 @@ import Link from 'next/link';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { EN_LIVIA_DIALOGUES } from '@/lib/i18n/content';
-import CharacterGate from '@/components/characters/CharacterGate';
 
 const ALL_OUTFITS = [
   { id: 'default', name: 'Baju Biasa', emoji: '👕', desc: 'Pakaian sehari-hari Livia.' },
@@ -109,7 +108,6 @@ export default function WardrobePage() {
   if (isLoading) return <LoadingScreen text="Membuka Lemari..." />;
 
   return (
-    <CharacterGate feature="lifeSim">
     <div 
       className="h-[100dvh] w-full bg-[#fdfbf7] relative overflow-hidden flex flex-col font-sans select-none"
       onTouchStart={handleTouchStart}
@@ -298,6 +296,5 @@ export default function WardrobePage() {
 
       </div>
     </div>
-    </CharacterGate>
   );
 }

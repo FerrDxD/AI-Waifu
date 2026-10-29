@@ -8,8 +8,6 @@ import { errors } from '@/lib/errors';
 import { RECIPES } from '@/lib/livia/recipes';
 import { ensureUnlockedChapters } from '@/lib/livia/affection.server';
 import { getAffectionLevel, getUnlockedChapters } from '@/lib/livia/affection';
-import { getActiveCharacter } from '@/lib/characters/switch';
-import { assertFeature } from '@/lib/characters/gates';
 import {
   newAffectionExpr,
   affectionLevelExpr,
@@ -45,11 +43,6 @@ export const POST = jsonApiHandler<CookBody>(
     rateLimitMessage: 'Dapur terlalu ramai. Tunggu sebentar ya.',
   },
   async ({ userId, body }) => {
-    // M8.2 Phase B: memasak + statistik lapar/energi adalah sistem life-sim
-    // milik Livia.
-    const character = await getActiveCharacter(userId);
-    assertFeature(character, 'lifeSim');
-
     if (typeof body.recipeId !== 'string') {
       throw errors.badRequest('Resep tidak dikenal.', 'UNKNOWN_RECIPE');
     }
@@ -101,13 +94,13 @@ export const POST = jsonApiHandler<CookBody>(
 
     const newMoney = updated[0].money;
     const newAffection = updated[0].affection ?? 0;
-    await ensureUnlockedChapters(userId, newAffection, character);
+    await ensureUnlockedChapters(userId, newAffection);
     const level = getAffectionLevel(newAffection);
     const unlockedChapter = getUnlockedChapters(-1, newAffection).pop() ?? null;
 
     const message = isMinigameFailed
-      ? `${recipe.name} jadi kurang matang, tapi ${character.shortName} tetap menghabiskanmu. Dia bilang, "Yaa... lumayan lah. Lain kali jangan sambil main HP ya!"`
-      : `${recipe.name} berhasil dimasak! ${character.shortName} tersenyum puas. "Wah, wanginya sampai ke kamar aku!"`;
+      ? `${recipe.name} jadi kurang matang, tapi Livia tetap menghabiskanmu. Dia bilang, "Yaa... lumayan lah. Lain kali jangan sambil main HP ya!"`
+      : `${recipe.name} berhasil dimasak! Livia tersenyum puas. "Wah, wanginya sampai ke kamar aku!"`;
 
     return NextResponse.json({
       ok: true,

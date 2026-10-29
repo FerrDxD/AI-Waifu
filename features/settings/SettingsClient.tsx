@@ -3,14 +3,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, User, Users, Volume2, Bell, ShieldAlert, LogOut, Check, X, Key, Sparkles, Trash2, Save, Download, Upload, HardDrive, Globe, Brain, Cpu } from 'lucide-react';
+import { ChevronLeft, User, Volume2, Bell, ShieldAlert, LogOut, Check, X, Key, Sparkles, Trash2, Save, Download, Upload, HardDrive, Globe, Brain, Cpu } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { playSfx } from '@/lib/sfx';
 import { showCustomAlert, showCustomConfirm } from '@/lib/alert';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { purgeLegacyApiKeyStorage, useApiKeyStatus } from '@/lib/client/api-key';
 import { useModelPreference } from '@/lib/client/model-preference';
-import { CharacterPickerSection } from '@/components/characters/CharacterPicker';
+
 /**
  * Label & warna per tipe memori (M3.5). Diletakkan di luar komponen supaya
  * tidak dibuat ulang setiap render.
@@ -644,15 +644,6 @@ export default function SettingsPage() {
                 : 'API Key dikirim sekali lewat HTTPS lalu disimpan terenkripsi (AES-256-GCM) di server kami. Key tidak pernah ditulis ke localStorage atau cookie, dan tidak pernah dikirim balik ke browser — kami hanya menampilkan 4 karakter terakhir. JavaScript yang berjalan di halaman ini tidak bisa membacanya.'}
             </p>
           </div>
-        </section>
-
-        {/* Section 2.6: Pemilihan karakter (M8.2 Phase B) */}
-        <section className="flex flex-col gap-4">
-          <h2 className="font-display font-black text-lg text-[#5c4d47] flex items-center gap-2">
-            <Users className="text-pink-500" />{' '}
-            {language === 'en' ? 'Companion' : 'Karakter'}
-          </h2>
-          <CharacterPickerSection />
         </section>
 
         {/* Section 2.5: Memori Livia (M3.5) */}

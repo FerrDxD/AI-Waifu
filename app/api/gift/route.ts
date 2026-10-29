@@ -15,8 +15,6 @@ import { ITEMS } from '@/lib/livia/items';
 import { jsonApiHandler } from '@/lib/api-handler';
 import { mutationRateLimit } from '@/lib/rate-limit';
 import { errors } from '@/lib/errors';
-import { getActiveCharacter } from '@/lib/characters/switch';
-import { assertFeature } from '@/lib/characters/gates';
 
 const RECOVERY_STATS: Record<string, { hunger?: number; energy?: number; hydration?: number }> = {
   onigiri: { hunger: 15, energy: 5 },
@@ -61,11 +59,6 @@ export const POST = jsonApiHandler<GiftBody>(
     rateLimitMessage: 'Terlalu banyak transaksi. Tunggu sebentar ya.',
   },
   async ({ userId, body }) => {
-    // M8.2 Phase B: toko hadiah & pemulihan statistik adalah sistem life-sim
-    // milik Livia. Karakter companion tidak punya konten ini.
-    const character = await getActiveCharacter(userId);
-    assertFeature(character, 'lifeSim');
-
     // CATATAN (M5.4): harga & afeksi masih dikirim client karena katalog toko
     // (`app/(main)/shop/page.tsx`) belum punya padanan server. Yang bisa
     // diamankan sekarang: tipe, rentang, dan daftar item.
@@ -150,7 +143,7 @@ export const POST = jsonApiHandler<GiftBody>(
 
     const newMoney = updated[0].money;
     const newAffection = updated[0].affection ?? 0;
-    await ensureUnlockedChapters(userId, newAffection, character);
+    await ensureUnlockedChapters(userId, newAffection);
     const unlockedChapter = getUnlockedChapters(-1, newAffection).pop() ?? null;
 
     return NextResponse.json({ success: true, newMoney, newAffection, unlockedChapter });

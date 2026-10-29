@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { preloadCharacterSprites } from '@/lib/preloader';
+import { preloadLiviaSprites } from '@/lib/preloader';
 
 const VN_TIPS = [
   "Tip: Semakin tinggi afeksi Livia, semakin banyak fitur yang terbuka!",
@@ -24,7 +24,7 @@ export default function LoadingScreen({ text = "Now Loading...", showTip = true 
 
   useEffect(() => {
     setTipIndex(Math.floor(Math.random() * VN_TIPS.length));
-    preloadCharacterSprites();
+    preloadLiviaSprites();
   }, []);
 
   return (

@@ -23,7 +23,6 @@ import { and, asc, count, desc, eq, inArray } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { memoryItems, userProfiles } from '@/lib/db/schema';
 import { getProvider } from '@/lib/ai';
-import { getCharacter, type Character } from '@/lib/characters/registry';
 import {
   cleanMemoryContent,
   memoryDigestResponseSchema,
@@ -325,8 +324,7 @@ export function shouldConsolidate(totalItems: number, sourceCount: number): bool
  */
 export async function importLegacyMemory(
   userId: string,
-  blob: string | null | undefined,
-  characterId: string = 'livia'
+  blob: string | null | undefined
 ): Promise<number> {
   const lines = (blob ?? '')
     .split('\n')
@@ -339,7 +337,7 @@ export async function importLegacyMemory(
     const inserted = await addMemories(
       userId,
       lines.map((content) => ({ type: 'semantic' as const, content, confidence: 70 })),
-      { maxInsert: 20, characterId }
+      { maxInsert: 20 }
     );
 
     await db
@@ -365,10 +363,9 @@ export async function importLegacyMemory(
 export async function addMemories(
   userId: string,
   candidates: ExtractedMemory[],
-  opts: { maxInsert?: number; characterId?: string } = {}
+  opts: { maxInsert?: number } = {}
 ): Promise<number> {
   const maxInsert = Math.max(1, opts.maxInsert ?? 5);
-  const characterId = opts.characterId ?? 'livia';
 
   const cleaned: ExtractedMemory[] = [];
   for (const candidate of candidates) {
@@ -395,9 +392,7 @@ export async function addMemories(
   const existing = await db
     .select({ content: memoryItems.content })
     .from(memoryItems)
-    .where(
-      and(eq(memoryItems.userId, userId), eq(memoryItems.characterId, characterId))
-    )
+    .where(eq(memoryItems.userId, userId))
     .limit(DEDUPE_SCAN_LIMIT);
 
   const fresh = cleaned
@@ -409,7 +404,6 @@ export async function addMemories(
   await db.insert(memoryItems).values(
     fresh.map((candidate) => ({
       userId,
-      characterId,
       type: candidate.type,
       content: candidate.content,
       confidence: candidate.confidence,
@@ -430,22 +424,20 @@ export async function addMemories(
 export async function recordMemories(
   userId: string,
   reply: { memories?: ExtractedMemory[]; memoryUpdate?: string },
-  apiKey?: string,
-  characterId: string = 'livia'
+  apiKey?: string
 ): Promise<number> {
   try {
     const candidates = memoryCandidatesFromReply(reply);
-    const inserted =
-      candidates.length > 0 ? await addMemories(userId, candidates, { characterId }) : 0;
+    const inserted = candidates.length > 0 ? await addMemories(userId, candidates) : 0;
 
     if (inserted > 0) {
-      logger.info('memory.recorded', { userId, characterId, inserted });
+      logger.info('memory.recorded', { userId, inserted });
     }
 
     // Tidak ditunggu: "merenung" memanggil LLM (detik-an), chat tidak boleh
     // ikut menunggu. Kalau runtime membekukan promise ini, tidak ada data
     // hilang — konsolidasi hanya ditunda ke giliran berikutnya.
-    void maybeConsolidateMemory(userId, apiKey, characterId);
+    void maybeConsolidateMemory(userId, apiKey);
 
     return inserted;
   } catch (error) {
@@ -461,16 +453,13 @@ export async function recordMemories(
 export async function retrieveMemories(
   userId: string,
   query: string,
-  opts: { limit?: number; now?: Date; characterId?: string } = {}
+  opts: { limit?: number; now?: Date } = {}
 ): Promise<StoredMemory[]> {
-  const characterId = opts.characterId ?? 'livia';
   try {
     const rows = await db
       .select()
       .from(memoryItems)
-      .where(
-        and(eq(memoryItems.userId, userId), eq(memoryItems.characterId, characterId))
-      )
+      .where(eq(memoryItems.userId, userId))
       .orderBy(desc(memoryItems.createdAt))
       .limit(RETRIEVAL_SCAN_LIMIT);
 
@@ -479,7 +468,7 @@ export async function retrieveMemories(
     if (chosen.length > 0) {
       // Di-await: satu UPDATE murah, dan promise tanpa penunggu bisa dibekukan
       // sebelum sempat jalan di runtime serverless (decay jadi tidak akurat).
-      await touchRecalled(userId, chosen, opts.now ?? new Date(), characterId);
+      await touchRecalled(userId, chosen, opts.now ?? new Date());
     }
 
     return chosen;
@@ -493,12 +482,8 @@ export async function retrieveMemories(
 }
 
 /** Teks siap tempel ke prompt ('' kalau tidak ada memori). */
-export async function retrieveMemoryLines(
-  userId: string,
-  query: string,
-  opts: { characterId?: string } = {}
-): Promise<string> {
-  return formatMemoryLines(await retrieveMemories(userId, query, opts));
+export async function retrieveMemoryLines(userId: string, query: string): Promise<string> {
+  return formatMemoryLines(await retrieveMemories(userId, query));
 }
 
 /**
@@ -508,8 +493,7 @@ export async function retrieveMemoryLines(
 async function touchRecalled(
   userId: string,
   memories: StoredMemory[],
-  now: Date,
-  characterId: string = 'livia'
+  now: Date
 ): Promise<void> {
   try {
     await db
@@ -518,7 +502,6 @@ async function touchRecalled(
       .where(
         and(
           eq(memoryItems.userId, userId),
-          eq(memoryItems.characterId, characterId),
           inArray(
             memoryItems.id,
             memories.map((memory) => memory.id)
@@ -534,16 +517,11 @@ async function touchRecalled(
 }
 
 /** Daftar memori untuk panel transparansi (M3.5), terbaru dulu. */
-export async function listMemories(
-  userId: string,
-  characterId: string = 'livia'
-): Promise<MemoryView[]> {
+export async function listMemories(userId: string): Promise<MemoryView[]> {
   const rows = await db
     .select()
     .from(memoryItems)
-    .where(
-      and(eq(memoryItems.userId, userId), eq(memoryItems.characterId, characterId))
-    )
+    .where(eq(memoryItems.userId, userId))
     .orderBy(desc(memoryItems.createdAt))
     .limit(200);
 
@@ -570,44 +548,29 @@ export async function deleteMemory(userId: string, id: string): Promise<boolean>
   return deleted.length > 0;
 }
 
-/** Hapus SEMUA memori user. `characterId` diisi = hanya utas karakter itu (panel);
- * tidak diisi = semua karakter (GDPR / reset). */
-export async function deleteAllMemories(
-  userId: string,
-  characterId?: string
-): Promise<number> {
+/** Hapus SEMUA memori user (GDPR / reset). */
+export async function deleteAllMemories(userId: string): Promise<number> {
   const deleted = await db
     .delete(memoryItems)
-    .where(
-      characterId
-        ? and(eq(memoryItems.userId, userId), eq(memoryItems.characterId, characterId))
-        : eq(memoryItems.userId, userId)
-    )
+    .where(eq(memoryItems.userId, userId))
     .returning({ id: memoryItems.id });
 
   return deleted.length;
 }
 
-/**
- * Instruksi konsolidasi memori (M3.4), dipersonalisasi per karakter.
- * Data `memory.consolidationPersona` membuat Livia menghasilkan teks yang
- * identik dengan instruksi hardcode lama.
- */
-export function buildConsolidationInstructions(character: Character): string {
-  return `
-Kamu adalah ${character.memory.consolidationPersona} yang menjalani hubungan jangka panjang
+export const CONSOLIDATION_INSTRUCTIONS = `
+Kamu adalah Livia, perempuan tsundere yang menjalani hubungan jangka panjang
 dengan satu user. Kamu sedang "merenung" sendirian, memikirkan hal-hal yang
 kamu ingat tentang User.
 
 Di bawah ini beberapa catatan memori lama tentang User. Padatkan menjadi SATU
 ingatan yang utuh dari sudut pandangmu sendiri:
 - pertahankan fakta penting (nama, kebiasaan, alergi, janji yang belum selesai)
-- boleh menyebut perasaanmu tentang fakta itu, tetap dalam suara ${character.shortName}
+- boleh menyebut perasaanmu tentang fakta itu, tetap dalam suara Livia
 - jangan mengarang fakta yang tidak ada di catatan
 - 2-4 kalimat Bahasa Indonesia
 
 Kembalikan HANYA JSON {"memory":"..."}`;
-}
 
 /**
  * Konsolidasi memori lama menjadi satu entri `diary` (M3.4).
@@ -618,20 +581,13 @@ Kembalikan HANYA JSON {"memory":"..."}`;
  */
 export async function maybeConsolidateMemory(
   userId: string,
-  apiKey?: string,
-  characterId: string = 'livia'
+  apiKey?: string
 ): Promise<string | null> {
   try {
-    const character = getCharacter(characterId);
-    const scope = and(
-      eq(memoryItems.userId, userId),
-      eq(memoryItems.characterId, characterId)
-    );
-
     const totals = await db
       .select({ total: count() })
       .from(memoryItems)
-      .where(scope);
+      .where(eq(memoryItems.userId, userId));
     const total = Number(totals[0]?.total ?? 0);
 
     if (total <= CONSOLIDATION_TRIGGER_ITEMS) return null;
@@ -639,7 +595,12 @@ export async function maybeConsolidateMemory(
     const rows = await db
       .select()
       .from(memoryItems)
-      .where(and(scope, inArray(memoryItems.type, ['episodic', 'semantic'])))
+      .where(
+        and(
+          eq(memoryItems.userId, userId),
+          inArray(memoryItems.type, ['episodic', 'semantic'])
+        )
+      )
       .orderBy(asc(memoryItems.createdAt))
       .limit(40);
 
@@ -657,7 +618,7 @@ export async function maybeConsolidateMemory(
 
     const result = await getProvider().generate({
       operation: 'memory.consolidate',
-      systemInstruction: buildConsolidationInstructions(character),
+      systemInstruction: CONSOLIDATION_INSTRUCTIONS,
       turns: [{ role: 'user', text: transcript }],
       responseSchema: memoryDigestResponseSchema,
       outputSchema: memoryDigestValidator,
@@ -679,7 +640,6 @@ export async function maybeConsolidateMemory(
 
     await db.insert(memoryItems).values({
       userId,
-      characterId,
       type: 'diary',
       content,
       confidence: 80,
@@ -690,7 +650,7 @@ export async function maybeConsolidateMemory(
     // yang hilang.
     await db.delete(memoryItems).where(
       and(
-        scope,
+        eq(memoryItems.userId, userId),
         inArray(
           memoryItems.id,
           sources.map((entry) => entry.row.id)
@@ -698,7 +658,7 @@ export async function maybeConsolidateMemory(
       )
     );
 
-    logger.info('memory.consolidated', { userId, characterId, sources: sources.length });
+    logger.info('memory.consolidated', { userId, sources: sources.length });
     return content;
   } catch (error) {
     logger.warn('memory.consolidate_failed', {

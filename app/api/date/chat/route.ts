@@ -18,7 +18,6 @@ import {
 import { errors } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { importLegacyMemory, recordMemories, retrieveMemoryLines } from '@/lib/livia/memory';
-import { getActiveCharacter } from '@/lib/characters/switch';
 
 export const POST = apiHandler(
   {
@@ -53,19 +52,14 @@ export const POST = apiHandler(
       .where(eq(userProfiles.userId, userId));
     const profile = profileResults[0];
 
-    // M8.2 Phase B: kencan berjalan dengan karakter yang sedang aktif.
-    const character = await getActiveCharacter(userId);
-
     // M2.3: logika siklus haid dipindah ke lib/livia/cycle.ts
     const { dayOfCycle, phase: cyclePhase } = getCycleInfo(profile?.liviaCycleAnchor);
 
     // M3: kencan juga memakai memori berlapis, bukan blob lama.
     if (profile?.longTermMemory && profile.longTermMemory.trim() !== '') {
-      await importLegacyMemory(userId, profile.longTermMemory, character.id);
+      await importLegacyMemory(userId, profile.longTermMemory);
     }
-    const memoryLines = await retrieveMemoryLines(userId, message, {
-      characterId: character.id,
-    });
+    const memoryLines = await retrieveMemoryLines(userId, message);
 
     const { reply, expression, affectionDelta, memories, memoryUpdate } =
       await generateDateResponse(
@@ -74,21 +68,18 @@ export const POST = apiHandler(
         history,
         profile?.affection || 0,
         userName,
-        character.hasPhysiology
-          ? {
-              hunger: profile?.liviaHunger ?? 100,
-              energy: profile?.liviaEnergy ?? 100,
-              hydration: profile?.liviaHydration ?? 100,
-              cyclePhase,
-              cycleDay: dayOfCycle,
-            }
-          : undefined,
+        {
+          hunger: profile?.liviaHunger ?? 100,
+          energy: profile?.liviaEnergy ?? 100,
+          hydration: profile?.liviaHydration ?? 100,
+          cyclePhase,
+          cycleDay: dayOfCycle,
+        },
         memoryLines,
         customApiKey,
         language,
         userId,
-        sanitizePreferredModel(profile?.preferredModel),
-        character.id
+        sanitizePreferredModel(profile?.preferredModel)
       );
 
     let updateResult: {
@@ -101,7 +92,7 @@ export const POST = apiHandler(
       // M5.4: afeksi di-update atomik (affection + delta, clamp) + lastSeen +
       // unlock chapter dalam satu jalur. Delta 0 cukup catat lastSeen.
       if (affectionDelta !== 0) {
-        const res = await applyAffectionAtomic(userId, affectionDelta, character);
+        const res = await applyAffectionAtomic(userId, affectionDelta);
         if (res) updateResult = res;
       } else {
         await db.update(userProfiles).set({ lastSeen: new Date() }).where(eq(userProfiles.userId, userId));
@@ -109,7 +100,7 @@ export const POST = apiHandler(
 
       // M3.2: fakta dari kencan ikut masuk tabel memori. Di-await dengan alasan
       // sama seperti chat: promise tanpa penunggu bisa dibekukan serverless.
-      await recordMemories(userId, { memories, memoryUpdate }, customApiKey, character.id);
+      await recordMemories(userId, { memories, memoryUpdate }, customApiKey);
     }
 
     // M7.2: catat hari-aktif (retensi/DAU). Fail-open di dalam

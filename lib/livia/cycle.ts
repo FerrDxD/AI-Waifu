@@ -44,17 +44,14 @@ export function getCycleInfo(anchor?: Date | string | null, now: Date = new Date
 /**
  * Konteks fisiologis untuk prompt (dipakai `lib/ai/persona.ts`).
  * Statistik hunger/energy/hydration dipetakan jadi kata sifat + teks yang
- * memengaruhi nada karakter. Nama karakter dipasang dari registry (M8.2
- * Phase A); default "Livia" mempertahankan output lama.
+ * memengaruhi nada Livia.
  */
 export function describePhysiologicalState(input: {
   stats: { hunger: number; energy: number; hydration: number; cyclePhase: string; cycleDay: number };
   voiceCall?: boolean;
   includeBehaviorHint?: boolean;
-  name?: string;
 }): string {
   const { stats } = input;
-  const name = input.name ?? 'Livia';
   const hungerState =
     stats.hunger < 20 ? 'SANGAT KELAPARAN' : stats.hunger < 50 ? 'Lapar' : 'Kenyang';
   const energyState =
@@ -70,14 +67,14 @@ export function describePhysiologicalState(input: {
           ? 'Masa Ovulasi (lebih clingy dan cari perhatian)'
           : 'Siklus Normal';
 
-  let context = `\nKondisi Fisik & Biologis ${name} Saat Ini:
+  let context = `\nKondisi Fisik & Biologis Livia Saat Ini:
 - Siklus Menstruasi: ${cycleState} (Hari ke-${stats.cycleDay})
 - Tingkat Lapar: ${hungerState} (${stats.hunger}/100)
 - Tingkat Energi: ${energyState} (${stats.energy}/100)
 - Tingkat Hidrasi: ${hydrationState} (${stats.hydration}/100)`;
 
   if (input.includeBehaviorHint !== false) {
-    context += `\nPENTING: Kondisi fisik ini HARUS sangat mempengaruhi nada bicara ${name}! Jika ia lapar/haus/capek atau sedang PMS/Haid, ia akan JAUH LEBIH galak, ketus, marah-marah, mengeluh, atau bahkan mendiamkan user. Jika ia sedang Ovulasi, ia lebih manja.`;
+    context += `\nPENTING: Kondisi fisik ini HARUS sangat mempengaruhi nada bicara Livia! Jika ia lapar/haus/capek atau sedang PMS/Haid, ia akan JAUH LEBIH galak, ketus, marah-marah, mengeluh, atau bahkan mendiamkan user. Jika ia sedang Ovulasi, ia lebih manja.`;
   }
 
   if (input.voiceCall) {

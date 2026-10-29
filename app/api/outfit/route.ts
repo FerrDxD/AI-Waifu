@@ -5,15 +5,10 @@ import { userProfiles } from '@/lib/db/schema';
 import { apiHandler, jsonApiHandler } from '@/lib/api-handler';
 import { mutationRateLimit } from '@/lib/rate-limit';
 import { errors } from '@/lib/errors';
-import { getActiveCharacter } from '@/lib/characters/switch';
-import { assertFeature } from '@/lib/characters/gates';
 
 const OUTFIT_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
 
 export const GET = apiHandler({ route: '/api/outfit.GET' }, async ({ userId }) => {
-  // M8.2 Phase B: lemari pakaian adalah sistem life-sim milik Livia.
-  assertFeature(await getActiveCharacter(userId), 'lifeSim');
-
   const profileResults = await db
     .select()
     .from(userProfiles)
@@ -39,9 +34,6 @@ export const POST = jsonApiHandler<OutfitBody>(
     rateLimitMessage: 'Terlalu banyak ganti baju. Tunggu sebentar ya.',
   },
   async ({ userId, body }) => {
-    // M8.2 Phase B: lemari pakaian adalah sistem life-sim milik Livia.
-    assertFeature(await getActiveCharacter(userId), 'lifeSim');
-
     if (typeof body.outfitId !== 'string' || !OUTFIT_ID_PATTERN.test(body.outfitId)) {
       throw errors.badRequest('Outfit tidak valid.', 'INVALID_OUTFIT');
     }

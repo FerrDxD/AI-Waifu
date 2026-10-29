@@ -13,7 +13,6 @@ import {
   importLegacyMemory,
   listMemories,
 } from '@/lib/livia/memory';
-import { getActiveCharacter } from '@/lib/characters/switch';
 
 /**
  * Panel memori (M3.5).
@@ -34,9 +33,6 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 export const GET = apiHandler({ route: `${ROUTE}.GET` }, async ({ userId }) => {
   try {
-    // M8.2 Phase B: panel menampilkan memori karakter aktif saja.
-    const character = await getActiveCharacter(userId);
-
     // Migrasi sekali jalan dari kolom lama. Kalau kosong, tidak ada kerja.
     const profiles = await db
       .select({ legacy: userProfiles.longTermMemory })
@@ -45,10 +41,10 @@ export const GET = apiHandler({ route: `${ROUTE}.GET` }, async ({ userId }) => {
 
     const legacy = profiles[0]?.legacy;
     if (legacy && legacy.trim() !== '') {
-      await importLegacyMemory(userId, legacy, character.id);
+      await importLegacyMemory(userId, legacy);
     }
 
-    const memories = await listMemories(userId, character.id);
+    const memories = await listMemories(userId);
     return NextResponse.json({ memories }, { headers: NO_STORE });
   } catch (error) {
     // Tabel `memoryItems` belum ada (user belum `db:push`) atau DB sedang
@@ -84,15 +80,12 @@ export const DELETE = apiHandler(
 
     try {
       if (all === '1' || all === 'true') {
-        // Hanya memori karakter aktif yang dihapus dari panel; penghapusan
-        // total semua karakter ada di alur GDPR (lib/safety/data-control).
-        const character = await getActiveCharacter(userId);
-        const removed = await deleteAllMemories(userId, character.id);
+        const removed = await deleteAllMemories(userId);
 
         await recordAuditEvent({
           userId,
           action: 'memory.delete_all',
-          metadata: { route: `${ROUTE}.DELETE`, removed, characterId: character.id },
+          metadata: { route: `${ROUTE}.DELETE`, removed },
         });
 
         return NextResponse.json({ removed, all: true }, { headers: NO_STORE });

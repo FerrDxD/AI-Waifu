@@ -1,34 +1,19 @@
 import { db } from '@/lib/db';
 import { userProfiles, storyProgress } from '@/lib/db/schema';
-import { and, eq, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { getAffectionLevel, getUnlockedChapters } from './affection';
-import { hasFeature, type Character } from '@/lib/characters/registry';
 
 /**
  * Pastikan chapter yang sudah seharusnya terbuka (berdasarkan affection hasil)
  * benar-benar ada di `storyProgress`. IDempoten: menggabungkan ke set, bukan
  * menambah, jadi aman dipanggil dari jalur apa pun (atomic affection maupun
  * update profil majemuk). Mengembalikan daftar chapter yang dijamin terbuka.
- *
- * M8.2 Phase B: progres bab dipartisi per karakter; karakter tanpa konten
- * cerita (`features.story` false) tidak pernah menyentuh tabel ini.
  */
-export async function ensureUnlockedChapters(
-  userId: string,
-  affection: number,
-  character?: Character
-): Promise<number[]> {
+export async function ensureUnlockedChapters(userId: string, affection: number): Promise<number[]> {
   const chapters = getUnlockedChapters(-1, affection);
   if (chapters.length === 0) return chapters;
-  if (character && !hasFeature(character, 'story')) return chapters;
-  const characterId = character?.id ?? 'livia';
   try {
-    const storyResults = await db
-      .select()
-      .from(storyProgress)
-      .where(
-        and(eq(storyProgress.userId, userId), eq(storyProgress.characterId, characterId))
-      );
+    const storyResults = await db.select().from(storyProgress).where(eq(storyProgress.userId, userId));
     const story = storyResults[0];
     if (story) {
       const set = new Set(story.unlockedChapters || [0]);
@@ -36,13 +21,10 @@ export async function ensureUnlockedChapters(
       await db
         .update(storyProgress)
         .set({ unlockedChapters: Array.from(set) })
-        .where(
-          and(eq(storyProgress.userId, userId), eq(storyProgress.characterId, characterId))
-        );
+        .where(eq(storyProgress.userId, userId));
     } else {
       await db.insert(storyProgress).values({
         userId,
-        characterId,
         unlockedChapters: Array.from(new Set([0, ...chapters])),
       });
     }
@@ -61,15 +43,8 @@ export async function ensureUnlockedChapters(
  * + pembulatan ke [0,100] terjadi di SATU statement `UPDATE ... RETURNING`:
  * Postgres menjamin `affection + ?` dibaca & ditulis atomik per baris, jadi
  * update yang bersaing di-queue oleh lock baris, bukan ditimpa.
- *
- * `character` (opsional, M8.2 Phase B) menentukan partition bab cerita yang
- * ikut disinkronkan. Tidak diisi = Livia (perilaku lama).
  */
-export async function applyAffectionAtomic(
-  userId: string,
-  delta: number,
-  character?: Character
-) {
+export async function applyAffectionAtomic(userId: string, delta: number) {
   const updated = await db
     .update(userProfiles)
     .set({
@@ -84,7 +59,7 @@ export async function applyAffectionAtomic(
   const newAffection = row.affection ?? 0;
 
   const levelInfo = getAffectionLevel(newAffection);
-  const newChapters = await ensureUnlockedChapters(userId, newAffection, character);
+  const newChapters = await ensureUnlockedChapters(userId, newAffection);
 
   return {
     newAffection,

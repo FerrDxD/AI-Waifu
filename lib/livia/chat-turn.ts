@@ -8,7 +8,7 @@
  * Gerakan yang salah di sini = data user rusak, jadi urutannya dikunci di
  * satu tempat dan kedua route hanya memanggil.
  */
-import { and, eq, desc } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { chatMessages, userProfiles, storyProgress } from '@/lib/db/schema';
 import { AppError, errors } from '@/lib/errors';
@@ -21,8 +21,6 @@ import { applyAffectionAtomic } from '@/lib/livia/affection.server';
 import { getCycleInfo } from '@/lib/livia/cycle';
 import { importLegacyMemory, recordMemories, retrieveMemoryLines } from '@/lib/livia/memory';
 import { recordUserActivity } from '@/lib/analytics/activity';
-import { getActiveCharacter } from '@/lib/characters/switch';
-import type { Character } from '@/lib/characters/registry';
 import type { ExtractedMemory } from '@/lib/ai/schemas';
 
 type Profile = typeof userProfiles.$inferSelect;
@@ -30,11 +28,6 @@ type Profile = typeof userProfiles.$inferSelect;
 export interface ChatTurnContext {
   userId: string;
   profile: Profile;
-  /**
-   * Karakter aktif user (M8.2 Phase B). Persona, riwayat, memori, dan bab
-   * semuanya dipartisi per karakter ini.
-   */
-  character: Character;
   highestChapter: number;
   /**
    * Riwayat SUDAH terpangkas di sini (M2.5): window terbaru + pesan lama yang
@@ -95,28 +88,21 @@ export async function loadChatTurnContext(args: {
   const profile = profileResults[0];
   if (!profile) throw errors.notFound('Profil');
 
-  // M8.2 Phase B: seluruh giliran berjalan untuk karakter yang sedang aktif.
-  const character = await getActiveCharacter(userId);
-
   // M3.1: migrasi sekali jalan dari blob `longTermMemory` lama ke tabel
   // terstruktur. Setelah kolomnya kosong (kondisi normal), tidak ada kerja
   // tambahan di sini.
   if (profile.longTermMemory && profile.longTermMemory.trim() !== '') {
-    await importLegacyMemory(userId, profile.longTermMemory, character.id);
+    await importLegacyMemory(userId, profile.longTermMemory);
   }
 
   // M3.3: ambil 5–8 memori paling relevan untuk pesan ini. Fungsi ini tidak
   // pernah melempar — memori yang tidak tersedia bukan alasan chat gagal.
-  const memoryLines = await retrieveMemoryLines(userId, message, {
-    characterId: character.id,
-  });
+  const memoryLines = await retrieveMemoryLines(userId, message);
 
   const progressResults = await db
     .select()
     .from(storyProgress)
-    .where(
-      and(eq(storyProgress.userId, userId), eq(storyProgress.characterId, character.id))
-    );
+    .where(eq(storyProgress.userId, userId));
   const highestChapter = progressResults[0]?.unlockedChapters
     ? Math.max(...progressResults[0].unlockedChapters)
     : 0;
@@ -126,7 +112,7 @@ export async function loadChatTurnContext(args: {
   const historyResults = await db
     .select()
     .from(chatMessages)
-    .where(and(eq(chatMessages.userId, userId), eq(chatMessages.characterId, character.id)))
+    .where(eq(chatMessages.userId, userId))
     .orderBy(desc(chatMessages.createdAt))
     .limit(60);
 
@@ -139,7 +125,7 @@ export async function loadChatTurnContext(args: {
 
   // M2.5: pangkas riwayat ke window + relevan, dan muat ringkasan lama.
   // Baris DB memakai peran 'livia'; lapisan AI memakai 'model'.
-  const summaries = await loadSummaries(userId, character.id);
+  const summaries = await loadSummaries(userId);
   const contextBuild = buildChatContext({
     history: rawHistory.map((m) => ({
       role: m.role === 'livia' ? 'model' : 'user',
@@ -165,7 +151,6 @@ export async function loadChatTurnContext(args: {
   return {
     userId,
     profile,
-    character,
     highestChapter,
     chatHistory,
     earlierSummary: contextBuild.summaryText,
@@ -220,14 +205,14 @@ export async function persistChatTurn(
   message: string,
   aiReply: LiviaReplyContent
 ): Promise<PersistChatTurnResult> {
-  const { userId, profile, character } = ctx;
+  const { userId, profile } = ctx;
   const { reply, affectionDelta, memories, memoryUpdate } = aiReply;
 
   const inserted = await db
     .insert(chatMessages)
     .values([
-      { userId, characterId: character.id, role: 'user', content: message, affectionDelta: 0 },
-      { userId, characterId: character.id, role: 'livia', content: reply, affectionDelta },
+      { userId, role: 'user', content: message, affectionDelta: 0 },
+      { userId, role: 'livia', content: reply, affectionDelta },
     ])
     .returning();
 
@@ -247,7 +232,7 @@ export async function persistChatTurn(
   if (affectionDelta !== 0) {
     // M5.4: afeksi di-update atomik (affection + delta, clamp) + lastSeen +
     // unlock chapter dalam satu jalur; tidak lagi baca-lalu-tulis.
-    const res = await applyAffectionAtomic(userId, affectionDelta, character);
+    const res = await applyAffectionAtomic(userId, affectionDelta);
     if (res) {
       updateResult = res;
     }
@@ -262,7 +247,7 @@ export async function persistChatTurn(
   // diam-diam. Biayanya hanya 1 SELECT + 1 INSERT. `recordMemories` menelan
   // semua errornya sendiri, jadi tidak bisa membatalkan pesan & afeksi yang
   // sudah tersimpan. Konsolidasi (LLM call) TETAP fire-and-forget di dalamnya.
-  await recordMemories(userId, { memories, memoryUpdate }, ctx.customApiKey, character.id);
+  await recordMemories(userId, { memories, memoryUpdate }, ctx.customApiKey);
 
   // M7.4: ID baris Livia dari `.returning()` di atas (insert 2 baris urut
   // user → livia; cari berdasarkan role biar tidak bergantung urutan).

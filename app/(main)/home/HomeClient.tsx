@@ -7,25 +7,19 @@ import { getAffectionLevel } from '@/lib/livia/affection';
 import { recordQuestAction } from '@/lib/livia/quests';
 import ApiGuideModal from '@/components/guide/ApiGuideModal';
 import { playSfx } from '@/lib/sfx';
-import { preloadCharacterSprites } from '@/lib/preloader';
+import { preloadLiviaSprites } from '@/lib/preloader';
 import DailyStampModal from '@/components/daily/DailyStampModal';
 import { unlockAchievement } from '@/lib/achievements';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { getCycleInfo, computePsychStats, type LiviaStats } from '@/features/home/cycle';
-import { getCompanionGreeting, getGreeting, type Weather } from '@/features/home/greeting';
-import {
-  getCompanionTouchReaction,
-  getTouchReaction,
-  type BodyPart,
-} from '@/features/home/touch-interactions';
-import { getCharacter } from '@/lib/characters/registry';
+import { getGreeting, type Weather } from '@/features/home/greeting';
+import { getTouchReaction, type BodyPart } from '@/features/home/touch-interactions';
 import { MobileNavBtn } from '@/features/home/MenuCards';
 import { CommandMenus } from '@/features/home/CommandMenus';
 import { MoreMenusModal, MiniEventModal } from '@/features/home/HomeModals';
 import { StatIsland, MobileStatsModal, type StatItem } from '@/features/home/StatsDisplay';
 import TopHud from '@/features/home/TopHud';
 import HomeBackdrop from '@/features/home/HomeBackdrop';
-import { CharacterSwitchModal } from '@/components/characters/CharacterPicker';
 import { updateAffection } from '@/lib/actions';
 
 /**
@@ -42,8 +36,6 @@ interface HomeClientProps {
   userName: string;
   initialItemsBrought: string[];
   initialOutfit: string;
-  /** M8.2 Phase B: karakter aktif dari profil server (menghindari kedip). */
-  initialCharacterId?: string;
 }
 
 const DEFAULT_STATS: LiviaStats = {
@@ -53,22 +45,15 @@ const DEFAULT_STATS: LiviaStats = {
   cycleAnchor: new Date().toISOString(),
 };
 
-export default function HomeClient({ initialAffection, userName, initialItemsBrought, initialOutfit, initialCharacterId = 'livia' }: HomeClientProps) {
+export default function HomeClient({ initialAffection, userName, initialItemsBrought, initialOutfit }: HomeClientProps) {
   const { dict, language } = useLanguage();
   const [sessionTime, setSessionTime] = useState(0);
   const [affection, setAffection] = useState(initialAffection);
   const [itemsBrought] = useState(initialItemsBrought);
   const [outfit, setOutfit] = useState(initialOutfit);
   const [money, setMoney] = useState(0);
-  const [characterId, setCharacterId] = useState(initialCharacterId);
-  const [showCharacterPicker, setShowCharacterPicker] = useState(false);
   const pendingTouchDelta = useRef(0);
   const touchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
-
-  // M8.2 Phase B: karakter aktif. Livia punya sistem fisiologi & cerita;
-  // karakter companion tidak.
-  const activeCharacter = getCharacter(characterId);
-  const isLivia = activeCharacter.id === 'livia';
 
   const [greetingData, setGreetingData] = useState<{ text: string; expression: LiviaExpression; isInvitingOut?: boolean; invitedPlace?: string }>({
     text: 'Memuat...',
@@ -106,7 +91,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
   }, [affection, money]);
 
   useEffect(() => {
-    preloadCharacterSprites(characterId);
+    preloadLiviaSprites();
     let resolvedStats = DEFAULT_STATS;
 
     Promise.all([
@@ -125,22 +110,11 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
 
       if (userD) {
         setMoney(userD.money || 0);
-        // M8.2 Phase B: karakter aktif mungkin berubah sejak server render;
-        // sinkronkan supaya sprite & sapaan benar.
-        if (userD.characterId) setCharacterId(userD.characterId);
         if (userD.activeOutfit) setOutfit(userD.activeOutfit);
         if (userD.liviaStats) {
           resolvedStats = userD.liviaStats;
           setLiviaStats(userD.liviaStats);
         }
-      }
-
-      // Karakter companion memakai sapaan generik (tanpa siklus/jadwal Livia).
-      const currentId = userD?.characterId ?? characterId;
-      const character = getCharacter(currentId);
-      if (character.id !== 'livia') {
-        setGreetingData(getCompanionGreeting(character, initialAffection, userName));
-        return;
       }
 
       const phase = getCycleInfo(resolvedStats.cycleAnchor).phase;
@@ -154,11 +128,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
     playSfx('pop');
     recordQuestAction('touch_livia');
 
-    const character = getCharacter(characterId);
-    const reaction =
-      character.id === 'livia'
-        ? getTouchReaction(getCycleInfo(liviaStats.cycleAnchor).phase, part, userName)
-        : getCompanionTouchReaction(character, part, userName);
+    const reaction = getTouchReaction(getCycleInfo(liviaStats.cycleAnchor).phase, part, userName);
 
     setInteractionOverride({ text: reaction.text, expression: reaction.expression });
     setShowEvent(false);
@@ -255,34 +225,8 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
       <ApiGuideModal showFloatingButton={false} />
       <DailyStampModal />
 
-      {/* M8.2 Phase B: shortcut ganti karakter (layar home). */}
-      {showCharacterPicker && (
-        <CharacterSwitchModal onClose={() => setShowCharacterPicker(false)} />
-      )}
-      <button
-        type="button"
-        onClick={() => setShowCharacterPicker(true)}
-        className="absolute top-4 right-4 md:top-10 md:right-12 z-[60] pointer-events-auto bg-white/95 backdrop-blur-md px-3 py-2 rounded-full border border-pink-100/80 shadow-md flex items-center gap-2 active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400"
-        aria-label="Ganti karakter"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={`/${activeCharacter.sprite.folder}/${activeCharacter.sprite.defaultExpression}.webp`}
-          alt={activeCharacter.name}
-          className="w-7 h-9 object-contain pointer-events-none"
-        />
-        <span className="font-display font-bold text-xs text-[#5c4d47] max-w-[80px] truncate">
-          {activeCharacter.shortName}
-        </span>
-      </button>
-
       {/* Latar + karakter + hitbox sentuh */}
-      <HomeBackdrop
-        displayExpression={displayExpression}
-        outfit={outfit}
-        characterId={characterId}
-        onInteract={handleInteract}
-      />
+      <HomeBackdrop displayExpression={displayExpression} outfit={outfit} onInteract={handleInteract} />
 
       {/* ─────────── HUD ─────────── */}
       <div className="absolute inset-0 z-20 pointer-events-none p-4 sm:p-6 md:p-10 flex flex-col justify-between">
@@ -301,8 +245,7 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
         {/* Baris bawah */}
         <div className="flex-1 relative w-full pointer-events-none">
           <div className="absolute bottom-[4.5rem] left-0 right-0 md:bottom-8 md:left-0 md:right-auto md:w-[560px] z-50 flex flex-col gap-3 pointer-events-auto">
-            {/* M8.2 Phase B: statistik fisik hanya dimiliki Livia. */}
-            {isLivia && <StatIsland physical={physicalStats} psych={psychStats} cycle={cycle} />}
+            <StatIsland physical={physicalStats} psych={psychStats} cycle={cycle} />
 
             {/* Balon chat */}
             <div className="origin-bottom-left">

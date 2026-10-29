@@ -58,49 +58,9 @@ export const userProfiles = pgTable('userProfiles', {
    * (fallback ke model server), bukan menghasilkan request yang gagal.
    */
   preferredModel: text('preferred_model'),
-  /**
-   * Karakter yang sedang aktif (M8.2 Phase B). Kolom progres di tabel ini
-   * (afeksi, statistik, koper, memori lama) adalah milik karakter aktif;
-   * saat user berganti karakter, `characterProgress` menyimpan snapshot
-   * per karakter dan ditukar secara atomik (lihat `lib/characters/switch.ts`).
-   */
-  activeCharacterId: text('active_character_id').notNull().default('livia'),
   lastSeen: timestamp('last_seen').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
 });
-
-/**
- * Snapshot progres per karakter (M8.2 Phase B).
- *
- * `userProfiles` menyimpan kondisi karakter AKTIF saja. Saat user berganti
- * karakter, nilai-nilai progres (afeksi, statistik, koper, outfit, memori
- * lama) diturunkan dari profil ke baris karakter lama, lalu baris karakter
- * baru (atau default) dimuat ke profil — satu transaksi, tidak ada
- * percampuran progres antar karakter.
- */
-export const characterProgress = pgTable('characterProgress', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  characterId: text('character_id').notNull(),
-  affection: integer('affection').default(0),
-  affectionLevel: integer('affection_level').default(0),
-  activeOutfit: text('active_outfit').default('default'),
-  itemsBrought: text('items_brought').array(),
-  activeDebuffs: text('active_debuffs').array(),
-  activeBuffs: text('active_buffs').array(),
-  hunger: integer('hunger').default(100),
-  energy: integer('energy').default(100),
-  hydration: integer('hydration').default(100),
-  cycleAnchor: timestamp('cycle_anchor'),
-  statsUpdatedAt: timestamp('stats_updated_at'),
-  /** Blob memori lama (dormant, lihat catatan `memoryItems`). */
-  longTermMemory: text('long_term_memory').default(''),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-}, (table) => ({
-  /** Satu karakter per user; pemuatan selalu lewat pasangan ini. */
-  characterUserUnique: uniqueIndex('idx_character_progress_user_character').on(table.userId, table.characterId),
-}));
 
 /**
  * API key milik user disimpan TERENKRIPSI di server (AES-256-GCM).
@@ -125,17 +85,10 @@ export const chatMessages = pgTable('chatMessages', {
   role: text('role').notNull(), // 'user' | 'livia'
   content: text('content').notNull(),
   affectionDelta: integer('affection_delta').default(0),
-  /**
-   * Karakter pemilik utas percakapan ini (M8.2 Phase B). Riwayat chat
-   * tiap karakter terpisah; nilai lama default 'livia'.
-   */
-  characterId: text('character_id').notNull().default('livia'),
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => ({
   /** M5.3: akses riwayat selalu per-user + urut waktu terbaru dulu. */
   chatUserCreatedAt: index('idx_chat_user_created_at').on(table.userId, table.createdAt).desc(),
-  /** M8.2: riwayat dipisah per karakter. */
-  chatCharacter: index('idx_chat_character').on(table.userId, table.characterId),
 }));
 
 /**
@@ -155,12 +108,8 @@ export const messageSummaries = pgTable('messageSummaries', {
   summary: text('summary').notNull(),
   /** Berapa banyak chatMessages yang tercakup oleh ringkasan ini. */
   coveredCount: integer('covered_count').notNull().default(0),
-  /** Karakter pemilik utas (M8.2 Phase B); penghitungan per karakter. */
-  characterId: text('character_id').notNull().default('livia'),
   createdAt: timestamp('created_at').defaultNow(),
-}, (table) => ({
-  summariesCharacter: index('idx_summaries_character').on(table.userId, table.characterId),
-}));
+});
 
 /**
  * Memori berlapis Livia tentang user (M3).
@@ -185,8 +134,6 @@ export const messageSummaries = pgTable('messageSummaries', {
 export const memoryItems = pgTable('memoryItems', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  /** Karakter yang mengingat fakta ini (M8.2 Phase B). */
-  characterId: text('character_id').notNull().default('livia'),
   /** 'core' | 'episodic' | 'semantic' | 'diary' */
   type: text('type').notNull(),
   content: text('content').notNull(),
@@ -229,18 +176,11 @@ export const pomodoroSessions = pgTable('pomodoroSessions', {
 
 export const storyProgress = pgTable('storyProgress', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  /**
-   * Karakter pemilik progres bab (M8.2 Phase B). Saat ini hanya Livia yang
-   * punya bab; karakter lain tidak memiliki konten cerita.
-   */
-  characterId: text('character_id').notNull().default('livia'),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).unique().notNull(),
   unlockedChapters: integer('unlocked_chapters').array().default(sql`ARRAY[0]::integer[]`),
   lastReadChapter: integer('last_read_chapter').default(0),
   createdAt: timestamp('created_at').defaultNow(),
-}, (table) => ({
-  storyUserCharacterUnique: uniqueIndex('idx_story_progress_user_character').on(table.userId, table.characterId),
-}));
+});
 
 export const gardenPots = pgTable('gardenPots', {
   id: uuid('id').primaryKey().defaultRandom(),

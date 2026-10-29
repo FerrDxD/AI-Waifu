@@ -24,13 +24,10 @@ const VFX_BY_EXPRESSION: Record<string, string> = {
 export default function HomeBackdrop({
   displayExpression,
   outfit,
-  characterId,
   onInteract,
 }: {
   displayExpression: LiviaExpression;
   outfit: string;
-  /** M8.2 Phase B: karakter aktif — Livia merender outfit folder, karakter lain folder datar. */
-  characterId?: string;
   onInteract: (part: BodyPart) => void;
 }) {
   return (
@@ -54,7 +51,6 @@ export default function HomeBackdrop({
           <LiviaSprite
             expression={displayExpression}
             outfit={outfit}
-            characterId={characterId}
             disableFloat={true}
             className="w-full h-full"
             imgClassName="object-cover object-[60%_center] md:object-center"
