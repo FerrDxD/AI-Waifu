@@ -71,14 +71,15 @@ export async function fetchApiKeyStatus(): Promise<ApiKeyStatus> {
  * Mengembalikan status baru atau pesan error yang aman ditampilkan.
  */
 export async function saveApiKey(
-  apiKey: string
+  apiKey: string,
+  provider: string = 'gemini'
 ): Promise<{ ok: true; status: ApiKeyStatus } | { ok: false; error: string }> {
   try {
     const res = await fetch('/api/user/api-key', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ apiKey }),
+      body: JSON.stringify({ apiKey, provider }),
     });
 
     const data = await res.json().catch(() => ({}));
@@ -87,7 +88,7 @@ export async function saveApiKey(
       return { ok: false, error: data?.error || 'Gagal menyimpan API key.' };
     }
 
-    return { ok: true, status: { hasKey: true, keyHint: data.keyHint } };
+    return { ok: true, status: { hasKey: true, keyHint: data.keyHint, provider: data.provider } };
   } catch {
     return { ok: false, error: 'Tidak bisa menghubungi server. Coba lagi.' };
   }
@@ -156,8 +157,8 @@ export function useApiKeyStatus() {
     };
   }, []);
 
-  const save = useCallback(async (key: string) => {
-    const result = await saveApiKey(key);
+  const save = useCallback(async (key: string, provider: string = 'gemini') => {
+    const result = await saveApiKey(key, provider);
     if (!result.ok) {
       setState((prev) => ({ ...prev, loading: false, error: result.error }));
       throw new Error(result.error);

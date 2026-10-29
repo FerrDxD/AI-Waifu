@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { generateDateResponse, extractLanguage, resolveApiKey } from '@/lib/gemini';
+import { sanitizePreferredModel } from '@/lib/ai/model-selection';
 import { db } from '@/lib/db';
 import { userProfiles } from '@/lib/db/schema';
 import { applyAffectionAtomic } from '@/lib/livia/affection.server';
@@ -77,7 +78,8 @@ export const POST = apiHandler(
         memoryLines,
         customApiKey,
         language,
-        userId
+        userId,
+        sanitizePreferredModel(profile?.preferredModel)
       );
 
     let updateResult: {

@@ -4,8 +4,8 @@ Dokumen ini mencatat pekerjaan M8, keputusan desain yang mengikat, dan utang
 teknis yang tersisa. Ditulis bertahap; bagian yang belum dikerjakan tetap
 berstatus rencana.
 
-Status: **M8.1 Phase 1 SELESAI** (multi-provider di lapisan engine).
-Phase 2 (selector model di UI + allowlist server) dan M8.2–M8.7 belum dimulai.
+Status: **M8.1 Phase 1 & Phase 2 SELESAI** (multi-provider engine + selector
+model di settings). M8.2–M8.7 belum dimulai.
 
 ---
 
@@ -225,17 +225,82 @@ Gerbang yang dijalankan: `typecheck` 0 error · `test` 764/764 (dua kali) ·
    diisi nama model Gemini sementara provider `openai-compat`, request kedua
    akan 400. Perlu validasi/peringatan saat start.
 6. **Circuit breaker per proses** (warisan M2.6) — bukan breaker terdistribusi.
-7. Phase 2 belum ada: selector model di UI, allowlist `AI_ALLOWED_MODELS`,
-   kolom `userProfiles.preferredModel`.
+7. **Migrasi `0006` wajib dijalankan** sebelum deploy Phase 2: tanpa kolom
+   `userProfiles.preferred_model`, query profil (termasuk chat) gagal.
+   Jalankan `bun run db:migrate` (atau `db:push` di dev) lebih dulu.
+8. **`AI_MODEL_FALLBACK` tidak divalidasi provider**: kalau diisi nama model
+   vendor lain, jalur fallback akan 400. Isi hanya model dari provider aktif.
 
 ---
 
-## 4. Selanjutnya (Phase 2)
+## 4. M8.1 Phase 2 — selector model (selesai)
 
-1. Migrasi `userProfiles.preferredModel` (nullable, default null = pakai env).
-2. `lib/ai/model-selection.ts`: parse `AI_ALLOWED_MODELS`, validasi pilihan
-   user terhadap allowlist **dan** provider aktif.
-3. Server Action + dropdown model di `features/settings/SettingsClient.tsx`,
-   plus form BYOK yang mengirim `provider`.
-4. Wiring: route chat/date meneruskan `model` tervalidasi ke `GenerateOptions`.
-5. Gate + dokumentasi + commit.
+Tujuan: user boleh memilih model dari daftar yang **server** tentukan, tanpa
+membuka pintu ke model sembarang (yang bisa membakar biaya atau memicu 400).
+
+### 4.1 Rantai keputusan
+
+```
+Settings UI (dropdown)
+   │  GET /api/user/model  → { model, models[] }   ← models dari AI_ALLOWED_MODELS
+   │  POST { model } atau { model: null }          ← null = model server
+   ▼
+lib/ai/user-model.ts  ── isModelAllowed() ──▶ tolak 400 INVALID_MODEL
+   │  simpan userProfiles.preferred_model
+   ▼
+loadChatTurnContext / route date
+   └─ sanitizePreferredModel(profile.preferredModel)   ← pilihan usang → undefined
+        └─ GenerateOptions.model → adapter → provider
+```
+
+Kenapa validasi **di server, setiap kali** (bukan hanya saat menyimpan):
+allowlist bisa berubah setelah user menyimpan. Kalau owner menghapus model,
+pilihan lama harus berhenti dipakai — bukan terus dikirim sampai provider
+menolaknya. `sanitizePreferredModel` melakukan itu dan mencatat
+`ai.preferred_model_not_allowed` supaya ada jejak.
+
+### 4.2 Kenapa route API, bukan Server Action
+
+Seluruh mutasi user di app ini lewat `/api/*` + `apiHandler`: auth, rate limit,
+audit, dan pemetaan error sudah terpasang di sana. Menambah satu jalur Server
+Action berarti dua pola keamanan yang harus diaudit terpisah — untuk satu
+dropdown, itu tidak sepadan. Keputusan ini menggantikan rencana awal di §4.
+
+### 4.3 Allowlist: fail-closed
+
+`AI_ALLOWED_MODELS` kosong **bukan** berarti "semua model boleh". Yang
+ditawarkan hanya model yang memang dipakai server (`AI_MODEL_CHAT`,
+`AI_MODEL_DIALOGUE`, `AI_MODEL_FALLBACK`). Artinya: tanpa konfigurasi tambahan,
+user tidak mendapat katalog lebih luas daripada yang sudah dibayar owner.
+
+### 4.4 Provider API key di UI
+
+Form BYOK sekarang punya pilihan provider (Gemini / OpenAI / Anthropic /
+OpenAI-compatible) karena key disimpan bersama providernya dan hanya dipakai
+kalau cocok dengan provider yang melayani request (§1.6). Placeholder input
+mengikuti format provider, jadi typo bentuk key tertangkap sebelum disimpan.
+
+### 4.5 Perbaikan yang ikut terbawa
+
+`lib/gemini.ts` dulu mencatat `provider: 'gemini'` **hardcode** di setiap
+`recordProviderUsage`. Setelah multi-provider itu berarti biaya OpenAI
+tercatat atas nama Gemini di `/usage`. Sekarang memakai
+`getAIConfig().provider`. Pesan error "server AI Google" juga dinetralkan
+menjadi "server AI".
+
+### 4.6 Test
+
+`tests/model-selection.test.ts` (11 kasus): parsing allowlist, dedupe,
+fail-closed tanpa allowlist, katalog kosong untuk provider tanpa model default,
+pencocokan case-sensitive, dan pilihan usang yang jatuh ke model server.
+
+Gerbang: `typecheck` 0 · `test` 775/775 (dua kali) · `lint` hanya warning lama ·
+`evals` 55/55.
+
+### 4.7 Deploy Phase 2
+
+1. `bun run db:migrate` — **wajib lebih dulu** (kolom `preferred_model`).
+2. Set `AI_ALLOWED_MODELS` di Vercel (contoh:
+   `deepseek-v4.1-flash-1017,gpt-6-luna,gemini-3.8-flash`).
+3. Redeploy, lalu cek `/settings` (dropdown muncul) dan `/usage`
+   (provider tercatat benar).

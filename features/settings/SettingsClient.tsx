@@ -3,12 +3,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, User, Volume2, Bell, ShieldAlert, LogOut, Check, X, Key, Sparkles, Trash2, Save, Download, Upload, HardDrive, Globe, Brain } from 'lucide-react';
+import { ChevronLeft, User, Volume2, Bell, ShieldAlert, LogOut, Check, X, Key, Sparkles, Trash2, Save, Download, Upload, HardDrive, Globe, Brain, Cpu } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { playSfx } from '@/lib/sfx';
 import { showCustomAlert, showCustomConfirm } from '@/lib/alert';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { purgeLegacyApiKeyStorage, useApiKeyStatus } from '@/lib/client/api-key';
+import { useModelPreference } from '@/lib/client/model-preference';
 
 /**
  * Label & warna per tipe memori (M3.5). Diletakkan di luar komponen supaya
@@ -58,6 +59,16 @@ export default function SettingsPage() {
   const apiKeyStatus = useApiKeyStatus();
   const [customApiKey, setCustomApiKey] = useState('');
   const [savingKey, setSavingKey] = useState(false);
+  // M8.1 Phase 2: provider key pribadi + model AI pilihan user.
+  const [keyProvider, setKeyProvider] = useState<string>('gemini');
+  const modelPreference = useModelPreference();
+  const [selectedModel, setSelectedModel] = useState<string>('');
+  const [savingModel, setSavingModel] = useState(false);
+
+  // Sinkronkan pilihan lokal dengan server (termasuk setelah simpan).
+  useEffect(() => {
+    setSelectedModel(modelPreference.model ?? '');
+  }, [modelPreference.model]);
 
   // M3.5: panel transparansi memori.
   const [memories, setMemories] = useState<MemoryRow[]>([]);
@@ -147,12 +158,15 @@ export default function SettingsPage() {
     setSavingKey(true);
     try {
       // Key dikirim sekali via HTTPS lalu dienkripsi AES-256-GCM di server.
-      await apiKeyStatus.save(customApiKey.trim());
+      // M8.1: provider ikut dikirim supaya key tidak dipakai lintas vendor.
+      await apiKeyStatus.save(customApiKey.trim(), keyProvider);
       setCustomApiKey('');
       playSfx('chime');
       await showCustomAlert(
-        'API Key tersimpan terenkripsi di server. Browser tidak lagi menyimpan key-nya.',
-        'API Key Tersimpan 🔑'
+        language === 'en'
+          ? 'Your API key is stored encrypted on our server. The browser no longer keeps it.'
+          : 'API Key tersimpan terenkripsi di server. Browser tidak lagi menyimpan key-nya.',
+        language === 'en' ? 'API Key Saved 🔑' : 'API Key Tersimpan 🔑'
       );
     } catch (error) {
       playSfx('error');
@@ -162,6 +176,33 @@ export default function SettingsPage() {
       );
     } finally {
       setSavingKey(false);
+    }
+  };
+
+  /** M8.1 Phase 2: simpan model pilihan user ('' = kembali ke model server). */
+  const handleSaveModel = async () => {
+    setSavingModel(true);
+    try {
+      await modelPreference.save(selectedModel ? selectedModel : null);
+      playSfx('chime');
+      await showCustomAlert(
+        selectedModel
+          ? language === 'en'
+            ? `Livia will now use ${selectedModel}.`
+            : `Livia sekarang memakai model ${selectedModel}.`
+          : language === 'en'
+            ? 'Livia is back to the server default model.'
+            : 'Livia kembali memakai model default server.',
+        language === 'en' ? 'Model Saved ⚙️' : 'Model Tersimpan ⚙️'
+      );
+    } catch (error) {
+      playSfx('error');
+      await showCustomAlert(
+        error instanceof Error ? error.message : 'Gagal menyimpan model.',
+        'Gagal Menyimpan ❌'
+      );
+    } finally {
+      setSavingModel(false);
     }
   };
 
@@ -447,12 +488,68 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* Section 2: AI & Gemini API */}
+        {/* Section 2: AI & provider */}
         <section className="flex flex-col gap-4">
           <h2 className="font-display font-black text-lg text-[#5c4d47] flex items-center gap-2">
             <Sparkles className="text-amber-500" /> {dict.settings.aiSection}
           </h2>
-          
+
+          {/* M8.1 Phase 2: pilihan model. Daftar datang dari server. */}
+          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-orange-100 flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <span className="font-bold text-sm text-[#5c4d47] flex items-center gap-2">
+                <Cpu size={16} className="text-amber-500" />{' '}
+                {language === 'en' ? 'AI Model' : 'Model AI'}
+              </span>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                {language === 'en'
+                  ? 'Choose which model replies to you. The list is controlled by the server; picking faster models makes chats snappier, larger models are usually smarter.'
+                  : 'Pilih model yang menjawab kamu. Daftar ini ditentukan server; model cepat membuat obrolan lebih gesit, model besar biasanya lebih pintar.'}
+              </p>
+            </div>
+
+            {modelPreference.loading ? (
+              <p className="text-xs text-gray-400 font-medium">
+                {language === 'en' ? 'Loading models...' : 'Memuat daftar model...'}
+              </p>
+            ) : modelPreference.models.length === 0 ? (
+              <p className="text-xs text-gray-400 font-medium">
+                {language === 'en'
+                  ? 'No alternative models are offered right now — the server default is used.'
+                  : 'Belum ada pilihan model lain — Livia memakai default server.'}
+              </p>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <select
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  className="flex-1 bg-orange-50/50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-[#5c4d47] focus:outline-none focus:border-orange-400 transition-all"
+                  aria-label={language === 'en' ? 'AI model' : 'Model AI'}
+                >
+                  <option value="">
+                    {language === 'en' ? 'Server default' : 'Default server'}
+                  </option>
+                  {modelPreference.models.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleSaveModel}
+                  disabled={savingModel}
+                  className="bg-[#5c4d47] hover:bg-[#433833] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all shrink-0 disabled:opacity-50"
+                >
+                  <Save size={14} /> {savingModel ? '...' : language === 'en' ? 'Save' : 'Simpan'}
+                </button>
+              </div>
+            )}
+
+            {modelPreference.error && (
+              <p className="text-[11px] text-red-600 font-medium">{modelPreference.error}</p>
+            )}
+          </div>
+
           <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-orange-100 flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <span className="font-bold text-sm text-[#5c4d47] flex items-center gap-2">
@@ -462,6 +559,25 @@ export default function SettingsPage() {
                 {dict.settings.aiCustomDesc}
               </p>
             </div>
+
+            {/* M8.1: key disimpan bersama provider — pilih dulu vendornya. */}
+            <label className="flex flex-col gap-1">
+              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                {language === 'en' ? 'Key provider' : 'Provider key'}
+              </span>
+              <select
+                value={keyProvider}
+                onChange={(e) => setKeyProvider(e.target.value)}
+                className="bg-orange-50/50 border border-orange-200 rounded-xl px-4 py-2.5 text-sm text-[#5c4d47] focus:outline-none focus:border-orange-400 transition-all"
+              >
+                <option value="gemini">Google Gemini</option>
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic</option>
+                <option value="openai-compat">
+                  {language === 'en' ? 'Other (OpenAI-compatible)' : 'Lainnya (OpenAI-compatible)'}
+                </option>
+              </select>
+            </label>
 
             {/* Status key: browser hanya menerima hint, bukan plaintext. */}
             {apiKeyStatus.loading ? (
@@ -497,7 +613,17 @@ export default function SettingsPage() {
               <input 
                 type="password"
                 autoComplete="off"
-                placeholder={language === 'en' ? "AIzaSy... (new key)" : "AIzaSy... (key baru)"}
+                placeholder={
+                  keyProvider === 'gemini'
+                    ? 'AIzaSy... (key baru)'
+                    : keyProvider === 'openai'
+                      ? 'sk-... (key baru)'
+                      : keyProvider === 'anthropic'
+                        ? 'sk-ant-... (key baru)'
+                        : language === 'en'
+                          ? 'provider key (no spaces)'
+                          : 'key provider (tanpa spasi)'
+                }
                 value={customApiKey}
                 onChange={(e) => setCustomApiKey(e.target.value)}
                 className="flex-1 bg-orange-50/50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-[#5c4d47] placeholder-gray-400 focus:outline-none focus:border-orange-400 font-mono transition-all"

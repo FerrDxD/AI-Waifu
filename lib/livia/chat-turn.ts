@@ -14,6 +14,7 @@ import { chatMessages, userProfiles, storyProgress } from '@/lib/db/schema';
 import { AppError, errors } from '@/lib/errors';
 import { extractLanguage, resolveApiKey } from '@/lib/gemini';
 import { buildChatContext } from '@/lib/ai/context';
+import { sanitizePreferredModel } from '@/lib/ai/model-selection';
 import { loadSummaries } from '@/lib/livia/summary';
 import { logger } from '@/lib/logger';
 import { applyAffectionAtomic } from '@/lib/livia/affection.server';
@@ -45,6 +46,11 @@ export interface ChatTurnContext {
   dayOfCycle: number;
   language: 'id' | 'en';
   customApiKey: string | undefined;
+  /**
+   * M8.1 Phase 2: model pilihan user. `undefined` = model server.
+   * Sudah divalidasi terhadap allowlist saat konteks dimuat.
+   */
+  model: string | undefined;
 }
 
 export interface LiviaReplyContent {
@@ -153,6 +159,9 @@ export async function loadChatTurnContext(args: {
     dayOfCycle,
     language: extractLanguage(req),
     customApiKey: await resolveApiKey(userId, req),
+    // M8.1 Phase 2: pilihan model dari profil, disaring allowlist server.
+    // Pilihan usang (model sudah dihapus owner) otomatis jadi `undefined`.
+    model: sanitizePreferredModel(profile.preferredModel),
   };
 }
 

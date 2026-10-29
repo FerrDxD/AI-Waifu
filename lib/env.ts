@@ -49,6 +49,9 @@ const serverSchema = z.object({
   AI_MODEL_CHAT: z.string().optional(),
   AI_MODEL_DIALOGUE: z.string().optional(),
   AI_MODEL_FALLBACK: z.string().optional(),
+  // Daftar model yang boleh dipilih user di settings (dipisah koma).
+  // Kosong = hanya model server yang ditawarkan.
+  AI_ALLOWED_MODELS: z.string().optional(),
   // Kunci server per provider. Hanya provider yang dipakai yang perlu diisi.
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),

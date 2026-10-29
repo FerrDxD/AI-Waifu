@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { generateDateDialogue, extractLanguage, resolveApiKey } from '@/lib/gemini';
+import { sanitizePreferredModel } from '@/lib/ai/model-selection';
 import { db } from '@/lib/db';
 import { userProfiles } from '@/lib/db/schema';
 import { apiHandler } from '@/lib/api-handler';
@@ -91,7 +92,8 @@ export const POST = apiHandler(
       },
       customApiKey,
       language,
-      userId
+      userId,
+      sanitizePreferredModel(profile?.preferredModel)
     );
 
     // M7.2: catat hari-aktif (retensi/DAU). Fail-open di dalam

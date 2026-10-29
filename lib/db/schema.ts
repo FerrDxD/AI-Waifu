@@ -49,6 +49,15 @@ export const userProfiles = pgTable('userProfiles', {
   liviaCycleAnchor: timestamp('livia_cycle_anchor').defaultNow(),
   liviaStatsUpdatedAt: timestamp('livia_stats_updated_at').defaultNow(),
   longTermMemory: text('long_term_memory').default(''),
+  /**
+   * Model AI pilihan user (M8.1 Phase 2).
+   *
+   * `null` = pakai model server (`AI_MODEL_CHAT`/`AI_MODEL_DIALOGUE`).
+   * Nilai WAJIB ada di allowlist `AI_ALLOWED_MODELS` saat dipakai — kalau
+   * owner menghapus model dari allowlist, pilihan lama otomatis diabaikan
+   * (fallback ke model server), bukan menghasilkan request yang gagal.
+   */
+  preferredModel: text('preferred_model'),
   lastSeen: timestamp('last_seen').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
 });

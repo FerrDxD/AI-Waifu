@@ -1,6 +1,7 @@
 import { AppError } from './errors';
 import { logger, serializeError } from './logger';
 import { getProvider } from './ai';
+import { getAIConfig } from './ai/config';
 import { recordProviderUsage } from './ai/usage';
 import { buildLiviaIdentity, INJECTION_GUARD } from './ai/persona';
 import { describePhysiologicalState } from './livia/cycle';
@@ -144,6 +145,8 @@ async function requestReply(opts: {
   systemPrompt: string;
   turns: { role: 'user' | 'model'; text: string }[];
   customApiKey?: string;
+  /** Model pilihan user (M8.1 Phase 2) — sudah lolos allowlist di route. */
+  model?: string;
 }) {
   return getProvider().generate({
     operation: opts.operation,
@@ -154,6 +157,7 @@ async function requestReply(opts: {
     temperature: 0.8,
     maxOutputTokens: 1024,
     apiKey: opts.customApiKey,
+    model: opts.model,
   });
 }
 
@@ -237,7 +241,12 @@ export async function generateLiviaResponse(
   highestChapter: number = 0,
   earlierSummary?: string,
   /** M7.1: untuk pencatatan pemakaian (opsional — tanpa ini request tetap jalan, cuma tidak tercatat). */
-  userId?: string
+  userId?: string,
+  /**
+   * M8.1 Phase 2: model pilihan user. WAJIB sudah lolos allowlist di route;
+   * `undefined` = model server.
+   */
+  model?: string
 ): Promise<{
   reply: string;
   affectionDelta: number;
@@ -287,10 +296,17 @@ export async function generateLiviaResponse(
   }
 
   try {
-    const result = await requestReply({ operation: 'chat', systemPrompt, turns, customApiKey });
+    const result = await requestReply({ operation: 'chat', systemPrompt, turns, customApiKey, model });
 
     // M7.1: catat pemakaian (fire-and-forget, fail-open di dalam).
-    recordProviderUsage(result, { userId, provider: 'gemini', operation: 'chat', userKey: Boolean(customApiKey) });
+    // M8.1: provider diambil dari config — dulu hardcode 'gemini', yang membuat
+    // biaya provider lain tercatat atas nama Gemini di dashboard.
+    recordProviderUsage(result, {
+      userId,
+      provider: getAIConfig().provider,
+      operation: 'chat',
+      userKey: Boolean(customApiKey),
+    });
 
     if (result.blocked) {
       logger.warn('generateLiviaResponse blocked_by_safety', { userId: undefined });
@@ -317,7 +333,7 @@ export async function generateLiviaResponse(
     }
     if (error instanceof AppError) throw error;
     logger.error('generateLiviaResponse failed', { error: serializeError(error) });
-    throw new AppError('AI_GENERATION_FAILED', 'Gagal menghubungi server AI Google.', 503, true);
+    throw new AppError('AI_GENERATION_FAILED', 'Gagal menghubungi server AI.', 503, true);
   }
 }
 
@@ -347,6 +363,8 @@ export function streamLiviaReply(input: {
   earlierSummary?: string;
   /** M7.1: untuk pencatatan pemakaian (opsional). */
   userId?: string;
+  /** M8.1 Phase 2: model pilihan user (sudah lolos allowlist). */
+  model?: string;
 }): {
   deltas: AsyncIterableIterator<string>;
   final: Promise<{
@@ -372,6 +390,7 @@ export function streamLiviaReply(input: {
     highestChapter,
     earlierSummary,
     userId,
+    model,
   } = input;
 
   const systemInstruction = buildChatPrompt({
@@ -427,6 +446,7 @@ export function streamLiviaReply(input: {
     temperature: 0.8,
     maxOutputTokens: 1024,
     apiKey: customApiKey,
+    model,
   });
 
   return {
@@ -436,7 +456,12 @@ export function streamLiviaReply(input: {
         // M7.1: catat pemakaian begitu final resolve (fire-and-forget,
         // fail-open di dalam). Di sini juga karena `final` baru berisi
         // `usage` setelah seluruh stream selesai.
-        recordProviderUsage(result, { userId, provider: 'gemini', operation: 'chat', userKey: Boolean(customApiKey) });
+        recordProviderUsage(result, {
+          userId,
+          provider: getAIConfig().provider,
+          operation: 'chat',
+          userKey: Boolean(customApiKey),
+        });
 
         if (result.blocked) {
           logger.warn('streamLiviaReply blocked_by_safety', {});
@@ -483,7 +508,9 @@ export async function generateDateDialogue(
   customApiKey?: string,
   language: 'id' | 'en' = 'id',
   /** M7.1: untuk pencatatan pemakaian (opsional). */
-  userId?: string
+  userId?: string,
+  /** M8.1 Phase 2: model pilihan user (sudah lolos allowlist). */
+  model?: string
 ): Promise<{ scene: { speaker: string; text: string; expression?: LiviaExpression }[]; timeOfDay: 'pagi' | 'sore' | 'malam' }> {
   const currentHour = new Date().getHours();
   const defaultTimeOfDay: 'pagi' | 'sore' | 'malam' =
@@ -530,10 +557,16 @@ Jangan tambahkan teks lain di luar JSON.${INJECTION_GUARD}`;
       // menghasilkan JSON rusak (AI_BAD_STRUCTURE). 2048 masih murah.
       maxOutputTokens: 2048,
       apiKey: customApiKey,
+      model,
     });
 
     // M7.1: catat pemakaian (fire-and-forget, fail-open di dalam).
-    recordProviderUsage(result, { userId, provider: 'gemini', operation: 'date.dialogue', userKey: Boolean(customApiKey) });
+    recordProviderUsage(result, {
+      userId,
+      provider: getAIConfig().provider,
+      operation: 'date.dialogue',
+      userKey: Boolean(customApiKey),
+    });
 
     if (result.blocked) {
       logger.warn('generateDateDialogue blocked_by_safety', { location });
@@ -555,7 +588,7 @@ Jangan tambahkan teks lain di luar JSON.${INJECTION_GUARD}`;
   } catch (error) {
     if (error instanceof AppError) throw error;
     logger.error('generateDateDialogue failed', { error: serializeError(error), location });
-    throw new AppError('AI_DATE_DIALOGUE_FAILED', 'Gagal menghubungi server AI Google.', 503, true);
+    throw new AppError('AI_DATE_DIALOGUE_FAILED', 'Gagal menghubungi server AI.', 503, true);
   }
 }
 export async function generateDateResponse(
@@ -569,7 +602,9 @@ export async function generateDateResponse(
   customApiKey?: string,
   language: 'id' | 'en' = 'id',
   /** M7.1: untuk pencatatan pemakaian (opsional). */
-  userId?: string
+  userId?: string,
+  /** M8.1 Phase 2: model pilihan user (sudah lolos allowlist). */
+  model?: string
 ): Promise<{
   reply: string;
   expression: LiviaExpression;
@@ -609,10 +644,15 @@ Hanya kembalikan JSON. Tidak ada teks lain.${INJECTION_GUARD}`;
   const turns = turnsFromHistory(chatHistory, userMessage);
 
   try {
-    const result = await requestReply({ operation: 'date.chat', systemPrompt, turns, customApiKey });
+    const result = await requestReply({ operation: 'date.chat', systemPrompt, turns, customApiKey, model });
 
     // M7.1: catat pemakaian (fire-and-forget, fail-open di dalam).
-    recordProviderUsage(result, { userId, provider: 'gemini', operation: 'date.chat', userKey: Boolean(customApiKey) });
+    recordProviderUsage(result, {
+      userId,
+      provider: getAIConfig().provider,
+      operation: 'date.chat',
+      userKey: Boolean(customApiKey),
+    });
 
     if (result.blocked) {
       logger.warn('generateDateResponse blocked_by_safety', { location });
@@ -630,6 +670,6 @@ Hanya kembalikan JSON. Tidak ada teks lain.${INJECTION_GUARD}`;
     }
     if (error instanceof AppError) throw error;
     logger.error('generateDateResponse failed', { error: serializeError(error), location });
-    throw new AppError('AI_DATE_RESPONSE_FAILED', 'Gagal menghubungi server AI Google.', 503, true);
+    throw new AppError('AI_DATE_RESPONSE_FAILED', 'Gagal menghubungi server AI.', 503, true);
   }
 }
