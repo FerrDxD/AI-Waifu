@@ -28,6 +28,7 @@ export const AUDIT_ACTIONS = [
   'apikey.save',
   'apikey.delete',
   'model.save',
+  'character.switch',
   'memory.delete',
   'memory.delete_all',
   'data.export',

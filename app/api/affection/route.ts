@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { userProfiles, storyProgress } from '@/lib/db/schema';
 import { applyAffectionAtomic } from '@/lib/livia/affection.server';
@@ -7,6 +7,7 @@ import { apiHandler, jsonApiHandler } from '@/lib/api-handler';
 import { mutationRateLimit } from '@/lib/rate-limit';
 import { errors } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { getActiveCharacter } from '@/lib/characters/switch';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +25,10 @@ function calculateCycleDay(anchorString?: string | null): number {
 }
 
 export const GET = apiHandler({ route: '/api/affection' }, async ({ userId }) => {
+  // M8.2 Phase B: profil yang dikembalikan adalah kondisi karakter AKTIF.
+  // `characterId` diekspos supaya client tahu sprite/nama mana yang dipakai.
+  const character = await getActiveCharacter(userId);
+
   const profileResults = await db
     .select()
     .from(userProfiles)
@@ -31,7 +36,10 @@ export const GET = apiHandler({ route: '/api/affection' }, async ({ userId }) =>
   const storyResults = await db
     .select()
     .from(storyProgress)
-    .where(eq(storyProgress.userId, userId));
+    .where(
+      // Karakter tanpa bab cerita tidak pernah punya baris di sini.
+      and(eq(storyProgress.userId, userId), eq(storyProgress.characterId, character.id))
+    );
 
   const profile = profileResults[0];
   const story = storyResults[0];
@@ -43,7 +51,8 @@ export const GET = apiHandler({ route: '/api/affection' }, async ({ userId }) =>
   const lastUpdated = profile?.liviaStatsUpdatedAt ? new Date(profile.liviaStatsUpdatedAt) : now;
   const hoursPassed = Math.floor((now.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60));
 
-  if (hoursPassed > 0 && profile) {
+  // Karakter tanpa sistem fisiologi (karakter companion) tidak punya decay.
+  if (hoursPassed > 0 && profile && character.hasPhysiology) {
     const dayOfCycle = calculateCycleDay(profile.liviaCycleAnchor?.toISOString());
     let hungerRate = 5;
     let energyRate = 2;
@@ -75,6 +84,7 @@ export const GET = apiHandler({ route: '/api/affection' }, async ({ userId }) =>
   }
 
   return NextResponse.json({
+    characterId: character.id,
     affection: profile?.affection || 0,
     money: profile?.money || 0,
     unlockedChapters: story?.unlockedChapters || [0],
@@ -113,7 +123,7 @@ export const PATCH = jsonApiHandler<{ delta?: unknown; reason?: unknown }>(
     // M5.4: penjumlahan + clamp terjadi dalam satu statement UPDATE atomik
     // (affection + delta, dibatasi [0,100]) — update yang bersaing tidak lagi
     // saling menimpa. Level & unlock chapter dihitung dari nilai hasil.
-    const result = await applyAffectionAtomic(userId, delta);
+    const result = await applyAffectionAtomic(userId, delta, await getActiveCharacter(userId));
     if (!result) {
       throw errors.notFound('Profil');
     }

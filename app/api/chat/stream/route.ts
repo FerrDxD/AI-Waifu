@@ -62,6 +62,7 @@ export const POST = apiHandler(
       earlierSummary: ctx.earlierSummary,
       userId,
       model: ctx.model,
+      characterId: ctx.character.id,
     });
 
     const encoder = new TextEncoder();
@@ -101,7 +102,7 @@ export const POST = apiHandler(
           // M2.5: pemicu ringkasan bergulir. Satu `done` = satu turn tersimpan,
           // jadi ini titik aman. Sloppy error sudah ditelan di dalam; kalau
           // proses mati sebelum selesai, giliran berikutnya menjalankannya lagi.
-          void maybeSummarizeChats(userId, ctx.customApiKey);
+          void maybeSummarizeChats(userId, ctx.customApiKey, ctx.character.id);
         } catch (error) {
           if (error instanceof AppError) {
             logger.warn('chatstream.failed', { code: error.code, userId });

@@ -32,6 +32,21 @@
   "memoryEmpty": "Belum ada memori khusus. Enji baru mengenal User.",
   "usesBackstoryItems": false,
   "hasPhysiology": false,
+  "features": {
+    "lifeSim": false,
+    "story": false,
+    "voiceCall": false
+  },
+  "memory": {
+    "consolidationPersona": "Enji, adik kelas yang pemalu dan penakut",
+    "summaryIdentity": "karakter wanita bernama Enji",
+    "summaryPerspective": "DARI SUDUT PANDANG ENJI",
+    "speakerLabel": "Enji"
+  },
+  "dating": {
+    "intro": "Enji, adik kelas yang pemalu tetapi mudah senang",
+    "enPersonalityPhrase": "Enji's shy, sweet personality"
+  },
   "speech": {
     "enPersonalityPhrase": "her shy, timid personality",
     "rules": [

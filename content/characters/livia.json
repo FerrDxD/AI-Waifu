@@ -39,6 +39,21 @@
   "memoryEmpty": "Belum ada memori khusus. Livia baru mengenal User.",
   "usesBackstoryItems": true,
   "hasPhysiology": true,
+  "features": {
+    "lifeSim": true,
+    "story": true,
+    "voiceCall": true
+  },
+  "memory": {
+    "consolidationPersona": "Livia, perempuan tsundere",
+    "summaryIdentity": "karakter wanita bernama Livia",
+    "summaryPerspective": "DARI SUDUT PANDANG LIVIA",
+    "speakerLabel": "Livia"
+  },
+  "dating": {
+    "intro": "Livia Einhart, gadis 19 tahun tsundere",
+    "enPersonalityPhrase": "Livia's tsundere personality"
+  },
   "speech": {
     "enPersonalityPhrase": "her tsundere personality",
     "rules": [

@@ -10,6 +10,7 @@ import ChapterList from '@/features/story/ChapterList';
 import LockedChapterModal from '@/features/story/LockedChapterModal';
 import HometownPickerModal from '@/features/story/HometownPickerModal';
 import BlessingPickerModal from '@/features/story/BlessingPickerModal';
+import CharacterGate from '@/components/characters/CharacterGate';
 
 /**
  * Halaman cerita (M5.1).
@@ -172,6 +173,7 @@ export default function StoryPage() {
   const activeOutfit = userStats?.activeOutfit || 'default';
 
   return (
+    <CharacterGate feature="story">
     <div className="min-h-screen bg-[#fdfbf7] relative flex justify-center items-center overflow-hidden font-sans select-none">
       {activeChapter ? (
         <StoryStage
@@ -260,5 +262,6 @@ export default function StoryPage() {
         />
       )}
     </div>
+    </CharacterGate>
   );
 }

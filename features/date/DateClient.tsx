@@ -14,6 +14,7 @@ import { LiviaExpression } from '@/lib/gemini';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { playSfx } from '@/lib/sfx';
+import { getCharacter, resolveSpriteExpression } from '@/lib/characters/registry';
 
 interface LocationDef {
   id: string;
@@ -86,6 +87,8 @@ function DateContent() {
   const [sceneIndex, setSceneIndex] = useState(0);
   const [itemsBrought, setItemsBrought] = useState<string[]>([]);
   const [activeOutfit, setActiveOutfit] = useState<string>('default');
+  /** M8.2 Phase B: karakter aktif (sprite + persona kencan). */
+  const [characterId, setCharacterId] = useState<string>('livia');
   
   // Interactive mode states
   const [isInteractive, setIsInteractive] = useState(false);
@@ -97,14 +100,17 @@ function DateContent() {
   const didAutoStart = useRef(false);
   const itemsSet = useMemo(() => new Set(itemsBrought), [itemsBrought]);
 
-  // Initial load: fetch outfit & inventory once
+  // Initial load: fetch profil karakter aktif (outfit + tas + karakter).
+  // M8.2 Phase B: /api/outfit hanya untuk Livia (life-sim); /api/affection
+  // bekerja untuk semua karakter.
   useEffect(() => {
-    fetch('/api/outfit')
+    fetch('/api/affection')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data) {
           setItemsBrought(data.itemsBrought || []);
           setActiveOutfit(data.activeOutfit || 'default');
+          if (data.characterId) setCharacterId(data.characterId);
         }
       })
       .catch(console.error);
@@ -112,12 +118,21 @@ function DateContent() {
 
   // Preload expressions to eliminate image flickering during date
   useEffect(() => {
+    const character = getCharacter(characterId);
+    if (character.id !== 'livia') {
+      // Karakter companion: folder datar.
+      ['normal', 'happy', 'blushing', 'angry', 'clingy'].forEach(expr => {
+        const img = new Image();
+        img.src = `/${character.sprite.folder}/${resolveSpriteExpression(character, expr)}.webp`;
+      });
+      return;
+    }
     const outfitFolder = activeOutfit || 'default';
     ['normal', 'happy', 'blushing', 'angry', 'clingy'].forEach(expr => {
       const img = new Image();
       img.src = `/livia/home-screen/${outfitFolder}/${expr}.webp`;
     });
-  }, [activeOutfit]);
+  }, [activeOutfit, characterId]);
 
   // Handle URL query parameter ?location=...
   useEffect(() => {
@@ -282,10 +297,11 @@ function DateContent() {
           </div>
           
           <div className="flex-1 w-full max-w-4xl flex justify-center items-end min-h-0 z-10 relative">
-            <LiviaSprite 
-              expression={liviaExpression} 
+            <LiviaSprite
+              expression={liviaExpression}
               outfit={activeOutfit}
-              className="h-full max-h-[60vh] object-contain object-bottom drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)] animate-[float_4s_ease-in-out_infinite]" 
+              characterId={characterId}
+              className="h-full max-h-[60vh] object-contain object-bottom drop-shadow-[0_20px_40px_rgba(255,154,158,0.3)] animate-[float_4s_ease-in-out_infinite]"
             />
           </div>
           

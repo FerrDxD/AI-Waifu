@@ -1,11 +1,46 @@
 'use client';
 
+import { getCharacter, hasFeature, resolveSpriteExpression } from '@/lib/characters/registry';
+
 // Menyimpan referensi Image di memori agar cache browser tidak menghapusnya
 const imageCache: HTMLImageElement[] = [];
 
-export function preloadLiviaSprites() {
+const loadImage = (url: string) => {
+  if (!imageCache.some((img) => img.src.endsWith(url))) {
+    const img = new Image();
+    img.src = url;
+    imageCache.push(img);
+  }
+};
+
+/**
+ * Preload sprite (M5.1, M8.2 Phase B).
+ *
+ * Livia memakai struktur folder home-screen/wardrobe/story yang spesifik.
+ * Karakter companion memakai folder datar — ekspresi di-resolve ke yang
+ * benar-benar tersedia di folder karakter tersebut.
+ */
+export function preloadCharacterSprites(characterId: string = 'livia') {
   if (typeof window === 'undefined') return;
 
+  const character = getCharacter(characterId);
+
+  // Karakter companion: folder datar, preload ekspresi inti.
+  if (character.id !== 'livia' || !hasFeature(character, 'lifeSim')) {
+    const core = ['normal', 'happy', 'blushing', 'angry', 'sad', 'surprised'].map((expr) =>
+      resolveSpriteExpression(character, expr)
+    );
+    const urls = [...new Set(core)].map(
+      (resolved) => `/${character.sprite.folder}/${resolved}.webp`
+    );
+    urls.forEach(loadImage);
+    return;
+  }
+
+  preloadLiviaSprites();
+}
+
+function preloadLiviaSprites() {
   const expressions = ['normal', 'happy', 'blushing', 'angry', 'pouting', 'surprised', 'sad'];
   
   // Ambil outfit aktif saat ini dari localStorage
@@ -46,20 +81,7 @@ export function preloadLiviaSprites() {
     '/livia/story page/office-lady.webp',
     '/livia/story page/piyama.webp',
     '/livia/story page/wedding-dress.webp',
-    '/naomi/normal.webp',
-    '/naomi/happy.webp',
-    '/naomi/confused.webp',
-    '/naomi/pleased.webp',
-    '/naomi/touched.webp',
   ];
-
-  const loadImage = (url: string) => {
-    if (!imageCache.some(img => img.src.endsWith(url))) {
-      const img = new Image();
-      img.src = url;
-      imageCache.push(img);
-    }
-  };
 
   // Muat gambar prioritas utama langsung
   criticalUrls.forEach(loadImage);

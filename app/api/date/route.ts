@@ -11,6 +11,7 @@ import { validateDateLocation, sanitizeUserName } from '@/lib/validation';
 import { errors } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { recordUserActivity } from '@/lib/analytics/activity';
+import { getActiveCharacter } from '@/lib/characters/switch';
 
 export const POST = apiHandler(
   {
@@ -40,6 +41,9 @@ export const POST = apiHandler(
       .from(userProfiles)
       .where(eq(userProfiles.userId, userId));
     const profile = profileResults[0];
+
+    // M8.2 Phase B: adegan kencan ditulis untuk karakter yang sedang aktif.
+    const character = await getActiveCharacter(userId);
 
     // M2.3: logika siklus haid dipindah ke lib/livia/cycle.ts
     const { dayOfCycle, phase: cyclePhase } = getCycleInfo(profile?.liviaCycleAnchor);
@@ -83,17 +87,21 @@ export const POST = apiHandler(
       location,
       profile?.affection || 0,
       userName,
-      {
-        hunger: profile?.liviaHunger ?? 100,
-        energy: profile?.liviaEnergy ?? 100,
-        hydration: profile?.liviaHydration ?? 100,
-        cyclePhase,
-        cycleDay: dayOfCycle,
-      },
+      // Karakter tanpa sistem fisiologi (non-Livia) tidak punya konteks lapar/capek.
+      character.hasPhysiology
+        ? {
+            hunger: profile?.liviaHunger ?? 100,
+            energy: profile?.liviaEnergy ?? 100,
+            hydration: profile?.liviaHydration ?? 100,
+            cyclePhase,
+            cycleDay: dayOfCycle,
+          }
+        : undefined,
       customApiKey,
       language,
       userId,
-      sanitizePreferredModel(profile?.preferredModel)
+      sanitizePreferredModel(profile?.preferredModel),
+      character.id
     );
 
     // M7.2: catat hari-aktif (retensi/DAU). Fail-open di dalam

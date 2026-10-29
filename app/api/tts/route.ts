@@ -14,6 +14,8 @@ import {
   ttsCacheKey,
   ttsMaxCharsPerDay,
 } from '@/lib/tts/cache';
+import { getActiveCharacter } from '@/lib/characters/switch';
+import { assertFeature } from '@/lib/characters/gates';
 
 const ROUTE = '/api/tts';
 const MODEL_ID = 'eleven_multilingual_v2'; // Model multilingual untuk Indonesia
@@ -53,6 +55,10 @@ export const POST = apiHandler(
     rateLimitMessage: 'Terlalu banyak request, tunggu sebentar.',
   },
   async ({ userId, req }) => {
+    // M8.2 Phase B: panggilan suara hanya untuk karakter yang punya voice
+    // sendiri (saat ini Livia) — suara karakter lain belum ada.
+    assertFeature(await getActiveCharacter(userId), 'voiceCall');
+
     const body = await readJsonBody<{ text?: unknown }>(req);
     // M0/H0.5: teks TTS dibatasi 300 karakter (biaya ElevenLabs per karakter).
     const safeText = validateTtsText(body.text);

@@ -5,7 +5,9 @@ teknis yang tersisa. Ditulis bertahap; bagian yang belum dikerjakan tetap
 berstatus rencana.
 
 Status: **M8.1 Phase 1 & Phase 2 SELESAI** (multi-provider engine + selector
-model di settings). M8.2–M8.7 belum dimulai.
+model di settings). **M8.2 Phase A & Phase B SELESAI** (engine karakter
+data-driven + karakter aktif + progres terpisah per karakter). M8.3–M8.7 belum
+dimulai.
 
 ---
 
@@ -355,15 +357,159 @@ assistant sendiri, dirancang dari ekspresi sprite yang tersedia
 Sprite `laura/` adalah folder `story-bab`; `rikuto.webp` di `ayame/`
 adalah pose unik yang dipakai sebagai fallback `clingy`/`flirty`.
 
-### 5.4 Yang belum (fase berikutnya)
+### 5.4 Yang sudah dikerjakan di Phase B
 
-- `characterId` di `userProfiles` + pemilih karakter di onboarding/settings.
-- Progres (afeksi, memori, chapter) **dipisah per karakter** — sudah
-  diputuskan, menunggu skema DB.
-- Konten bertema Livia (16 chapter, quest, items, resep, TTS voice, sprite
-  outfit) tetap milik Livia; karakter lain hanya punya ekspresi datar.
-- `summary.ts` / `memory.ts` masih bertema Livia (prompt summarizer) —
-  akan diparameter saat karakter benar-benar bisa dipilih.
+Fase berikutnya yang direncanakan di sini semuanya terealisasi (lihat §6):
+`characterId` di `userProfiles` + pemilih karakter (settings + shortcut home),
+progres dipisah per karakter (snapshot swap transaksi), dan prompt
+`summary.ts`/`memory.ts` diparameter per karakter dari data JSON.
+
+### 5.5 Yang masih Livia-only (keputusan produk)
+
+Konten bertema Livia (16 chapter, quest, items, resep, TTS voice, sprite
+outfit) **tetap milik Livia** — karakter lain hanya punya ekspresi datar.
+Lihat §6.2 untuk daftar gerbangnya.
 
 Gerbang: `typecheck` 0 · `test` 799/799 (dua kali) · `lint` hanya warning
 lama · `evals` 55/55 offline.
+
+---
+
+## 6. M8.2 Phase B — karakter aktif & progres terpisah (selesai)
+
+Tujuan: user boleh memilih karakter yang menemani; progres tiap karakter
+benar-benar terpisah — afeksi, memori, riwayat chat, bab cerita. **Tanpa
+utang milestone**: semua keputusan scope dibuat eksplisit (§6.1).
+
+### 6.1 Keputusan produk (diputuskan bersama user)
+
+1. **Companion-only.** Karakter selain Livia dapat: chat, kencan, afeksi,
+   memori, home screen. Sistem life-sim (cerita bab, koper, lemari, toko,
+   dapur, kebun) **dan panggilan suara** tetap milik Livia — dengan gerbang
+   server 403 `FEATURE_LOCKED` + pemberitahuan UI.
+2. **Pemilih karakter di Settings + shortcut home screen.** Onboarding
+   tetap berjalan cerita Livia (tidak diubah).
+3. **Voice call Livia-only** sampai ada `voiceId` per karakter (kläu suara
+    ElevenLabs tunggal dipakai untuk Livia, suara karakter lain belum ada).
+4. **Snapshot per karakter.** Berganti karakter = profil aktif dipotret ke
+   `characterProgress`, snapshot karakter tujuan dimuat ke profil, dalam
+   **satu transaksi**. Balik ke karakter lama = progres persis seperti
+   saat keluar.
+
+### 6.2 Gerbang fitur (data-driven)
+
+Setiap karakter JSON punya blok:
+
+```json
+"features": { "lifeSim": true, "story": true, "voiceCall": true },
+"memory":   { "consolidationPersona": "...", "summaryIdentity": "...",
+               "summaryPerspective": "...", "speakerLabel": "..." },
+"dating":   { "intro": "...", "enPersonalityPhrase": "..." }
+```
+
+Hanya Livia yang `true` di ketiga fitur. Pemisahnya:
+
+| Lapisan | Tempat | Perilaku |
+|---|---|---|
+| Server (aman) | `lib/characters/gates.ts` → `assertFeature(character, 'lifeSim'\|'story'\|'voiceCall')` | `AppError('FEATURE_LOCKED', …, 403, expose)` |
+| Server route | gift, cook, kitchen, garden (GET+POST), outfit (GET+POST), hometown-items, bedroom/sleep, story/complete, tts, actions `cookRecipe` | gerbang di awal handler |
+| Client (UX) | `components/characters/CharacterGate.tsx` | bungkus konten halaman → pemberitahuan; `useActiveCharacter` + `hasFeature` |
+| Halaman tergate | `/story`, `/wardrobe`, `/shop`, `/kitchen`, `/garden`, `/inventory`, `/album`, `/call` | non-Livia melihat notice, route server tetap menolak mutasi |
+
+`updateAffection` (Server Action, sentuhan home) sengaja **tidak** digate —
+afeksi memang dimiliki semua karakter companion.
+
+### 6.3 Skema DB & migrasi 0007
+
+`userProfiles` tetap menyimpan kondisi karakter **AKTIF** (kolom progres
+dibaca ~30 file melalui `profile.affection` dll — menghindari rewrite besar):
+
+- `userProfiles.activeCharacterId text NOT NULL DEFAULT 'livia'`.
+- Tabel baru `characterProgress(userId, characterId)` — snapshot per
+  karakter (afeksi, level, outfit, items, buff/debuff, hunger/energy/
+  hydration, cycle anchor, memori lama), unique index `(user_id, character_id)`.
+- `chatMessages`, `messageSummaries`, `memoryItems` dapat kolom
+  `character_id text NOT NULL DEFAULT 'livia'` + index.
+- `storyProgress` unique `(userId)` → unique `(userId, characterId)`.
+
+Migrasi `drizzle/0007_workable_madame_web.sql` juga **backfill**: profil
+yang sudah ada dipotret sebagai snapshot Livia pertama
+(`INSERT INTO characterProgress SELECT … FROM userProfiles ON CONFLICT
+DO NOTHING`) — tanpa ini, user lama kehilangan progres Livia-nya saat
+pertama kali berganti karakter.
+
+**Deploy: `bun run db:migrate` wajib lebih dulu** (lihat §6.7).
+
+### 6.4 Snapshot swap (satu transaksi)
+
+`lib/characters/switch.ts` — `switchActiveCharacter(userId, nextId)`:
+
+1. profil aktif saat ini → upsert snapshot karakter yang ditinggalkan;
+2. snapshot karakter tujuan → profil (atau default: afeksi 0, stat 100,
+   tanpa items — "karakter baru dikenal");
+3. `activeCharacterId` ditulis;
+4. snapshot karakter tujuan dihapus (nilainya sudah hidup di profil;
+   akan dipotret lagi saat user berganti keluar).
+
+Karakter yang tidak dikenal ditolak 400 `INVALID_CHARACTER` (pilihan tidak
+boleh diam-diam bergeser), tapi `getActiveCharacter` **fail-closed ke Livia**
+supaya aplikasi tidak pecah walau data anomali.
+
+Sistem shared (uang, model AI, API key, layar/pomodoro) **tidak ikut**
+berganti — itu milik user, bukan karakter.
+
+### 6.5 Partisi data per karakter
+
+| Modul | Perubahan |
+|---|---|
+| `lib/livia/chat-turn.ts` | ctx.character; riwayat, story, memori, insert `chatMessages` per `characterId` |
+| `lib/livia/memory.ts` | `addMemories`/`retrieve*`/`listMemories`/`deleteAllMemories(userId, characterId?)`/`maybeConsolidateMemory` ter-scope per karakter; `buildConsolidationInstructions(character)` mengganti konstanta hardcode |
+| `lib/livia/summary.ts` | `loadSummaries`/`maybeSummarizeChats` per karakter; `buildSummaryInstructions(character)` |
+| `lib/livia/affection.server.ts` | `applyAffectionAtomic`/`ensureUnlockedChapters` terima `character?` (karakter tanpa `features.story` tidak menyentuh `storyProgress`) |
+| `lib/gemini.ts` | `ChatPromptInput.characterId`; `generateLiviaResponse`/`streamLiviaReply`/`generateDateDialogue`/`generateDateResponse` terima `characterId`; prompt date di-drive dari `dating.*` + `hasPhysiology` |
+| Route | chat (+stream, history), date (+chat), memory, affection, dan semua route life-sim (§6.2) |
+| `/api/affection` GET | mengembalikan `characterId`; decay stat hanya untuk karakter dengan fisiologi |
+
+`deleteAllMemories(userId)` tanpa `characterId` tetap menghapus **semua
+karakter** — dipakai alur GDPR (`lib/safety/data-control.server.ts`).
+
+### 6.6 Client
+
+- `app/api/user/character/route.ts` — GET (pilihan + aktif) / POST (switch),
+  pola identik `/api/user/model`: `apiHandler`, rate limit, audit event
+  `character.switch`.
+- `lib/client/character.ts` — hook `useActiveCharacter` (fetch + save), pola
+  `useModelPreference`.
+- `components/characters/CharacterPicker.tsx` — grid pemilih (sprite preview
+  dari data server); dipakai di Settings (section) & home (modal).
+- Home: shortcut tombol karakter (pojok kanan atas), sprite `characterId`,
+  sapaan & reaksi sentuh **fallback generik** untuk companion
+  (`features/home/greeting.ts` / `touch-interactions.ts` — jalur Livia
+  byte-identik, lihat test), stat island hanya untuk Livia, preloader
+  karakter-aware (`preloadCharacterSprites`).
+- Chat: header menampilkan karakter aktif + tombol call hanya untuk
+  karakter dengan `voiceCall`.
+- Date: outfit & karakter dari `/api/affection` (bukan `/api/outfit` yang
+  sekarang lifeSim-only), sprite `characterId`.
+
+### 6.7 Deploy Phase B
+
+1. `bun run db:migrate` — **wajib** (kolom + tabel + backfill 0007).
+2. Redeploy; cek `/settings` (section Karakter), home (shortcut pojok kanan
+   atas), chat & date dengan karakter non-Livia.
+
+### 6.8 Test
+
+`tests/characters-features.test.ts`: hanya Livia yang punya ketiga fitur;
+blok `memory`/`dating` lengkap untuk semua karakter; `assertFeature`
+melempar `FEATURE_LOCKED` 403 untuk companion; instruksi
+summarizer/konsolidasi Livia **identik dengan teks hardcode lama**
+(regression); instruksi non-Livia menyebut karakternya; sapaan companion
+tidak membawa kepribadian Livia.
+
+### 6.9 Yang berikutnya (bukan utang Phase B — pencapaian berikutnya)
+
+- `voiceId` per karakter (data JSON) → buka kembali `voiceCall` untuk
+  karakter lain.
+- Konten life-sim per karakter (quest, resep, item, outfit sprite) kalau
+  diminta — saat ini sengaja Livia-only, bukan utang: keputusan produk.

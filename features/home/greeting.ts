@@ -8,6 +8,7 @@
  */
 
 import type { LiviaExpression } from '@/lib/gemini';
+import type { Character } from '@/lib/characters/registry';
 
 export type GreetingStats = {
   hunger: number;
@@ -287,4 +288,42 @@ export function getGreeting(
       return { text: pickRandom(texts), expression: 'clingy' };
     }
   }
+}
+
+/**
+ * Sapaan generik untuk karakter companion (M8.2 Phase B).
+ *
+ * Karakter selain Livia tidak punya konten sapaan spesifik (siklus, jadwal
+ * kampus, part-time) — teks Livia akan jadi *bohong* kalau dipakai untuk
+ * mereka. Fungsi ini hanya mengikuti waktu + afeksi, memakai nama karakter
+ * dari registry, sehingga cocok untuk siapa saja tanpa menulis 290 baris
+ * per karakter.
+ */
+export function getCompanionGreeting(
+  character: Character,
+  affection: number,
+  userName: string
+): Greeting {
+  const hour = new Date().getHours();
+  const close = affection >= 40;
+  const n = character.shortName;
+
+  if (hour >= 5 && hour < 12) {
+    return close
+      ? { text: pickRandom([`Selamat pagi, ${userName}! ${n} udah lama nungguin kamu lho.`, `Pagi~ Sarapan dulu ya biar semangat, ${n} ngawasin dari sini.`]), expression: 'happy' }
+      : { text: pickRandom([`Pagi, ${userName}. ${n} baru bangun juga.`, `Oh, pagi sudah. Ya, selamat pagi.`]), expression: 'normal' };
+  }
+  if (hour >= 12 && hour < 18) {
+    return close
+      ? { text: pickRandom([`Siang, ${userName}! Udah makan? Kalau belum, ${n} mau diajak makan lho.`, `Siang-siang gini enaknya istirahat sebentar. ${n} menemani.`]), expression: 'blushing' }
+      : { text: pickRandom([`Siang. Lagi sibuk?`, `Panjang hari ya. ${n} di sini aja.`]), expression: 'normal' };
+  }
+  if (hour >= 18 && hour < 22) {
+    return close
+      ? { text: pickRandom([`Malam, ${userName}! Gimana harimu? Ceritakan ke ${n} dong.`, `Akhirnya santai juga... mau ngobrol bentar sama ${n}?`]), expression: 'happy' }
+      : { text: pickRandom([`Malam.`, `Udah pulang? Istirahat dulu.`]), expression: 'normal' };
+  }
+  return close
+    ? { text: pickRandom([`Tengah malam masih bersama ${n}? Hehe, kamu memang beda.`, `Belum ngantuk? ${n} nemenin selama kamu masih melek.`]), expression: 'clingy' }
+    : { text: pickRandom([`Belum tidur? Besok kesiangan lho.`,`Tengah malam... jangan lupa istirahat.`]), expression: 'normal' };
 }

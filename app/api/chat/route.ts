@@ -46,7 +46,8 @@ export const POST = apiHandler(
         ctx.highestChapter,
         ctx.earlierSummary,
         userId,
-        ctx.model
+        ctx.model,
+        ctx.character.id
       );
 
     const updateResult = await persistChatTurn(ctx, message, {
@@ -59,7 +60,7 @@ export const POST = apiHandler(
 
     // M2.5: pemicu ringkasan bergulir. Fire-and-forget — ringkasan menelan
     // segalanya (diekan di dalamnya) supaya turn chat tidak bisa gagal.
-    void maybeSummarizeChats(userId, ctx.customApiKey);
+    void maybeSummarizeChats(userId, ctx.customApiKey, ctx.character.id);
 
     return NextResponse.json({
       reply,

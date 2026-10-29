@@ -15,6 +15,8 @@ import {
 } from '@/lib/livia/atomic-profile';
 import { applyAffectionAtomic, ensureUnlockedChapters } from '@/lib/livia/affection.server';
 import { RECIPES } from '@/lib/livia/recipes';
+import { getActiveCharacter } from '@/lib/characters/switch';
+import { hasFeature } from '@/lib/characters/registry';
 
 /**
  * Server Actions (M5.2) — RPC layer untuk operasi state.
@@ -76,7 +78,10 @@ export async function updateAffection(
   if ('error' in g) return g.error;
 
   const d = Math.max(-MAX_AFFECTION_DELTA, Math.min(MAX_AFFECTION_DELTA, Math.trunc(Number(delta) || 0)));
-  const result = await applyAffectionAtomic(g.userId, d);
+  // M8.2 Phase B: afeksi disimpan ke karakter aktif (sentuhan di home screen
+  // bisa terjadi untuk karakter mana pun yang sedang dipakai).
+  const character = await getActiveCharacter(g.userId);
+  const result = await applyAffectionAtomic(g.userId, d, character);
   if (!result) return { ok: false, error: 'Profil tidak ditemukan.', code: 'NOT_FOUND' };
   void reason; // konteks untuk observability; tidak disimpan (route lama juga tidak)
   return {
@@ -146,6 +151,17 @@ export async function cookRecipe(
   const g = await guard('Dapur terlalu ramai. Tunggu sebentar ya.');
   if ('error' in g) return g.error;
 
+  // M8.2 Phase B: dapur adalah sistem life-sim milik Livia. Action mengembalikan
+  // error (bukan throw) sesuai kontrak ActionResult.
+  const character = await getActiveCharacter(g.userId);
+  if (!hasFeature(character, 'lifeSim')) {
+    return {
+      ok: false,
+      error: 'Fitur ini saat ini hanya tersedia untuk Livia. Karakter lain bisa diajak chat dan kencan.',
+      code: 'FEATURE_LOCKED',
+    };
+  }
+
   const recipe = RECIPES.find((item) => item.id === recipeId);
   if (!recipe) return { ok: false, error: 'Resep tidak dikenal.', code: 'UNKNOWN_RECIPE' };
 
@@ -184,7 +200,7 @@ export async function cookRecipe(
 
   const newMoney = updated[0].money;
   const newAffection = updated[0].affection ?? 0;
-  await ensureUnlockedChapters(g.userId, newAffection);
+  await ensureUnlockedChapters(g.userId, newAffection, character);
 
   return {
     ok: true,
@@ -193,8 +209,8 @@ export async function cookRecipe(
       affection: newAffection,
       expression: isMinigameFailed ? 'pain' : 'happy',
       message: isMinigameFailed
-        ? `${recipe.name} jadi kurang matang, tapi Livia tetap menghabiskanmu. Dia bilang, "Yaa... lumayan lah. Lain kali jangan sambil main HP ya!"`
-        : `${recipe.name} berhasil dimasak! Livia tersenyum puas. "Wah, wanginya sampai ke kamar aku!"`,
+        ? `${recipe.name} jadi kurang matang, tapi ${character.shortName} tetap menghabiskanmu. Dia bilang, "Yaa... lumayan lah. Lain kali jangan sambil main HP ya!"`
+        : `${recipe.name} berhasil dimasak! ${character.shortName} tersenyum puas. "Wah, wanginya sampai ke kamar aku!"`,
     },
   };
 }

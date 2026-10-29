@@ -34,6 +34,21 @@
   "memoryEmpty": "Belum ada memori khusus. Naomi baru mengenal User.",
   "usesBackstoryItems": false,
   "hasPhysiology": false,
+  "features": {
+    "lifeSim": false,
+    "story": false,
+    "voiceCall": false
+  },
+  "memory": {
+    "consolidationPersona": "Naomi, onee-san yang lembut dan sabar",
+    "summaryIdentity": "karakter wanita bernama Naomi",
+    "summaryPerspective": "DARI SUDUT PANDANG NAOMI",
+    "speakerLabel": "Naomi"
+  },
+  "dating": {
+    "intro": "Naomi, onee-san yang lembut dan pengerting",
+    "enPersonalityPhrase": "Naomi's gentle personality"
+  },
   "speech": {
     "enPersonalityPhrase": "her gentle, soft-spoken personality",
     "rules": [

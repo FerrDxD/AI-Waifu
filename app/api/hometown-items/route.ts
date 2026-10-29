@@ -6,6 +6,8 @@ import { ITEMS } from '@/lib/livia/items';
 import { jsonApiHandler } from '@/lib/api-handler';
 import { mutationRateLimit } from '@/lib/rate-limit';
 import { errors } from '@/lib/errors';
+import { getActiveCharacter } from '@/lib/characters/switch';
+import { assertFeature } from '@/lib/characters/gates';
 
 /**
  * POST /api/hometown-items — item yang dibawa dari kampung halaman.
@@ -29,6 +31,10 @@ export const POST = jsonApiHandler<HometownBody>(
     rateLimitMessage: 'Terlalu banyak perubahan item. Tunggu sebentar ya.',
   },
   async ({ userId, body }) => {
+    // M8.2 Phase B: item dari kampung halaman datang dari bab cerita — sistem
+    // yang hanya dimiliki Livia.
+    assertFeature(await getActiveCharacter(userId), 'story');
+
     if (!Array.isArray(body.itemsBrought) || body.itemsBrought.length === 0) {
       throw errors.badRequest('Daftar item tidak valid.', 'INVALID_ITEMS');
     }

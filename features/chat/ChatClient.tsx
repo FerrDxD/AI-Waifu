@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { playSfx } from '@/lib/sfx';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useSpeechRecognition } from '@/lib/speech/use-speech-recognition';
+import { useActiveCharacter as useActiveCharacterHook } from '@/lib/client/character';
+import { getCharacter } from '@/lib/characters/registry';
 
 
 interface ChatMessage {
@@ -165,6 +167,12 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [historyLoaded, setHistoryLoaded] = useState(false);
+  // M8.2 Phase B: karakter aktif menentukan header & akses panggilan suara.
+  const { characterId, characters } = useActiveCharacterHook();
+  const activeCharacter = characters.find((c) => c.id === characterId);
+  const canCall = Boolean(
+    activeCharacter && getCharacter(activeCharacter.id).features.voiceCall
+  );
   /**
    * M4.2: diisi kalau server mendeteksi sinyal krisis pada pesan user.
    * Ditampilkan sebagai panel bantuan yang menonjol, terpisah dari balon chat —
@@ -427,17 +435,21 @@ export default function ChatPage() {
             <ArrowLeft size={20} />
           </Link>
           <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#ff758c] to-[#ff9a9e] flex items-center justify-center text-white shadow-sm font-bold text-lg shrink-0">
-            L
+            {(activeCharacter?.name ?? 'Livia').charAt(0)}
           </div>
           <div className="flex-1">
-            <h2 className="font-display font-bold text-lg text-gray-800 leading-tight">Livia Einhart</h2>
+            <h2 className="font-display font-bold text-lg text-gray-800 leading-tight">
+              {activeCharacter?.name ?? 'Livia Einhart'}
+            </h2>
             <span className="text-[11px] text-green-500 font-medium flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Online
             </span>
           </div>
-          <Link href="/call" className="p-2.5 bg-pink-100 text-pink-500 hover:bg-pink-500 hover:text-white rounded-full transition-all shadow-sm">
-            <Phone size={20} />
-          </Link>
+          {canCall && (
+            <Link href="/call" className="p-2.5 bg-pink-100 text-pink-500 hover:bg-pink-500 hover:text-white rounded-full transition-all shadow-sm">
+              <Phone size={20} />
+            </Link>
+          )}
         </div>
 
           {/* Messages area */}
@@ -457,7 +469,7 @@ export default function ChatPage() {
             {historyLoaded && messages.length === 0 && (
               <div className="flex items-center justify-center h-full">
                 <p className="font-display italic text-lg text-center text-amber-600/70">
-                  Belum ada pesan. Sapa Livia untuk mulai ngobrol!
+                  Belum ada pesan. Sapa {activeCharacter?.shortName ?? 'Livia'} untuk mulai ngobrol!
                 </p>
               </div>
             )}

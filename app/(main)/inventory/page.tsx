@@ -6,6 +6,7 @@ import { ChevronLeft, Package, Search, Sparkles } from 'lucide-react';
 import { ITEMS } from '@/lib/livia/items';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { EN_INVENTORY_ITEMS } from '@/lib/i18n/content';
+import CharacterGate from '@/components/characters/CharacterGate';
 
 export default function InventoryPage() {
   const { dict, language } = useLanguage();
@@ -26,6 +27,7 @@ export default function InventoryPage() {
   const inventoryItems = itemsBrought.filter(id => ITEMS.some(i => i.id === id)).map(id => ITEMS.find(i => i.id === id)!);
 
   return (
+    <CharacterGate feature="lifeSim">
     <div className="min-h-[100dvh] w-full bg-[#fdfbf7] relative flex flex-col font-sans select-none">
       
       {/* Top Header */}
@@ -141,5 +143,6 @@ export default function InventoryPage() {
 
       </div>
     </div>
+    </CharacterGate>
   );
 }

@@ -25,6 +25,7 @@ export default async function HomePage() {
       userName={actualUserName}
       initialItemsBrought={profile.itemsBrought ?? []}
       initialOutfit={profile.activeOutfit ?? 'default'}
+      initialCharacterId={profile.activeCharacterId ?? 'livia'}
     />
   );
 }

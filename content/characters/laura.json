@@ -30,6 +30,21 @@
   "memoryEmpty": "Belum ada memori khusus. Laura baru mengenal User.",
   "usesBackstoryItems": false,
   "hasPhysiology": false,
+  "features": {
+    "lifeSim": false,
+    "story": false,
+    "voiceCall": false
+  },
+  "memory": {
+    "consolidationPersona": "Laura, ibu yang hangat dan penyayang",
+    "summaryIdentity": "karakter wanita bernama Laura",
+    "summaryPerspective": "DARI SUDUT PANDANG LAURA",
+    "speakerLabel": "Laura"
+  },
+  "dating": {
+    "intro": "Laura, ibu yang hangat dan suka mengajak jalan-jalan",
+    "enPersonalityPhrase": "Laura's warm motherly personality"
+  },
   "speech": {
     "enPersonalityPhrase": "her warm motherly personality",
     "rules": [

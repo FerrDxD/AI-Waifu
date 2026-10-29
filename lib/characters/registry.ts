@@ -54,6 +54,36 @@ const CharacterSpeechSchema = z.object({
   rules: z.array(z.string().min(1)).min(1),
 });
 
+const CharacterFeaturesSchema = z.object({
+  /**
+   * Sistem life-sim: koper & item, statistik + decay, dapur, kebun, toko
+   * hadiah, lemari, quest. Hanya karakter yang punya konten ini (Livia).
+   */
+  lifeSim: z.boolean().default(false),
+  /** Bab cerita (content/story). */
+  story: z.boolean().default(false),
+  /** Panggilan suara TTS (membutuhkan voice per karakter). */
+  voiceCall: z.boolean().default(false),
+});
+
+const CharacterMemorySchema = z.object({
+  /** Bagaimana karakter menyebut dirinya saat "merenung" (konsolidasi memori). */
+  consolidationPersona: z.string().min(1),
+  /** Identitas untuk prompt summarizer, mis. "karakter wanita bernama Livia". */
+  summaryIdentity: z.string().min(1),
+  /** Sudut pandang ringkasan, mis. "DARI SUDUT PANDANG LIVIA". */
+  summaryPerspective: z.string().min(1),
+  /** Label pembicara di transkrip summarizer (peran DB 'livia'). */
+  speakerLabel: z.string().min(1),
+});
+
+const CharacterDatingSchema = z.object({
+  /** Kalimat pembuka prompt adegan kencan (tanpa "Kamu adalah"). */
+  intro: z.string().min(1),
+  /** Frasa kepribadian untuk aturan bahasa Inggris di adegan kencan. */
+  enPersonalityPhrase: z.string().min(1),
+});
+
 const CharacterRelationshipSchema = z.object({
   /** Premis hubungan default (digunakan saat karakter tidak punya bab pernikahan). */
   default: z.string().min(1),
@@ -83,6 +113,9 @@ export const CharacterSchema = z
     usesBackstoryItems: z.boolean().default(false),
     /** Memiliki sistem kondisi fisik (hunger/energy/hydration/siklus). */
     hasPhysiology: z.boolean().default(false),
+    features: CharacterFeaturesSchema,
+    memory: CharacterMemorySchema,
+    dating: CharacterDatingSchema,
     speech: CharacterSpeechSchema,
   })
   .superRefine((character, ctx) => {
@@ -124,6 +157,13 @@ export const DEFAULT_CHARACTER_ID: CharacterId = 'livia';
 export function getCharacter(id?: string | null): Character {
   const found = id ? characters.find(character => character.id === id) : undefined;
   return found ?? getCharacter(DEFAULT_CHARACTER_ID);
+}
+
+/** Fitur yang dimiliki karakter (dari data, bukan hardcode). */
+export type CharacterFeature = 'lifeSim' | 'story' | 'voiceCall';
+
+export function hasFeature(character: Character, feature: CharacterFeature): boolean {
+  return character.features[feature];
 }
 
 /**

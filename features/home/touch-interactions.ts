@@ -7,6 +7,7 @@
  */
 
 import type { LiviaExpression } from '@/lib/gemini';
+import type { Character } from '@/lib/characters/registry';
 import { pickRandom } from './greeting';
 
 export type BodyPart = 'head' | 'chest' | 'belly' | 'thigh';
@@ -107,4 +108,54 @@ export function getTouchReaction(
     ];
     return { text: pickRandom(texts), expression: 'angry', affectionChange: -2 };
   }
+}
+
+/**
+ * Reaksi sentuh generik untuk karakter companion (M8.2 Phase B).
+ *
+ * Karakter companion mempertahankan *mekanik* sentuhan Livia (kepala +1,
+ * area sensitif negatif) supaya afeksi tetap konsisten, tapi teksnya netral
+ * dan memakai nama karakter dari registry.
+ */
+export function getCompanionTouchReaction(
+  character: Character,
+  part: BodyPart,
+  userName: string
+): TouchReaction {
+  const n = character.shortName;
+
+  if (part === 'head') {
+    const texts = [
+      `E-eh?! Kepala ${n} bukan pelukanmu lho...`,
+      `H-hangat tanganmu... tapi jangan terus-terusan!`,
+      `${userName} aneh ya, tiba-tiba elus kepala ${n}.`,
+      `A-apa sih... ${n} bukan anak kucing.`,
+    ];
+    return { text: pickRandom(texts), expression: 'blushing', affectionChange: 1 };
+  }
+  if (part === 'chest') {
+    const texts = [
+      'H-hei! Tanganmu itu dijaga!',
+      `Mau ${n} marah?! Jangan sentuh sembarangan!`,
+      `${userName}?! Dada ${n} bukan area bebas!`,
+      'K-kyyaa! Berani-beraninya!',
+    ];
+    return { text: pickRandom(texts), expression: 'angry', affectionChange: -2 };
+  }
+  if (part === 'belly') {
+    const texts = [
+      'Geli tau! Jauhkan tanganmu!',
+      `${userName} ngapain sih?!`,
+      'A-ambil tanganmu dari perutku sekarang!',
+      `Hentikan! Perut ${n} bukan mainan!`,
+    ];
+    return { text: pickRandom(texts), expression: 'angry', affectionChange: -1 };
+  }
+  const texts = [
+    'T-tanganmu nyentuh pahaku! Jauhkan!',
+    'M-mau ditendang?!',
+    `Jangan meraba ke bawah ya, ${userName}!`,
+    'K-kotor! Jauhkan tanganmu!',
+  ];
+  return { text: pickRandom(texts), expression: 'angry', affectionChange: -2 };
 }
