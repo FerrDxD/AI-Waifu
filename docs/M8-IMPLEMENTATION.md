@@ -511,7 +511,7 @@ service worker hand-written + `web-push`.
 | `lib/push/cron-guard.ts` | Guard autorisasi cron (Bearer CRON_SECRET) |
 | `app/api/push/subscribe|vapid|send/route.ts` | API subscription + kirim pomodoro |
 | `app/api/cron/reminders|miss-you/route.ts` | Cron push terjadwal |
-| `vercel.json` | Jadwal Vercel Cron (reminders */5, miss-you harian 09 UTC) |
+| `vercel.json` | Jadwal Vercel Cron (reminders harian 00 UTC, miss-you harian 09 UTC — sesuai batas plan Hobby) |
 | `components/PwaProvider.tsx` | Daftar SW + restore subscription saat boot |
 | `lib/db/schema.ts` → `pushSubscriptions`+`pushSentLogs`+`reminders.notifiedAt` | Penyimpanan |
 
@@ -520,8 +520,9 @@ service worker hand-written + `web-push`.
 1. User aktifkan toggle di Settings → `pushManager.subscribe` (VAPID) →
    `POST /api/push/subscribe` (validasi + upsert).
 2. Pemicu:
-   - **Reminder lewat**: cron `*/5` → ambil `reminders` active & lewat &
-     `notifiedAt` null → kirim push → set `notifiedAt` (dedupe).
+   - **Reminder lewat**: cron harian (00:00 UTC — batas plan Hobby; reminder
+     push jadi sweep harian, bukan real-time) → ambil `reminders` active &
+     lewat & `notifiedAt` null → kirim push → set `notifiedAt` (dedupe).
    - **Pomodoro selesai**: client `POST /api/push/send` (hanya tab hidden).
    - **Livia kangen**: cron harian → user punya subscription & TIDAK aktif
      kemarin (`userActivityDaily`) & belum dikirimi hari ini (`pushSentLogs`).
