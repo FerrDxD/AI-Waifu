@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi, beforeEach } from 'vitest';
 
 /**
  * Setup global test (M4, memperbaiki bug laten sejak M2.7).
@@ -138,6 +138,27 @@ vi.mock('@/lib/rate-limit/store', () => {
   return {
     dbRateLimitStore: g.__mockRateLimitStoreObj,
   };
+});
+
+/**
+ * Reset counter rate limit mock di awal SETIAP test.
+ *
+ * Dengan `isolate: false`, factory `vi.mock('@/lib/rate-limit/store')` di atas
+ * berjalan sekali per worker — artinya Map counter TIDAK otomatis ter-reset
+ * antar file (komentar "per file" di atas terbukti keliru). Akibatnya, file
+ * yang memakai `mutationRateLimit` dengan user id sama (mis. `u-1`) bisa
+ * melewati cap 30/menit kalau kebetulan menumpuk di worker yang sama → 429
+ * palsu. Reset global di `beforeEach` memulihkan isolasi yang seharusnya.
+ */
+export function resetMockRateLimit(): void {
+  const store = (globalThis as Record<string, unknown>).__mockRateLimitStore as
+    | { reset: () => void }
+    | undefined;
+  store?.reset();
+}
+
+beforeEach(() => {
+  resetMockRateLimit();
 });
 
 /**

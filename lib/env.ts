@@ -102,6 +102,23 @@ const serverSchema = z.object({
       (v) => v === undefined || (/^\d+$/.test(v) && Number(v) >= 1 && Number(v) <= 1000),
       'ALERT_5XX_THRESHOLD harus integer 1..1000'
     ),
+
+  // Web Push (M8.5). Ketiganya opsional: kosong = fitur push mati total
+  // (service worker tetap jalan untuk offline cache, tapi tidak subscribe).
+  // Generate: `npx web-push generate-vapid-keys --json`.
+  VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_SUBJECT: z
+    .string()
+    .optional()
+    .refine(
+      (v) =>
+        v === undefined || v.startsWith('mailto:') || v.startsWith('https://'),
+      'VAPID_SUBJECT harus mailto: atau https://'
+    ),
+  // Secret untuk guard route cron Vercel (reminder & "Livia kangen").
+  // Kosong = cron ditolak (401) — fitur push terjadwal mati.
+  CRON_SECRET: z.string().optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;

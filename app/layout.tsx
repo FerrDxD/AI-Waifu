@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import ViewportManager from '@/components/ViewportManager';
 import DeferredQuestTracker from '@/components/DeferredQuestTracker';
+import PwaProvider from '@/components/PwaProvider';
 import { RadioProvider } from '@/components/RadioProvider';
 import AchievementToast from '@/components/ui/AchievementToast';
 import CustomAlertModal from '@/components/ui/CustomAlertModal';
@@ -49,18 +50,20 @@ export default function RootLayout({
           <Suspense fallback={null}>
             <NavigationProgress />
           </Suspense>
-          <ViewportManager />
-          <DeferredQuestTracker />
-          <main className="min-h-screen w-full relative">
-            <RadioProvider>
-              <AchievementToast />
-              <CustomAlertModal />
-              {/* M4.1: gate untuk akun yang dibuat sebelum M4. Tidak merender
-                  apa pun kalau user sudah mengonfirmasi atau belum login. */}
-              <AgeGateModal />
-              {children}
-            </RadioProvider>
-          </main>
+          <PwaProvider>
+            <ViewportManager />
+            <DeferredQuestTracker />
+            <main className="min-h-screen w-full relative">
+              <RadioProvider>
+                <AchievementToast />
+                <CustomAlertModal />
+                {/* M4.1: gate untuk akun yang dibuat sebelum M4. Tidak merender
+                    apa pun kalau user sudah mengonfirmasi atau belum login. */}
+                <AgeGateModal />
+                {children}
+              </RadioProvider>
+            </main>
+          </PwaProvider>
         </LanguageProvider>
       </body>
     </html>

@@ -10,6 +10,13 @@ import { showCustomAlert, showCustomConfirm } from '@/lib/alert';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { purgeLegacyApiKeyStorage, useApiKeyStatus } from '@/lib/client/api-key';
 import { useModelPreference } from '@/lib/client/model-preference';
+import {
+  getPushStatus,
+  isPushSupported,
+  subscribeToPush,
+  unsubscribeFromPush,
+  type PushStatus,
+} from '@/lib/push/push-client';
 
 /**
  * Label & warna per tipe memori (M3.5). Diletakkan di luar komponen supaya
@@ -54,7 +61,9 @@ export default function SettingsPage() {
   const [volume, setVolume] = useState(80);
   const [bgmVolume, setBgmVolume] = useState(50);
   const [sfxVolume, setSfxVolume] = useState(80);
-  const [notifications, setNotifications] = useState(true);
+  // M8.5: push notification Web Push (status nyata, bukan boolean statis).
+  const [pushStatus, setPushStatus] = useState<PushStatus | null>(null);
+  const [pushBusy, setPushBusy] = useState(false);
   // M0/H0.1: key dikelola server. Browser hanya tahu `keyHint`, tidak plaintext.
   const apiKeyStatus = useApiKeyStatus();
   const [customApiKey, setCustomApiKey] = useState('');
@@ -127,6 +136,44 @@ export default function SettingsPage() {
   useEffect(() => {
     void loadMemories();
   }, [loadMemories]);
+
+  // M8.5: muat status push notification (sekali).
+  useEffect(() => {
+    let cancelled = false;
+    if (!isPushSupported()) {
+      setPushStatus({
+        supported: false,
+        registered: false,
+        subscribed: false,
+        enabled: false,
+        permission: 'unsupported',
+      });
+      return;
+    }
+    void getPushStatus().then((status) => {
+      if (!cancelled) setPushStatus(status);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleTogglePush = async () => {
+    if (pushBusy) return;
+    setPushBusy(true);
+    try {
+      if (pushStatus?.enabled) {
+        const ok = await unsubscribeFromPush();
+        if (ok) setPushStatus((prev) => (prev ? { ...prev, subscribed: false, enabled: false } : prev));
+      } else {
+        const ok = await subscribeToPush();
+        const refreshed = await getPushStatus();
+        setPushStatus(refreshed);
+      }
+    } finally {
+      setPushBusy(false);
+    }
+  };
 
   const handleSfxChange = (val: number) => {
     setSfxVolume(val);
@@ -737,15 +784,26 @@ export default function SettingsPage() {
           <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-orange-100 flex flex-col gap-6">
             <div className="flex justify-between items-center">
               <div className="flex flex-col">
-                <span className="font-bold text-sm text-[#5c4d47]">{language === 'en' ? 'Livia Daily Reminders' : 'Pengingat Harian Livia'}</span>
-                <span className="text-xs text-gray-500">{language === 'en' ? "Get scolded if you haven't focused today" : "Dapatkan omelan jika kamu belum fokus kerja"}</span>
+                <span className="font-bold text-sm text-[#5c4d47]">{language === 'en' ? 'Web Push Notifications' : 'Notifikasi Web Push'}</span>
+                <span className="text-xs text-gray-500">
+                  {pushStatus === null
+                    ? (language === 'en' ? 'Checking…' : 'Memeriksa…')
+                    : !pushStatus.supported
+                      ? (language === 'en' ? 'Not supported on this browser.' : 'Tidak didukung browser ini.')
+                      : pushStatus.enabled
+                        ? (language === 'en' ? "Get reminders and focus completion pings." : 'Dapatkan pengingat & notifikasi sesi fokus.')
+                        : pushStatus.permission === 'denied'
+                          ? (language === 'en' ? 'Notifications blocked. Allow them in browser settings.' : 'Notifikasi diblokir. Izinkan lewat pengaturan browser.')
+                          : (language === 'en' ? 'Get reminders and focus completion pings.' : 'Dapatkan pengingat & notifikasi sesi fokus.')}
+                </span>
               </div>
-              <button 
-                onClick={() => setNotifications(!notifications)}
-                className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 ${notifications ? 'bg-[#ff758c]' : 'bg-gray-200'}`}
+              <button
+                onClick={() => void handleTogglePush()}
+                disabled={pushBusy || pushStatus === null || !pushStatus.supported}
+                className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 ${pushStatus?.enabled ? 'bg-[#ff758c]' : 'bg-gray-200'} disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-transform duration-300 ${notifications ? 'translate-x-6 bg-white' : 'translate-x-0 bg-white shadow-sm'}`}>
-                  {notifications ? <Check size={14} className="text-[#ff758c]" /> : <X size={14} className="text-gray-400" />}
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-transform duration-300 ${pushStatus?.enabled ? 'translate-x-6 bg-white' : 'translate-x-0 bg-white shadow-sm'}`}>
+                  {pushStatus?.enabled ? <Check size={14} className="text-[#ff758c]" /> : <X size={14} className="text-gray-400" />}
                 </div>
               </button>
             </div>

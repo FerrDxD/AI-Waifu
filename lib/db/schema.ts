@@ -212,10 +212,13 @@ export const reminders = pgTable(
     remindAt: timestamp('remind_at', { withTimezone: true }).notNull(),
     /** 'active' | 'done' | 'cancelled' */
     status: text('status').notNull().default('active'),
+    /** M8.5: kapan push notification reminder sudah dikirim (dedupe). */
+    notifiedAt: timestamp('notified_at', { withTimezone: true }),
     createdAt: timestamp('created_at').defaultNow(),
   },
   (table) => ({
     remindersUserStatus: index('idx_reminders_user_status').on(table.userId, table.status),
+    remindersActiveNotified: index('idx_reminders_active_notified').on(table.status, table.notifiedAt),
   })
 );
 
@@ -234,6 +237,69 @@ export const shoppingItems = pgTable(
   },
   (table) => ({
     shoppingUserCreated: index('idx_shopping_user_created').on(table.userId, table.createdAt),
+  })
+);
+
+/**
+ * Subscription push Web Push (M8.5).
+ *
+ * Satu user bisa punya banyak perangkat (mobile, desktop). Subscription
+ * dihapus saat push gagal 404/410 (perangkat di-uninstall / endpoint mati).
+ */
+export const pushSubscriptions = pgTable(
+  'pushSubscriptions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    /** Endpoint provider push (FCM/Web Push protocol). */
+    endpoint: text('endpoint').notNull(),
+    /** `p256dh` — kunci publik klien (base64url). */
+    p256dh: text('p256dh').notNull(),
+    /** `auth` — rahasia rahasia (base64url). */
+    auth: text('auth').notNull(),
+    /** User-Agent perangkat (diagnostik). */
+    userAgent: text('user_agent'),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (table) => ({
+    pushUserEndpoint: uniqueIndex('uq_push_subscriptions_user_endpoint').on(
+      table.userId,
+      table.endpoint
+    ),
+    pushUserCreated: index('idx_push_subscriptions_user_created').on(
+      table.userId,
+      table.createdAt
+    ),
+  })
+);
+
+/**
+ * Log pengiriman push (M8.5) — dedupe & audit.
+ *
+ * Dipakai untuk:
+ * - cron "Livia kangen" (sekali per user per hari);
+ * - reminder lewat (satu notifikasi per reminder, dicek `notifiedAt` di
+ *   tabel `reminders`, tapi log ini menyimpan jejak kirim per subscription);
+ * - debugging & observability (endpoint mati, gagal, dst).
+ */
+export const pushSentLogs = pgTable(
+  'pushSentLogs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    /** Kategori: 'reminder' | 'pomodoro' | 'miss_you'. */
+    kind: text('kind').notNull(),
+    /** Payload ringkas (judul, isi, URL) — tanpa data sensitif. */
+    payload: jsonb('payload').default({}),
+    /** 'sent' | 'failed' | 'dropped'. */
+    status: text('status').notNull().default('sent'),
+    /** Alasan gagal (opsional, untuk observability). */
+    error: text('error'),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (table) => ({
+    pushLogUserKind: index('idx_push_log_user_kind').on(table.userId, table.kind),
+    pushLogKindCreated: index('idx_push_log_kind_created').on(table.kind, table.createdAt),
   })
 );
 

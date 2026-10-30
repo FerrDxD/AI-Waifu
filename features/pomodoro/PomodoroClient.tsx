@@ -7,6 +7,7 @@ import { unlockAchievement } from '@/lib/achievements';
 import { playSfx } from '@/lib/sfx';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { updateAffection } from '@/lib/actions';
+import { notifyServerPomodoroDone } from '@/lib/push/push-client';
 
 const MOTIVATIONS = [
   "Kalau kamu nyerah sekarang, aku yang malu. Fokus ya!",
@@ -149,6 +150,12 @@ export default function PomodoroPage() {
         await updateAffection(5, 'pomodoro');
       } catch (e) {
         console.error(e);
+      }
+
+      // M8.5: push "sesi selesai" hanya kalau tab TIDAK fokus (kalau lagi di
+      // halaman ini, dialog sudah memberitahu — push sistem jadi redundan).
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+        notifyServerPomodoroDone();
       }
 
       setTimeout(() => {

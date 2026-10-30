@@ -6,8 +6,9 @@ berstatus rencana.
 
 Status: **M8.1 Phase 1 & Phase 2 SELESAI** (multi-provider engine + selector
 model di settings). **M8.3 SELESAI** (tool calling JSON single-turn).
-**M8.4 SELESAI** (gamifikasi server-validated, tanpa leaderboard). M8.2,
-M8.5–M8.7 belum dimulai.
+**M8.4 SELESAI** (gamifikasi server-validated, tanpa leaderboard).
+**M8.5 SELESAI** (PWA/native: offline cache + push notification). M8.2,
+M8.6–M8.7 belum dimulai.
 
 ---
 
@@ -473,3 +474,85 @@ sinkron antar perangkat) menjadi **otoritas server penuh**. Keputusan user:
    sentuh Livia menambah progress; klaim quest & milestone memberi Rv/afeksi.
 3. `_journal`/`0008` sudah digenerate; production memakai `db:migrate`
    sebenarnya (bukan push).
+
+---
+
+## 7. M8.5 — PWA/native (selesai)
+
+Tujuan: jadikan Teman Kos bisa di-install (add-to-home-screen) dan mengirim
+push notification, tanpa library berat (`next-pwa`) — cukup `manifest.json` +
+service worker hand-written + `web-push`.
+
+### 7.1 Keputusan desain
+
+- **Manifest + service worker hand-written** (bukan `next-pwa`) supaya kontrol
+  penuh atas strategi cache & tidak menambah dependency config. `next-pwa`
+  tidak dipakai (Next 14 App Router + `force-dynamic` perminta packet berbeda).
+- **Offline cache = app shell + aset statis** (pilihan user): precache
+  `/offline` + ikon; network-first untuk navigasi (halaman dinamis), cache-first
+  untuk aset ber-contenthash (`_next/static`, gambar); API (`/api/...`) TIDAK
+  pernah di-cache.
+- **Push via `web-push`** (pilihan user): VAPID + enkripsi ECDH otomatis.
+- **Tiga pemicu push** (pilihan user): reminder lewat waktu (cron), pomodoro
+  selesai (client fire-and-forget), "Livia kangen" harian (cron, user yang
+  tidak aktif kemarin).
+
+### 7.2 Struktur
+
+| File | Peran |
+|---|---|
+| `public/manifest.json` | Manifest PWA (name, icons 192/512/maskable, tema) |
+| `public/sw.js` | Service worker (precache shell, routing cache, push, klik) |
+| `public/icon*.png` + `icon.svg` | Ikon (dibuat dari SVG via `@resvg/resvg-js`) |
+| `public/offline` … `app/offline/page.tsx` | Halaman fallback offline |
+| `lib/push/push.server.ts` | Kirim push (VAPID, cleanup endpoint mati, log) |
+| `lib/push/push-client.ts` | Sub/unsub client + daftar SW + status |
+| `lib/push/validate.ts` | Validasi subscription (anti-abuse) |
+| `lib/push/cron-guard.ts` | Guard autorisasi cron (Bearer CRON_SECRET) |
+| `app/api/push/subscribe|vapid|send/route.ts` | API subscription + kirim pomodoro |
+| `app/api/cron/reminders|miss-you/route.ts` | Cron push terjadwal |
+| `vercel.json` | Jadwal Vercel Cron (reminders */5, miss-you harian 09 UTC) |
+| `components/PwaProvider.tsx` | Daftar SW + restore subscription saat boot |
+| `lib/db/schema.ts` → `pushSubscriptions`+`pushSentLogs`+`reminders.notifiedAt` | Penyimpanan |
+
+### 7.3 Alur push
+
+1. User aktifkan toggle di Settings → `pushManager.subscribe` (VAPID) →
+   `POST /api/push/subscribe` (validasi + upsert).
+2. Pemicu:
+   - **Reminder lewat**: cron `*/5` → ambil `reminders` active & lewat &
+     `notifiedAt` null → kirim push → set `notifiedAt` (dedupe).
+   - **Pomodoro selesai**: client `POST /api/push/send` (hanya tab hidden).
+   - **Livia kangen**: cron harian → user punya subscription & TIDAK aktif
+     kemarin (`userActivityDaily`) & belum dikirimi hari ini (`pushSentLogs`).
+3. `web-push` kirim; 404/410 (endpoint mati) → hapus subscription.
+
+### 7.4 Keamanan & ketahanan
+
+- `validPushSubscription`: endpoint wajib https://, keys base64url, panjang
+  wajar — menolak isian asing (anti-abuse endpoint orang lain).
+- `isCronAuthorized`: Bearer token `CRON_SECRET` (Vercel Cron mengirim header
+  otomatis) — mencegah panggil cron massal tanpa izin.
+- Teks push dari server (default per kind), bukan teks bebas client.
+- Kegagalan push 4xx/5xx di-log, tidak menggagalkan cron/route.
+- Push nonaktif total kalau env VAPID belum diset (service worker tetap jalan).
+
+### 7.5 Test & gerbang
+
+- `tests/push.test.ts`: validasi subscription, guard cron, deteksi push enabled
+  (14 test, murni tanpa DB/network).
+- Fix isolasi rate limit mock (`beforeEach(resetMockRateLimit)` di setup) —
+  bug laten `isolate: false` yang jadi flake saat file test baru ditambah.
+- Verifikasi penuh: drift sinkron, typecheck 0, test 836/836 (2×), lint hanya
+  warning lama, evals HARD 55/55.
+
+### 7.6 Deploy
+
+1. `bun run db:migrate` — **wajib lebih dulu** (tabel `pushSubscriptions`,
+   `pushSentLogs`, kolom `reminders.notified_at`).
+2. Set env: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`,
+   `CRON_SECRET` (generate: `npx web-push generate-vapid-keys --json`).
+3. Deploy `vercel.json` (cron) + redeploy. Cek: install banner muncul, toggle
+   notifikasi di Settings menyimpan subscription, selesai pomodoro (tab
+   tersembunyi) memunculkan notifikasi, cron reminder/miss-you tereksekusi.
+4. `_journal`/`0009` sudah digenerate; production memakai `db:migrate`.
