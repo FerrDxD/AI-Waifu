@@ -1,5 +1,6 @@
 import type { LlmResponseSchema } from './types';
 import { z } from 'zod';
+import { TOOL_NAME_SET, type ToolName } from '@/lib/tools/registry';
 
 /**
  * Skema output terstruktur (M2.4).
@@ -188,6 +189,54 @@ const memoryUpdateField = coerceField((value) =>
 /** `memories` non-kritis: bentuk aneh → array kosong. */
 const memoriesField = coerceField((value) => coerceMemories(value));
 
+/**
+ * Panggilan tool Livia (M8.3).
+ *
+ * Livia mengembalikan field opsional `tools: [{name, args}]` di JSON
+ * balasannya. Server memvalidasi + mengeksekusi (lihat `lib/tools/`), lalu
+ * menambahkan baris konfirmasi faktual ke reply.
+ */
+export interface LiviaToolCall {
+  name: ToolName;
+  args: Record<string, unknown>;
+}
+
+/** Maksimal tool per balasan — pembatas biaya/risiko. */
+export const MAX_TOOLS_PER_REPLY = 5;
+
+/**
+ * Koersi array `tools` dari model.
+ *
+ * Sama seperti `memories`: array rusak tidak boleh menggagalkan balasan yang
+ * teksnya sudah bagus. Item yang tidak dikenal / bentuknya salah dibuang satu
+ * per satu. Nama tool divalidasi terhadap registry; `args` harus plain object
+ * (validasi detail per-tool dilakukan executor).
+ */
+export function coerceTools(value: unknown): LiviaToolCall[] {
+  if (!Array.isArray(value)) return [];
+
+  const result: LiviaToolCall[] = [];
+
+  for (const raw of value) {
+    if (result.length >= MAX_TOOLS_PER_REPLY) break;
+    if (!raw || typeof raw !== 'object') continue;
+
+    const item = raw as Record<string, unknown>;
+    if (typeof item.name !== 'string' || !TOOL_NAME_SET.has(item.name)) continue;
+    if (!item.args || typeof item.args !== 'object' || Array.isArray(item.args)) continue;
+
+    result.push({
+      name: item.name as ToolName,
+      args: item.args as Record<string, unknown>,
+    });
+  }
+
+  return result;
+}
+
+/** `tools` non-kritis: bentuk aneh → array kosong. */
+const toolsField = coerceField((value) => coerceTools(value));
+
 /** Validator balasan Livia (chat & date chat). */
 export const liviaReplyValidator = z
   .object({
@@ -196,6 +245,7 @@ export const liviaReplyValidator = z
     expression: expressionField,
     memories: memoriesField,
     memoryUpdate: memoryUpdateField,
+    tools: toolsField,
   })
   .transform((value) => ({
     reply: value.reply,
@@ -203,6 +253,7 @@ export const liviaReplyValidator = z
     expression: value.expression,
     memories: value.memories,
     memoryUpdate: value.memoryUpdate,
+    tools: value.tools,
   }));
 
 export type LiviaReply = z.infer<typeof liviaReplyValidator>;
@@ -253,6 +304,27 @@ export const liviaReplyResponseSchema: LlmResponseSchema = {
           },
         },
         required: ['type', 'content', 'confidence'],
+      },
+    },
+    tools: {
+      type: 'array',
+      description:
+        'TINDAKAN yang user minta (opsional, M8.3): buat pengingat / tambah daftar belanja. Array kosong [ ] atau dihilangkan kalau tidak ada tindakan.',
+      items: {
+        type: 'object',
+        properties: {
+          name: {
+            type: 'string',
+            description:
+              'create_reminder (args: text, time) | add_shopping_item (args: item) | list_shopping_items (args: {}).',
+          },
+          args: {
+            type: 'object',
+            description:
+              'Argumen tool. create_reminder: {text: "isi", time: "jam 7"}; add_shopping_item: {item: "telur"}; list_shopping_items: {}.',
+          },
+        },
+        required: ['name', 'args'],
       },
     },
   },

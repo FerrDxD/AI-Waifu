@@ -5,7 +5,8 @@ teknis yang tersisa. Ditulis bertahap; bagian yang belum dikerjakan tetap
 berstatus rencana.
 
 Status: **M8.1 Phase 1 & Phase 2 SELESAI** (multi-provider engine + selector
-model di settings). M8.2–M8.7 belum dimulai.
+model di settings). **M8.3 SELESAI** (tool calling JSON single-turn). M8.2,
+M8.4–M8.7 belum dimulai.
 
 ---
 
@@ -304,3 +305,94 @@ Gerbang: `typecheck` 0 · `test` 775/775 (dua kali) · `lint` hanya warning lama
    `deepseek-v4.1-flash-1017,gpt-6-luna,gemini-3.8-flash`).
 3. Redeploy, lalu cek `/settings` (dropdown muncul) dan `/usage`
    (provider tercatat benar).
+
+---
+
+## 5. M8.3 — Tool calling (selesai)
+
+Tujuan: Livia jadi asisten sungguhan — "Livia, ingetin aku jam 7",
+"Livia, catat belanja telur & susu" — lewat chat biasa.
+
+### 5.1 Keputusan desain: JSON tools single-turn
+
+Mekanisme **bukan** native function calling per provider. Alasan:
+
+- Native function calling beda format di tiap provider (Gemini
+  `functionDeclarations`, OpenAI/Anthropic `tools`) — memaksakannya berarti
+  menyentuh 3-4 adapter sekaligus dan mahal (≥2 putaran LLM per pesan tool).
+- `lib/ai/types.ts` sudah memaksa output JSON terstruktur. Livia cukup
+  mengembalikan field opsional `tools: [{name, args}]` di JSON balasannya.
+- Server memvalidasi tiap tool dengan zod per-tool, mengeksekusi, lalu
+  menyisipkan baris konfirmasi faktual ke reply. **Satu putaran LLM**, murah,
+  tanpa menyentuh kontrak provider. (Kontrak provider tidak diubah sama sekali.)
+
+Alur satu turn:
+
+```
+user: "ingetin aku jam 7 minum obat"
+  → Livia (JSON): { reply: "Siap!", tools: [create_reminder...] }
+  → server: eksekusi tool (validasi zod + insert DB)
+  → reply final: "Siap! [✓] Pengingat dibuat: ... untuk 2026-10-30 19:00."
+```
+
+### 5.2 Tool awal & domain
+
+| Tool | Args | Efek |
+|---|---|---|
+| `create_reminder` | `{ text, time }` | Insert tabel `reminders` (content, remindAt) |
+| `add_shopping_item` | `{ item }` | Insert tabel `shoppingItems` (name) |
+| `list_shopping_items` | `{}` | Baca daftar belanja (hasil → baris konfirmasi) |
+
+Skema DB (migrasi `0007`): tabel `reminders` (userId FK cascade, content,
+remindAt timestamptz, status active/done/cancelled, index userId+status) dan
+`shoppingItems` (userId FK cascade, name, checked, index userId+createdAt).
+
+Waktu relatif: `lib/tools/time.ts` mem-parse "jam 7", "besok jam 9 pagi",
+"jam 7 malam", "7:30", ISO absolute. Zona waktu user dikirim browser
+(`offsetMinutes`, WIB = -420), semua hitungan "jam dinding" di zona itu lalu
+dikonversi ke UTC. Waktu ambigu/tak dikenali → tool mengembalikan `[?]` dan
+Livia meminta kejelasan (bukan gagal).
+
+### 5.3 Server & keamanan
+
+- `lib/tools/registry.ts` — daftar tool + zod schema (registry tunggal).
+- `lib/tools/execute.ts` — executor murni; **tidak pernah melempar** ke route
+  (gagal DB → `ok:false` + log, bukan 500).
+- Field `tools` di `liviaReplyValidator` **non-kritis** (pola `memories`):
+  bentuk aneh → `[]`, tool invalid dibuang satu per satu, tidak pernah
+  menggagalkan balasan. Tidak ditambahkan ke `required` responseSchema.
+- Nama tool divalidasi terhadap registry (`TOOL_NAME_SET`); args harus plain
+  object; maksimal 5 tool per balasan (`MAX_TOOLS_PER_REPLY`).
+- Eksekusi terjadi **setelah** generate, **sebelum** `persistChatTurn`; hasil
+  disisipkan ke reply yang tersimpan. Tool yang gagal internal di-skip.
+- Route `/api/reminders` + `/api/shopping` (GET/POST/PATCH) memakai pola
+  `apiHandler`/`jsonApiHandler` dan fungsi store yang sama dengan executor —
+  tidak ada duplikasi logika.
+
+### 5.4 Konteks ke model & penyampaian reminder
+
+- Blok "REMINDER & BELANJA" disisipkan ke `buildChatReplyPrompt` hanya kalau
+  ada data — Livia tahu reminder aktif & daftar belanja tanpa query tool.
+- Penyampaian: daftar reminder aktif di UI `/schedule` (panel Pengingat &
+  Daftar Belanja) + Livia menyebutkan reminder yang lewat saat user ngobrol
+  lagi. **Belum ada push/cron** (ranah M8.5).
+- UI memakai fetch ke route baru; form "tambah reminder" mengubah "jam 7"
+  → `datetime-local` (durasi/fuzzy kecil, server tetap otoritatif).
+
+### 5.5 Test & gerbang
+
+`tests/tools.test.ts` (coerce tools, validasi `tools` di liviaReplyValidator,
+parse waktu relatif, executor, registry) + `tests/tools-routes.test.ts`
+(route reminders & shopping; store di-mock global di `tests/setup.ts` pola
+`@/lib/auth`/usage).
+
+Gerbang: `db:check-drift` sinkron (0007) · `typecheck` 0 error · `test`
+812/812 (dua kali) · `lint` hanya warning lama · `evals` 55/55 offline.
+
+### 5.6 Deploy
+
+1. `bun run db:migrate` — **wajib lebih dulu** (tabel reminders/shoppingItems).
+2. Redeploy. Cek: `/schedule` (panel muncul), chat "ingetin aku jam 7"
+   (balasan berisi `[✓] Pengingat dibuat: ...`).
+3. `_journal`/`0007` sudah digenerate; production memakai `db:migrate`
+   sebenarnya (bukan push).

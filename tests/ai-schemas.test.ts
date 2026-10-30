@@ -159,7 +159,9 @@ describe('responseSchema', () => {
     expect(schema.required).toEqual(
       expect.arrayContaining(['reply', 'affectionDelta', 'expression', 'memories'])
     );
-    expect(Object.keys(schema.properties)).toHaveLength(5);
+    // M8.3: field `tools` opsional ditambahkan (non-kritis, tidak di `required`).
+    expect(Object.keys(schema.properties)).toHaveLength(6);
+    expect(schema.properties).toHaveProperty('tools');
   });
 
   it('dateDialogue menyatakan scene sebagai array of object', () => {

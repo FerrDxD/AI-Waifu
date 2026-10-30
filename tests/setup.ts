@@ -257,3 +257,115 @@ class TrackedMockAudio extends MockAudio {
     audioInstances.length = 0;
   },
 };
+
+/**
+ * Mock `@/lib/tools/store` (M8.3).
+ *
+ * Store tool (reminders/shoppingItems) dipakai executor chat DAN route
+ * `/api/reminders` & `/api/shopping`. Suite vitest tidak punya database, dan
+ * `isolate: false` membuat `vi.mock` per file tidak andal (kalah urutan).
+ * Jadi store-nya digantikan in-memory global — pola yang sama dengan mock
+ * `@/lib/auth` / `@/lib/ai/usage` di atas. SQL asli tetap diuji lewat
+ * `db:check-drift` + migrasi.
+ */
+function getToolStoreState(): {
+  reminders: Array<{
+    id: string;
+    userId: string;
+    content: string;
+    remindAt: Date;
+    status: string;
+    createdAt: Date;
+  }>;
+  shopping: Array<{
+    id: string;
+    userId: string;
+    name: string;
+    checked: boolean;
+    createdAt: Date;
+  }>;
+} {
+  const g = globalThis as Record<string, unknown>;
+  if (!g.__mockToolStoreState) {
+    g.__mockToolStoreState = { reminders: [], shopping: [] };
+  }
+  return g.__mockToolStoreState as {
+    reminders: Array<{
+      id: string;
+      userId: string;
+      content: string;
+      remindAt: Date;
+      status: string;
+      createdAt: Date;
+    }>;
+    shopping: Array<{
+      id: string;
+      userId: string;
+      name: string;
+      checked: boolean;
+      createdAt: Date;
+    }>;
+  };
+}
+
+export function resetMockToolStore(): void {
+  getToolStoreState().reminders.length = 0;
+  getToolStoreState().shopping.length = 0;
+}
+
+vi.mock('@/lib/tools/store', () => {
+  const state = getToolStoreState();
+  const uuid = () => crypto.randomUUID();
+
+  return {
+    listReminderContext: async (userId: string, now: Date) => {
+      const rows = state.reminders.filter(
+        (r) => r.userId === userId && r.status === 'active'
+      );
+      const overdue: unknown[] = [];
+      const upcoming: unknown[] = [];
+      for (const row of rows) {
+        if (row.remindAt.getTime() <= now.getTime()) overdue.push(row);
+        else upcoming.push(row);
+      }
+      return { overdue, upcoming };
+    },
+    listReminders: async (userId: string) =>
+      state.reminders
+        .filter((r) => r.userId === userId)
+        .slice()
+        .sort((a, b) => b.remindAt.getTime() - a.remindAt.getTime()),
+    insertReminder: async (userId: string, content: string, remindAt: Date) => {
+      const row = { id: uuid(), userId, content, remindAt, status: 'active', createdAt: new Date() };
+      state.reminders.push(row);
+      return row;
+    },
+    updateReminderStatus: async (
+      userId: string,
+      id: string,
+      status: string
+    ) => {
+      const row = state.reminders.find((r) => r.id === id && r.userId === userId);
+      if (!row) return null;
+      row.status = status;
+      return row;
+    },
+    listShoppingItems: async (userId: string) =>
+      state.shopping.filter((s) => s.userId === userId),
+    insertShoppingItem: async (userId: string, name: string) => {
+      const row = { id: uuid(), userId, name, checked: false, createdAt: new Date() };
+      state.shopping.push(row);
+      return row;
+    },
+    updateShoppingItemChecked: async (
+      userId: string,
+      id: string,
+      checked: boolean
+    ) => {
+      const row = state.shopping.find((s) => s.id === id && s.userId === userId);
+      if (!row) return null;
+      row.checked = checked;
+      return row;
+    },
+  };
+});

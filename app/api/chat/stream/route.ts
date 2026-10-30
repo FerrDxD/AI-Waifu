@@ -10,6 +10,8 @@ import {
   statsFromContext,
 } from '@/lib/livia/chat-turn';
 import { maybeSummarizeChats } from '@/lib/livia/summary';
+import { buildToolContext } from '@/lib/tools/context';
+import { executeToolCalls } from '@/lib/tools/execute';
 
 type SseEvent = Record<string, unknown> & { type: string };
 
@@ -48,6 +50,13 @@ export const POST = apiHandler(
 
     const ctx = await loadChatTurnContext({ userId, req, isVoiceCall, message });
 
+    // M8.3: muat data reminder & belanja untuk konteks prompt. Fail-open —
+    // kalau query gagal, chat tetap jalan tanpa blok itu.
+    const toolContext = await buildToolContext(userId).catch(() => ({
+      lines: [] as string[],
+      overdueCount: 0,
+    }));
+
     const reply = streamLiviaReply({
       userMessage: message,
       chatHistory: ctx.chatHistory,
@@ -62,6 +71,7 @@ export const POST = apiHandler(
       earlierSummary: ctx.earlierSummary,
       userId,
       model: ctx.model,
+      toolContext,
     });
 
     const encoder = new TextEncoder();
@@ -82,6 +92,19 @@ export const POST = apiHandler(
           }
 
           const final = await reply.final;
+
+          // M8.3: eksekusi tool yang diminta Livia. Hasilnya disisipkan
+          // sebagai baris konfirmasi faktual ke reply (satu putaran LLM).
+          let toolsExecuted = 0;
+          if (final.tools && final.tools.length > 0) {
+            const lines = await executeToolCalls(final.tools, { userId });
+            toolsExecuted = lines.length;
+            if (lines.length > 0) {
+              const separator = final.reply.endsWith('.') || final.reply.endsWith('!') || final.reply.endsWith('?') ? ' ' : '. ';
+              final.reply = final.reply + separator + lines.join(' ');
+            }
+          }
+
           const update = await persistChatTurn(ctx, message, final);
 
           send({
@@ -96,6 +119,8 @@ export const POST = apiHandler(
             crisis: final.crisis,
             // M7.4: ID baris Livia di DB — dipakai tombol feedback di client.
             messageId: update.liviaMessageId,
+            // M8.3: jumlah tool yang berhasil dijalankan di turn ini.
+            toolsExecuted,
           });
 
           // M2.5: pemicu ringkasan bergulir. Satu `done` = satu turn tersimpan,

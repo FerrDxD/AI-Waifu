@@ -195,6 +195,49 @@ export const gardenPots = pgTable('gardenPots', {
 });
 
 /**
+ * Pengingat (M8.3). Dibuat lewat chat ("Livia, ingetin aku jam 7") atau
+ * langsung dari halaman /schedule.
+ *
+ * `remindAt` adalah waktu target mengingatkan. Tanpa background worker,
+ * reminder "aktif" ditampilkan di UI dan disebutkan Livia saat waktunya
+ * lewat & user ngobrol lagi (trigger saat chat).
+ */
+export const reminders = pgTable(
+  'reminders',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    content: text('content').notNull(),
+    /** Waktu target mengingatkan. */
+    remindAt: timestamp('remind_at', { withTimezone: true }).notNull(),
+    /** 'active' | 'done' | 'cancelled' */
+    status: text('status').notNull().default('active'),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (table) => ({
+    remindersUserStatus: index('idx_reminders_user_status').on(table.userId, table.status),
+  })
+);
+
+/**
+ * Daftar belanja (M8.3). Dibuat lewat chat ("Livia, catat belanja telur
+ * & susu") atau langsung dari halaman /schedule.
+ */
+export const shoppingItems = pgTable(
+  'shoppingItems',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    name: text('name').notNull(),
+    checked: boolean('checked').notNull().default(false),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (table) => ({
+    shoppingUserCreated: index('idx_shopping_user_created').on(table.userId, table.createdAt),
+  })
+);
+
+/**
  * Audit log peristiwa sensitif (M4.6).
  *
  * Tujuannya investigasi insiden, bukan analitik produk. Karena itu:

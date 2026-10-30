@@ -7,6 +7,8 @@ import { logger } from '@/lib/logger';
 import { validateChatMessage } from '@/lib/validation';
 import { loadChatTurnContext, persistChatTurn, statsFromContext } from '@/lib/livia/chat-turn';
 import { maybeSummarizeChats } from '@/lib/livia/summary';
+import { buildToolContext } from '@/lib/tools/context';
+import { executeToolCalls } from '@/lib/tools/execute';
 
 export const POST = apiHandler(
   {
@@ -32,22 +34,43 @@ export const POST = apiHandler(
 
     const ctx = await loadChatTurnContext({ userId, req, isVoiceCall, message });
 
-    const { reply, affectionDelta, expression, memories, memoryUpdate, crisis } =
-      await generateLiviaResponse(
-        message,
-        ctx.chatHistory,
-        ctx.profile.affection || 0,
-        ctx.profile.itemsBrought || [],
-        statsFromContext(ctx),
-        isVoiceCall,
-        ctx.memoryLines,
-        ctx.customApiKey,
-        ctx.language,
-        ctx.highestChapter,
-        ctx.earlierSummary,
-        userId,
-        ctx.model
-      );
+    // M8.3: muat data reminder & belanja untuk konteks prompt. Fail-open —
+    // kalau query gagal, chat tetap jalan tanpa blok itu.
+    const toolContext = await buildToolContext(userId).catch(() => ({
+      lines: [] as string[],
+      overdueCount: 0,
+    }));
+
+    const result = await generateLiviaResponse(
+      message,
+      ctx.chatHistory,
+      ctx.profile.affection || 0,
+      ctx.profile.itemsBrought || [],
+      statsFromContext(ctx),
+      isVoiceCall,
+      ctx.memoryLines,
+      ctx.customApiKey,
+      ctx.language,
+      ctx.highestChapter,
+      ctx.earlierSummary,
+      userId,
+      ctx.model,
+      toolContext
+    );
+
+    let reply = result.reply;
+    const { affectionDelta, expression, memories, memoryUpdate, tools, crisis } = result;
+
+    // M8.3: eksekusi tool yang diminta Livia. Hasilnya disisipkan sebagai
+    // baris konfirmasi faktual ke reply (satu putaran LLM).
+    let executedLines: string[] = [];
+    if (tools && tools.length > 0) {
+      executedLines = await executeToolCalls(tools, { userId });
+      if (executedLines.length > 0) {
+        const separator = reply.endsWith('.') || reply.endsWith('!') || reply.endsWith('?') ? ' ' : '. ';
+        reply = reply + separator + executedLines.join(' ');
+      }
+    }
 
     const updateResult = await persistChatTurn(ctx, message, {
       reply,
@@ -72,6 +95,8 @@ export const POST = apiHandler(
       crisis,
       // M7.4: ID baris Livia di DB (dipakai tombol feedback).
       messageId: updateResult.liviaMessageId,
+      // M8.3: jumlah tool yang berhasil dijalankan di turn ini.
+      toolsExecuted: executedLines.length,
     });
   }
 );

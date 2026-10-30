@@ -17,6 +17,7 @@ import {
   getTodayDateString 
 } from '@/lib/livia/quests';
 import { claimWork, updateAffection } from '@/lib/actions';
+import { ReminderPanel, ShoppingPanel } from './ToolPanels';
 
 const LIVIA_QUEST_REACTIONS = [
   "Wah, satu misi berhasil kamu selesaikan! Keren banget~",
@@ -335,6 +336,12 @@ export default function DailyQuestsPage() {
             </div>
 
           </div>
+        </div>
+
+        {/* M8.3: Tool Panels — Pengingat & Belanja */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ReminderPanel />
+          <ShoppingPanel />
         </div>
 
         {/* Quest List */}
