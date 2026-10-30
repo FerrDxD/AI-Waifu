@@ -37,16 +37,19 @@ export interface ExecuteToolContext {
 /**
  * Jalankan semua panggilan tool dari satu balasan Livia (M8.3).
  *
- * Mengembalikan hanya hasil yang layak disisipkan ke reply:
- * - sukses → baris `[✓] <pesan>`;
- * - gagal karena butuh kejelasan (mis. waktu tak terbaca) → `[?] <pesan>`;
- * - gagal internal → di-skip (di-log), jangan membebani reply user.
+ * Mengembalikan `{ lines, tools }`:
+ * - `lines` hanya yang layak disisipkan ke reply:
+ *   - sukses → baris `[✓] <pesan>`;
+ *   - gagal karena butuh kejelasan (mis. waktu tak terbaca) → `[?] <pesan>`;
+ *   - gagal internal → di-skip (di-log), jangan membebani reply user.
+ * - `tools` = nama tool yang SUKSES (M8.4: dipakai untuk merekam quest).
  */
 export async function executeToolCalls(
   calls: LiviaToolCall[],
   ctx: ExecuteToolContext
-): Promise<string[]> {
+): Promise<{ lines: string[]; tools: string[] }> {
   const lines: string[] = [];
+  const tools: string[] = [];
 
   for (const call of calls) {
     const result = await executeToolCall(
@@ -56,6 +59,7 @@ export async function executeToolCalls(
 
     if (result.ok) {
       lines.push(`[✓] ${result.message}`);
+      tools.push(call.name);
     } else if (result.message.includes('belum jelas')) {
       lines.push(`[?] ${result.message}`);
     } else {
@@ -67,7 +71,7 @@ export async function executeToolCalls(
     }
   }
 
-  return lines;
+  return { lines, tools };
 }
 
 export async function executeToolCall(

@@ -12,6 +12,7 @@ import {
 import { maybeSummarizeChats } from '@/lib/livia/summary';
 import { buildToolContext } from '@/lib/tools/context';
 import { executeToolCalls } from '@/lib/tools/execute';
+import { recordQuestActionServer, utcToday } from '@/lib/livia/quests.server';
 
 type SseEvent = Record<string, unknown> & { type: string };
 
@@ -97,11 +98,15 @@ export const POST = apiHandler(
           // sebagai baris konfirmasi faktual ke reply (satu putaran LLM).
           let toolsExecuted = 0;
           if (final.tools && final.tools.length > 0) {
-            const lines = await executeToolCalls(final.tools, { userId });
-            toolsExecuted = lines.length;
-            if (lines.length > 0) {
+            const executed = await executeToolCalls(final.tools, { userId });
+            toolsExecuted = executed.lines.length;
+            if (executed.lines.length > 0) {
               const separator = final.reply.endsWith('.') || final.reply.endsWith('!') || final.reply.endsWith('?') ? ' ' : '. ';
-              final.reply = final.reply + separator + lines.join(' ');
+              final.reply = final.reply + separator + executed.lines.join(' ');
+            }
+            // M8.4: rekam aksi tool ke quest (server = otoritas).
+            for (const name of executed.tools) {
+              await recordQuestActionServer(userId, utcToday(), name);
             }
           }
 

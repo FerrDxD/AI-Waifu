@@ -238,6 +238,46 @@ export const shoppingItems = pgTable(
 );
 
 /**
+ * Progress quest harian server-validated (M8.4).
+ *
+ * Dulu seluruh gamifikasi (progress, klaim, milestone) hidup di localStorage
+ * client — bisa dipalsukan dan tidak sinkron antar perangkat. Sekarang server
+ * jadi otoritas: tiap aksi (visit route, sentuh Livia, tool chat) dicatat di
+ * sini, dan klaim reward diverifikasi server.
+ *
+ * `date` = tanggal lokal user (YYYY-MM-DD). `action` = kunci aksi
+ * (`visit_radio`, `touch_livia`, `tool_create_reminder`, ...). `count` =
+ * berapa kali aksi itu terjadi hari itu. `questId` & `milestone` diisi saat
+ * klaim (idempoten: satu quest/milestone per hari per user).
+ */
+export const dailyQuests = pgTable(
+  'dailyQuests',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    date: text('date').notNull(),
+    action: text('action').notNull(),
+    count: integer('count').notNull().default(0),
+    questId: text('quest_id'),
+    milestone: integer('milestone'),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow(),
+  },
+  (table) => ({
+    questUserDateAction: uniqueIndex('uq_daily_quests_user_date_action').on(
+      table.userId,
+      table.date,
+      table.action
+    ),
+    /**
+     * Baris klaim (questId/milestone non-null) jarang & perlu dicari per
+     * user+date. Index parsial menekan ukuran vs index biasa.
+     */
+    questUserDateClaim: index('idx_quest_user_date_claim').on(table.userId, table.date),
+  })
+);
+
+/**
  * Audit log peristiwa sensitif (M4.6).
  *
  * Tujuannya investigasi insiden, bukan analitik produk. Karena itu:

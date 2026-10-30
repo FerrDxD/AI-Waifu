@@ -5,8 +5,9 @@ teknis yang tersisa. Ditulis bertahap; bagian yang belum dikerjakan tetap
 berstatus rencana.
 
 Status: **M8.1 Phase 1 & Phase 2 SELESAI** (multi-provider engine + selector
-model di settings). **M8.3 SELESAI** (tool calling JSON single-turn). M8.2,
-M8.4–M8.7 belum dimulai.
+model di settings). **M8.3 SELESAI** (tool calling JSON single-turn).
+**M8.4 SELESAI** (gamifikasi server-validated, tanpa leaderboard). M8.2,
+M8.5–M8.7 belum dimulai.
 
 ---
 
@@ -395,4 +396,80 @@ Gerbang: `db:check-drift` sinkron (0007) · `typecheck` 0 error · `test`
 2. Redeploy. Cek: `/schedule` (panel muncul), chat "ingetin aku jam 7"
    (balasan berisi `[✓] Pengingat dibuat: ...`).
 3. `_journal`/`0007` sudah digenerate; production memakai `db:migrate`
+   sebenarnya (bukan push).
+
+---
+
+## 6. M8.4 — Gamifikasi server-validated (selesai)
+
+Tujuan: quest & achievement pindah dari localStorage (bisa dipalsukan, tidak
+sinkron antar perangkat) menjadi **otoritas server penuh**. Keputusan user:
+**tanpa leaderboard**.
+
+### 6.1 Keputusan desain
+
+- **Server = satu-satunya sumber kebenaran.** Progress quest = jumlah aksi
+  yang BENAR-BENAR tercatat di tabel `dailyQuests` hari itu. LocalStorage
+  tidak lagi dipakai sebagai otoritas (sisa event lokal hanya untuk refresh UI
+  instan, angka otoritatif tetap dari server).
+- **Aksi yang direkam** (whitelist `ALLOWED_ACTIONS` di `quests.server.ts`):
+  - visit route (`visit_radio`, `visit_bedroom`, ...) dari `QuestTracker`;
+  - sentuh Livia (`touch_livia`) dari `HomeClient`;
+  - tool chat M8.3 (`tool_create_reminder`, `tool_add_shopping_item`,
+    `tool_list_shopping_items`) dari `executeToolCalls` (JSON + stream).
+- **Anti-cheat**: klaim quest/milestone diverifikasi server (count >= required
+  & belum diklaim). Aksi di luar whitelist ditolak 400. Klaim idempoten via
+  unique index `userId+date+action` + cek baris klaim.
+- **Reward**: quest = +15 Rv; milestone 3/6/9 = 100/300/500 Rv (+3 afeksi di
+  9) — semua sekali per hari (idempoten), pakai `moneyPlusExpr`/ekspresi SQL
+  atomik (pola M5.4).
+
+### 6.2 Struktur
+
+| File | Peran |
+|---|---|
+| `lib/db/schema.ts` → `dailyQuests` | Tabel progress/klaim (unique `userId+date+action`, index parsial klaim) |
+| `drizzle/0008_friendly_madame_web.sql` | Migrasi tabel baru |
+| `lib/livia/quests.pool.ts` | Katalog quest murni (tanpa localStorage/window, dipakai client+server) |
+| `lib/livia/quests.server.ts` | Logika server: record/state/claim/milestone/anti-cheat |
+| `lib/livia/quests.ts` | Sisi client: re-export katalog + `recordQuestAction` → POST `/api/quests/action` (fire-and-forget) + event lokal |
+| `app/api/quests/route.ts` (+`action`/`claim`/`milestone` subroute) | GET state, POST rekam/klaim/milestone (jsonApiHandler + mutationRateLimit) |
+| `features/schedule/ScheduleClient.tsx` | UI server-driven (fetch state, klaim via API, fallback katalog lokal) |
+| `lib/tools/execute.ts` | `executeToolCalls` → `{ lines, tools }` (nama tool sukses untuk rekam quest) |
+| `tests/quests-routes.test.ts`, `tests/quests.test.ts`, `tests/tools.test.ts` | Test M8.4 (route + server + tools) |
+
+### 6.3 Alur
+
+1. `QuestTracker`/`HomeClient`/tool chat memanggil `recordQuestAction` →
+   `POST /api/quests/action` → `recordQuestActionServer` (upsert atomik
+   `count+1`).
+2. `/schedule` fetch `GET /api/quests?date=YYYY-MM-DD` → state (quests,
+   progress, claimed, milestones).
+3. Klaim quest → `POST /api/quests/claim` → `claimQuestRewardServer` (+15 Rv,
+   idempoten); klaim milestone → `POST /api/quests/milestone`.
+4. Tanggal lokal user dikirim client (server reject format non-YYYY-MM-DD);
+   tool chat memakai `utcToday()` sebagai default.
+
+### 6.4 Anti-cheat & idempotensi
+
+- `ALLOWED_ACTIONS` whitelist ketat — aksi tak dikenal → 400.
+- Klaim tanpa `count >= required` → 400 `INSUFFICIENT_PROGRESS`.
+- Klaim ganda → 400 `ALREADY_CLAIMED` (cek baris `questId`).
+- `mutationRateLimit` di semua route quest (per user).
+
+### 6.5 Test & gerbang
+
+- `tests/quests-routes.test.ts` (route GET/action/claim/milestone, mock global
+  `@/lib/livia/quests.server` di `tests/setup.ts`), `tests/quests.test.ts`
+  (katalog + record tanpa window), `tests/tools.test.ts` (kontrak baru
+  `{ lines, tools }`).
+- Verifikasi penuh: drift sinkron, typecheck 0, test 822/822 (2×), lint hanya
+  warning lama, evals HARD 55/55.
+
+### 6.6 Deploy
+
+1. `bun run db:migrate` — **wajib lebih dulu** (tabel `dailyQuests`).
+2. Redeploy. Cek: `/schedule` menampilkan quest dari server; visit route /
+   sentuh Livia menambah progress; klaim quest & milestone memberi Rv/afeksi.
+3. `_journal`/`0008` sudah digenerate; production memakai `db:migrate`
    sebenarnya (bukan push).

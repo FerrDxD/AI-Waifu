@@ -3,9 +3,7 @@ import {
   QUEST_POOL,
   getDailyQuests,
   getTodayDateString,
-  getQuestProgressMap,
-  getClaimedQuests,
-  getClaimedMilestones,
+  recordQuestAction,
 } from '@/lib/livia/quests';
 
 describe('QUEST_POOL', () => {
@@ -74,16 +72,9 @@ describe('getDailyQuests', () => {
   });
 });
 
-describe('helper localStorage aman di server (SSR)', () => {
-  it('getQuestProgressMap mengembalikan {} tanpa window', () => {
-    expect(getQuestProgressMap()).toEqual({});
-  });
-
-  it('getClaimedQuests mengembalikan [] tanpa window', () => {
-    expect(getClaimedQuests()).toEqual([]);
-  });
-
-  it('getClaimedMilestones mengembalikan [] tanpa window', () => {
-    expect(getClaimedMilestones()).toEqual([]);
+describe('recordQuestAction (M8.4 — kirim ke server, aman tanpa window)', () => {
+  it('tanpa window → {} dan tidak throw', () => {
+    // vitest environment node — `window` undefined.
+    expect(recordQuestAction('visit_home')).toEqual({});
   });
 });

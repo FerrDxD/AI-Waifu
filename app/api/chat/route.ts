@@ -9,6 +9,7 @@ import { loadChatTurnContext, persistChatTurn, statsFromContext } from '@/lib/li
 import { maybeSummarizeChats } from '@/lib/livia/summary';
 import { buildToolContext } from '@/lib/tools/context';
 import { executeToolCalls } from '@/lib/tools/execute';
+import { recordQuestActionServer, utcToday } from '@/lib/livia/quests.server';
 
 export const POST = apiHandler(
   {
@@ -65,10 +66,17 @@ export const POST = apiHandler(
     // baris konfirmasi faktual ke reply (satu putaran LLM).
     let executedLines: string[] = [];
     if (tools && tools.length > 0) {
-      executedLines = await executeToolCalls(tools, { userId });
+      const executed = await executeToolCalls(tools, { userId });
+      executedLines = executed.lines;
       if (executedLines.length > 0) {
         const separator = reply.endsWith('.') || reply.endsWith('!') || reply.endsWith('?') ? ' ' : '. ';
         reply = reply + separator + executedLines.join(' ');
+      }
+
+      // M8.4: rekam aksi tool ke quest (server = otoritas). Tanggal default
+      // UTC; client/UI memakai tanggal lokal untuk tampilan.
+      for (const name of executed.tools) {
+        await recordQuestActionServer(userId, utcToday(), name);
       }
     }
 

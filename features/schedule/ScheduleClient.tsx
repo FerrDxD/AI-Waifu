@@ -6,18 +6,22 @@ import Link from 'next/link';
 import { ChevronLeft, Check, Gift, Sparkles, Target, Trophy, Heart, Flame, Calendar, Award, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { playSfx } from '@/lib/sfx';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { 
-  getDailyQuests, 
-  getQuestProgressMap,
-  getClaimedQuests, 
-  claimQuestReward, 
-  getClaimedMilestones, 
-  claimMilestone, 
-  DailyQuest,
-  getTodayDateString 
+import {
+  getDailyQuests,
+  getTodayDateString,
+  type DailyQuest,
 } from '@/lib/livia/quests';
-import { claimWork, updateAffection } from '@/lib/actions';
 import { ReminderPanel, ShoppingPanel } from './ToolPanels';
+
+/** Bentuk state quest dari server (M8.4). */
+interface QuestServerState {
+  date: string;
+  quests: DailyQuest[];
+  progress: Record<string, number>;
+  claimedQuestIds: string[];
+  claimedMilestones: number[];
+  completedCount: number;
+}
 
 const LIVIA_QUEST_REACTIONS = [
   "Wah, satu misi berhasil kamu selesaikan! Keren banget~",
@@ -39,37 +43,38 @@ export default function DailyQuestsPage() {
   const [showComment, setShowComment] = useState(false);
   const [claiming, setClaiming] = useState<string | number | null>(null);
   const [dateFormatted, setDateFormatted] = useState('');
+  const [today, setToday] = useState(() => getTodayDateString());
 
+  // M8.4: server adalah sumber utama. Tanggal lokal user dikirim supaya
+  // quest "hari ini" konsisten dengan zona waktu user.
   useEffect(() => {
     const todayStr = getTodayDateString();
+    setToday(todayStr);
     setQuests(getDailyQuests(todayStr));
-    setProgressMap(getQuestProgressMap(todayStr));
-    setClaimedIds(getClaimedQuests(todayStr));
-    setClaimedMilestones(getClaimedMilestones(todayStr));
 
     const d = new Date();
     const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
     setDateFormatted(d.toLocaleDateString(language === 'en' ? 'en-US' : 'id-ID', options));
 
-    const handleProgressUpdate = (e: any) => {
-      if (e.detail?.progress) setProgressMap(e.detail.progress);
-    };
-    const handleClaimedUpdate = (e: any) => {
-      if (e.detail?.claimed) setClaimedIds(e.detail.claimed);
-    };
-    const handleMilestonesUpdate = (e: any) => {
-      if (e.detail?.claimed) setClaimedMilestones(e.detail.claimed);
-    };
+    let cancelled = false;
 
-    window.addEventListener('daily_quests_updated', handleProgressUpdate);
-    window.addEventListener('daily_quests_claimed', handleClaimedUpdate);
-    window.addEventListener('daily_milestones_updated', handleMilestonesUpdate);
+    fetch(`/api/quests?date=${encodeURIComponent(todayStr)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data: { state?: QuestServerState }) => {
+        if (cancelled || !data.state) return;
+        setQuests(data.state.quests);
+        setProgressMap(data.state.progress);
+        setClaimedIds(data.state.claimedQuestIds);
+        setClaimedMilestones(data.state.claimedMilestones);
+      })
+      .catch(() => {
+        /* fallback: quest dari katalog lokal, progress kosong */
+      });
+
     return () => {
-      window.removeEventListener('daily_quests_updated', handleProgressUpdate);
-      window.removeEventListener('daily_quests_claimed', handleClaimedUpdate);
-      window.removeEventListener('daily_milestones_updated', handleMilestonesUpdate);
+      cancelled = true;
     };
-  }, []);
+  }, [language]);
 
   const triggerLiviaReaction = (text?: string) => {
     playSfx('pop');
@@ -79,18 +84,37 @@ export default function DailyQuestsPage() {
     setTimeout(() => setShowComment(false), 4500);
   };
 
+  const applyServerState = (state: QuestServerState) => {
+    setQuests(state.quests);
+    setProgressMap(state.progress);
+    setClaimedIds(state.claimedQuestIds);
+    setClaimedMilestones(state.claimedMilestones);
+  };
+
   const handleClaimQuest = async (quest: DailyQuest) => {
     if (claimedIds.includes(quest.id) || claiming !== null) return;
-    
+
     setClaiming(quest.id);
     playSfx('chime');
 
     try {
-      // 1. Berikan reward per misi (+15 Rv) — M5.2: Server Action.
-      await claimWork(15, `quest_${quest.id}`);
+      const res = await fetch('/api/quests/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questId: quest.id, date: today }),
+      });
 
-      // 2. Simpan status klaim misi (menguatkan poin milestone progres +1)
-      claimQuestReward(quest.id);
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        if (body?.error) {
+          triggerLiviaReaction(body.error);
+          return;
+        }
+        throw new Error('claim_failed');
+      }
+
+      const data = (await res.json()) as { state: QuestServerState; rv?: number };
+      applyServerState(data.state);
       playSfx('chime');
       triggerLiviaReaction(`Misi diklaim! +15 Rv & +1 Poin Progres Misi Harian! 🌟`);
     } catch (e) {
@@ -102,19 +126,28 @@ export default function DailyQuestsPage() {
 
   const handleClaimMilestone = async (milestone: number, rewardRv: number, rewardAffection: number = 0) => {
     if (claimedMilestones.includes(milestone) || claimedIds.length < milestone || claiming !== null) return;
-    
+
     setClaiming(`milestone_${milestone}`);
     playSfx('chime');
 
     try {
-      // M5.2: Server Action untuk reward Rv & afeksi milestone.
-      await claimWork(rewardRv, `daily_milestone_${milestone}`);
+      const res = await fetch('/api/quests/milestone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ points: milestone, date: today }),
+      });
 
-      if (rewardAffection > 0) {
-        await updateAffection(rewardAffection, `daily_milestone_${milestone}`);
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        if (body?.error) {
+          triggerLiviaReaction(body.error);
+          return;
+        }
+        throw new Error('milestone_failed');
       }
 
-      claimMilestone(milestone);
+      const data = (await res.json()) as { state: QuestServerState; rv?: number; affection?: number };
+      applyServerState(data.state);
       playSfx('pop');
       triggerLiviaReaction(`Pencapaian ${milestone} Misi berhasil diklaim! Kamu dapat +${rewardRv} Rv${rewardAffection > 0 ? ` & +${rewardAffection} Afeksi` : ''}! 🎁✨`);
     } catch (e) {

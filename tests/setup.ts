@@ -259,6 +259,98 @@ class TrackedMockAudio extends MockAudio {
 };
 
 /**
+ * Mock `@/lib/livia/quests.server` (M8.4).
+ *
+ * Quest server dipakai route `/api/quests/*` dan route chat (tool quest).
+ * Suite vitest tidak punya DB; `isolate: false` membuat `vi.mock` per file
+ * tidak andal. Maka mock in-memory global (pola yang sama dengan auth/usage/
+ * tools store). `questsForDate`/`utcToday`/`ALLOWED_ACTIONS` biarkan asli.
+ */
+function getMockQuestState(): {
+  actions: Array<{ userId: string; date: string; action: string }>;
+  claimed: Array<{ userId: string; date: string; questId: string; milestone: number }>;
+} {
+  const g = globalThis as Record<string, unknown>;
+  if (!g.__mockQuestState) {
+    g.__mockQuestState = { actions: [], claimed: [] };
+  }
+  return g.__mockQuestState as {
+    actions: Array<{ userId: string; date: string; action: string }>;
+    claimed: Array<{ userId: string; date: string; questId: string; milestone: number }>;
+  };
+}
+
+export function resetMockQuest(): void {
+  const s = getMockQuestState();
+  s.actions.length = 0;
+  s.claimed.length = 0;
+}
+
+vi.mock('@/lib/livia/quests.server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/livia/quests.server')>();
+
+  return {
+    ...actual,
+    recordQuestActionServer: async (userId: string, date: string, action: string) => {
+      getMockQuestState().actions.push({ userId, date, action });
+    },
+    getQuestDayState: async (userId: string, date: string) => {
+      const s = getMockQuestState();
+      const quests = actual.questsForDate(date);
+      const progress: Record<string, number> = {};
+      const claimedQuestIds: string[] = [];
+      const claimedMilestones: number[] = [];
+      for (const a of s.actions) {
+        if (a.userId === userId && a.date === date) {
+          progress[a.action] = (progress[a.action] ?? 0) + 1;
+        }
+      }
+      for (const c of s.claimed) {
+        if (c.userId === userId && c.date === date) {
+          if (c.questId) claimedQuestIds.push(c.questId);
+          if (c.milestone) claimedMilestones.push(c.milestone);
+        }
+      }
+      return {
+        date,
+        quests,
+        progress,
+        claimedQuestIds,
+        claimedMilestones,
+        completedCount: claimedQuestIds.length,
+      };
+    },
+    claimQuestRewardServer: async (userId: string, date: string, questId: string) => {
+      const s = getMockQuestState();
+      const quests = actual.questsForDate(date);
+      const quest = quests.find((q) => q.id === questId);
+      if (!quest) return { ok: false, reason: 'unknown_quest' };
+      const count = s.actions.filter(
+        (a) => a.userId === userId && a.date === date && a.action === quest.targetAction
+      ).length;
+      if (count < quest.required) return { ok: false, reason: 'insufficient' };
+      if (s.claimed.some((c) => c.userId === userId && c.date === date && c.questId === questId)) {
+        return { ok: false, reason: 'already_claimed' };
+      }
+      s.claimed.push({ userId, date, questId, milestone: 0 });
+      return { ok: true, rv: 15 };
+    },
+    claimQuestMilestoneServer: async (userId: string, date: string, points: number) => {
+      const s = getMockQuestState();
+      const milestone = actual.MILESTONES.find((m) => m.points === points);
+      if (!milestone) return { ok: false, reason: 'unknown_milestone' };
+      const claimedCount = s.claimed.filter((c) => c.userId === userId && c.date === date && c.questId).length;
+      if (claimedCount < points) return { ok: false, reason: 'insufficient' };
+      if (s.claimed.some((c) => c.userId === userId && c.date === date && c.milestone === points)) {
+        return { ok: false, reason: 'already_claimed' };
+      }
+      s.claimed.push({ userId, date, questId: '', milestone: points });
+      return { ok: true, rv: milestone.rv, affection: milestone.affection };
+    },
+  };
+});
+
+/**
  * Mock `@/lib/tools/store` (M8.3).
  *
  * Store tool (reminders/shoppingItems) dipakai executor chat DAN route

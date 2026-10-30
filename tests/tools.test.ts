@@ -186,8 +186,8 @@ describe('TOOL_REGISTRY', () => {
 // ---------------------------------------------------------------------------
 
 describe('executeToolCalls', () => {
-  it('create_reminder sukses → baris konfirmasi', async () => {
-    const lines = await executeToolCalls(
+  it('create_reminder sukses → baris konfirmasi + tools', async () => {
+    const { lines, tools } = await executeToolCalls(
       [
         {
           name: 'create_reminder',
@@ -200,31 +200,34 @@ describe('executeToolCalls', () => {
     expect(lines[0]).toContain('[✓]');
     expect(lines[0]).toContain('minum obat');
     expect(lines[0]).toContain('2026-10-30 19:00');
+    expect(tools).toEqual(['create_reminder']);
   });
 
   it('create_reminder waktu tak terbaca → baris [?] (minta kejelasan)', async () => {
-    const lines = await executeToolCalls(
+    const { lines, tools } = await executeToolCalls(
       [{ name: 'create_reminder', args: { text: 'x', time: 'setelah makan siang' } }],
       { userId: 'u-1', offsetMinutes: -420 }
     );
     expect(lines).toHaveLength(1);
     expect(lines[0]).toContain('[?]');
+    expect(tools).toEqual([]);
   });
 
-  it('add_shopping_item sukses → baris konfirmasi', async () => {
-    const lines = await executeToolCalls(
+  it('add_shopping_item sukses → baris konfirmasi + tools', async () => {
+    const { lines, tools } = await executeToolCalls(
       [{ name: 'add_shopping_item', args: { item: 'telur' } }],
       { userId: 'u-1' }
     );
     expect(lines[0]).toContain('[✓]');
     expect(lines[0]).toContain('telur');
+    expect(tools).toEqual(['add_shopping_item']);
   });
 
   it('list_shopping_items mengembalikan daftar', async () => {
     await executeToolCalls([{ name: 'add_shopping_item', args: { item: 'susu' } }], {
       userId: 'u-1',
     });
-    const lines = await executeToolCalls(
+    const { lines } = await executeToolCalls(
       [{ name: 'list_shopping_items', args: {} }],
       { userId: 'u-1' }
     );
@@ -232,11 +235,12 @@ describe('executeToolCalls', () => {
   });
 
   it('tool tak dikenal → di-skip (tanpa baris)', async () => {
-    const lines = await executeToolCalls(
+    const { lines, tools } = await executeToolCalls(
       [{ name: 'hack', args: {} } as unknown as LiviaToolCall],
       { userId: 'u-1' }
     );
     expect(lines).toEqual([]);
+    expect(tools).toEqual([]);
   });
 });
 
