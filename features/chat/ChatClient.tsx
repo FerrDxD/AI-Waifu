@@ -1,27 +1,33 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, ArrowLeft, CheckCircle2, Phone, LifeBuoy, ExternalLink, Mic, MicOff, ThumbsUp, ThumbsDown } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
+import {
+  Send,
+  ArrowLeft,
+  Phone,
+  LifeBuoy,
+  ExternalLink,
+  Mic,
+  MicOff,
+  ThumbsUp,
+  ThumbsDown,
+  Sparkles,
+} from 'lucide-react';
 import { playSfx } from '@/lib/sfx';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useSpeechRecognition } from '@/lib/speech/use-speech-recognition';
-
 
 interface ChatMessage {
   id: string;
   role: 'user' | 'livia';
   content: string;
   isNew?: boolean;
-  /**
-   * M7.4: ID baris pesan di DB. History membawanya langsung; pesan baru
-   * (ID sementara Date.now) dapat dbId dari event `done` setelah persist.
-   * Tanpa dbId, tombol feedback disembunyikan (tidak ada target untuk rating).
-   */
   dbId?: string;
+  timestamp?: string;
 }
 
-/** Bentuk data krisis yang dikirim server (M4.2). */
 interface CrisisInfo {
   message: string;
   resources: Array<{ name: string; contact: string; note: string }>;
@@ -29,59 +35,55 @@ interface CrisisInfo {
   escalate: boolean;
 }
 
-/**
- * Panel bantuan krisis (M4.2).
- *
- * Sengaja dibuat mencolok dan tidak bisa dilewati diam-diam: hijau/tenang,
- * bukan merah panik, tapi jelas bukan bagian dari roleplay. Nomor hotline bisa
- * diklik langsung dari HP.
- */
 function CrisisPanel({ info, onDismiss }: { info: CrisisInfo; onDismiss: () => void }) {
   const { language } = useLanguage();
   const isUrl = (value: string) => /^https?:\/\//.test(value);
 
   return (
-    <div className="mx-3 my-3 rounded-3xl border-2 border-emerald-200 bg-emerald-50/70 p-4 flex flex-col gap-3">
-      <div className="flex items-start gap-2.5">
-        <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0">
-          <LifeBuoy className="text-white w-4 h-4" />
+    <div className="mx-2 my-4 rounded-[2rem] border border-emerald-200 bg-emerald-50/90 backdrop-blur-md p-5 flex flex-col gap-3 shadow-[0_8px_24px_rgba(16,185,129,0.12)]">
+      <div className="flex items-start gap-3">
+        <div className="w-9 h-9 rounded-2xl bg-emerald-600 flex items-center justify-center shrink-0 shadow-xs">
+          <LifeBuoy className="text-white w-5 h-5" />
         </div>
-        <div className="flex flex-col gap-1">
-          <span className="font-display font-black text-sm text-emerald-800">
+        <div className="flex flex-col gap-0.5">
+          <span className="font-display font-black text-base text-emerald-900">
             {language === 'en' ? 'You deserve real support' : 'Kamu berhak dapat bantuan nyata'}
           </span>
-          <span className="text-[11px] text-emerald-700 font-medium leading-relaxed">
+          <span className="text-xs text-emerald-700 font-medium leading-relaxed">
             {language === 'en'
               ? 'Livia is an AI and cannot help with this. These services can.'
-              : 'Livia adalah AI dan tidak bisa menangani ini. Layanan berikut bisa.'}
+              : 'Livia adalah AI dan tidak bisa menangani ini. Layanan resmi berikut siap membantumu.'}
           </span>
         </div>
       </div>
 
-      <ul className="flex flex-col gap-2">
+      <ul className="flex flex-col gap-2 mt-1">
         {info.resources.map((resource) => (
-          <li key={resource.name} className="bg-white rounded-2xl p-3 border border-emerald-100">
+          <li
+            key={resource.name}
+            className="bg-white/95 backdrop-blur-xs rounded-2xl p-3.5 border border-emerald-100 shadow-2xs"
+          >
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <span className="text-xs font-black text-emerald-800">{resource.name}</span>
+              <span className="text-xs font-bold text-emerald-900">{resource.name}</span>
               {isUrl(resource.contact) ? (
                 <a
                   href={resource.contact}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-xs font-bold text-emerald-600 underline inline-flex items-center gap-1"
+                  className="text-xs font-bold text-emerald-700 underline inline-flex items-center gap-1 hover:text-emerald-900"
                 >
-                  {language === 'en' ? 'Open' : 'Buka'} <ExternalLink size={10} />
+                  {language === 'en' ? 'Open' : 'Buka'} <ExternalLink size={11} />
                 </a>
               ) : (
                 <a
                   href={`tel:${resource.contact.replace(/[^\d+]/g, '')}`}
-                  className="text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg"
+                  className="text-xs font-mono font-bold text-emerald-800 bg-emerald-100/90 px-3 py-1 rounded-full border border-emerald-200/60"
                 >
                   {resource.contact}
                 </a>
               )}
             </div>
-            <p className="text-[10px] text-emerald-600/80 font-medium mt-1 leading-snug">
+            <p className="text-[11px] text-emerald-700/80 font-medium mt-1 leading-snug">
               {resource.note}
             </p>
           </li>
@@ -90,9 +92,9 @@ function CrisisPanel({ info, onDismiss }: { info: CrisisInfo; onDismiss: () => v
 
       <button
         onClick={onDismiss}
-        className="text-[10px] font-bold text-emerald-600/70 hover:text-emerald-800 self-end transition-colors"
+        className="text-[11px] font-mono font-bold text-emerald-700 hover:text-emerald-900 self-end transition-colors pt-1 focus-visible:outline-none"
       >
-        {language === 'en' ? 'Hide' : 'Sembunyikan'}
+        {language === 'en' ? '[ Hide ]' : '[ Sembunyikan ]'}
       </button>
     </div>
   );
@@ -112,14 +114,6 @@ function TypewriterText({ text }: { text: string }) {
   return <span>{displayed}</span>;
 }
 
-/**
- * M7.4: tombol baik/buruk untuk satu balasan Livia.
- *
- * Mungil disengaja (ikutan label "Now"): ini sinyal, bukan fitur utama.
- * State terkirim dikirim parent (optimistic di ChatClient); `pending`
- * mengecilkan tombol selama request jalan supaya dobel-klik tidak bikin
- * request kembar.
- */
 function FeedbackThumbs({
   current,
   pending,
@@ -131,19 +125,17 @@ function FeedbackThumbs({
 }) {
   const btn = (active: boolean, activeColor: string) =>
     `w-6 h-6 rounded-full flex items-center justify-center transition-all ${
-      active
-        ? activeColor
-        : 'text-gray-400/70 hover:text-gray-600 hover:bg-gray-200/70'
+      active ? activeColor : 'text-[#7a7268]/60 hover:text-[#5c4d47] hover:bg-pink-50'
     } ${pending ? 'opacity-50 pointer-events-none' : ''}`;
 
   return (
-    <div className="flex gap-0.5 mt-0.5">
+    <div className="flex items-center gap-1 mt-1">
       <button
         type="button"
         aria-label="Balasan baik"
         title="Jawaban baik"
         onClick={() => onRate('up')}
-        className={btn(current === 'up', 'bg-emerald-100 text-emerald-600')}
+        className={btn(current === 'up', 'bg-emerald-100 text-emerald-700')}
       >
         <ThumbsUp size={11} />
       </button>
@@ -152,7 +144,7 @@ function FeedbackThumbs({
         aria-label="Balasan buruk"
         title="Jawaban buruk"
         onClick={() => onRate('down')}
-        className={btn(current === 'down', 'bg-rose-100 text-rose-500')}
+        className={btn(current === 'down', 'bg-rose-100 text-rose-600')}
       >
         <ThumbsDown size={11} />
       </button>
@@ -165,27 +157,13 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [historyLoaded, setHistoryLoaded] = useState(false);
-  /**
-   * M4.2: diisi kalau server mendeteksi sinyal krisis pada pesan user.
-   * Ditampilkan sebagai panel bantuan yang menonjol, terpisah dari balon chat —
-   * bukan disisipkan ke dalam teks Livia, supaya nomor hotline tidak bisa
-   * terlewat karena terlihat seperti dialog biasa.
-   */
   const [crisis, setCrisis] = useState<CrisisInfo | null>(null);
 
-  /**
-   * M7.4: rating feedback per ID pesan DB — `{ [dbId]: 'up' | 'down' }`.
-   * Diinisialisasi dari `/api/chat/history` (rating lama tetap tampil setelah
-   * reload); `pendingDbId` = dbId yang request rating-nya masih jalan.
-   */
   const [feedback, setFeedback] = useState<Record<string, 'up' | 'down'>>({});
   const [pendingDbId, setPendingDbId] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // M6.3: diktasi suara ke input (Web Speech API). Transkrip mengalir
-  // live ke input; saat diktasi selesai, teks final tertinggal di input
-  // dan bisa DIEDIT sebelum dikirim.
   const [micHint, setMicHint] = useState('');
   const {
     supported: micSupported,
@@ -195,14 +173,12 @@ export default function ChatPage() {
     stop: stopMic,
   } = useSpeechRecognition((code) => {
     if (code === 'not-allowed' || code === 'service-not-allowed') {
-      setMicHint('Izin mikrofon ditolak — nyalakan di pengaturan browser.');
+      setMicHint('Izin mikrofon ditolak — aktifkan di setelan browser.');
     }
   });
   const dictationBaseRef = useRef('');
 
   useEffect(() => {
-    // Saat diktasi aktif, input = teks yang sudah diketik + transkrip live.
-    // Saat berhenti, isi terakhir dipertahankan (bukan dikosongkan).
     if (micListening) {
       setInput(dictationBaseRef.current + micTranscript);
     }
@@ -219,12 +195,10 @@ export default function ChatPage() {
       stopMic();
       return;
     }
-    // Diktasi MENAMBAHKAN ke teks yang sudah ada, bukan menimpa.
     dictationBaseRef.current = input;
     startMic();
   };
 
-  // Load chat history on mount
   useEffect(() => {
     const fetchHistory = async () => {
       try {
@@ -237,10 +211,12 @@ export default function ChatPage() {
               role: m.role,
               content: m.content,
               dbId: m.id,
+              timestamp: m.createdAt
+                ? new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : undefined,
             }))
           );
         }
-        // M7.4: rating lama langsung terisi, tombol tidak mulai dari kosong.
         if (data.feedback && typeof data.feedback === 'object') {
           setFeedback(data.feedback);
         }
@@ -253,7 +229,6 @@ export default function ChatPage() {
     fetchHistory();
   }, []);
 
-  // Auto scroll ke bawah
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -266,21 +241,28 @@ export default function ChatPage() {
     playSfx('click');
     const userMsg = input.trim();
     setInput('');
-    // Panel krisis dari giliran sebelumnya disembunyikan saat user memulai
-    // percakapan baru; kalau masih relevan, server akan mengirimnya lagi.
-    setCrisis(null);setMessages(prev => [...prev, {
-      id: Date.now().toString(),
-      role: 'user',
-      content: userMsg,
-    }]);
+    setCrisis(null);
+
+    const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        role: 'user',
+        content: userMsg,
+        timestamp: nowTime,
+      },
+    ]);
     setLoading(true);
 
-    // M2.1: balasan mengalir (SSE). Bubble Livia dibuat langsung lalu diisi
-    // bertahap — user melihat kalimat terbentuk, bukan menunggu kosong.
     const liviaId = (Date.now() + 1).toString();
 
     try {
-      setMessages(prev => [...prev, { id: liviaId, role: 'livia', content: '', isNew: true }]);
+      setMessages((prev) => [
+        ...prev,
+        { id: liviaId, role: 'livia', content: '', isNew: true, timestamp: nowTime },
+      ]);
 
       const res = await fetch('/api/chat/stream', {
         method: 'POST',
@@ -300,7 +282,13 @@ export default function ChatPage() {
 
       const handleEvent = (raw: string) => {
         if (!raw.startsWith('data: ')) return;
-        let event: { type?: string; text?: string; reply?: string; message?: string; messageId?: string };
+        let event: {
+          type?: string;
+          text?: string;
+          reply?: string;
+          message?: string;
+          messageId?: string;
+        };
         try {
           event = JSON.parse(raw.slice(6));
         } catch {
@@ -309,35 +297,29 @@ export default function ChatPage() {
 
         if (event.type === 'delta' && typeof event.text === 'string') {
           gotAny = true;
-          setMessages(prev =>
-            prev.map(m =>
+          setMessages((prev) =>
+            prev.map((m) =>
               m.id === liviaId ? { ...m, content: m.content + event.text } : m
             )
           );
         } else if (event.type === 'done') {
-          // Angka afeksi & ekspresi HANYA dari event done — tidak dipercaya
-          // dari aliran mentah (validasi server sudah berjalan).
-          setMessages(prev =>
-            prev.map(m =>
+          setMessages((prev) =>
+            prev.map((m) =>
               m.id === liviaId
                 ? {
                     ...m,
                     content: event.reply || m.content,
-                    // M7.4: ID baris di DB (baru ada setelah persist) —
-                    // membuka tombol feedback untuk balasan ini.
                     dbId: event.messageId || m.dbId,
                   }
                 : m
             )
           );
-          // M4.2: panel bantuan hanya dari `done`, sama seperti afeksi —
-          // data keamanan tidak boleh berasal dari delta parsial.
           const doneEvent = event as { crisis?: CrisisInfo };
           if (doneEvent.crisis?.escalate) setCrisis(doneEvent.crisis);
           playSfx('pop');
         } else if (event.type === 'error') {
-          setMessages(prev =>
-            prev.map(m =>
+          setMessages((prev) =>
+            prev.map((m) =>
               m.id === liviaId
                 ? { ...m, content: `[Sistem] Error: ${event.message || 'Koneksi terputus.'}` }
                 : m
@@ -358,8 +340,8 @@ export default function ChatPage() {
       if (buffer.trim()) handleEvent(buffer.trim());
 
       if (!gotAny) {
-        setMessages(prev =>
-          prev.map(m =>
+        setMessages((prev) =>
+          prev.map((m) =>
             m.id === liviaId && m.content === ''
               ? { ...m, content: `[Sistem] Error: Livia tidak sempat menjawab.` }
               : m
@@ -371,8 +353,8 @@ export default function ChatPage() {
       console.error(e);
       playSfx('error');
       const message = e instanceof Error ? e.message : 'Koneksi terputus.';
-      setMessages(prev =>
-        prev.map(m =>
+      setMessages((prev) =>
+        prev.map((m) =>
           m.id === liviaId
             ? { ...m, content: `[Sistem] Error: ${message}` }
             : m
@@ -383,14 +365,6 @@ export default function ChatPage() {
     }
   };
 
-  /**
-   * M7.4: kirim rating untuk satu balasan Livia.
-   *
-   * Optimistic: tombol langsung berubah; kalau request gagal, state
-   * dikembalikan dan user mendengar lewat sfx (bukan toast — ini fitur
-   * sekunder, jangan ributkan). Klik rating yang sama = no-op di server
-   * (upsert idempotent), jadi di sini langsung di-skip.
-   */
   const handleRate = async (dbId: string, rating: 'up' | 'down') => {
     if (pendingDbId || feedback[dbId] === rating) return;
 
@@ -416,171 +390,231 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex justify-center w-full h-[100dvh] overflow-hidden bg-[#f4f2ee] relative font-sans">
-      
-      {/* Panel Chat Fullscreen */}
-      <div className="w-full h-full flex flex-col relative z-10 bg-white">
-        
-        {/* Header Area */}
-        <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-100 flex items-center gap-3 bg-white/95 backdrop-blur-xl z-20 shadow-sm">
-          <Link href="/home" className="p-2 -ml-2 text-gray-400 hover:text-pink-500 hover:bg-pink-50 rounded-full transition-all">
+    <div className="relative flex flex-col w-full h-[100dvh] overflow-hidden bg-[#fdfbf7] font-sans selection:bg-[#ff758c]/25 selection:text-[#5c4d47]">
+      {/* ── Ambient Backdrop ────────────────────────────────────────── */}
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-cover bg-center opacity-15 mix-blend-multiply pointer-events-none"
+        style={{ backgroundImage: "url('/bg/bedroom.webp')" }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-gradient-to-b from-white/80 via-transparent to-[#fdfbf7]/90 pointer-events-none"
+      />
+
+      {/* ── Header Area ─────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-30 px-4 md:px-8 py-3.5 border-b border-pink-100/80 bg-white/90 backdrop-blur-2xl shadow-[0_4px_24px_rgba(255,117,140,0.08)] flex items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/home"
+            className="p-2 -ml-1 text-[#5c4d47]/70 hover:text-[#ff758c] hover:bg-pink-50 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+            title="Kembali ke Kamar Kos"
+          >
             <ArrowLeft size={20} />
           </Link>
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#ff758c] to-[#ff9a9e] flex items-center justify-center text-white shadow-sm font-bold text-lg shrink-0">
-            L
+
+          {/* Livia Chibi Avatar */}
+          <div className="relative h-11 w-11 rounded-full border-2 border-white shadow-[0_4px_14px_rgba(255,117,140,0.25)] overflow-hidden bg-gradient-to-tr from-[#ff758c] to-[#ff9a9e] shrink-0">
+            <Image
+              src="/livia/chibi-livia.webp"
+              alt="Livia"
+              width={48}
+              height={48}
+              className="h-full w-full object-cover scale-110"
+              priority
+            />
           </div>
-          <div className="flex-1">
-            <h2 className="font-display font-bold text-lg text-gray-800 leading-tight">Livia Einhart</h2>
-            <span className="text-[11px] text-green-500 font-medium flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Online
+
+          <div className="flex flex-col">
+            <h1 className="font-display font-black text-xl text-[#5c4d47] leading-none tracking-tight">
+              Livia Einhart
+            </h1>
+            <span className="font-mono text-[10px] font-bold text-emerald-600 flex items-center gap-1.5 mt-1">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              Kamar Kos // Online
             </span>
           </div>
-          <Link href="/call" className="p-2.5 bg-pink-100 text-pink-500 hover:bg-pink-500 hover:text-white rounded-full transition-all shadow-sm">
-            <Phone size={20} />
-          </Link>
         </div>
 
-          {/* Messages area */}
+        {/* Quick Voice Call Shortcut */}
+        <Link
+          href="/call"
+          className="p-2.5 rounded-full border border-pink-200 bg-pink-50/80 text-pink-600 hover:bg-gradient-to-r hover:from-[#ff758c] hover:to-[#ff0844] hover:text-white hover:border-transparent shadow-xs transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+          title="Mulai Panggilan Telepon dengan Livia"
+        >
+          <Phone size={18} />
+        </Link>
+      </header>
+
+      {/* ── Messages Stream ─────────────────────────────────────────── */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-5 pb-32 md:pb-36"
+        style={{ scrollbarWidth: 'thin' }}
+      >
+        {!historyLoaded && (
+          <div className="flex items-center justify-center h-full">
+            <div className="inline-flex items-center gap-2 rounded-full border border-pink-100 bg-white/80 px-4 py-2 font-mono text-xs font-bold text-pink-600 shadow-xs backdrop-blur-md">
+              <span className="h-2 w-2 rounded-full bg-pink-500 animate-pulse" />
+              Memuat percakapan kos...
+            </div>
+          </div>
+        )}
+
+        {historyLoaded && messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full text-center max-w-sm mx-auto p-6 rounded-[2.5rem] bg-white/70 border border-pink-100/80 backdrop-blur-md shadow-[0_8px_30px_rgba(255,117,140,0.06)]">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-100 to-pink-200 flex items-center justify-center mb-4 text-pink-600 shadow-inner">
+              <Sparkles size={28} />
+            </div>
+            <h2 className="font-display font-black text-2xl text-[#5c4d47] mb-2">
+              Kamar Kos Tenang...
+            </h2>
+            <p className="text-sm font-medium text-[#5c4d47]/80 leading-relaxed">
+              Livia sedang berada di meja belajarnya. Kirim pesan pertama untuk menyapa atau ceritakan
+              harimu padanya!
+            </p>
+          </div>
+        )}
+
+        {messages.map((msg) => (
           <div
-            ref={scrollRef}
-            className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6 bg-[#f0f2f5]"
-            style={{ scrollbarWidth: 'none' }}
+            key={msg.id}
+            className={`flex w-full items-end ${
+              msg.role === 'user' ? 'justify-end' : 'justify-start'
+            }`}
           >
-            {!historyLoaded && (
-              <div className="flex items-center justify-center h-full">
-                <span className="font-display font-medium text-sm text-pink-300 animate-pulse">
-                  memuat pesan...
-                </span>
+            {/* Livia Chibi Mini Avatar beside her messages */}
+            {msg.role === 'livia' && (
+              <div className="relative h-8 w-8 rounded-full border border-pink-200 bg-gradient-to-tr from-[#ff758c] to-[#ff9a9e] overflow-hidden shrink-0 mr-2.5 mb-1 shadow-2xs">
+                <Image
+                  src="/livia/chibi-livia.webp"
+                  alt="Livia"
+                  width={32}
+                  height={32}
+                  className="h-full w-full object-cover scale-110"
+                />
               </div>
             )}
 
-            {historyLoaded && messages.length === 0 && (
-              <div className="flex items-center justify-center h-full">
-                <p className="font-display italic text-lg text-center text-amber-600/70">
-                  Belum ada pesan. Sapa Livia untuk mulai ngobrol!
-                </p>
+            {/* User message timestamp on left */}
+            {msg.role === 'user' && (
+              <div className="flex flex-col justify-end items-end mr-2 mb-1 shrink-0 font-mono text-[9px] text-[#7a7268]/60">
+                <span>{msg.timestamp || 'Read'}</span>
               </div>
             )}
 
-            {messages.map(msg => (
-              <div
-                key={msg.id}
-                className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                {msg.role === 'livia' && (
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-[#ff758c] to-[#ff9a9e] shrink-0 mr-2 md:mr-3 mt-0.5 flex items-center justify-center shadow-sm z-10">
-                    <span className="text-white text-[12px] md:text-[14px] font-bold">L</span>
-                  </div>
-                )}
-
-                {msg.role === 'user' && (
-                  <div className="flex flex-col justify-end items-end mr-2 mb-0.5">
-                    <span className="text-[10px] text-gray-500 font-medium leading-tight">Read</span>
-                    <span className="text-[10px] text-gray-400 font-medium leading-tight mt-0.5">Now</span>
-                  </div>
-                )}
-
-                <div
-                  className={`max-w-[75%] md:max-w-[60%] px-4 py-2.5 md:px-5 md:py-3 text-[16px] leading-relaxed shadow-sm relative break-words font-medium ${
-                    msg.role === 'livia'
-                      ? 'bg-white text-gray-800 rounded-[4px_18px_18px_18px]'
-                      : 'bg-rose-500 text-white rounded-[18px_4px_18px_18px]'
-                  }`}
-                >
-                  {msg.role === 'livia' && msg.isNew ? <TypewriterText text={msg.content} /> : msg.content}
-                </div>
-
-                {msg.role === 'livia' && (
-                  <div className="flex flex-col justify-end items-start ml-2 mb-0.5">
-                    <span className="text-[10px] text-gray-400 font-medium leading-tight">Now</span>
-                    {msg.dbId && (
-                      <FeedbackThumbs
-                        current={feedback[msg.dbId]}
-                        pending={pendingDbId === msg.dbId}
-                        onRate={(rating) => handleRate(msg.dbId!, rating)}
-                      />
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {/* M4.2: panel bantuan krisis — di dalam area scroll supaya
-                tetap terlihat setelah balasan Livia, dan bisa ditutup user. */}
-            {crisis && <CrisisPanel info={crisis} onDismiss={() => setCrisis(null)} />}
-
-            {/* Loading indicator */}
-            {loading && (
-              <div className="flex justify-start items-end gap-3 mt-4">
-                <div className="w-8 h-8 rounded-full bg-pink-100 border border-white shrink-0 flex items-center justify-center">
-                  <span className="text-pink-400 text-xs font-bold">L</span>
-                </div>
-                <div className="flex gap-1.5 px-5 py-4 bg-white border border-pink-100 rounded-[24px_24px_24px_4px] shadow-sm">
-                  {[0, 1, 2].map(i => (
-                    <div
-                      key={i}
-                      className="w-2 h-2 rounded-full animate-bounce"
-                      style={{
-                        background: '#ff758c',
-                        animationDelay: `${i * 0.15}s`,
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-            {/* Input area */}
-          <div className="relative px-4 md:px-6 py-2 md:py-3 bg-slate-50 flex items-end gap-2 md:gap-3 z-20 border-t border-gray-200">
-            {micHint && (
-              <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-rose-500 whitespace-nowrap">
-                {micHint}
-              </span>
-            )}
-            <textarea
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  // M6.3: Enter saat diktasi aktif tidak mengirim (transkrip
-                  // masih bisa berubah) — hentikan diktasi dulu.
-                  if (micListening) return;
-                  handleSend();
-                }
-              }}
-              placeholder={micListening ? 'Mendengarkan...' : 'Ketik balasan...'}
-              rows={1}
-              disabled={loading}
-              className="flex-1 resize-none py-3 md:py-3.5 px-5 md:px-6 text-[16px] text-gray-800 focus:outline-none transition-all placeholder:text-gray-400 bg-white rounded-3xl border border-transparent focus:border-gray-300 shadow-sm min-h-[50px] max-h-[120px]"
-            />
-            {/* M6.3: diktasi suara — PTT (tap mulai, tap lagi/hening berhenti) */}
-            {micSupported && (
-              <button
-                onClick={handleMicClick}
-                title={micListening ? 'Hentikan diktasi' : 'Diktasi suara'}
-                className={`shrink-0 w-12 h-12 flex items-center justify-center rounded-full transition-all shadow-sm relative ${
-                  micListening
-                    ? 'bg-rose-500 text-white'
-                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
-              >
-                {micListening && (
-                  <span className="absolute inset-0 rounded-full border-2 border-rose-400 animate-ping opacity-40" />
-                )}
-                {micListening ? <MicOff size={18} /> : <Mic size={18} />}
-              </button>
-            )}
-            <button
-              onClick={handleSend}
-              disabled={loading || micListening || !input.trim()}
-              className="shrink-0 w-12 h-12 flex items-center justify-center rounded-full transition-all shadow-sm bg-rose-500 text-white disabled:bg-gray-200 disabled:text-gray-400 scale-100 disabled:scale-95"
+            {/* Speech Bubble */}
+            <div
+              className={`max-w-[82%] sm:max-w-[70%] md:max-w-[62%] px-4 py-3 sm:px-5 sm:py-3.5 text-[15px] sm:text-[16px] leading-relaxed shadow-sm break-words font-medium transition-all ${
+                msg.role === 'livia'
+                  ? 'bg-white/95 backdrop-blur-md text-[#5c4d47] rounded-[4px_1.5rem_1.5rem_1.5rem] border border-pink-100/90 shadow-[0_4px_20px_rgba(255,117,140,0.06)]'
+                  : 'bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white rounded-[1.5rem_4px_1.5rem_1.5rem] shadow-[0_6px_22px_rgba(255,117,140,0.32)] selection:bg-white/30 selection:text-white'
+              }`}
             >
-              <Send size={18} className={`${input.trim() && !loading && !micListening ? "ml-1" : ""}`} />
-            </button>
+              {msg.role === 'livia' && msg.isNew ? (
+                <TypewriterText text={msg.content} />
+              ) : (
+                msg.content
+              )}
+            </div>
+
+            {/* Livia message footer on right */}
+            {msg.role === 'livia' && (
+              <div className="flex flex-col justify-end items-start ml-2 mb-1 shrink-0 font-mono text-[9px] text-[#7a7268]/60">
+                <span>{msg.timestamp || 'Now'}</span>
+                {msg.dbId && (
+                  <FeedbackThumbs
+                    current={feedback[msg.dbId]}
+                    pending={pendingDbId === msg.dbId}
+                    onRate={(rating) => handleRate(msg.dbId!, rating)}
+                  />
+                )}
+              </div>
+            )}
           </div>
+        ))}
+
+        {/* Safety Crisis Panel */}
+        {crisis && <CrisisPanel info={crisis} onDismiss={() => setCrisis(null)} />}
+
+        {/* Streaming / Typing indicator */}
+        {loading && (
+          <div className="flex justify-start items-end gap-2.5">
+            <div className="relative h-8 w-8 rounded-full border border-pink-200 bg-gradient-to-tr from-[#ff758c] to-[#ff9a9e] overflow-hidden shrink-0 shadow-2xs">
+              <Image
+                src="/livia/chibi-livia.webp"
+                alt="Livia"
+                width={32}
+                height={32}
+                className="h-full w-full object-cover scale-110"
+              />
+            </div>
+            <div className="flex items-center gap-1.5 px-4 py-3 bg-white/95 border border-pink-100 rounded-[4px_1.5rem_1.5rem_1.5rem] shadow-[0_4px_16px_rgba(255,117,140,0.06)]">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="w-2 h-2 rounded-full bg-[#ff758c] animate-pulse"
+                  style={{ animationDelay: `${i * 0.2}s` }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Floating Warm Glass Input Dock ───────────────────────────── */}
+      <div className="fixed bottom-4 left-4 right-4 md:left-8 md:right-8 max-w-4xl mx-auto z-40">
+        {micHint && (
+          <div className="absolute -top-8 left-1/2 -translate-x-1/2 rounded-full border border-pink-200 bg-white/95 px-3 py-1 font-mono text-[10px] font-bold text-pink-600 shadow-md backdrop-blur-md">
+            {micHint}
+          </div>
+        )}
+
+        <div className="bg-white/92 backdrop-blur-2xl border border-white/90 rounded-[2.25rem] p-2 sm:p-2.5 shadow-[0_12px_40px_rgba(255,117,140,0.16)] flex items-end gap-2 transition-all">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (micListening) return;
+                handleSend();
+              }
+            }}
+            placeholder={
+              micListening ? 'Mendengarkan ucapanmu...' : 'Ketik obrolan dengan Livia...'
+            }
+            rows={1}
+            disabled={loading}
+            className="flex-1 resize-none py-3 px-4 text-[15px] sm:text-[16px] text-[#5c4d47] font-medium placeholder:text-[#7a7268]/60 bg-transparent focus:outline-none min-h-[46px] max-h-[120px]"
+          />
+
+          {/* Voice Dictation (Mic PTT) */}
+          {micSupported && (
+            <button
+              onClick={handleMicClick}
+              title={micListening ? 'Hentikan diktasi suara' : 'Dikte suara (Push-to-Talk)'}
+              className={`shrink-0 w-11 h-11 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 ${
+                micListening
+                  ? 'bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white shadow-md animate-pulse'
+                  : 'bg-pink-50 text-pink-600 border border-pink-100 hover:bg-pink-100/80 active:scale-95'
+              }`}
+            >
+              {micListening ? <MicOff size={18} /> : <Mic size={18} />}
+            </button>
+          )}
+
+          {/* Send Button */}
+          <button
+            onClick={handleSend}
+            disabled={loading || micListening || !input.trim()}
+            className="shrink-0 w-11 h-11 flex items-center justify-center rounded-full transition-all shadow-[0_4px_16px_rgba(255,117,140,0.3)] bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white disabled:opacity-40 disabled:shadow-none disabled:cursor-not-allowed hover:-translate-y-0.5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+            title="Kirim Pesan"
+          >
+            <Send size={18} className={input.trim() && !loading && !micListening ? 'ml-0.5' : ''} />
+          </button>
         </div>
+      </div>
     </div>
   );
 }
