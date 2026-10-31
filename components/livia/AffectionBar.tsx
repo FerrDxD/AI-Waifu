@@ -6,26 +6,41 @@ interface AffectionBarProps {
   affection: number;
   level: number;
   levelName: string;
+  className?: string;
 }
 
-export default function AffectionBar({ affection, level, levelName }: AffectionBarProps) {
+export default function AffectionBar({
+  affection,
+  level,
+  levelName,
+  className = '',
+}: AffectionBarProps) {
+  const boundedAffection = Math.max(0, Math.min(100, affection));
+
   return (
-    <div className="w-full max-w-md mx-auto p-4 bg-white/80 backdrop-blur-md border-2 border-pink-200 rounded-3xl shadow-[0_8px_20px_rgba(255,154,158,0.2)] hover:shadow-[0_12px_25px_rgba(255,154,158,0.3)] transition-all">
-      <div className="flex justify-between items-center mb-3 px-2">
-        <span className="text-sm font-display font-bold text-amber-500 flex items-center gap-2">
-          <Heart size={16} className="fill-amber-400 text-amber-400" />
-          Lv. {level} - {levelName}
+    <div className={`w-full flex flex-col gap-2 ${className}`}>
+      <div className="flex justify-between items-center px-0.5">
+        <span className="text-xs font-display font-bold text-[#5c4d47] flex items-center gap-1.5">
+          <Heart size={14} className="fill-pink-500 text-pink-500 shrink-0" />
+          <span>
+            Lv. {level} <span className="text-[#7a7268] font-normal">— {levelName}</span>
+          </span>
         </span>
-        <span className="text-sm font-mono font-bold text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
-          {affection} / 100
+        <span className="font-mono font-bold text-[11px] text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/80 shadow-xs tabular-nums">
+          {boundedAffection} / 100
         </span>
       </div>
-      
-      <div className="w-full h-4 bg-pink-50 rounded-full overflow-hidden border border-pink-100 shadow-inner">
-        <div 
-          className="h-full bg-gradient-to-r from-pink-300 to-pink-500 transition-all duration-1000 ease-out"
-          style={{ width: `${Math.max(0, Math.min(100, affection))}%` }}
-        />
+
+      <div className="w-full h-3.5 bg-pink-50 rounded-full overflow-hidden border border-pink-100/90 shadow-inner">
+        <div
+          className="h-full bg-gradient-to-r from-pink-300 via-pink-400 to-pink-500 rounded-full transition-all duration-1000 ease-out relative"
+          style={{ width: `${boundedAffection}%` }}
+        >
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent"
+          />
+        </div>
       </div>
     </div>
   );

@@ -22,15 +22,6 @@ import TopHud from '@/features/home/TopHud';
 import HomeBackdrop from '@/features/home/HomeBackdrop';
 import { updateAffection } from '@/lib/actions';
 
-/**
- * Layar home (M5.1).
- *
- * Dulu satu file 1.106 baris memuat logika sapaan, tabel reaksi sentuh,
- * rumus siklus, kartu navigasi, dan seluruh HUD. Sekarang yang tinggal di
- * sini hanya state & komposisi; logika murninya ada di features/home/
- * (greeting, touch-interactions, cycle) sehingga bisa diuji tanpa browser.
- */
-
 interface HomeClientProps {
   initialAffection: number;
   userName: string;
@@ -45,7 +36,12 @@ const DEFAULT_STATS: LiviaStats = {
   cycleAnchor: new Date().toISOString(),
 };
 
-export default function HomeClient({ initialAffection, userName, initialItemsBrought, initialOutfit }: HomeClientProps) {
+export default function HomeClient({
+  initialAffection,
+  userName,
+  initialItemsBrought,
+  initialOutfit,
+}: HomeClientProps) {
   const { dict, language } = useLanguage();
   const [sessionTime, setSessionTime] = useState(0);
   const [affection, setAffection] = useState(initialAffection);
@@ -55,11 +51,19 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
   const pendingTouchDelta = useRef(0);
   const touchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const [greetingData, setGreetingData] = useState<{ text: string; expression: LiviaExpression; isInvitingOut?: boolean; invitedPlace?: string }>({
+  const [greetingData, setGreetingData] = useState<{
+    text: string;
+    expression: LiviaExpression;
+    isInvitingOut?: boolean;
+    invitedPlace?: string;
+  }>({
     text: 'Memuat...',
     expression: 'normal',
   });
-  const [interactionOverride, setInteractionOverride] = useState<{ text: string; expression: LiviaExpression } | null>(null);
+  const [interactionOverride, setInteractionOverride] = useState<{
+    text: string;
+    expression: LiviaExpression;
+  } | null>(null);
   const [liviaStats, setLiviaStats] = useState<LiviaStats>(DEFAULT_STATS);
   const [weather, setWeather] = useState<Weather>(null);
 
@@ -68,10 +72,6 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
   const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
   const [showMobileStats, setShowMobileStats] = useState(false);
 
-  /**
-   * Afeksi dari sentuhan dikirim menumpuk (debounce 400 ms) supaya mengelus
-   * berkali-kali tidak menghasilkan puluhan PATCH.
-   */
   const syncTouchAffection = (delta: number) => {
     pendingTouchDelta.current += delta;
     if (touchDebounceTimer.current) clearTimeout(touchDebounceTimer.current);
@@ -79,7 +79,6 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
       const d = pendingTouchDelta.current;
       if (d === 0) return;
       pendingTouchDelta.current = 0;
-      // M5.2: Server Action (bukan fetch) — ter-tipe end-to-end, tanpa boilerplate.
       void updateAffection(d, 'interaction_touch').catch(console.error);
     }, 400);
   };
@@ -119,10 +118,16 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
 
       const phase = getCycleInfo(resolvedStats.cycleAnchor).phase;
       setGreetingData(
-        getGreeting(initialAffection, initialItemsBrought, { ...resolvedStats, cyclePhase: phase }, userName, resolvedWeather)
+        getGreeting(
+          initialAffection,
+          initialItemsBrought,
+          { ...resolvedStats, cyclePhase: phase },
+          userName,
+          resolvedWeather
+        )
       );
     });
-  }, []);
+  }, [initialAffection, initialItemsBrought, userName]);
 
   const handleInteract = async (part: BodyPart) => {
     playSfx('pop');
@@ -196,39 +201,55 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
     { value: tolerance, label: 'Sabar' },
   ];
 
-  const hasSunglasses = itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses');
-  const hasRecipeBook = itemsBrought.includes('recipe_book') || itemsBrought.includes('recipe_book_shop');
+  const hasSunglasses =
+    itemsBrought.includes('kacamata_hitam') || itemsBrought.includes('sunglasses');
+  const hasRecipeBook =
+    itemsBrought.includes('recipe_book') || itemsBrought.includes('recipe_book_shop');
   const showDate = isInvitingOut || (affection >= 40 && hasSunglasses);
 
-  // Warna balon chat mengikuti ekspresi
+  // Border & Glow balon chat reaktif terhadap ekspresi
   const bubbleBorderClass =
-    displayExpression === 'angry' ? 'border-red-200/80 shadow-[0_12px_40px_rgba(239,68,68,0.12)]' :
-    displayExpression === 'blushing' ? 'border-pink-200/80 shadow-[0_12px_40px_rgba(244,114,182,0.15)]' :
-    displayExpression === 'clingy' ? 'border-purple-200/80 shadow-[0_12px_40px_rgba(167,139,250,0.15)]' :
-    displayExpression === 'happy' ? 'border-amber-200/80 shadow-[0_12px_40px_rgba(251,191,36,0.15)]' :
-    'border-white/60 shadow-[0_12px_40px_rgba(0,0,0,0.08)]';
+    displayExpression === 'angry'
+      ? 'border-red-200/90 shadow-[0_12px_40px_rgba(239,68,68,0.15)]'
+      : displayExpression === 'blushing'
+      ? 'border-pink-200/90 shadow-[0_12px_40px_rgba(244,114,182,0.18)]'
+      : displayExpression === 'clingy'
+      ? 'border-purple-200/90 shadow-[0_12px_40px_rgba(167,139,250,0.18)]'
+      : displayExpression === 'happy'
+      ? 'border-amber-200/90 shadow-[0_12px_40px_rgba(251,191,36,0.18)]'
+      : 'border-white/80 shadow-[0_12px_40px_rgba(255,117,140,0.12)]';
 
   const bubbleDotClass =
-    displayExpression === 'angry' ? 'bg-red-400' :
-    displayExpression === 'blushing' ? 'bg-pink-400 animate-pulse' :
-    displayExpression === 'clingy' ? 'bg-purple-400' :
-    displayExpression === 'happy' ? 'bg-amber-400' :
-    'bg-gray-200';
+    displayExpression === 'angry'
+      ? 'bg-red-400'
+      : displayExpression === 'blushing'
+      ? 'bg-pink-400 animate-pulse'
+      : displayExpression === 'clingy'
+      ? 'bg-purple-400'
+      : displayExpression === 'happy'
+      ? 'bg-amber-400'
+      : 'bg-pink-300';
 
   const bubbleTextClass =
-    displayExpression === 'angry' ? 'text-red-600' :
-    displayExpression === 'blushing' ? 'text-pink-800' :
-    'text-[#5c4d47]';
+    displayExpression === 'angry'
+      ? 'text-red-700'
+      : displayExpression === 'blushing'
+      ? 'text-pink-900'
+      : 'text-[#5c4d47]';
 
   return (
-    <div className="min-h-screen relative flex flex-col overflow-hidden bg-[#fdfbf7] select-none font-sans">
+    <div className="min-h-screen relative flex flex-col overflow-hidden bg-[#fdfbf7] select-none font-sans selection:bg-[#ff758c]/25 selection:text-[#5c4d47]">
       <ApiGuideModal showFloatingButton={false} />
       <DailyStampModal />
 
       {/* Latar + karakter + hitbox sentuh */}
-      <HomeBackdrop displayExpression={displayExpression} outfit={outfit} onInteract={handleInteract} />
+      <HomeBackdrop
+        displayExpression={displayExpression}
+        outfit={outfit}
+        onInteract={handleInteract}
+      />
 
-      {/* ─────────── HUD ─────────── */}
+      {/* ─────────── HUD LAYER ─────────── */}
       <div className="absolute inset-0 z-20 pointer-events-none p-4 sm:p-6 md:p-10 flex flex-col justify-between">
         {/* Baris atas: panel pemain + dompet */}
         <TopHud
@@ -244,28 +265,54 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
 
         {/* Baris bawah */}
         <div className="flex-1 relative w-full pointer-events-none">
-          <div className="absolute bottom-[4.5rem] left-0 right-0 md:bottom-8 md:left-0 md:right-auto md:w-[560px] z-50 flex flex-col gap-3 pointer-events-auto">
+          <div className="absolute bottom-[4.5rem] left-0 right-0 md:bottom-8 md:left-0 md:right-auto md:w-[540px] z-50 flex flex-col gap-3 pointer-events-auto">
+            {/* Stat Island Desktop */}
             <StatIsland physical={physicalStats} psych={psychStats} cycle={cycle} />
 
-            {/* Balon chat */}
-            <div className="origin-bottom-left">
-              <div className={`relative bg-white/97 backdrop-blur-2xl px-5 py-4 md:px-8 md:py-6 rounded-2xl md:rounded-[2.5rem] md:rounded-bl-xl border-2 transition-all duration-500 ${bubbleBorderClass}`}>
-                <span className={`absolute top-3 right-3 md:top-4 md:right-4 w-2 h-2 rounded-full transition-colors duration-500 ${bubbleDotClass}`} />
-                <p className={`font-display font-semibold md:font-bold text-sm md:text-xl leading-snug transition-colors duration-300 pr-5 ${bubbleTextClass}`}>
+            {/* Signature VN Dialogue Box */}
+            <div className="origin-bottom-left relative pt-3">
+              {/* VN Nameplate Pill */}
+              <div className="absolute top-0 left-6 inline-flex items-center gap-2 rounded-full border border-white bg-gradient-to-r from-[#ff0844] to-[#ffb199] px-4 py-1 shadow-[0_4px_16px_rgba(255,117,140,0.35)] z-20">
+                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                <span className="font-display text-xs font-black uppercase tracking-widest text-white">
+                  Livia
+                </span>
+              </div>
+
+              {/* Dialogue Box Container */}
+              <div
+                className={`relative bg-white/92 backdrop-blur-2xl px-6 py-5 md:px-8 md:py-6 rounded-[2rem] md:rounded-[2.5rem] md:rounded-bl-xl border-2 transition-all duration-500 shadow-[0_12px_40px_rgba(255,117,140,0.12)] ${bubbleBorderClass}`}
+              >
+                <span
+                  className={`absolute top-4 right-4 w-2 h-2 rounded-full transition-colors duration-500 ${bubbleDotClass}`}
+                />
+
+                <p
+                  className={`font-sans font-medium text-sm md:text-base leading-relaxed transition-colors duration-300 pr-4 ${bubbleTextClass}`}
+                >
                   &ldquo;{displayGreeting}&rdquo;
                 </p>
+
+                {/* Subtly bouncing next indicator */}
+                <div className="mt-2 flex items-center justify-end">
+                  <span className="text-pink-400 text-xs animate-pulse font-serif select-none">
+                    ✧
+                  </span>
+                </div>
+
                 {isInvitingOut && !interactionOverride && (
                   <button
                     onClick={() => setShowEvent(true)}
-                    className="mt-3 md:mt-5 w-full py-2.5 md:py-3 bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-bold md:font-black text-sm md:text-lg rounded-xl md:rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+                    className="mt-3 md:mt-4 w-full py-2.5 md:py-3 bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-bold md:font-black text-sm md:text-base rounded-2xl shadow-[0_4px_16px_rgba(255,117,140,0.35)] hover:shadow-[0_8px_24px_rgba(255,117,140,0.45)] hover:-translate-y-0.5 active:scale-[0.98] transition-all flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
                   >
-                    <MapPin size={17} /> {language === 'en' ? "Sure, let's go!" : 'Boleh, ayo!'}
+                    <MapPin size={16} /> {language === 'en' ? "Sure, let's go!" : 'Boleh, ayo!'}
                   </button>
                 )}
               </div>
             </div>
           </div>
 
+          {/* Desktop Command Dock */}
           <CommandMenus
             isOpen={isDesktopMenuOpen}
             onToggle={() => setIsDesktopMenuOpen(!isDesktopMenuOpen)}
@@ -278,15 +325,20 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
       </div>
 
       {/* Navigasi bawah (mobile) */}
-      <div className="md:hidden absolute bottom-5 left-4 right-4 bg-white/95 backdrop-blur-2xl border border-white/80 rounded-[2rem] py-2 px-3 flex justify-around items-center z-[100] shadow-[0_-2px_20px_rgba(0,0,0,0.06),0_8px_30px_rgba(0,0,0,0.08)] pointer-events-auto">
-        <MobileNavBtn href="/home" icon={<BookOpen size={22} />} label={dict.nav.home} isActive />
-        <MobileNavBtn href="/chat" icon={<MessageSquare size={22} />} label={dict.nav.chat} />
-        <MobileNavBtn href="/pomodoro" icon={<Clock size={22} />} label={dict.nav.pomodoro} />
-        <button onClick={() => setShowMoreModal(true)} className="flex flex-col items-center justify-center gap-1 w-14 focus-visible:outline-none">
+      <div className="md:hidden fixed bottom-4 left-4 right-4 bg-white/95 backdrop-blur-2xl border border-white/80 rounded-[2rem] py-2 px-3 flex justify-around items-center z-[100] shadow-[0_8px_30px_rgba(255,117,140,0.14)] pointer-events-auto">
+        <MobileNavBtn href="/home" icon={<BookOpen size={20} />} label={dict.nav.home} isActive />
+        <MobileNavBtn href="/chat" icon={<MessageSquare size={20} />} label={dict.nav.chat} />
+        <MobileNavBtn href="/pomodoro" icon={<Clock size={20} />} label={dict.nav.pomodoro} />
+        <button
+          onClick={() => setShowMoreModal(true)}
+          className="flex flex-col items-center justify-center gap-1 w-14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 rounded-xl"
+        >
           <div className="p-2 rounded-xl transition-all text-gray-400 hover:text-[#ff758c] active:scale-90 active:bg-pink-50">
-            <Menu size={22} />
+            <Menu size={20} />
           </div>
-          <span className="font-display text-[9px] font-bold text-gray-400">{language === 'en' ? 'More' : 'Lainnya'}</span>
+          <span className="font-display text-[10px] font-bold text-gray-400">
+            {language === 'en' ? 'More' : 'Lainnya'}
+          </span>
         </button>
       </div>
 
@@ -300,7 +352,9 @@ export default function HomeClient({ initialAffection, userName, initialItemsBro
         />
       )}
 
-      {showEvent && <MiniEventModal onClose={() => setShowEvent(false)} invitedPlace={invitedPlace} />}
+      {showEvent && (
+        <MiniEventModal onClose={() => setShowEvent(false)} invitedPlace={invitedPlace} />
+      )}
 
       {showMobileStats && (
         <MobileStatsModal
