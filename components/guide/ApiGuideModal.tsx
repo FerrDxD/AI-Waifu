@@ -8,10 +8,22 @@ import { purgeLegacyApiKeyStorage, useApiKeyStatus } from '@/lib/client/api-key'
 interface ApiGuideModalProps {
   showFloatingButton?: boolean;
   floatingButtonClassName?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export default function ApiGuideModal({ showFloatingButton = false, floatingButtonClassName }: ApiGuideModalProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function ApiGuideModal({
+  showFloatingButton = false,
+  floatingButtonClassName,
+  isOpen: externalIsOpen,
+  onClose: externalOnClose,
+}: ApiGuideModalProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = (open: boolean) => {
+    setInternalIsOpen(open);
+    if (!open && externalOnClose) externalOnClose();
+  };
   const [apiKey, setApiKey] = useState('');
   const [saving, setSaving] = useState(false);
   const apiKeyStatus = useApiKeyStatus();
