@@ -467,7 +467,7 @@ export default function LandingPage() {
               {/* Stage Container: Sprite & VN Dialogue Box */}
               <div className="relative mt-6 min-h-[360px] sm:min-h-[400px] flex items-end">
                 {/* Livia Sprite positioned at left-center */}
-                <div className="pointer-events-none absolute -bottom-4 -left-6 sm:left-0 z-10 w-[240px] sm:w-[320px] md:w-[360px] h-[360px] sm:h-[420px] hidden md:flex items-end justify-center">
+                <div className="pointer-events-none absolute -bottom-4 -left-10 sm:-left-4 md:-left-8 z-0 w-[240px] sm:w-[320px] md:w-[360px] h-[360px] sm:h-[420px] hidden md:flex items-end justify-center">
                   <LiviaSprite
                     expression="normal"
                     outfit="landing-page"
@@ -533,7 +533,7 @@ export default function LandingPage() {
               </div>
 
               {/* Action CTA Dock */}
-              <div className="mt-6 flex flex-wrap items-center gap-3 sm:gap-4">
+              <div className="mt-6 flex flex-wrap items-center gap-3 sm:gap-4 relative z-20">
                 <Link
                   href="/register"
                   className="inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#ff758c] to-[#ff0844] px-6 py-3.5 text-sm sm:text-base font-bold text-white shadow-[0_10px_26px_rgba(255,117,140,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(255,117,140,0.45)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
