@@ -92,7 +92,7 @@ export default function HomeBackdrop({
 
       {/* ── Panggung Livia Terpusat (Widescreen 16:9 Anti-Geser) ── */}
       <div className="absolute inset-0 flex items-end justify-center pointer-events-none pb-0">
-        <div className="relative h-full aspect-[16/9] min-w-0 flex items-end justify-center pointer-events-none">
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-full w-[177.78vh] flex items-end justify-center pointer-events-none">
           {/* Sprite Livia Mengisi Panggung 16:9 Proporsional */}
           <div className="w-full h-full flex items-end justify-center pointer-events-none">
             <LiviaSprite
