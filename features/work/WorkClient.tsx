@@ -7,7 +7,6 @@ import { playSfx } from '@/lib/sfx';
 import { unlockAchievement } from '@/lib/achievements';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { EN_JOBS } from '@/lib/i18n/content';
-import { claimWork } from '@/lib/actions';
 
 type JobCategory = 'sortir' | 'paket' | 'tutor' | 'barista' | 'cucipiring' | 'kasir' | 'dataentry' | 'parkir' | 'pelayan' | 'penulis' | 'tambang' | 'reparasi' | 'pelukis' | 'trader' | 'mancing';
 
@@ -71,19 +70,20 @@ export default function WorkPage() {
       playSfx('coin');
       unlockAchievement('work_first');
       try {
-        // M5.2: Server Action (bukan fetch) — hasil kerja diklaim di server.
-        const result = await claimWork(amount, selectedJob.id);
-        if (result.ok) {
-          const newMoney = result.data.newMoney ?? 0;
-          setMoney(newMoney);
-          if (newMoney >= 1000) unlockAchievement('rich_1000');
-          if (result.data.jobStats) setJobStats(result.data.jobStats);
-        } else {
-          // B1: jangan diam — tampilkan feedback ke user.
-          console.error('claimWork failed:', result.error, result.code);
-          playSfx('error');
-          alert(result.error || 'Gagal menyimpan hasil kerja. Coba lagi.');
+        const res = await fetch('/api/work', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ earnedRv: amount, jobId: selectedJob.id }),
+        });
+        if (!res.ok) {
+          const body = (await res.json().catch(() => null)) as { error?: string } | null;
+          throw new Error(body?.error || `HTTP ${res.status}`);
         }
+        const data = (await res.json()) as { newMoney?: number; jobStats?: Record<string, number> };
+        const newMoney = data.newMoney ?? 0;
+        setMoney(newMoney);
+        if (newMoney >= 1000) unlockAchievement('rich_1000');
+        if (data.jobStats) setJobStats(data.jobStats);
       } catch (e) {
         console.error(e);
         playSfx('error');
@@ -104,100 +104,127 @@ export default function WorkPage() {
 
   return (
     <div className="h-[100dvh] w-full bg-[#fdfbf7] flex flex-col font-sans select-none overflow-hidden relative">
-      <div className="absolute top-0 left-0 w-full h-16 bg-gradient-to-r from-[#ff758c] to-[#ff0844] z-50 flex items-center justify-between px-4 md:px-8 shadow-md">
-        <div className="flex items-center gap-6">
-          <Link href="/home" className="text-white hover:text-pink-100 flex items-center gap-2 font-display font-black text-sm tracking-widest uppercase transition-colors">
-            <span className="bg-white/20 p-1.5 rounded-md">←</span> {dict.common.back.toUpperCase()}
+      {/* Tactical Work Header Band */}
+      <header className="absolute top-0 left-0 w-full h-16 bg-gradient-to-r from-[#ff758c] to-[#ff0844] z-50 flex items-center justify-between px-4 md:px-8 shadow-md">
+        <div className="flex items-center gap-4 md:gap-6">
+          <Link 
+            href="/home" 
+            className="text-white hover:text-pink-100 flex items-center gap-2 font-display font-black text-sm tracking-widest uppercase transition-colors focus-visible:ring-2 focus-visible:ring-white rounded-lg p-1"
+          >
+            <span className="bg-white/20 p-1.5 rounded-md font-sans">←</span> {dict.common.back.toUpperCase()}
           </Link>
           <div className="h-6 w-px bg-white/30 hidden md:block" />
-          <h1 className="hidden md:flex font-display font-black text-white text-xl tracking-widest uppercase items-center gap-2">
+          <h1 className="hidden md:flex font-display font-black text-white text-xl tracking-widest uppercase items-center gap-2.5">
             <Sparkles size={20} className="text-amber-300" /> {(dict?.pages?.work?.title || 'Kantor Agensi').toUpperCase()}
           </h1>
         </div>
-        <div className="bg-black/20 backdrop-blur-md border border-white/10 px-5 py-1.5 rounded-r-xl rounded-l-md skew-x-[-10deg] flex items-center gap-3">
+        
+        {/* Tactical Skewed Wallet */}
+        <div className="bg-black/25 backdrop-blur-md border border-white/20 px-4 py-1.5 rounded-xl skew-x-[-10deg] flex items-center gap-2.5 shadow-sm">
           <Wallet className="w-4 h-4 text-amber-300 skew-x-[10deg]" />
-          <span className="font-mono font-black text-amber-300 skew-x-[10deg] tracking-wider">{money} Rv</span>
+          <span className="font-mono font-black text-amber-300 skew-x-[10deg] tracking-wider text-sm">{money} Rv</span>
         </div>
-      </div>
+      </header>
 
       <div className="flex flex-col md:flex-row flex-1 pt-16 h-full overflow-hidden">
-        <div className="flex-[2] relative flex flex-col bg-[#faf8f5] overflow-y-auto md:overflow-hidden border-r-4 border-pink-100 shrink-0">
-          <div className="absolute -left-32 -top-32 w-[600px] h-[600px] bg-[#ff758c] opacity-5 rounded-full blur-3xl pointer-events-none" />
+        {/* Left Side: Agency Office Hub Stage */}
+        <div className="flex-[2] relative flex flex-col bg-[#fdfbf7] overflow-y-auto md:overflow-hidden border-r border-pink-100/80 shrink-0">
+          <div className="absolute -left-32 -top-32 w-[600px] h-[600px] bg-pink-100/30 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute right-[-10%] bottom-[-5%] text-[8rem] md:text-[14rem] font-display font-black text-pink-500/5 -rotate-12 select-none pointer-events-none whitespace-nowrap leading-none tracking-tighter">
             {selectedJob.title.toUpperCase()}
           </div>
 
-          <div className="relative z-10 w-full h-full p-4 md:p-12 flex flex-col justify-center max-w-4xl mx-auto">
+          <div className="relative z-10 w-full h-full p-4 md:p-10 flex flex-col justify-center max-w-4xl mx-auto">
             {gameState === 'idle' ? (
               <div className="animate-[slideRight_0.4s_ease-out]">
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-8 mb-8">
-                  <div className="w-24 h-24 md:w-36 md:h-36 bg-gradient-to-br from-[#ff758c] to-[#ff0844] rounded-[2rem] md:rounded-[3rem] rounded-bl-xl md:rounded-bl-2xl flex items-center justify-center text-white shadow-xl transform -rotate-3 hover:rotate-0 transition-all shadow-pink-500/30 shrink-0">
-                    <Icon size={48} className="md:w-16 md:h-16" />
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-5 md:gap-7 mb-6">
+                  <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-[#ff758c] to-[#ff0844] rounded-[2rem] flex items-center justify-center text-white shadow-xl shadow-pink-500/25 transform -rotate-3 hover:rotate-0 transition-all shrink-0">
+                    <Icon size={44} className="md:w-14 md:h-14" />
                   </div>
                   <div className="flex flex-col">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className={`font-mono font-black text-xs px-2 py-0.5 rounded-sm border-2 ${rankColor}`}>
+                    <div className="flex items-center gap-2.5 mb-1.5">
+                      <span className={`font-mono font-black text-xs px-2.5 py-0.5 rounded-full border ${rankColor}`}>
                         {rankName.toUpperCase()}
                       </span>
-                      <span className="font-mono font-bold text-gray-400 tracking-widest text-sm uppercase">ID_{selectedJob.id.padStart(4, '0')}</span>
+                      <span className="font-mono font-bold text-[#7a7268] tracking-widest text-xs uppercase">
+                        ID_{selectedJob.id.padStart(4, '0')}
+                      </span>
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-display font-black text-[#5c4d47] tracking-tighter leading-none mb-4">
+                    <h2 className="text-3xl md:text-5xl font-display font-black text-[#5c4d47] tracking-tight leading-none">
                       {language === 'en' && EN_JOBS[selectedJob.id] ? EN_JOBS[selectedJob.id].title : selectedJob.title}
-                    </h1>
+                    </h2>
                   </div>
                 </div>
                 
-                <div className="bg-white/80 backdrop-blur-md p-6 md:p-10 rounded-[2rem] border-2 border-pink-100 shadow-lg relative overflow-hidden group">
-                  <div className="mb-8 relative z-10">
-                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                      <FileText size={16} /> {language === 'en' ? 'Task Description' : 'Deskripsi Tugas'}
+                <div className="bg-white/92 backdrop-blur-2xl p-6 md:p-8 rounded-[2rem] border border-pink-100/90 shadow-md relative overflow-hidden group">
+                  <div className="mb-6 relative z-10">
+                    <h3 className="text-xs font-mono font-bold text-[#7a7268] uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                      <FileText size={15} /> {language === 'en' ? 'Task Description' : 'Deskripsi Tugas'}
                     </h3>
-                    <p className="text-lg md:text-xl font-medium text-gray-700 leading-relaxed">
+                    <p className="text-base md:text-lg font-medium text-[#5c4d47] leading-relaxed">
                       {language === 'en' && EN_JOBS[selectedJob.id] ? EN_JOBS[selectedJob.id].desc : selectedJob.desc}
                     </p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-6 mb-8 relative z-10">
+
+                  <div className="flex flex-wrap items-center gap-5 mb-8 relative z-10">
                     <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Reward (x{multiplier})</span>
-                      <div className="flex items-center gap-2 bg-amber-50 px-4 py-2 rounded-xl border border-amber-200">
-                        <Wallet size={20} className="text-amber-500" />
-                        <span className="font-mono font-black text-amber-600 text-xl">{selectedJob.type === 'sortir' ? `Max ${finalReward} Rv` : `${finalReward} Rv`}</span>
+                      <span className="text-[11px] font-mono font-bold text-[#7a7268] uppercase tracking-widest mb-1">Total Reward (x{multiplier})</span>
+                      <div className="flex items-center gap-2 bg-amber-50/90 px-4 py-2 rounded-xl border border-amber-200/80">
+                        <Wallet size={18} className="text-amber-500" />
+                        <span className="font-mono font-black text-amber-600 text-lg md:text-xl">
+                          {selectedJob.type === 'sortir' ? `Max ${finalReward} Rv` : `${finalReward} Rv`}
+                        </span>
                       </div>
                     </div>
                     <div className="flex flex-col flex-1 min-w-[200px]">
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
+                      <span className="text-[11px] font-mono font-bold text-[#7a7268] uppercase tracking-widest mb-1">
                         Progress Karyawan {completions}/{nextTarget}
                       </span>
-                      <div className="h-10 bg-gray-100 rounded-xl border border-gray-200 overflow-hidden relative">
+                      <div className="h-9 bg-stone-100 rounded-xl border border-[#f0e4de] overflow-hidden relative">
                         <div className={`h-full transition-all duration-500 ${rankColor.split(' ')[0].replace('text', 'bg')}`} style={{width: `${Math.min(100, (completions/nextTarget)*100)}%`}} />
-                        <span className="absolute inset-0 flex items-center justify-center font-mono font-bold text-xs text-black/50 mix-blend-overlay">
+                        <span className="absolute inset-0 flex items-center justify-center font-mono font-bold text-xs text-[#5c4d47]/70">
                           {completions >= 50 ? 'MAX LEVEL' : `${completions} KALI SELESAI`}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <button onClick={() => setGameState('playing')} className="w-full bg-[#5c4d47] hover:bg-[#3d332f] text-white font-display font-black text-xl md:text-2xl py-5 rounded-2xl shadow-xl flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1 active:scale-95">
-                    <Play fill="currentColor" /> MULAI KERJA
+
+                  {/* Dark CTA: bg-[#5c4d47] as mandated in DESIGN.md */}
+                  <button 
+                    onClick={() => setGameState('playing')} 
+                    className="w-full bg-[#5c4d47] hover:bg-[#3d332f] text-white font-display font-black text-lg md:text-xl py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2.5 transition-all transform hover:-translate-y-0.5 active:scale-98 focus-visible:ring-2 focus-visible:ring-pink-500"
+                  >
+                    <Play fill="currentColor" size={20} /> MULAI KERJA
                   </button>
                 </div>
               </div>
             ) : gameState === 'gameOver' ? (
-              <div className="w-full bg-white p-8 md:p-12 rounded-[3rem] shadow-2xl border-4 border-pink-100 flex flex-col items-center animate-[slideUp_0.4s_ease-out]">
-                <h2 className="text-4xl md:text-5xl font-display font-black text-[#5c4d47] mb-2 uppercase tracking-tight">{earnedRv > 0 ? 'Kontrak Selesai!' : 'Gagal!'}</h2>
-                <p className="text-gray-500 font-medium mb-8 text-lg">{earnedRv > 0 ? 'Kerja kerasmu membuahkan hasil!' : 'Aduh, kamu dipecat untuk hari ini.'}</p>
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-[2rem] px-12 py-8 my-4 flex flex-col items-center w-full max-w-sm shadow-inner relative overflow-hidden">
-                  <span className="text-sm text-amber-700 font-bold mb-2 tracking-widest uppercase relative z-10">Total Pendapatan</span>
-                  <span className="text-5xl md:text-6xl font-mono font-black text-amber-500 relative z-10 drop-shadow-sm">+{earnedRv}</span>
-                  <span className="font-bold text-amber-600 relative z-10 mt-1">Ravencoins</span>
+              <div className="w-full bg-white/95 backdrop-blur-2xl p-8 md:p-12 rounded-[2.5rem] shadow-xl border border-pink-100 flex flex-col items-center animate-[slideUp_0.4s_ease-out] max-w-md mx-auto">
+                <h2 className="text-3xl md:text-4xl font-display font-black text-[#5c4d47] mb-2 uppercase tracking-tight">
+                  {earnedRv > 0 ? 'Kontrak Selesai!' : 'Gagal!'}
+                </h2>
+                <p className="text-[#7a7268] font-medium mb-6 text-base text-center">
+                  {earnedRv > 0 ? 'Kerja kerasmu membuahkan hasil!' : 'Aduh, kamu dipecat untuk hari ini.'}
+                </p>
+                <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl px-10 py-6 my-2 flex flex-col items-center w-full shadow-inner">
+                  <span className="text-xs font-mono text-amber-700 font-bold mb-1 tracking-widest uppercase">Total Pendapatan</span>
+                  <span className="text-5xl md:text-6xl font-mono font-black text-amber-500 drop-shadow-sm">+{earnedRv}</span>
+                  <span className="font-bold text-amber-600 mt-1 text-sm">Ravencoins</span>
                 </div>
-                <button onClick={() => setGameState('idle')} className="px-8 py-4 bg-[#fdfbf7] border-2 border-pink-200 text-pink-500 font-black rounded-2xl shadow-sm hover:bg-pink-50 hover:-translate-y-1 transition-all w-full max-w-sm mt-8 text-lg uppercase tracking-widest">
+                <button 
+                  onClick={() => setGameState('idle')} 
+                  className="px-8 py-3.5 bg-white border-2 border-pink-200 text-[#ff758c] hover:bg-pink-50 font-display font-black rounded-xl shadow-xs transition-all w-full mt-6 text-base uppercase tracking-wider focus-visible:ring-2 focus-visible:ring-pink-500"
+                >
                   Kembali ke Bursa
                 </button>
               </div>
             ) : (
               <div className="w-full h-full flex flex-col justify-center animate-[fadeIn_0.3s_ease-out]">
-                <div className="bg-white rounded-[3rem] p-6 md:p-10 shadow-2xl border-4 border-pink-50 relative overflow-hidden min-h-[500px] flex flex-col">
-                  <button onClick={() => setGameState('idle')} className="absolute top-6 left-6 text-gray-400 hover:text-pink-500 font-bold text-sm flex items-center gap-1 z-50 bg-white/80 p-2 rounded-xl backdrop-blur-md">
+                <div className="bg-white/95 backdrop-blur-2xl rounded-[2.5rem] p-6 md:p-10 shadow-xl border border-pink-100/90 relative overflow-hidden min-h-[500px] flex flex-col">
+                  <button 
+                    onClick={() => setGameState('idle')} 
+                    className="absolute top-5 left-5 text-[#7a7268] hover:text-[#ff758c] font-display font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 z-50 bg-white/90 border border-pink-100 px-3.5 py-1.5 rounded-xl backdrop-blur-md shadow-xs transition-all focus-visible:ring-2 focus-visible:ring-pink-500"
+                  >
                     ← BATALKAN
                   </button>
                   <GameDispatcher type={selectedJob.type} onFinish={claimReward} baseReward={finalReward} rank={rankLevel} rankName={rankName} />
@@ -207,38 +234,54 @@ export default function WorkPage() {
           </div>
         </div>
 
-        <div className="w-full md:max-w-[450px] bg-white border-b-4 md:border-b-0 md:border-l-4 border-pink-100 flex flex-col h-[25vh] md:h-full shadow-[-20px_0_40px_rgba(0,0,0,0.03)] z-20 shrink-0 order-first md:order-last">
-          <div className="p-3 md:p-6 bg-white/90 backdrop-blur-md border-b-2 border-pink-50 z-10 shrink-0">
-            <h2 className="text-lg md:text-2xl font-display font-black text-[#5c4d47] flex items-center gap-2 tracking-widest uppercase">
-              <Briefcase className="text-[#ff758c] w-5 h-5 md:w-7 md:h-7" /> DAFTAR TUGAS
+        {/* Right Side: Skewed Tactical Job List */}
+        <div className="w-full md:max-w-[400px] bg-white/70 backdrop-blur-xl border-t-2 md:border-t-0 md:border-l border-pink-100/80 flex flex-col h-[32vh] md:h-full shadow-[-10px_0_30px_rgba(0,0,0,0.02)] z-20 shrink-0 order-first md:order-last">
+          <div className="p-3 md:p-5 bg-white/80 backdrop-blur-md border-b border-pink-100/60 z-10 shrink-0 flex items-center justify-between">
+            <h2 className="text-base md:text-xl font-display font-black text-[#5c4d47] flex items-center gap-2 tracking-widest uppercase">
+              <Briefcase className="text-[#ff758c] w-5 h-5 md:w-6 md:h-6" /> DAFTAR TUGAS
             </h2>
+            <span className="font-mono text-xs font-bold text-[#7a7268] uppercase">{JOBS.length} POSISI</span>
           </div>
-          <div className="flex-1 overflow-x-auto md:overflow-y-auto p-3 md:p-6 flex flex-row md:flex-col gap-3 hide-scrollbar relative">
+          <div className="flex-1 overflow-x-auto md:overflow-y-auto p-3 md:p-5 flex flex-row md:flex-col gap-3 hide-scrollbar relative">
             {JOBS.map((job) => {
               const isSelected = selectedJob.id === job.id && gameState === 'idle';
               const JobIcon = job.icon;
               const jc = jobStats[job.id] || 0;
               const { name: jrank, badgeColor: jcol } = getRankInfo(jc);
 
-
               return (
-                <button key={job.id} onClick={() => { setSelectedJob(job); setGameState('idle'); }} className={`relative group w-[280px] md:w-full shrink-0 text-left outline-none transition-all duration-300 ${isSelected ? 'md:-translate-x-4 scale-[1.02]' : 'hover:-translate-x-1 hover:scale-[1.01]'}`}>
-                  <div className={`absolute inset-0 skew-x-[-8deg] border-y-2 border-r-4 border-l-8 transition-all duration-300 rounded-r-xl ${isSelected ? 'bg-gradient-to-r from-[#ff758c] to-[#ff0844] border-pink-300 shadow-md' : 'bg-[#faf8f5] border-transparent border-l-gray-300 group-hover:border-l-pink-300 group-hover:bg-pink-50'}`} />
-                  <div className="relative z-10 p-4 pl-6 flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'bg-white text-pink-500 shadow-sm' : 'bg-white shadow-sm text-gray-500 group-hover:text-pink-500'}`}>
-                      <JobIcon size={24} />
+                <button 
+                  key={job.id} 
+                  onClick={() => { setSelectedJob(job); setGameState('idle'); }} 
+                  className={`relative group w-[280px] md:w-full shrink-0 text-left outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-pink-500 rounded-xl ${isSelected ? 'md:-translate-x-2' : 'hover:-translate-x-1'}`}
+                >
+                  <div className={`absolute inset-0 skew-x-[-8deg] rounded-xl transition-all duration-200 ${
+                    isSelected 
+                      ? 'bg-gradient-to-r from-[#ff758c] to-[#ff0844] shadow-md shadow-pink-500/25 ring-1 ring-white/40' 
+                      : 'bg-white/90 border border-pink-100/70 group-hover:bg-white group-hover:border-pink-200/80 shadow-xs'
+                  }`} />
+                  <div className="relative z-10 p-3.5 pl-5 flex items-center gap-3.5">
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                      isSelected ? 'bg-white text-[#ff758c] shadow-xs' : 'bg-stone-50 border border-stone-100 text-stone-500 group-hover:text-[#ff758c]'
+                    }`}>
+                      <JobIcon size={22} />
                     </div>
                     <div className="flex flex-col flex-1 truncate">
-                      <span className={`font-mono font-bold text-[10px] tracking-widest uppercase mb-0.5 ${isSelected ? 'text-pink-200' : 'text-gray-400'}`}>{job.type}</span>
-                      <span className={`font-display font-black text-lg truncate tracking-tight ${isSelected ? 'text-white' : 'text-[#5c4d47]'}`}>
+                      <span className={`font-mono font-bold text-[10px] tracking-widest uppercase mb-0.5 ${
+                        isSelected ? 'text-pink-100' : 'text-[#7a7268]'
+                      }`}>
+                        {job.type}
+                      </span>
+                      <span className={`font-display font-black text-base truncate tracking-tight ${
+                        isSelected ? 'text-white' : 'text-[#5c4d47]'
+                      }`}>
                         {language === 'en' && EN_JOBS[job.id] ? EN_JOBS[job.id].title : job.title}
                       </span>
                     </div>
-                    <div className={`shrink-0 text-[10px] font-black uppercase px-2 py-1 rounded skew-x-[8deg] ${jcol}`}>
+                    <div className={`shrink-0 text-[10px] font-mono font-bold uppercase px-2.5 py-1 rounded-md skew-x-[8deg] ${jcol}`}>
                       {jrank}
                     </div>
                   </div>
-                  {isSelected && <div className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2 w-8 h-8 bg-white rotate-45 border-t-4 border-r-4 border-pink-300 z-0" />}
                 </button>
               );
             })}
@@ -434,12 +477,20 @@ function TutorGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: { o
   return (
     <div className="flex flex-col items-center mt-8 flex-1 w-full max-w-lg mx-auto">
       <DifficultyBadge rank={rank} rankName={rankName} />
-      <div className="text-xs font-bold font-mono text-purple-600 mb-2">SOAL {idx + 1} DARI {q.length}</div>
-      <div className="bg-purple-50 w-full p-8 rounded-[2rem] border-4 border-purple-200 mb-6 min-h-[140px] flex items-center justify-center text-center shadow-sm">
-        <h3 className="font-bold text-4xl text-purple-900">{q[idx].q}</h3>
+      <div className="text-xs font-bold font-mono text-[#ff758c] mb-2 tracking-widest uppercase">SOAL {idx + 1} DARI {q.length}</div>
+      <div className="bg-pink-50/50 w-full p-8 rounded-[2rem] border-2 border-pink-100 mb-6 min-h-[140px] flex items-center justify-center text-center shadow-xs">
+        <h3 className="font-display font-black text-4xl text-[#5c4d47]">{q[idx].q}</h3>
       </div>
       <div className="grid grid-cols-2 gap-4 w-full">
-        {q[idx].o.map(opt => <button key={opt} onClick={() => handleAnswer(opt)} className="py-6 bg-white border-4 border-gray-200 rounded-[1.5rem] font-black text-2xl text-gray-700 hover:bg-purple-50 hover:border-purple-300 active:scale-95 shadow-sm transition-all">{opt}</button>)}
+        {q[idx].o.map(opt => (
+          <button 
+            key={opt} 
+            onClick={() => handleAnswer(opt)} 
+            className="py-6 bg-white border-2 border-pink-100 rounded-[1.5rem] font-display font-black text-2xl text-[#5c4d47] hover:bg-pink-50/60 hover:border-pink-300 active:scale-95 shadow-xs transition-all focus-visible:ring-2 focus-visible:ring-pink-500"
+          >
+            {opt}
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -632,7 +683,7 @@ function PelayanGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: {
       <DifficultyBadge rank={rank} rankName={rankName} />
       <h3 className="font-bold text-lg text-gray-500 mb-4">{show ? `Hafalkan ${len} pesanan ini!` : `Ulangi urutan ${len} pesanan!`}</h3>
       <div className="flex flex-wrap gap-3 justify-center mb-8 min-h-[70px] items-center bg-gray-50 p-4 rounded-2xl border-2 border-gray-100 w-full">
-        {show ? seq.map((s,i)=><span key={i} className="text-4xl md:text-5xl animate-bounce">{s}</span>) : input.map((s,i)=><span key={i} className="text-4xl md:text-5xl">{s}</span>)}
+        {show ? seq.map((s,i)=><span key={i} className="text-4xl md:text-5xl animate-pulse duration-700">{s}</span>) : input.map((s,i)=><span key={i} className="text-4xl md:text-5xl">{s}</span>)}
       </div>
       {!show && (
         <div className="grid grid-cols-3 gap-3 w-full">
@@ -671,7 +722,7 @@ function PenulisGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: {
       <p className="text-gray-400 font-bold tracking-widest uppercase mb-6 text-sm">Susun Huruf Menjadi Kata ({word.length} Huruf)</p>
       <div className="flex flex-wrap justify-center gap-1.5 min-h-[60px] mb-8">
         {Array.from({length:word.length}).map((_, i) => (
-          <div key={i} className="w-12 h-14 md:w-14 md:h-16 border-b-4 border-gray-400 bg-gray-50 rounded-t-lg flex items-center justify-center text-2xl md:text-3xl font-black text-gray-800">
+          <div key={i} className="w-12 h-14 md:w-14 md:h-16 border-2 border-stone-300 bg-stone-50 rounded-xl flex items-center justify-center text-2xl md:text-3xl font-mono font-black text-[#5c4d47]">
             {input[i] !== undefined ? scrambled[input[i]] : ''}
           </div>
         ))}
@@ -893,8 +944,8 @@ function MancingGame({ onFinish, baseReward, rank = 0, rankName = 'Tembaga' }: {
     <div className="flex flex-col items-center justify-center mt-8 flex-1 w-full text-center">
       <DifficultyBadge rank={rank} rankName={rankName} />
       <div className="text-xs font-mono font-bold text-gray-400 mb-6">Waktu Reaksi Maksimal: {maxReaction}ms</div>
-      <div className="text-[7rem] md:text-[8rem] h-36 mb-10 animate-bounce">{status === 'ready' ? '❗' : '🎣'}</div>
-      <button onClick={handleClick} className="px-12 py-5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-black text-2xl rounded-[2rem] shadow-lg active:scale-95 transition-all">TARIK!</button>
+      <div className="text-[7rem] md:text-[8rem] h-36 mb-10 animate-pulse duration-500 scale-105 transition-transform">{status === 'ready' ? '❗' : '🎣'}</div>
+      <button onClick={handleClick} className="px-12 py-5 bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-display font-black text-2xl rounded-2xl shadow-lg shadow-pink-500/20 hover:-translate-y-0.5 active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-pink-500">TARIK!</button>
     </div>
   );
 }
