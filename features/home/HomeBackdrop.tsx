@@ -92,7 +92,7 @@ export default function HomeBackdrop({
 
       {/* ── Panggung Livia Terpusat (Widescreen 16:9 Anti-Geser) ── */}
       <div className="absolute inset-0 flex items-end justify-center pointer-events-none pb-0">
-        <div className="relative h-[95vh] sm:h-[92vh] md:h-full aspect-[3/4] sm:aspect-[16/9] md:aspect-[16/9] min-w-0 flex items-end justify-center pointer-events-none">
+        <div className="relative h-full aspect-[16/9] min-w-0 flex items-end justify-center pointer-events-none">
           {/* Sprite Livia Mengisi Panggung 16:9 Proporsional */}
           <div className="w-full h-full flex items-end justify-center pointer-events-none">
             <LiviaSprite
@@ -100,8 +100,9 @@ export default function HomeBackdrop({
               outfit={outfit}
               disableFloat={true}
               className="w-full h-full"
-              imgClassName="w-full h-full object-cover sm:object-contain object-center sm:object-bottom pointer-events-none transition-transform duration-500"
+              imgClassName="w-full h-full object-contain object-bottom pointer-events-none"
             />
+          </div>
           </div>
 
           {/* ── Hitbox Sentuh Terkunci Pada Koordinat Tubuh (X: 38%-62%) ── */}
