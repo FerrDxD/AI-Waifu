@@ -103,7 +103,6 @@ export default function HomeBackdrop({
               imgClassName="w-full h-full object-contain object-bottom pointer-events-none"
             />
           </div>
-          </div>
 
           {/* ── Hitbox Sentuh Terkunci Pada Koordinat Tubuh (X: 38%-62%) ── */}
           <div className="absolute bottom-0 left-[38%] w-[24%] h-[92%] pointer-events-auto flex flex-col items-center z-30">

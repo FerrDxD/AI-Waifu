@@ -78,8 +78,17 @@ export default function WorkPage() {
           setMoney(newMoney);
           if (newMoney >= 1000) unlockAchievement('rich_1000');
           if (result.data.jobStats) setJobStats(result.data.jobStats);
+        } else {
+          // B1: jangan diam — tampilkan feedback ke user.
+          console.error('claimWork failed:', result.error, result.code);
+          playSfx('error');
+          alert(result.error || 'Gagal menyimpan hasil kerja. Coba lagi.');
         }
-      } catch (e) { console.error(e); }
+      } catch (e) {
+        console.error(e);
+        playSfx('error');
+        alert('Gagal menyimpan hasil kerja. Coba lagi.');
+      }
     } else {
       playSfx('error');
     }
@@ -334,7 +343,7 @@ function SortirGame({ onFinish, rank = 0, rankName = 'Tembaga' }: { onFinish: (r
         <div className="bg-pink-50 px-6 py-2.5 rounded-2xl text-pink-600 font-black font-mono text-lg border border-pink-200">Waktu: {timeLeft}s</div>
         <div className="bg-amber-50 px-6 py-2.5 rounded-2xl text-amber-600 font-black font-mono text-lg border border-amber-200">Skor: {score}</div>
       </div>
-      <div className="flex-1 flex items-center justify-center mb-8 text-[7rem] animate-bounce">{item.emoji}</div>
+      <div className="flex-1 flex items-center justify-center mb-8 text-[7rem] animate-pulse duration-700">{item.emoji}</div>
       <div className={`grid ${items.length > 3 ? 'grid-cols-3' : 'grid-cols-3'} gap-3 w-full`}>
         {items.map(it => (
           <button key={it.color} onClick={() => handleSort(it.color)} className={`py-6 rounded-[1.5rem] border-2 text-3xl font-black shadow-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-1 ${getColorClass(it.color)}`}>

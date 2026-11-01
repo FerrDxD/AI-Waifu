@@ -40,9 +40,9 @@ export function Deferred({
     if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
       idleHandle = (window as unknown as {
         requestIdleCallback: (cb: () => void, opts: { timeout: number }) => number;
-      }).requestIdleCallback(mount, { timeout: 2500 });
+      }).requestIdleCallback(mount, { timeout: 500 });
     } else {
-      timer = setTimeout(mount, 500);
+      timer = setTimeout(mount, 200);
     }
     return () => {
       cancelled = true;

@@ -12,7 +12,7 @@
  * - Milestone 3/6/9 = idempoten, reward Rv (dan afeksi di 9) sekali.
  * - `date` = tanggal lokal user (dihitung dari offset browser).
  */
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, sql, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { dailyQuests, userProfiles } from '@/lib/db/schema';
 import { moneyPlusExpr } from '@/lib/livia/atomic-profile';
@@ -143,7 +143,7 @@ export async function claimQuestRewardServer(
   const rows = await db
     .select()
     .from(dailyQuests)
-    .where(and(eq(dailyQuests.userId, userId), eq(dailyQuests.date, date), eq(dailyQuests.action, quest.targetAction)));
+    .where(and(eq(dailyQuests.userId, userId), eq(dailyQuests.date, date), eq(dailyQuests.action, quest.targetAction), isNull(dailyQuests.questId)));
 
   const count = rows[0]?.count ?? 0;
   if (count < quest.required) return { ok: false, reason: 'insufficient' };

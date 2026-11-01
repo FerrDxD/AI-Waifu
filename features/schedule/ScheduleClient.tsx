@@ -95,6 +95,25 @@ export default function DailyQuestsPage() {
     };
   }, [language]);
 
+  // M8.8 B3: dengarkan event 'daily_quests_updated' agar progress refresh
+  // otomatis tanpa reload halaman (server tetap sumber utama).
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { date?: string } | undefined;
+      const d = detail?.date || today;
+      fetch(`/api/quests?date=${encodeURIComponent(d)}`)
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((data: { state?: QuestServerState }) => {
+          if (data.state) applyServerState(data.state);
+        })
+        .catch(() => {
+          /* abaikan — state lama tetap ditampilkan */
+        });
+    };
+    window.addEventListener('daily_quests_updated', handler);
+    return () => window.removeEventListener('daily_quests_updated', handler);
+  }, [today]);
+
   const triggerLiviaReaction = (text?: string) => {
     playSfx('pop');
     const comment =
@@ -131,11 +150,10 @@ export default function DailyQuestsPage() {
         const body = (await res.json().catch(() => null)) as {
           error?: string;
         } | null;
-        if (body?.error) {
-          triggerLiviaReaction(body.error);
-          return;
-        }
-        throw new Error('claim_failed');
+        triggerLiviaReaction(
+          body?.error || 'Gagal mengklaim misi. Coba lagi sebentar ya.'
+        );
+        return;
       }
 
       const data = (await res.json()) as {
@@ -180,11 +198,10 @@ export default function DailyQuestsPage() {
         const body = (await res.json().catch(() => null)) as {
           error?: string;
         } | null;
-        if (body?.error) {
-          triggerLiviaReaction(body.error);
-          return;
-        }
-        throw new Error('milestone_failed');
+        triggerLiviaReaction(
+          body?.error || 'Gagal mengklaim milestone. Coba lagi sebentar ya.'
+        );
+        return;
       }
 
       const data = (await res.json()) as {

@@ -26,34 +26,24 @@ export function recordQuestAction(
 
   const date = dateStr || getTodayDateString();
 
-  // Fire-and-forget ke server.
-  fetch('/api/quests/action', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: actionType, amount, date }),
-  }).catch(() => {
-    /* offline / error — abaikan */
-  });
+  // Fire-and-forget ke server, dengan 1x retry (B7).
+  const send = (attempt: number) => {
+    fetch('/api/quests/action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: actionType, amount, date }),
+    }).catch(() => {
+      if (attempt < 1) {
+        setTimeout(() => send(attempt + 1), 1500);
+      }
+    });
+  };
+  send(0);
 
-  // Event lokal untuk UI (nilai optimistik; server tetap sumber utama).
-  const current: Record<string, number> = {};
-  try {
-    const saved = localStorage.getItem(`quest_progress_${date}`);
-    if (saved) Object.assign(current, JSON.parse(saved));
-  } catch {
-    /* abaikan */
-  }
-  const nextVal = (current[actionType] || 0) + amount;
-  const updated = { ...current, [actionType]: nextVal };
-
-  try {
-    localStorage.setItem(`quest_progress_${date}`, JSON.stringify(updated));
-  } catch {
-    /* abaikan */
-  }
-
+  // Event lokal untuk UI (ScheduleClient mendengarkan & fetch state server).
+  // Tidak lagi memakai localStorage (server = otoritas; data lokal menyesatkan).
   window.dispatchEvent(
-    new CustomEvent('daily_quests_updated', { detail: { date, progress: updated } })
+    new CustomEvent('daily_quests_updated', { detail: { date, action: actionType } })
   );
-  return updated;
+  return {};
 }
