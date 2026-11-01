@@ -56,8 +56,16 @@ interface ModeConfig {
   defaultMinutes: number;
   icon: typeof Zap;
   color: string;
+  buttonShadow: string;
   ringColor: string;
+  ringGlow: string;
   badgeBg: string;
+  pillInactive: string;
+  clockBorder: string;
+  clockShadow: string;
+  drawerRowBg: string;
+  drawerIconColor: string;
+  drawerBtn: string;
 }
 
 const MODES: Record<TimerMode, ModeConfig> = {
@@ -67,26 +75,56 @@ const MODES: Record<TimerMode, ModeConfig> = {
     defaultMinutes: 25,
     icon: Zap,
     color: 'from-[#ff758c] to-[#ff0844]',
+    buttonShadow: 'shadow-[0_6px_20px_rgba(255,117,140,0.35)]',
     ringColor: '#ff758c',
+    ringGlow: 'rgba(255,117,140,0.35)',
     badgeBg: 'bg-pink-50 text-pink-700 border-pink-200',
+    pillInactive:
+      'bg-pink-50/80 text-pink-700 hover:bg-pink-100 border border-pink-200/70',
+    clockBorder: 'border-pink-100',
+    clockShadow: 'shadow-[0_16px_40px_rgba(255,117,140,0.12)]',
+    drawerRowBg: 'bg-pink-50/60 border-pink-100',
+    drawerIconColor: 'text-pink-600',
+    drawerBtn:
+      'border-pink-200 text-pink-600 hover:bg-pink-600 hover:text-white',
   },
   shortBreak: {
     label: 'Istirahat Singkat',
     shortLabel: 'Istirahat',
     defaultMinutes: 5,
     icon: Coffee,
-    color: 'from-emerald-400 to-teal-500',
+    color: 'from-emerald-500 to-teal-600',
+    buttonShadow: 'shadow-[0_6px_20px_rgba(16,185,129,0.35)]',
     ringColor: '#10b981',
+    ringGlow: 'rgba(16,185,129,0.35)',
     badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    pillInactive:
+      'bg-emerald-50/80 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/70',
+    clockBorder: 'border-emerald-100',
+    clockShadow: 'shadow-[0_16px_40px_rgba(16,185,129,0.12)]',
+    drawerRowBg: 'bg-emerald-50/60 border-emerald-100',
+    drawerIconColor: 'text-emerald-600',
+    drawerBtn:
+      'border-emerald-200 text-emerald-600 hover:bg-emerald-600 hover:text-white',
   },
   longBreak: {
     label: 'Istirahat Panjang',
     shortLabel: 'Panjang',
     defaultMinutes: 15,
     icon: Moon,
-    color: 'from-slate-700 to-stone-800',
-    ringColor: '#475569',
-    badgeBg: 'bg-stone-100 text-stone-700 border-stone-200',
+    color: 'from-blue-500 to-indigo-600',
+    buttonShadow: 'shadow-[0_6px_20px_rgba(59,130,246,0.35)]',
+    ringColor: '#3b82f6',
+    ringGlow: 'rgba(59,130,246,0.35)',
+    badgeBg: 'bg-blue-50 text-blue-700 border-blue-200',
+    pillInactive:
+      'bg-blue-50/80 text-blue-700 hover:bg-blue-100 border border-blue-200/70',
+    clockBorder: 'border-blue-100',
+    clockShadow: 'shadow-[0_16px_40px_rgba(59,130,246,0.12)]',
+    drawerRowBg: 'bg-blue-50/60 border-blue-100',
+    drawerIconColor: 'text-blue-600',
+    drawerBtn:
+      'border-blue-200 text-blue-600 hover:bg-blue-600 hover:text-white',
   },
 };
 
@@ -367,7 +405,7 @@ export default function PomodoroClient() {
         {/* 1. Mode Segmented Control Bar */}
         <nav
           aria-label="Pilihan Mode Timer"
-          className="p-1.5 rounded-full bg-white/90 backdrop-blur-md border border-pink-100 shadow-xs flex items-center gap-1.5 w-full sm:w-auto"
+          className="p-1.5 rounded-full bg-white/95 backdrop-blur-md border border-stone-200/60 shadow-xs flex items-center gap-1.5 w-full sm:w-auto"
         >
           {(Object.keys(MODES) as TimerMode[]).map((tabMode) => {
             const tab = MODES[tabMode];
@@ -379,10 +417,10 @@ export default function PomodoroClient() {
                 type="button"
                 onClick={() => switchMode(tabMode)}
                 aria-pressed={isActive}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 active:scale-95 ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 active:scale-95 ${
                   isActive
-                    ? `bg-gradient-to-r ${tab.color} text-white shadow-md shadow-pink-500/20 scale-[1.02]`
-                    : 'text-[#8c7a70] hover:text-[#5c4d47] hover:bg-pink-50/60'
+                    ? `bg-gradient-to-r ${tab.color} text-white shadow-md border-transparent scale-[1.02]`
+                    : `${tab.pillInactive}`
                 }`}
               >
                 <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -401,7 +439,9 @@ export default function PomodoroClient() {
           className="relative w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80 flex items-center justify-center shrink-0 my-1"
         >
           {/* Luminous Ambient Halo & Base Card */}
-          <div className="absolute inset-0 rounded-full bg-white/95 backdrop-blur-xl border border-pink-100 shadow-[0_16px_40px_rgba(255,117,140,0.12)]" />
+          <div
+            className={`absolute inset-0 rounded-full bg-white/95 backdrop-blur-xl border transition-all duration-500 ${currentConfig.clockBorder} ${currentConfig.clockShadow}`}
+          />
 
           <svg
             className="absolute inset-2 w-[calc(100%-16px)] h-[calc(100%-16px)] -rotate-90 transform"
@@ -428,7 +468,7 @@ export default function PomodoroClient() {
               strokeDashoffset={`${strokeDashoffset}`}
               className="transition-all duration-1000 ease-linear"
               style={{
-                filter: `drop-shadow(0px 0px 6px ${currentConfig.ringColor}35)`,
+                filter: `drop-shadow(0px 0px 6px ${currentConfig.ringGlow})`,
               }}
             />
           </svg>
@@ -471,8 +511,8 @@ export default function PomodoroClient() {
             aria-label={isRunning ? 'Jeda Timer' : 'Mulai Timer'}
             className={`px-8 py-3.5 rounded-2xl font-display font-black text-xs md:text-sm tracking-wider flex items-center gap-2.5 transition-all duration-300 shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 ${
               isRunning
-                ? 'bg-amber-400 hover:bg-amber-500 text-[#5c4d47]'
-                : `bg-gradient-to-r ${currentConfig.color} text-white shadow-[0_6px_20px_rgba(255,117,140,0.35)]`
+                ? 'bg-amber-400 hover:bg-amber-500 text-[#5c4d47] shadow-[0_6px_20px_rgba(251,191,36,0.3)]'
+                : `bg-gradient-to-r ${currentConfig.color} text-white ${currentConfig.buttonShadow}`
             }`}
           >
             {isRunning ? (
@@ -535,10 +575,10 @@ export default function PomodoroClient() {
                 return (
                   <div
                     key={mKey}
-                    className="flex items-center justify-between p-2.5 rounded-2xl bg-pink-50/60 border border-pink-100 text-xs font-bold text-[#5c4d47]"
+                    className={`flex items-center justify-between p-2.5 rounded-2xl border text-xs font-bold text-[#5c4d47] ${m.drawerRowBg}`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <Icon className="w-4 h-4 text-pink-600 shrink-0" />
+                      <Icon className={`w-4 h-4 shrink-0 ${m.drawerIconColor}`} />
                       <span className="truncate">{getModeLabel(mKey)}</span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -546,7 +586,7 @@ export default function PomodoroClient() {
                         type="button"
                         onClick={() => adjustMinutes(mKey, -1)}
                         aria-label={`Kurangi durasi ${getModeLabel(mKey)}`}
-                        className="w-7 h-7 rounded-xl bg-white border border-pink-200 text-pink-600 hover:bg-pink-600 hover:text-white flex items-center justify-center transition-colors shadow-2xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+                        className={`w-7 h-7 rounded-xl bg-white border flex items-center justify-center transition-colors shadow-2xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 ${m.drawerBtn}`}
                       >
                         <Minus className="w-3.5 h-3.5" />
                       </button>
@@ -560,7 +600,7 @@ export default function PomodoroClient() {
                         type="button"
                         onClick={() => adjustMinutes(mKey, 1)}
                         aria-label={`Tambah durasi ${getModeLabel(mKey)}`}
-                        className="w-7 h-7 rounded-xl bg-white border border-pink-200 text-pink-600 hover:bg-pink-600 hover:text-white flex items-center justify-center transition-colors shadow-2xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+                        className={`w-7 h-7 rounded-xl bg-white border flex items-center justify-center transition-colors shadow-2xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 ${m.drawerBtn}`}
                       >
                         <Plus className="w-3.5 h-3.5" />
                       </button>
