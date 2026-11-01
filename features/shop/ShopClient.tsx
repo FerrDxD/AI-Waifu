@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
 import { 
-  Wallet, Heart, Gift, ShoppingBag, Shirt, Box, Home, Utensils, Coffee,
+  Heart, Gift, ShoppingBag, Shirt, Box, Home, Utensils, Coffee,
   BookOpen, Sparkles, Crown, Flame, Droplet, Glasses, Ticket, FileText, Building, Image as ImageIcon, Bed, Monitor,
-  LucideIcon
+  LucideIcon, ArrowLeft
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
@@ -30,13 +30,13 @@ const isConsumableItem = (item: { id: string; category: CategoryId }) => {
   return item.category === 'gift' || item.category === 'food' || item.category === 'drink';
 };
 
-const CATEGORIES: { id: CategoryId; name: string; icon: React.ReactNode }[] = [
-  { id: 'gift', name: 'Hadiah', icon: <Gift size={20} /> },
-  { id: 'food', name: 'Makanan', icon: <Utensils size={20} /> },
-  { id: 'drink', name: 'Minuman', icon: <Coffee size={20} /> },
-  { id: 'outfit', name: 'Pakaian', icon: <Shirt size={20} /> },
-  { id: 'item', name: 'Barang', icon: <Box size={20} /> },
-  { id: 'furniture', name: 'Perabotan', icon: <Home size={20} /> },
+const CATEGORIES: { id: CategoryId; name: string; icon: LucideIcon }[] = [
+  { id: 'gift', name: 'Hadiah', icon: Gift },
+  { id: 'food', name: 'Makanan', icon: Utensils },
+  { id: 'drink', name: 'Minuman', icon: Coffee },
+  { id: 'outfit', name: 'Pakaian', icon: Shirt },
+  { id: 'item', name: 'Barang', icon: Box },
+  { id: 'furniture', name: 'Perabotan', icon: Home },
 ];
 
 const EN_CATEGORY_NAMES: Record<CategoryId, string> = {
@@ -70,50 +70,50 @@ const ICON_MAP: Record<string, LucideIcon> = {
 
 const ITEMS: ShopItem[] = [
   // Hadiah
-  { id: 'candy', category: 'gift', name: 'Permen Manis', emoji: 'candy', cost: 150, affectionDelta: 1, color: 'from-pink-100 to-pink-200', desc: 'Permen murah tapi rasanya manis.' },
-  { id: 'coffee', category: 'gift', name: 'Kopi Susu', emoji: 'coffee', cost: 400, affectionDelta: 5, color: 'from-amber-100 to-amber-200', desc: 'Minuman kekinian kesukaan remaja.' },
-  { id: 'novel', category: 'gift', name: 'Buku Novel', emoji: 'book', cost: 1200, affectionDelta: 7, color: 'from-blue-100 to-blue-200', desc: 'Novel romansa remaja.' },
-  { id: 'bear', category: 'gift', name: 'Boneka Beruang', emoji: 'heart', cost: 2000, affectionDelta: 12, color: 'from-orange-100 to-orange-200', desc: 'Sangat empuk dan nyaman dipeluk.' },
-  { id: 'necklace', category: 'gift', name: 'Kalung Cantik', emoji: 'sparkles', cost: 5000, affectionDelta: 15, color: 'from-purple-100 to-purple-200', desc: 'Perhiasan mahal dan berkilau.' },
-  { id: 'cincin_nikah', category: 'gift', name: 'Cincin Nikah', emoji: 'crown', cost: 30000, affectionDelta: 200, color: 'from-blue-200 to-blue-400', desc: 'Sebuah janji seumur hidup.' },
+  { id: 'candy', category: 'gift', name: 'Permen Manis', emoji: 'candy', cost: 150, affectionDelta: 1, color: 'bg-pink-50 text-[#ff758c] border-pink-100', desc: 'Permen murah tapi rasanya manis.' },
+  { id: 'coffee', category: 'gift', name: 'Kopi Susu', emoji: 'coffee', cost: 400, affectionDelta: 5, color: 'bg-amber-50 text-amber-700 border-amber-100', desc: 'Minuman kekinian kesukaan remaja.' },
+  { id: 'novel', category: 'gift', name: 'Buku Novel', emoji: 'book', cost: 1200, affectionDelta: 7, color: 'bg-stone-50 text-stone-700 border-stone-200', desc: 'Novel romansa remaja.' },
+  { id: 'bear', category: 'gift', name: 'Boneka Beruang', emoji: 'heart', cost: 2000, affectionDelta: 12, color: 'bg-orange-50 text-orange-700 border-orange-100', desc: 'Sangat empuk dan nyaman dipeluk.' },
+  { id: 'necklace', category: 'gift', name: 'Kalung Cantik', emoji: 'sparkles', cost: 5000, affectionDelta: 15, color: 'bg-rose-50 text-rose-600 border-rose-100', desc: 'Perhiasan mahal dan berkilau.' },
+  { id: 'cincin_nikah', category: 'gift', name: 'Cincin Nikah', emoji: 'crown', cost: 30000, affectionDelta: 200, color: 'bg-amber-50 text-amber-700 border-2 border-amber-300 ring-2 ring-amber-200/50', desc: 'Sebuah janji seumur hidup.' },
   
   // Makanan
-  { id: 'onigiri', category: 'food', name: 'Onigiri', emoji: 'food', cost: 50, affectionDelta: 0, color: 'from-gray-100 to-gray-200', desc: 'Nasi kepal penghilang lapar (+Lapar, +Energi).' },
-  { id: 'yakitori', category: 'food', name: 'Yakitori', emoji: 'flame', cost: 150, affectionDelta: 0, color: 'from-orange-100 to-orange-200', desc: 'Sate ayam khas Jepang (+Lapar, +Energi).' },
-  { id: 'takoyaki', category: 'food', name: 'Takoyaki', emoji: 'flame', cost: 200, affectionDelta: 0, color: 'from-amber-100 to-amber-200', desc: 'Bola gurita panas (+Lapar, +Energi).' },
-  { id: 'dango', category: 'food', name: 'Dango', emoji: 'food', cost: 120, affectionDelta: 0, color: 'from-pink-100 to-pink-200', desc: 'Kue beras manis (+Lapar, +Energi).' },
-  { id: 'katsudon', category: 'food', name: 'Katsudon', emoji: 'food', cost: 400, affectionDelta: 0, color: 'from-yellow-100 to-yellow-200', desc: 'Porsi besar (+Lapar Banyak, +Energi).' },
-  { id: 'sushi', category: 'food', name: 'Sushi', emoji: 'food', cost: 800, affectionDelta: 0, color: 'from-red-100 to-red-200', desc: 'Premium & lezat (+Lapar, +Energi).' },
-  { id: 'katering', category: 'food', name: 'Katering Pernikahan', emoji: 'food', cost: 15000, affectionDelta: 0, color: 'from-orange-200 to-orange-400', desc: 'Pesanan katering untuk resepsi.' },
+  { id: 'onigiri', category: 'food', name: 'Onigiri', emoji: 'food', cost: 50, affectionDelta: 0, color: 'bg-stone-50 text-stone-700 border-stone-200', desc: 'Nasi kepal penghilang lapar (+Lapar, +Energi).' },
+  { id: 'yakitori', category: 'food', name: 'Yakitori', emoji: 'flame', cost: 150, affectionDelta: 0, color: 'bg-orange-50 text-orange-700 border-orange-100', desc: 'Sate ayam khas Jepang (+Lapar, +Energi).' },
+  { id: 'takoyaki', category: 'food', name: 'Takoyaki', emoji: 'flame', cost: 200, affectionDelta: 0, color: 'bg-amber-50 text-amber-700 border-amber-100', desc: 'Bola gurita panas (+Lapar, +Energi).' },
+  { id: 'dango', category: 'food', name: 'Dango', emoji: 'food', cost: 120, affectionDelta: 0, color: 'bg-pink-50 text-[#ff758c] border-pink-100', desc: 'Kue beras manis (+Lapar, +Energi).' },
+  { id: 'katsudon', category: 'food', name: 'Katsudon', emoji: 'food', cost: 400, affectionDelta: 0, color: 'bg-amber-50 text-amber-700 border-amber-100', desc: 'Porsi besar (+Lapar Banyak, +Energi).' },
+  { id: 'sushi', category: 'food', name: 'Sushi', emoji: 'food', cost: 800, affectionDelta: 0, color: 'bg-rose-50 text-rose-700 border-rose-100', desc: 'Premium & lezat (+Lapar, +Energi).' },
+  { id: 'katering', category: 'food', name: 'Katering Pernikahan', emoji: 'food', cost: 15000, affectionDelta: 0, color: 'bg-orange-100 text-orange-800 border-orange-200', desc: 'Pesanan katering untuk resepsi.' },
 
   // Minuman
-  { id: 'air_putih', category: 'drink', name: 'Air Putih', emoji: 'drop', cost: 20, affectionDelta: 0, color: 'from-blue-50 to-blue-100', desc: 'Air mineral biasa (+Hidrasi).' },
-  { id: 'teh_hijau', category: 'drink', name: 'Teh Hijau', emoji: 'coffee', cost: 80, affectionDelta: 0, color: 'from-green-100 to-green-200', desc: 'Menenangkan (+Hidrasi, +Energi).' },
-  { id: 'teh_hitam', category: 'drink', name: 'Teh Hitam', emoji: 'coffee', cost: 100, affectionDelta: 0, color: 'from-orange-100 to-orange-200', desc: 'Teh pekat (+Hidrasi, +Energi).' },
-  { id: 'kopi_hitam', category: 'drink', name: 'Kopi Hitam', emoji: 'coffee', cost: 150, affectionDelta: 0, color: 'from-stone-700 to-stone-900', desc: 'Penambah energi (+Hidrasi, +Energi).' },
-  { id: 'jus_buah', category: 'drink', name: 'Jus Buah', emoji: 'drop', cost: 200, affectionDelta: 0, color: 'from-yellow-100 to-orange-200', desc: 'Kaya vitamin (+Hidrasi, +Energi).' },
-  { id: 'susu', category: 'drink', name: 'Susu', emoji: 'drop', cost: 150, affectionDelta: 0, color: 'from-gray-50 to-gray-200', desc: 'Susu sapi murni (+Hidrasi, +Lapar).' },
+  { id: 'air_putih', category: 'drink', name: 'Air Putih', emoji: 'drop', cost: 20, affectionDelta: 0, color: 'bg-sky-50 text-sky-700 border-sky-100', desc: 'Air mineral biasa (+Hidrasi).' },
+  { id: 'teh_hijau', category: 'drink', name: 'Teh Hijau', emoji: 'coffee', cost: 80, affectionDelta: 0, color: 'bg-emerald-50 text-emerald-700 border-emerald-100', desc: 'Menenangkan (+Hidrasi, +Energi).' },
+  { id: 'teh_hitam', category: 'drink', name: 'Teh Hitam', emoji: 'coffee', cost: 100, affectionDelta: 0, color: 'bg-amber-50 text-amber-800 border-amber-100', desc: 'Teh pekat (+Hidrasi, +Energi).' },
+  { id: 'kopi_hitam', category: 'drink', name: 'Kopi Hitam', emoji: 'coffee', cost: 150, affectionDelta: 0, color: 'bg-stone-100 text-stone-800 border-stone-200', desc: 'Penambah energi (+Hidrasi, +Energi).' },
+  { id: 'jus_buah', category: 'drink', name: 'Jus Buah', emoji: 'drop', cost: 200, affectionDelta: 0, color: 'bg-orange-50 text-orange-700 border-orange-100', desc: 'Kaya vitamin (+Hidrasi, +Energi).' },
+  { id: 'susu', category: 'drink', name: 'Susu', emoji: 'drop', cost: 150, affectionDelta: 0, color: 'bg-stone-50 text-stone-700 border-stone-200', desc: 'Susu sapi murni (+Hidrasi, +Lapar).' },
 
   // Pakaian
-  { id: 'outfit_casual', category: 'outfit', name: 'Baju Santai', emoji: 'shirt', cost: 8000, affectionDelta: 5, color: 'from-teal-100 to-teal-200', desc: 'Pakaian ganti untuk bersantai di kamar.' },
-  { id: 'trench_coat', category: 'outfit', name: 'Trench Coat', emoji: 'shirt', cost: 15000, affectionDelta: 10, color: 'from-amber-200 to-amber-400', desc: 'Sempurna untuk musim dingin atau pulang kampung.' },
-  { id: 'outfit_school', category: 'outfit', name: 'Seragam SMA', emoji: 'shirt', cost: 12000, affectionDelta: 8, color: 'from-blue-100 to-blue-300', desc: 'Seragam sekolah bergaya pelaut.' },
-  { id: 'outfit_yukata', category: 'outfit', name: 'Yukata Festival', emoji: 'shirt', cost: 25000, affectionDelta: 20, color: 'from-rose-100 to-rose-300', desc: 'Pakaian tradisional untuk pergi ke festival.' },
-  { id: 'gaun_pengantin', category: 'outfit', name: 'Gaun Pengantin', emoji: 'shirt', cost: 50000, affectionDelta: 500, color: 'from-white to-pink-100', desc: 'Gaun putih suci untuk hari paling istimewa.' },
-  { id: 'piyama', category: 'outfit', name: 'Piyama', emoji: 'shirt', cost: 10000, affectionDelta: 12, color: 'from-indigo-100 to-purple-200', desc: 'Baju tidur yang sangat nyaman.' },
-  { id: 'office_lady', category: 'outfit', name: 'Office Lady', emoji: 'shirt', cost: 30000, affectionDelta: 30, color: 'from-slate-200 to-gray-400', desc: 'Kemeja kerja elegan lengkap dengan kacamata.' },
+  { id: 'outfit_casual', category: 'outfit', name: 'Baju Santai', emoji: 'shirt', cost: 8000, affectionDelta: 5, color: 'bg-teal-50 text-teal-700 border-teal-100', desc: 'Pakaian ganti untuk bersantai di kamar.' },
+  { id: 'trench_coat', category: 'outfit', name: 'Trench Coat', emoji: 'shirt', cost: 15000, affectionDelta: 10, color: 'bg-amber-50 text-amber-800 border-amber-200', desc: 'Sempurna untuk musim dingin atau pulang kampung.' },
+  { id: 'outfit_school', category: 'outfit', name: 'Seragam SMA', emoji: 'shirt', cost: 12000, affectionDelta: 8, color: 'bg-sky-50 text-sky-700 border-sky-200', desc: 'Seragam sekolah bergaya pelaut.' },
+  { id: 'outfit_yukata', category: 'outfit', name: 'Yukata Festival', emoji: 'shirt', cost: 25000, affectionDelta: 20, color: 'bg-rose-50 text-rose-700 border-rose-200', desc: 'Pakaian tradisional untuk pergi ke festival.' },
+  { id: 'gaun_pengantin', category: 'outfit', name: 'Gaun Pengantin', emoji: 'shirt', cost: 50000, affectionDelta: 500, color: 'bg-pink-50 text-[#ff0844] border-2 border-pink-200 ring-2 ring-pink-100', desc: 'Gaun putih suci untuk hari paling istimewa.' },
+  { id: 'piyama', category: 'outfit', name: 'Piyama', emoji: 'shirt', cost: 10000, affectionDelta: 12, color: 'bg-rose-50 text-rose-600 border-rose-100', desc: 'Baju tidur yang sangat nyaman.' },
+  { id: 'office_lady', category: 'outfit', name: 'Office Lady', emoji: 'shirt', cost: 30000, affectionDelta: 30, color: 'bg-stone-100 text-stone-700 border-stone-200', desc: 'Kemeja kerja elegan lengkap dengan kacamata.' },
   
   // Item
-  { id: 'recipe_book_shop', category: 'item', name: 'Buku Resep Masak', emoji: 'book', cost: 1500, affectionDelta: 15, color: 'from-orange-100 to-amber-200', desc: 'Panduan masakan lezat. Wajib dibeli untuk membuka Dapur!' },
-  { id: 'kacamata_hitam', category: 'item', name: 'Kacamata Hitam', emoji: 'glasses', cost: 9500, affectionDelta: 20, color: 'from-gray-700 to-gray-900', desc: 'Item wajib untuk jalan-jalan keluar.' },
-  { id: 'tiket_konser', category: 'item', name: 'Tiket Konser', emoji: 'ticket', cost: 25000, affectionDelta: 30, color: 'from-indigo-100 to-purple-300', desc: 'Tiket konser band favorit Livia.' },
-  { id: 'berkas_kua', category: 'item', name: 'Berkas KUA', emoji: 'file', cost: 2000, affectionDelta: 50, color: 'from-green-100 to-green-300', desc: 'Persiapan administrasi pernikahan.' },
-  { id: 'gedung_resepsi', category: 'item', name: 'Sewa Gedung', emoji: 'building', cost: 50000, affectionDelta: 100, color: 'from-purple-200 to-purple-400', desc: 'Booking gedung impian Livia.' },
+  { id: 'recipe_book_shop', category: 'item', name: 'Buku Resep Masak', emoji: 'book', cost: 1500, affectionDelta: 15, color: 'bg-amber-50 text-amber-700 border-amber-200', desc: 'Panduan masakan lezat. Wajib dibeli untuk membuka Dapur!' },
+  { id: 'kacamata_hitam', category: 'item', name: 'Kacamata Hitam', emoji: 'glasses', cost: 9500, affectionDelta: 20, color: 'bg-stone-200 text-stone-800 border-stone-300', desc: 'Item wajib untuk jalan-jalan keluar.' },
+  { id: 'tiket_konser', category: 'item', name: 'Tiket Konser', emoji: 'ticket', cost: 25000, affectionDelta: 30, color: 'bg-rose-50 text-rose-700 border-rose-200', desc: 'Tiket konser band favorit Livia.' },
+  { id: 'berkas_kua', category: 'item', name: 'Berkas KUA', emoji: 'file', cost: 2000, affectionDelta: 50, color: 'bg-emerald-50 text-emerald-700 border-emerald-200', desc: 'Persiapan administrasi pernikahan.' },
+  { id: 'gedung_resepsi', category: 'item', name: 'Sewa Gedung', emoji: 'building', cost: 50000, affectionDelta: 100, color: 'bg-amber-50 text-amber-800 border-amber-200', desc: 'Booking gedung impian Livia.' },
   
   // Perabotan
-  { id: 'furni_poster', category: 'furniture', name: 'Poster Anime', emoji: 'image', cost: 3000, affectionDelta: 2, color: 'from-indigo-100 to-indigo-200', desc: 'Hiasan dinding untuk mempercantik kamar.' },
-  { id: 'furni_bed', category: 'furniture', name: 'Kasur Mewah', emoji: 'bed', cost: 35000, affectionDelta: 15, color: 'from-rose-100 to-rose-200', desc: 'Tingkatkan kualitas tidur Livia.' },
-  { id: 'furni_pc', category: 'furniture', name: 'PC Gaming', emoji: 'monitor', cost: 50000, affectionDelta: 25, color: 'from-cyan-100 to-cyan-300', desc: 'PC spesifikasi tinggi untuk main game.' },
+  { id: 'furni_poster', category: 'furniture', name: 'Poster Anime', emoji: 'image', cost: 3000, affectionDelta: 2, color: 'bg-stone-100 text-stone-700 border-stone-200', desc: 'Hiasan dinding untuk mempercantik kamar.' },
+  { id: 'furni_bed', category: 'furniture', name: 'Kasur Mewah', emoji: 'bed', cost: 35000, affectionDelta: 15, color: 'bg-rose-50 text-rose-700 border-rose-200', desc: 'Tingkatkan kualitas tidur Livia.' },
+  { id: 'furni_pc', category: 'furniture', name: 'PC Gaming', emoji: 'monitor', cost: 50000, affectionDelta: 25, color: 'bg-slate-100 text-slate-800 border-slate-200', desc: 'PC spesifikasi tinggi untuk main game.' },
 ];
 
 export default function ShopPage() {
@@ -289,71 +289,98 @@ export default function ShopPage() {
   return (
     <div className="h-[100dvh] w-full bg-[#fdfbf7] relative overflow-hidden flex flex-col font-sans select-none">
       
-      {/* Background Decor */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-transparent pointer-events-none z-0" />
-      <div className="absolute -right-20 top-20 w-96 h-96 bg-pink-100 rounded-full blur-[100px] opacity-40 z-0 pointer-events-none" />
-      <div className="absolute left-10 bottom-10 w-64 h-64 bg-amber-100 rounded-full blur-[80px] opacity-40 z-0 pointer-events-none" />
+      {/* Background Decor - Warm Lamplit Glows */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-transparent to-transparent pointer-events-none z-0" />
+      <div className="absolute -right-16 top-16 w-80 h-80 bg-pink-100/40 rounded-full blur-[90px] pointer-events-none z-0" />
+      <div className="absolute left-8 bottom-8 w-72 h-72 bg-amber-100/30 rounded-full blur-[80px] pointer-events-none z-0" />
 
-      {/* Top Bar */}
-      <div className="absolute top-0 left-0 w-full h-16 md:h-20 bg-white/80 backdrop-blur-md shadow-sm z-30 flex justify-between items-center px-4 md:px-6 border-b border-pink-50">
-        <div className="flex items-center gap-3 md:gap-6">
-          <Link href="/home" className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-pink-50 rounded-full text-pink-600 hover:bg-[#ff758c] hover:text-white transition-colors">
-            <span className="text-lg md:text-xl font-black">←</span>
+      {/* Top Header Bar */}
+      <header className="w-full h-16 md:h-20 bg-white/85 backdrop-blur-2xl border-b border-pink-100/70 shadow-sm z-30 flex justify-between items-center px-4 md:px-8 shrink-0">
+        <div className="flex items-center gap-3 md:gap-5">
+          <Link 
+            href="/home" 
+            className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-white border border-pink-100 hover:border-pink-300 text-[#5c4d47] hover:text-[#ff758c] shadow-sm flex items-center justify-center transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-pink-500"
+            aria-label="Kembali ke Beranda"
+          >
+            <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div className="flex items-center gap-2 md:gap-3">
-            <ShoppingBag className="text-[#ff758c] w-6 h-6 md:w-8 md:h-8" />
-            <h1 className="text-lg md:text-3xl font-display font-black text-[#5c4d47] italic tracking-tight uppercase">{dict?.pages?.shop?.title || 'Toko'}</h1>
-          </div>
-        </div>
-        <div className="flex gap-2 md:gap-4">
-          <div className="bg-pink-50 border border-pink-200 px-3 md:px-5 py-1.5 md:py-2.5 rounded-full flex items-center gap-1.5 md:gap-3 shadow-sm">
-            <Heart className="w-4 h-4 md:w-5 md:h-5 text-pink-500 fill-pink-500" />
-            <span className="font-bold text-sm md:text-base text-[#5c4d47]">{affection}</span>
-          </div>
-          <div className="bg-amber-50 border border-amber-200 px-3 md:px-5 py-1.5 md:py-2.5 rounded-full flex items-center gap-1.5 md:gap-3 shadow-sm">
-            <div className="w-5 h-5 md:w-6 md:h-6 bg-amber-400 rounded-full flex items-center justify-center">
-              <span className="text-white text-[10px] md:text-xs font-black">R</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-pink-50 border border-pink-100 flex items-center justify-center text-[#ff758c] shadow-xs">
+              <ShoppingBag className="w-5 h-5 md:w-6 md:h-6" />
             </div>
-            <span className="font-mono font-black text-sm md:text-xl text-amber-700">{money}</span>
+            <div>
+              <h1 className="text-xl md:text-2xl font-display font-black text-[#5c4d47] tracking-tight uppercase">
+                {dict?.pages?.shop?.title || 'Toko'}
+              </h1>
+              <p className="text-[10px] md:text-xs font-mono font-bold tracking-widest uppercase text-[#7a7268] -mt-0.5">
+                Koleksi & Kebutuhan
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex-1 w-full mx-auto flex flex-col lg:flex-row pt-16 md:pt-24 px-4 md:px-6 z-10 relative overflow-hidden">
+        {/* Currency & Affection HUD */}
+        <div className="flex items-center gap-2 md:gap-3">
+          <div className="bg-white/90 backdrop-blur-xl border border-pink-100/80 px-3 md:px-4 py-1.5 md:py-2 rounded-full flex items-center gap-2 shadow-sm">
+            <Heart className="w-4 h-4 text-[#ff758c] fill-[#ff758c]" />
+            <span className="font-mono font-bold text-xs md:text-sm text-[#5c4d47]">{affection}</span>
+          </div>
+          <div className="bg-white/90 backdrop-blur-xl border border-amber-200/80 px-3 md:px-4 py-1.5 md:py-2 rounded-full flex items-center gap-2 shadow-sm">
+            <div className="w-4 h-4 md:w-5 md:h-5 bg-amber-400 rounded-full flex items-center justify-center shadow-xs">
+              <span className="text-white text-[9px] md:text-[10px] font-mono font-black">R</span>
+            </div>
+            <span className="font-mono font-black text-xs md:text-sm text-amber-600">{money} Rv</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <div className="flex-1 w-full flex flex-col lg:flex-row px-4 md:px-8 py-4 gap-4 md:gap-6 z-10 relative overflow-hidden">
         
-        {/* Mobile Message Bubble */}
-        <div className="lg:hidden w-full mt-4 bg-white/95 backdrop-blur-xl rounded-2xl p-4 shadow-md border-l-4 border-[#ff758c] z-20">
-          <p className="text-sm font-bold text-[#5c4d47] leading-relaxed">
-            <span className="text-[#ff758c] mr-2">Livia:</span>"{message}"
-          </p>
+        {/* Mobile VN Reaction Banner */}
+        <div className="lg:hidden w-full relative shrink-0 pt-2">
+          <div className="w-full bg-white/95 backdrop-blur-2xl rounded-[1.75rem] p-4 pt-5 shadow-sm border-2 border-pink-100/80 relative">
+            <div className="absolute -top-3 left-5 px-3.5 py-0.5 rounded-full bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-display font-black text-[11px] uppercase tracking-wider shadow-sm border border-white">
+              Livia
+            </div>
+            <p className="text-xs md:text-sm font-medium text-[#5c4d47] leading-relaxed">
+              "{message}"
+            </p>
+          </div>
         </div>
 
-        {/* Categories */}
-        <div className="w-full lg:w-64 flex flex-row lg:flex-col gap-2 md:gap-3 py-4 md:py-6 relative z-20 overflow-x-auto hide-scrollbar shrink-0">
-          <div className="hidden lg:block text-xs font-bold text-gray-400 mb-2 pl-4 tracking-widest uppercase">{language === 'en' ? 'Category' : 'Kategori'}</div>
+        {/* Categories Sidebar / Navigation */}
+        <nav 
+          aria-label="Kategori Toko"
+          className="w-full lg:w-60 flex flex-row lg:flex-col gap-2 p-1.5 lg:p-2 bg-white/70 backdrop-blur-xl border border-pink-100/70 rounded-2xl lg:rounded-[2rem] overflow-x-auto hide-scrollbar shrink-0 shadow-xs"
+        >
+          <div className="hidden lg:block text-[11px] font-mono font-bold text-[#7a7268] px-3 pt-2 pb-1 tracking-widest uppercase">
+            {language === 'en' ? 'Category' : 'Kategori'}
+          </div>
           {CATEGORIES.map(cat => {
             const isActive = activeCategory === cat.id;
             const catName = language === 'en' ? (EN_CATEGORY_NAMES[cat.id] || cat.name) : cat.name;
+            const CatIcon = cat.icon;
             return (
               <button
                 key={cat.id}
                 onClick={() => handleCategoryChange(cat.id)}
-                className={`relative flex items-center gap-2 md:gap-4 py-2 md:py-4 px-4 md:px-6 rounded-full lg:rounded-r-2xl lg:rounded-l-none transition-all duration-300 font-display font-black text-sm md:text-lg whitespace-nowrap ${
+                className={`relative flex items-center gap-2.5 py-2.5 px-4 rounded-xl lg:rounded-2xl transition-all duration-200 font-display font-black text-xs md:text-sm whitespace-nowrap focus-visible:ring-2 focus-visible:ring-pink-500 ${
                   isActive 
-                    ? 'bg-gradient-to-r from-[#ff758c] to-[#ffb199] text-white shadow-lg lg:translate-x-4 lg:border-l-[6px] lg:border-pink-500' 
-                    : 'bg-white/80 text-gray-500 hover:bg-white lg:hover:translate-x-2 border border-transparent hover:border-pink-100'
+                    ? 'bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white shadow-md shadow-pink-500/20 lg:translate-x-1' 
+                    : 'bg-white/60 text-[#7a7268] hover:text-[#5c4d47] hover:bg-white border border-transparent hover:border-pink-100'
                 }`}
               >
-                {cat.icon}
-                <span className="tracking-wide uppercase italic">{catName}</span>
+                <CatIcon size={18} className={isActive ? 'text-white' : 'text-[#7a7268]'} />
+                <span className="tracking-wide uppercase">{catName}</span>
               </button>
             );
           })}
-        </div>
+        </nav>
 
-        {/* Center: Items Grid */}
-        <div className="flex-1 p-2 md:p-6 overflow-y-auto hide-scrollbar pb-32 z-20">
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 w-full max-w-5xl mx-auto">
+        {/* Center: Merchandise Grid */}
+        <main className="flex-1 overflow-y-auto hide-scrollbar pb-28 md:pb-12 z-20">
+          <div className="grid grid-cols-2 xl:grid-cols-3 gap-3.5 md:gap-5 w-full max-w-4xl">
             {filteredItems.map(item => {
               const isConsumable = isConsumableItem(item);
               const owned = !isConsumable && inventorySet.has(item.id);
@@ -363,31 +390,28 @@ export default function ShopPage() {
                 <div 
                   key={item.id}
                   onMouseEnter={() => handleItemHover(item)}
-                  className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-4 md:p-5 shadow-sm border border-white/60 flex flex-col items-center text-center hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group relative overflow-hidden"
+                  className="bg-white/90 backdrop-blur-2xl rounded-[2rem] p-4 md:p-5 border border-pink-100/80 hover:border-pink-200/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_32px_rgba(255,117,140,0.08)] hover:-translate-y-1 transition-all duration-200 flex flex-col items-center text-center group relative"
                 >
-                  {/* SVG Blob Background */}
-                  <div className={`w-20 h-20 md:w-28 md:h-28 shrink-0 rounded-[1.5rem] bg-gradient-to-br ${item.id === 'kacamata_hitam' ? 'from-gray-700 to-gray-900' : item.color} flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500 relative mb-4`}>
-                    <svg className="absolute inset-0 w-full h-full opacity-30 text-white fill-current mix-blend-overlay group-hover:rotate-45 transition-transform duration-700" viewBox="0 0 100 100">
-                      <path d="M45.7,11.3C52.4,7,61.6,7,68.3,11.3L81.7,20.1C88.4,24.4,93,31.5,93,39.5V57.2C93,65.2,88.4,72.3,81.7,76.6L68.3,85.4C61.6,89.7,52.4,89.7,45.7,85.4L32.3,76.6C25.6,72.3,21,65.2,21,57.2V39.5C21,31.5,25.6,24.4,32.3,20.1L45.7,11.3Z" />
-                    </svg>
-                    <Icon size={36} strokeWidth={1.5} className="text-white drop-shadow-md z-10" />
+                  {/* Clean Icon Squircle */}
+                  <div className={`w-20 h-20 md:w-24 md:h-24 shrink-0 rounded-2xl ${item.color} flex items-center justify-center relative mb-3 group-hover:scale-105 transition-transform duration-300 shadow-inner`}>
+                    <Icon size={32} strokeWidth={1.75} className="drop-shadow-sm" />
                   </div>
                   
-                  <h3 className="font-black font-display text-[#5c4d47] text-sm md:text-lg mb-1 leading-tight">
+                  <h2 className="font-display font-black text-[#5c4d47] text-sm md:text-base mb-1 leading-snug line-clamp-1">
                     {language === 'en' && EN_SHOP_ITEMS[item.id] ? EN_SHOP_ITEMS[item.id].name : item.name}
-                  </h3>
-                  <p className="text-[10px] md:text-xs text-gray-500 font-medium leading-relaxed mb-4 line-clamp-2 h-8">
+                  </h2>
+                  <p className="font-sans text-[11px] md:text-xs text-[#7a7268] leading-relaxed mb-4 line-clamp-2 h-8">
                     {language === 'en' && EN_SHOP_ITEMS[item.id] ? EN_SHOP_ITEMS[item.id].desc : item.desc}
                   </p>
                   
-                  <div className="w-full flex items-center justify-between mt-auto pt-4 border-t border-gray-200/50">
+                  <div className="w-full flex items-center justify-between mt-auto pt-3 border-t border-[#f0e4de]">
                     <div className="flex flex-col items-start">
-                      <span className="font-mono font-black text-sm md:text-lg text-amber-600 flex items-center gap-1">
-                        <span className="text-[9px] md:text-xs text-amber-500">Rv</span>{item.cost}
+                      <span className="font-mono font-black text-sm md:text-base text-amber-600 flex items-center gap-1">
+                        <span className="text-[10px] text-amber-500">Rv</span>{item.cost}
                       </span>
                       {item.affectionDelta > 0 && (
-                        <span className="text-[9px] md:text-[10px] font-bold text-pink-500 uppercase tracking-wider flex items-center gap-1">
-                          <Heart size={10} className="fill-pink-500" /> +{item.affectionDelta}
+                        <span className="text-[10px] font-mono font-bold text-[#ff758c] flex items-center gap-1">
+                          <Heart size={10} className="fill-[#ff758c]" /> +{item.affectionDelta}
                         </span>
                       )}
                     </div>
@@ -395,11 +419,12 @@ export default function ShopPage() {
                     <button
                       onClick={() => buyGift(item)}
                       disabled={isBuying || money < item.cost || owned}
-                      className={`px-4 md:px-5 py-2 md:py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all shadow-md ${
-                        owned ? 'bg-gray-200 text-gray-500 cursor-not-allowed shadow-none'
-                        : money >= item.cost 
-                          ? 'bg-gradient-to-r from-[#ff758c] to-[#ffb199] text-white hover:shadow-pink-300/50 hover:shadow-lg hover:-translate-y-0.5 active:scale-95'
-                          : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                      className={`px-3.5 md:px-4 py-1.5 md:py-2 rounded-xl font-display font-black text-xs md:text-sm transition-all focus-visible:ring-2 focus-visible:ring-pink-500 ${
+                        owned 
+                          ? 'bg-stone-100 text-stone-400 cursor-not-allowed shadow-none'
+                          : money >= item.cost 
+                            ? 'bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white shadow-sm hover:shadow-md hover:shadow-pink-500/20 active:scale-95'
+                            : 'bg-stone-100 text-stone-400 cursor-not-allowed shadow-none'
                       }`}
                     >
                       {owned ? (language === 'en' ? 'Owned' : 'Dimiliki') : (language === 'en' ? 'Buy' : 'Beli')}
@@ -409,25 +434,28 @@ export default function ShopPage() {
               );
             })}
           </div>
-        </div>
+        </main>
 
-        {/* Right Side: Livia NPC Area */}
-        <div className="hidden lg:flex w-[40%] flex-col items-center justify-end relative h-full pointer-events-none z-10">
+        {/* Desktop Livia Shopkeeper Stage */}
+        <aside className="hidden lg:flex w-[32%] xl:w-[35%] flex-col items-center justify-end relative h-full pointer-events-none z-10 shrink-0">
           <LiviaSprite 
             expression={liviaExpression} 
             variant="shop"
             disableFloat={true}
             className="absolute inset-x-0 bottom-0 top-0 w-full h-full pointer-events-auto"
-            imgClassName="object-contain object-bottom drop-shadow-[0_15px_35px_rgba(255,117,140,0.15)] transition-all duration-300 scale-[1.06] origin-bottom"
+            imgClassName="object-contain object-bottom drop-shadow-[0_15px_35px_rgba(255,117,140,0.15)] transition-all duration-300 scale-[1.08] origin-bottom"
           />
 
-          {/* Reaction Bubble */}
-          <div className="absolute bottom-16 xl:bottom-24 bg-white/95 backdrop-blur-xl rounded-[2rem] rounded-bl-sm p-5 shadow-2xl border-l-4 border-[#ff758c] max-w-[320px] w-[90%] z-20 pointer-events-auto transition-all duration-300">
-            <p className="text-sm xl:text-base font-bold text-[#5c4d47] leading-relaxed">
-              <span className="text-[#ff758c] mr-2">Livia:</span>"{message}"
+          {/* Desktop VN Reaction Dialogue Box */}
+          <div className="absolute bottom-8 xl:bottom-12 w-[92%] max-w-[340px] bg-white/95 backdrop-blur-2xl rounded-[2rem] p-5 shadow-[0_12px_36px_rgba(255,117,140,0.12)] border-2 border-pink-100/90 z-20 pointer-events-auto transition-all duration-300">
+            <div className="absolute -top-3.5 left-6 px-4 py-1 rounded-full bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-display font-black text-xs uppercase tracking-wider shadow-sm border-2 border-white">
+              Livia
+            </div>
+            <p className="text-sm xl:text-base font-medium text-[#5c4d47] leading-relaxed pt-1">
+              "{message}"
             </p>
           </div>
-        </div>
+        </aside>
 
       </div>
     </div>
