@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Sprout, Droplet, Sun, PackageOpen, ChevronLeft, Wallet, Heart,
-  CloudRain, Timer, ArrowRight, Pickaxe, X
+  CloudRain, Timer, ArrowRight, Pickaxe, X, ArrowLeft
 } from 'lucide-react';
 import LiviaSprite from '@/components/livia/LiviaSprite';
 import { LiviaExpression } from '@/lib/gemini';
@@ -206,12 +206,14 @@ export default function GardenPage() {
       {/* Top Bar */}
       <div className="absolute top-0 left-0 w-full h-16 md:h-20 bg-white/80 backdrop-blur-md shadow-sm z-30 flex justify-between items-center px-4 md:px-6 border-b border-green-100">
         <div className="flex items-center gap-3 md:gap-6">
-          <Link href="/home" className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-green-50 rounded-full text-green-600 hover:bg-green-500 hover:text-white transition-colors">
-            <span className="text-lg md:text-xl font-black">←</span>
+          <Link href="/home" className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-green-50 rounded-2xl text-green-600 hover:bg-green-500 hover:text-white transition-all shadow-sm">
+            <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="flex items-center gap-2 md:gap-3">
-            <Sprout className="text-green-500 w-6 h-6 md:w-8 md:h-8" />
-            <h1 className="text-lg md:text-3xl font-display font-black text-[#5c4d47] italic tracking-tight uppercase">Balkon Kos</h1>
+            <div className="w-9 h-9 rounded-xl bg-green-500 flex items-center justify-center shadow-md">
+              <Sprout className="text-white w-5 h-5" />
+            </div>
+            <h1 className="text-lg md:text-2xl font-display font-black text-[#5c4d47] tracking-tight uppercase">Balkon Kos</h1>
           </div>
         </div>
         <div className="flex gap-2 md:gap-4">
@@ -250,6 +252,10 @@ export default function GardenPage() {
           />
 
           <div className="absolute bottom-16 xl:bottom-24 bg-white/95 backdrop-blur-2xl px-6 py-5 md:px-8 md:py-6 rounded-2xl md:rounded-[2.5rem] md:rounded-bl-xl border md:border-2 border-green-100 shadow-xl max-w-[450px] w-[90%] z-20 pointer-events-auto transition-all duration-300">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-ping" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-green-600">Livia</span>
+            </div>
             <p className={`font-display font-semibold md:font-bold text-sm md:text-xl leading-tight md:leading-snug transition-colors duration-300 ${liviaExpression === 'angry' ? 'text-red-500' : 'text-[#5c4d47]'}`}>
               "{message}"
             </p>
@@ -258,7 +264,7 @@ export default function GardenPage() {
       </div>
 
       {/* Mobile Message Bubble */}
-      <div className="lg:hidden absolute bottom-6 left-4 right-4 bg-white/95 backdrop-blur-xl rounded-2xl p-4 shadow-md border-l-4 border-green-400 z-20">
+      <div className="lg:hidden absolute bottom-6 left-4 right-4 bg-white/95 backdrop-blur-xl rounded-2xl p-4 shadow-md border border-green-100 z-20">
         <p className="text-sm font-bold text-[#5c4d47] leading-relaxed">
           <span className="text-green-500 mr-2">Livia:</span>"{message}"
         </p>
