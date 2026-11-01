@@ -1,7 +1,17 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { MessageSquare, Clock, BookOpen, MapPin, Menu } from 'lucide-react';
+import {
+  MessageSquare,
+  Clock,
+  BookOpen,
+  MapPin,
+  Menu,
+  PhoneCall,
+  Sparkles,
+  Heart,
+  ChevronRight,
+} from 'lucide-react';
 import type { LiviaExpression } from '@/lib/gemini';
 import { getAffectionLevel } from '@/lib/livia/affection';
 import { recordQuestAction } from '@/lib/livia/quests';
@@ -57,13 +67,15 @@ export default function HomeClient({
     isInvitingOut?: boolean;
     invitedPlace?: string;
   }>({
-    text: 'Memuat...',
+    text: 'Memuat suasana kamar kos...',
     expression: 'normal',
   });
+
   const [interactionOverride, setInteractionOverride] = useState<{
     text: string;
     expression: LiviaExpression;
   } | null>(null);
+
   const [liviaStats, setLiviaStats] = useState<LiviaStats>(DEFAULT_STATS);
   const [weather, setWeather] = useState<Weather>(null);
 
@@ -71,6 +83,41 @@ export default function HomeClient({
   const [showMoreModal, setShowMoreModal] = useState(false);
   const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
   const [showMobileStats, setShowMobileStats] = useState(false);
+  const [showApiModal, setShowApiModal] = useState(false);
+
+  // Sapaan Cepat Interaktif (Quick Dialogue Prompts)
+  const quickTalkChoices = [
+    {
+      id: 'home',
+      label: language === 'en' ? 'I am home, Livia!' : 'Aku pulang, Livia!',
+      reply:
+        language === 'en'
+          ? "Hmph, you are back? ...I-it's not like I was waiting for you or anything!"
+          : 'Hmph, baru pulang jam segini? ...B-bukan berarti aku nungguin kamu dari tadi lho ya!',
+      expression: 'blushing' as LiviaExpression,
+      delta: 1,
+    },
+    {
+      id: 'focus',
+      label: language === 'en' ? 'Help me stay focused' : 'Temenin aku fokus ngerjain tugas',
+      reply:
+        language === 'en'
+          ? 'Of course! I mean... sure, so you do not slack off. Go start the Pomodoro timer!'
+          : 'Tentu aja! Eh maksudku... ya udah deh, biar kamu nggak malas-malasan terus. Nyalain Pomodoro-nya ya!',
+      expression: 'happy' as LiviaExpression,
+      delta: 2,
+    },
+    {
+      id: 'tease',
+      label: language === 'en' ? 'Were you thinking of me?' : 'Livia lagi mikirin aku ya?',
+      reply:
+        language === 'en'
+          ? 'W-what are you talking about?! Who would think about you! You dummy!'
+          : 'P-pede banget sih kamu?! Siapa juga yang mikirin kamu! Jangan mulai deh!',
+      expression: 'angry' as LiviaExpression,
+      delta: 1,
+    },
+  ];
 
   const syncTouchAffection = (delta: number) => {
     pendingTouchDelta.current += delta;
@@ -94,7 +141,9 @@ export default function HomeClient({
     let resolvedStats = DEFAULT_STATS;
 
     Promise.all([
-      fetch('https://api.open-meteo.com/v1/forecast?latitude=-6.2088&longitude=106.8456&current_weather=true')
+      fetch(
+        'https://api.open-meteo.com/v1/forecast?latitude=-6.2088&longitude=106.8456&current_weather=true'
+      )
         .then((res) => res.json())
         .catch(() => null),
       fetch(`/api/affection?t=${Date.now()}`)
@@ -129,7 +178,7 @@ export default function HomeClient({
     });
   }, [initialAffection, initialItemsBrought, userName]);
 
-  const handleInteract = async (part: BodyPart) => {
+  const handleInteract = (part: BodyPart) => {
     playSfx('pop');
     recordQuestAction('touch_livia');
 
@@ -145,7 +194,22 @@ export default function HomeClient({
     if (globalObj.interactionTimeout) clearTimeout(globalObj.interactionTimeout);
     globalObj.interactionTimeout = setTimeout(() => {
       setInteractionOverride(null);
-    }, 5000);
+    }, 6000);
+  };
+
+  const handleSelectQuickTalk = (choice: (typeof quickTalkChoices)[0]) => {
+    playSfx('pop');
+    recordQuestAction('touch_livia');
+
+    setInteractionOverride({ text: choice.reply, expression: choice.expression });
+    setAffection((prev) => Math.min(100, prev + choice.delta));
+    syncTouchAffection(choice.delta);
+
+    const globalObj = window as unknown as { interactionTimeout?: ReturnType<typeof setTimeout> };
+    if (globalObj.interactionTimeout) clearTimeout(globalObj.interactionTimeout);
+    globalObj.interactionTimeout = setTimeout(() => {
+      setInteractionOverride(null);
+    }, 6000);
   };
 
   useEffect(() => {
@@ -207,7 +271,7 @@ export default function HomeClient({
     itemsBrought.includes('recipe_book') || itemsBrought.includes('recipe_book_shop');
   const showDate = isInvitingOut || (affection >= 40 && hasSunglasses);
 
-  // Border & Glow balon chat reaktif terhadap ekspresi
+  // Styling Balon Chat Reaktif Terhadap Ekspresi Livia
   const bubbleBorderClass =
     displayExpression === 'angry'
       ? 'border-red-200/90 shadow-[0_12px_40px_rgba(239,68,68,0.15)]'
@@ -221,37 +285,42 @@ export default function HomeClient({
 
   const bubbleDotClass =
     displayExpression === 'angry'
-      ? 'bg-red-400'
+      ? 'bg-red-500'
       : displayExpression === 'blushing'
       ? 'bg-pink-400 animate-pulse'
       : displayExpression === 'clingy'
       ? 'bg-purple-400'
       : displayExpression === 'happy'
       ? 'bg-amber-400'
-      : 'bg-pink-300';
+      : 'bg-pink-400';
 
   const bubbleTextClass =
     displayExpression === 'angry'
-      ? 'text-red-700'
+      ? 'text-red-800'
       : displayExpression === 'blushing'
       ? 'text-pink-900'
       : 'text-[#5c4d47]';
 
   return (
-    <div className="min-h-screen relative flex flex-col overflow-hidden bg-[#fdfbf7] select-none font-sans selection:bg-[#ff758c]/25 selection:text-[#5c4d47]">
-      <ApiGuideModal showFloatingButton={false} />
+    <div className="min-h-screen relative flex flex-col justify-between overflow-hidden bg-[#fdfbf7] select-none font-sans selection:bg-[#ff758c]/25 selection:text-[#5c4d47]">
+      {/* Modal Panduan API Key & Daily Check-in */}
+      <ApiGuideModal
+        isOpen={showApiModal}
+        onClose={() => setShowApiModal(false)}
+        showFloatingButton={false}
+      />
       <DailyStampModal />
 
-      {/* Latar + karakter + hitbox sentuh */}
+      {/* ── Latar Belakang Kamar + Panggung Sprite 16:9 Anti-Geser ── */}
       <HomeBackdrop
         displayExpression={displayExpression}
         outfit={outfit}
         onInteract={handleInteract}
       />
 
-      {/* ─────────── HUD LAYER ─────────── */}
-      <div className="absolute inset-0 z-20 pointer-events-none p-4 sm:p-6 md:p-10 flex flex-col justify-between">
-        {/* Baris atas: panel pemain + dompet */}
+      {/* ── LAPISAN HUD (HEAD-UP DISPLAY) ── */}
+      <div className="absolute inset-0 z-20 pointer-events-none p-4 sm:p-6 md:p-8 flex flex-col justify-between">
+        {/* Baris Atas: Profil Penghuni & Dompet Rv */}
         <TopHud
           userName={userName}
           sessionMinutes={sessionMinutes}
@@ -261,58 +330,82 @@ export default function HomeClient({
           money={money}
           moneyLabel={dict.stats.money}
           onShowMobileStats={() => setShowMobileStats(true)}
+          onOpenGuide={() => setShowApiModal(true)}
         />
 
-        {/* Baris bawah */}
-        <div className="flex-1 relative w-full pointer-events-none">
-          <div className="absolute bottom-[4.5rem] left-0 right-0 md:bottom-8 md:left-0 md:right-auto md:w-[540px] z-50 flex flex-col gap-3 pointer-events-auto">
-            {/* Stat Island Desktop */}
+        {/* Baris Bawah: Telemetri & Kotak Dialog VN */}
+        <div className="flex-1 relative w-full pointer-events-none flex flex-col justify-end">
+          <div className="absolute bottom-[4.8rem] left-0 right-0 md:bottom-2 md:left-0 md:right-auto md:w-[560px] z-30 flex flex-col gap-3 pointer-events-auto">
+            {/* Telemetri Status Fisik & Psikis (Desktop) */}
             <StatIsland physical={physicalStats} psych={psychStats} cycle={cycle} />
 
-            {/* Signature VN Dialogue Box */}
+            {/* Kotak Dialog Khas Visual Novel Teman Kos */}
             <div className="origin-bottom-left relative pt-3">
-              {/* VN Nameplate Pill */}
+              {/* Nameplate Pill Livia */}
               <div className="absolute top-0 left-6 inline-flex items-center gap-2 rounded-full border border-white bg-gradient-to-r from-[#ff0844] to-[#ffb199] px-4 py-1 shadow-[0_4px_16px_rgba(255,117,140,0.35)] z-20">
                 <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
                 <span className="font-display text-xs font-black uppercase tracking-widest text-white">
-                  Livia
+                  Livia Einhart
                 </span>
               </div>
 
-              {/* Dialogue Box Container */}
+              {/* Kontainer Kotak Dialog */}
               <div
-                className={`relative bg-white/92 backdrop-blur-2xl px-6 py-5 md:px-8 md:py-6 rounded-[2rem] md:rounded-[2.5rem] md:rounded-bl-xl border-2 transition-all duration-500 shadow-[0_12px_40px_rgba(255,117,140,0.12)] ${bubbleBorderClass}`}
+                className={`relative bg-white/94 backdrop-blur-2xl px-5 py-4 md:px-7 md:py-5 rounded-[2rem] md:rounded-[2.5rem] md:rounded-bl-xl border-2 transition-all duration-500 ${bubbleBorderClass}`}
               >
+                {/* Status Dot Indikator Emosi */}
                 <span
-                  className={`absolute top-4 right-4 w-2 h-2 rounded-full transition-colors duration-500 ${bubbleDotClass}`}
+                  className={`absolute top-4 right-4 w-2.5 h-2.5 rounded-full transition-colors duration-500 shadow-xs ${bubbleDotClass}`}
                 />
 
+                {/* Teks Dialog Sapaan / Reaksi Sentuhan */}
                 <p
-                  className={`font-sans font-medium text-sm md:text-base leading-relaxed transition-colors duration-300 pr-4 ${bubbleTextClass}`}
+                  className={`font-sans font-medium text-sm md:text-base leading-relaxed transition-colors duration-300 pr-5 min-h-[44px] ${bubbleTextClass}`}
                 >
                   &ldquo;{displayGreeting}&rdquo;
                 </p>
 
-                {/* Subtly bouncing next indicator */}
-                <div className="mt-2 flex items-center justify-end">
+                {/* Indikator Lanjut Berkedip */}
+                <div className="mt-1 flex items-center justify-end">
                   <span className="text-pink-400 text-xs animate-pulse font-serif select-none">
                     ✧
                   </span>
                 </div>
 
+                {/* Tombol Ajakan Jalan (Ketika Livia Mengajak Keluar) */}
                 {isInvitingOut && !interactionOverride && (
                   <button
+                    type="button"
                     onClick={() => setShowEvent(true)}
-                    className="mt-3 md:mt-4 w-full py-2.5 md:py-3 bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-bold md:font-black text-sm md:text-base rounded-2xl shadow-[0_4px_16px_rgba(255,117,140,0.35)] hover:shadow-[0_8px_24px_rgba(255,117,140,0.45)] hover:-translate-y-0.5 active:scale-[0.98] transition-all flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+                    className="mt-3 w-full py-2.5 md:py-3 bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white font-bold md:font-black text-sm md:text-base rounded-2xl shadow-[0_4px_16px_rgba(255,117,140,0.35)] hover:shadow-[0_8px_24px_rgba(255,117,140,0.45)] hover:-translate-y-0.5 active:scale-[0.98] transition-all flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
                   >
-                    <MapPin size={16} /> {language === 'en' ? "Sure, let's go!" : 'Boleh, ayo!'}
+                    <MapPin size={16} /> {language === 'en' ? "Sure, let's go!" : 'Boleh, ayo jalan!'}
                   </button>
+                )}
+
+                {/* ── Pilihan Obrolan Cepat (Quick Talk Chips) ── */}
+                {!isInvitingOut && (
+                  <div className="mt-3 pt-2.5 border-t border-pink-100/70 flex flex-wrap gap-1.5 items-center">
+                    <span className="font-mono text-[9px] font-bold text-[#7a7268] uppercase tracking-wider mr-1">
+                      Sapa:
+                    </span>
+                    {quickTalkChoices.map((choice) => (
+                      <button
+                        key={choice.id}
+                        type="button"
+                        onClick={() => handleSelectQuickTalk(choice)}
+                        className="px-3 py-1 rounded-full text-xs font-medium bg-[#fdfbf7] hover:bg-pink-50 text-[#5c4d47] hover:text-[#ff758c] border border-pink-100/80 transition-all active:scale-95 shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400"
+                      >
+                        {choice.label}
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Desktop Command Dock */}
+          {/* Dock Perintah Cepat Kamar (Desktop) */}
           <CommandMenus
             isOpen={isDesktopMenuOpen}
             onToggle={() => setIsDesktopMenuOpen(!isDesktopMenuOpen)}
@@ -324,14 +417,24 @@ export default function HomeClient({
         </div>
       </div>
 
-      {/* Navigasi bawah (mobile) */}
-      <div className="md:hidden fixed bottom-4 left-4 right-4 bg-white/95 backdrop-blur-2xl border border-white/80 rounded-[2rem] py-2 px-3 flex justify-around items-center z-[100] shadow-[0_8px_30px_rgba(255,117,140,0.14)] pointer-events-auto">
+      {/* ── Navigasi Bawah Docked (Mobile) ── */}
+      <nav
+        aria-label="Navigasi Utama Mobile"
+        className="md:hidden fixed bottom-3 left-3 right-3 bg-white/96 backdrop-blur-2xl border border-white/90 rounded-[2rem] py-1.5 px-2 flex justify-around items-center z-50 shadow-[0_8px_30px_rgba(255,117,140,0.16)] pointer-events-auto"
+      >
         <MobileNavBtn href="/home" icon={<BookOpen size={20} />} label={dict.nav.home} isActive />
         <MobileNavBtn href="/chat" icon={<MessageSquare size={20} />} label={dict.nav.chat} />
+        <MobileNavBtn
+          href="/call"
+          icon={<PhoneCall size={20} />}
+          label={language === 'en' ? 'Call' : 'Panggilan'}
+        />
         <MobileNavBtn href="/pomodoro" icon={<Clock size={20} />} label={dict.nav.pomodoro} />
         <button
+          type="button"
           onClick={() => setShowMoreModal(true)}
-          className="flex flex-col items-center justify-center gap-1 w-14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 rounded-xl"
+          aria-label="Buka Menu Lainnya"
+          className="flex flex-col items-center justify-center gap-1 min-w-[56px] min-h-[48px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 rounded-xl"
         >
           <div className="p-2 rounded-xl transition-all text-gray-400 hover:text-[#ff758c] active:scale-90 active:bg-pink-50">
             <Menu size={20} />
@@ -340,8 +443,9 @@ export default function HomeClient({
             {language === 'en' ? 'More' : 'Lainnya'}
           </span>
         </button>
-      </div>
+      </nav>
 
+      {/* ── Modal-Modal Interaktif ── */}
       {showMoreModal && (
         <MoreMenusModal
           onClose={() => setShowMoreModal(false)}
