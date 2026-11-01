@@ -597,25 +597,28 @@ export default function SettingsPage() {
             )}
           </div>
 
-          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-orange-100 flex flex-col gap-4">
+          <div className="bg-white/90 backdrop-blur-xl rounded-[2rem] border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.06)] p-6 flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <span className="font-bold text-sm text-[#5c4d47] flex items-center gap-2">
-                <Key size={16} className="text-amber-500" /> {dict.settings.aiCustomKey}
+                <span className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center">
+                  <Key size={16} className="text-amber-500" />
+                </span>
+                {dict.settings.aiCustomKey}
               </span>
-              <p className="text-xs text-gray-500 leading-relaxed">
+              <p className="text-xs text-[#7a7268] leading-relaxed">
                 {dict.settings.aiCustomDesc}
               </p>
             </div>
 
             {/* M8.1: key disimpan bersama provider — pilih dulu vendornya. */}
             <label className="flex flex-col gap-1">
-              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+              <span className="text-[11px] font-bold text-[#7a7268] uppercase tracking-widest">
                 {language === 'en' ? 'Key provider' : 'Provider key'}
               </span>
               <select
                 value={keyProvider}
                 onChange={(e) => setKeyProvider(e.target.value)}
-                className="bg-orange-50/50 border border-orange-200 rounded-xl px-4 py-2.5 text-sm text-[#5c4d47] focus:outline-none focus:border-orange-400 transition-all"
+                className="bg-[#fdf6f0] border-2 border-orange-100 rounded-2xl px-4 py-2.5 text-sm text-[#5c4d47] focus:outline-none focus:border-[#ff758c] focus:bg-white focus:ring-4 focus:ring-pink-500/10 transition-all"
               >
                 <option value="gemini">Google Gemini</option>
                 <option value="openai">OpenAI</option>
@@ -628,9 +631,9 @@ export default function SettingsPage() {
 
             {/* Status key: browser hanya menerima hint, bukan plaintext. */}
             {apiKeyStatus.loading ? (
-              <p className="text-xs text-gray-400 font-medium">Memeriksa status API Key...</p>
+              <p className="text-xs text-[#7a7268] font-medium">Memeriksa status API Key...</p>
             ) : apiKeyStatus.hasKey ? (
-              <div className="flex items-center justify-between gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+              <div className="flex items-center justify-between gap-3 bg-green-50/70 border border-green-200 rounded-2xl px-4 py-3">
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-green-700">
                     {language === 'en' ? 'Active key (encrypted on server)' : 'Key aktif (terenkripsi di server)'}
@@ -647,7 +650,7 @@ export default function SettingsPage() {
                 </button>
               </div>
             ) : (
-              <p className="text-xs text-gray-400 font-medium">
+              <p className="text-xs text-[#7a7268] font-medium">
                 {language === 'en' ? 'No personal key saved — using the server API.' : 'Belum ada key pribadi — memakai API server.'}
               </p>
             )}
@@ -657,7 +660,7 @@ export default function SettingsPage() {
             )}
 
             <div className="flex flex-col sm:flex-row gap-3 mt-2">
-              <input 
+              <input
                 type="password"
                 autoComplete="off"
                 placeholder={
@@ -673,23 +676,28 @@ export default function SettingsPage() {
                 }
                 value={customApiKey}
                 onChange={(e) => setCustomApiKey(e.target.value)}
-                className="flex-1 bg-orange-50/50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-[#5c4d47] placeholder-gray-400 focus:outline-none focus:border-orange-400 font-mono transition-all"
+                className="flex-1 bg-[#fdf6f0] border-2 border-orange-100 rounded-2xl px-4 py-3 text-sm text-[#5c4d47] placeholder-gray-400 focus:outline-none focus:border-[#ff758c] focus:bg-white focus:ring-4 focus:ring-pink-500/10 font-mono transition-all"
               />
               <div className="flex items-center gap-2">
-                <button 
+                <button
                   onClick={handleSaveApiKey}
                   disabled={savingKey}
-                  className="bg-[#5c4d47] hover:bg-[#433833] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all shrink-0 disabled:opacity-50"
+                  className="bg-gradient-to-r from-[#ff758c] to-[#ff0844] hover:opacity-95 text-white px-5 py-3 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(255,117,140,0.3)] transition-all shrink-0 disabled:opacity-50"
                 >
                   <Save size={14} /> {savingKey ? '...' : (language === 'en' ? 'Save' : 'Simpan')}
                 </button>
               </div>
             </div>
-            <p className="text-[11px] text-green-700 bg-green-50 border border-green-200 rounded-xl p-3 font-medium leading-relaxed">
-              {language === 'en'
-                ? 'Your API Key is sent once over HTTPS and stored encrypted (AES-256-GCM) on our server. It is never written to localStorage or cookies, and it is never sent back to your browser — we only show the last 4 characters. JavaScript running on this page cannot read it.'
-                : 'API Key dikirim sekali lewat HTTPS lalu disimpan terenkripsi (AES-256-GCM) di server kami. Key tidak pernah ditulis ke localStorage atau cookie, dan tidak pernah dikirim balik ke browser — kami hanya menampilkan 4 karakter terakhir. JavaScript yang berjalan di halaman ini tidak bisa membacanya.'}
-            </p>
+            <div className="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-4">
+              <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-emerald-700 block mb-1">
+                {language === 'en' ? 'SECURITY' : 'KEAMANAN'}
+              </span>
+              <p className="text-[11px] text-[#5c4d47] font-medium leading-relaxed">
+                {language === 'en'
+                  ? 'Your API Key is sent once over HTTPS and stored encrypted (AES-256-GCM) on our server. It is never written to localStorage or cookies, and it is never sent back to your browser — we only show the last 4 characters. JavaScript running on this page cannot read it.'
+                  : 'API Key dikirim sekali lewat HTTPS lalu disimpan terenkripsi (AES-256-GCM) di server kami. Key tidak pernah ditulis ke localStorage atau cookie, dan tidak pernah dikirim balik ke browser — kami hanya menampilkan 4 karakter terakhir. JavaScript yang berjalan di halaman ini tidak bisa membacanya.'}
+              </p>
+            </div>
           </div>
         </section>
 
