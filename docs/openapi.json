@@ -1,0 +1,253 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Teman Kos API",
+    "description": "API publik Teman Kos (Livia) untuk modder/ekosistem. Endpoint memerlukan sesi NextAuth (cookie) kecuali /api/health. Base URL production: https://livia.qzz.io",
+    "version": "2.5.0",
+    "contact": { "name": "Teman Kos", "url": "https://livia.qzz.io" }
+  },
+  "servers": [
+    { "url": "https://livia.qzz.io", "description": "Production" },
+    { "url": "http://localhost:3000", "description": "Local dev" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "next-auth.session-token",
+        "description": "Sesi NextAuth (httpOnly). Login via /api/auth/callback/credentials atau Google OAuth."
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" },
+          "code": { "type": "string" }
+        }
+      },
+      "ChatRequest": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": { "type": "string", "maxLength": 2000, "description": "Pesan user ke Livia." },
+          "isVoiceCall": { "type": "boolean", "default": false }
+        }
+      },
+      "ChatResponse": {
+        "type": "object",
+        "properties": {
+          "reply": { "type": "string" },
+          "expression": { "type": "string" },
+          "affectionDelta": { "type": "number" },
+          "newAffection": { "type": "number" },
+          "newLevel": { "type": "integer" },
+          "unlockedChapter": { "type": "integer", "nullable": true },
+          "crisis": { "type": "object", "nullable": true },
+          "messageId": { "type": "string", "format": "uuid" },
+          "toolsExecuted": { "type": "integer" }
+        }
+      },
+      "TtsRequest": {
+        "type": "object",
+        "required": ["text"],
+        "properties": {
+          "text": { "type": "string", "maxLength": 300, "description": "Teks yang disintesis (Indonesia/Inggris)." }
+        }
+      },
+      "Reminder": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "content": { "type": "string" },
+          "remindAt": { "type": "string", "format": "date-time" },
+          "status": { "type": "string", "enum": ["active", "done", "cancelled"] },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ShoppingItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "checked": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "QuestState": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "quests": { "type": "array", "items": { "type": "object" } },
+          "progress": { "type": "object" },
+          "claimed": { "type": "array", "items": { "type": "string" } },
+          "milestones": { "type": "array", "items": { "type": "object" } }
+        }
+      },
+      "PushSubscription": {
+        "type": "object",
+        "required": ["endpoint", "p256dh", "auth"],
+        "properties": {
+          "endpoint": { "type": "string", "format": "uri", "description": "Endpoint push (https://)." },
+          "p256dh": { "type": "string", "description": "Kunci publik klien (base64url)." },
+          "auth": { "type": "string", "description": "Secret auth (base64url)." }
+        }
+      },
+      "Health": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean" },
+          "db": { "type": "string", "enum": ["ok", "error"] }
+        }
+      }
+    }
+  },
+  "security": [{ "sessionCookie": [] }],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Health check (publik, tanpa rate limit)",
+        "security": [],
+        "responses": {
+          "200": { "description": "DB ok", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Health" } } } },
+          "503": { "description": "DB down", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Health" } } } }
+        }
+      }
+    },
+    "/api/chat": {
+      "post": {
+        "summary": "Kirim pesan ke Livia (non-streaming)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ChatRequest" } } } },
+        "responses": {
+          "200": { "description": "Balasan Livia", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ChatResponse" } } } },
+          "401": { "description": "Belum login", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "429": { "description": "Kuota/rate limit habis", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/chat/stream": {
+      "post": {
+        "summary": "Kirim pesan ke Livia (streaming SSE)",
+        "description": "Protokol Server-Sent Events. Event: {type:'delta',text}, {type:'done',...}, {type:'error',...}.",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ChatRequest" } } } },
+        "responses": {
+          "200": { "description": "SSE stream (text/event-stream)" },
+          "401": { "description": "Belum login" },
+          "429": { "description": "Kuota/rate limit habis" }
+        }
+      }
+    },
+    "/api/chat/history": {
+      "get": {
+        "summary": "Riwayat chat user",
+        "responses": {
+          "200": { "description": "Daftar pesan + feedback", "content": { "application/json": { "schema": { "type": "object", "properties": { "messages": { "type": "array", "items": { "type": "object" } }, "feedback": { "type": "object" } } } } } }
+        }
+      }
+    },
+    "/api/chat/feedback": {
+      "post": {
+        "summary": "Beri rating balasan Livia (up/down)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["messageId", "rating"], "properties": { "messageId": { "type": "string", "format": "uuid" }, "rating": { "type": "string", "enum": ["up", "down"] } } } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/tts": {
+      "post": {
+        "summary": "Sintesis suara (ElevenLabs, dengan cache)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TtsRequest" } } } },
+        "responses": {
+          "200": { "description": "Audio MPEG (binary)", "content": { "audio/mpeg": { "schema": { "type": "string", "format": "binary" } } } },
+          "429": { "description": "Kuota suara harian habis" }
+        }
+      }
+    },
+    "/api/reminders": {
+      "get": { "summary": "Daftar reminder user", "responses": { "200": { "description": "OK" } } },
+      "post": {
+        "summary": "Buat reminder",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["content", "remindAt"], "properties": { "content": { "type": "string" }, "remindAt": { "type": "string", "format": "date-time" } } } } } },
+        "responses": { "201": { "description": "Created" } }
+      },
+      "patch": {
+        "summary": "Update status reminder (done/cancelled)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["id"], "properties": { "id": { "type": "string", "format": "uuid" }, "status": { "type": "string", "enum": ["done", "cancelled"] } } } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/shopping": {
+      "get": { "summary": "Daftar belanja", "responses": { "200": { "description": "OK" } } },
+      "post": {
+        "summary": "Tambah item belanja",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string" } } } } } },
+        "responses": { "201": { "description": "Created" } }
+      },
+      "patch": {
+        "summary": "Toggle checked item belanja",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["id"], "properties": { "id": { "type": "string", "format": "uuid" }, "checked": { "type": "boolean" } } } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/quests": {
+      "get": {
+        "summary": "State quest harian user",
+        "parameters": [{ "name": "date", "in": "query", "schema": { "type": "string", "format": "date" }, "description": "Tanggal lokal YYYY-MM-DD (default hari ini UTC)." }],
+        "responses": { "200": { "description": "QuestState", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/QuestState" } } } } }
+      }
+    },
+    "/api/quests/action": {
+      "post": {
+        "summary": "Catat aksi quest (server-validated)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["action"], "properties": { "action": { "type": "string" }, "date": { "type": "string", "format": "date" } } } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/quests/claim": {
+      "post": {
+        "summary": "Klaim reward quest",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["questId", "date"], "properties": { "questId": { "type": "string" }, "date": { "type": "string", "format": "date" } } } } } },
+        "responses": { "200": { "description": "OK" }, "400": { "description": "Progress kurang / sudah diklaim" } }
+      }
+    },
+    "/api/quests/milestone": {
+      "post": {
+        "summary": "Klaim milestone",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["milestone", "date"], "properties": { "milestone": { "type": "integer" }, "date": { "type": "string", "format": "date" } } } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/push/vapid": {
+      "get": {
+        "summary": "VAPID public key (untuk pushManager.subscribe)",
+        "responses": { "200": { "description": "OK", "content": { "application/json": { "schema": { "type": "object", "properties": { "publicKey": { "type": "string" } } } } } }, "400": { "description": "Push belum aktif" } }
+      }
+    },
+    "/api/push/subscribe": {
+      "post": {
+        "summary": "Simpan subscription Web Push",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PushSubscription" } } } },
+        "responses": { "200": { "description": "OK" } }
+      },
+      "delete": {
+        "summary": "Hapus subscription (satu endpoint atau semua)",
+        "parameters": [{ "name": "endpoint", "in": "query", "schema": { "type": "string" }, "description": "Endpoint yang dihapus; kosong = hapus semua." }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/push/send": {
+      "post": {
+        "summary": "Kirim push pomodoro (fire-and-forget, hanya kind pomodoro)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["kind"], "properties": { "kind": { "type": "string", "enum": ["pomodoro"] } } } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/user/export": {
+      "get": {
+        "summary": "Export seluruh data user (JSON/Markdown)",
+        "parameters": [{ "name": "format", "in": "query", "schema": { "type": "string", "enum": ["json", "markdown"], "default": "json" } }],
+        "responses": { "200": { "description": "File export (attachment)" } }
+      }
+    }
+  }
+}

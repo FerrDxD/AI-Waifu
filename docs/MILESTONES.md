@@ -172,7 +172,7 @@ sebelum DoD terpenuhi + ada test yang lulus.
 - [ ] Web Application Pen-test eksternal (Bugcrowd / HackerOne) setelah M0–M5 selesai.
 - [ ] Backup otomatis Neon + disaster recovery drill.
 - [ ] GDPR audit resmi, data residency pilihan (EU/Asia).
-- [ ] Dokumentasi API publik + SDK (jika ingin ekosistem modder VN).
+- [x] **M9.2** **Dokumentasi API publik + SDK**: `docs/API.md` (referensi endpoint + contoh curl/SSE) + `docs/openapi.json` (OpenAPI 3.0, skema lengkap) + `sdk/teman-kos-client.mjs` (klien minimal fetch-based: chat, stream, TTS, reminder). (docs/API.md, docs/openapi.json)
 
 ---
 
