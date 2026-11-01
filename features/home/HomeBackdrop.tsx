@@ -100,7 +100,7 @@ export default function HomeBackdrop({
               outfit={outfit}
               disableFloat={true}
               className="w-full h-full"
-              imgClassName="w-full h-full object-contain object-bottom pointer-events-none transition-transform duration-500"
+              imgClassName="w-full h-full object-cover sm:object-contain object-center sm:object-bottom pointer-events-none transition-transform duration-500"
             />
           </div>
 
