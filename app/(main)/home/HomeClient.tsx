@@ -3,11 +3,10 @@
 import { useEffect, useState, useRef } from 'react';
 import {
   MessageSquare,
-  Clock,
   BookOpen,
+  Home as HomeIcon,
   MapPin,
   Menu,
-  PhoneCall,
   Sparkles,
   Heart,
   ChevronRight,
@@ -420,16 +419,11 @@ export default function HomeClient({
       {/* ── Navigasi Bawah Docked (Mobile) ── */}
       <nav
         aria-label="Navigasi Utama Mobile"
-        className="md:hidden fixed bottom-3 left-3 right-3 bg-white/96 backdrop-blur-2xl border border-white/90 rounded-[2rem] py-1.5 px-2 flex justify-around items-center z-50 shadow-[0_8px_30px_rgba(255,117,140,0.16)] pointer-events-auto"
+        className="md:hidden fixed bottom-3 left-3 right-3 bg-white/96 backdrop-blur-2xl border border-white/90 rounded-[2rem] py-1.5 px-3 flex justify-around items-center z-50 shadow-[0_8px_30px_rgba(255,117,140,0.16)] pointer-events-auto"
       >
-        <MobileNavBtn href="/home" icon={<BookOpen size={20} />} label={dict.nav.home} isActive />
+        <MobileNavBtn href="/home" icon={<HomeIcon size={20} />} label={dict.nav.home} isActive />
         <MobileNavBtn href="/chat" icon={<MessageSquare size={20} />} label={dict.nav.chat} />
-        <MobileNavBtn
-          href="/call"
-          icon={<PhoneCall size={20} />}
-          label={language === 'en' ? 'Call' : 'Panggilan'}
-        />
-        <MobileNavBtn href="/pomodoro" icon={<Clock size={20} />} label={dict.nav.pomodoro} />
+        <MobileNavBtn href="/story" icon={<BookOpen size={20} />} label={dict.nav.story} />
         <button
           type="button"
           onClick={() => setShowMoreModal(true)}

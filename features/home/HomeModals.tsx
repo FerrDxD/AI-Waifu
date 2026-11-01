@@ -16,7 +16,6 @@ import {
   Settings,
   Camera,
   Heart,
-  PhoneCall,
   Clock,
   Sparkles,
 } from 'lucide-react';
@@ -70,7 +69,7 @@ export function MoreMenusModal({
         </div>
 
         <div className="grid grid-cols-4 md:grid-cols-4 gap-3 py-1">
-          <BottomMenuCard href="/call" icon={<PhoneCall size={22} />} title={language === 'en' ? 'Call' : 'Panggilan'} />
+          <BottomMenuCard href="/pomodoro" icon={<Clock size={22} />} title={nav.pomodoro || 'Pomodoro'} />
           <BottomMenuCard href="/schedule" icon={<Calendar size={22} />} title={nav.schedule || 'Jadwal'} />
           <BottomMenuCard href="/wardrobe" icon={<Shirt size={22} />} title={nav.wardrobe || 'Lemari'} />
           <BottomMenuCard href="/shop" icon={<Gift size={22} />} title={nav.shop || 'Toko'} />

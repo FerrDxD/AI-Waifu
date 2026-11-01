@@ -17,7 +17,6 @@ import {
   Tv,
   Utensils,
   Sprout,
-  PhoneCall,
   X,
 } from 'lucide-react';
 import type { TranslationDict } from '@/lib/i18n/dictionaries/id';
@@ -39,6 +38,7 @@ export function CommandMenus({
   language: string;
 }) {
   const subMenus = [
+    { href: '/pomodoro', icon: <Clock size={20} />, title: dict?.nav?.pomodoro || 'Pomodoro' },
     { href: '/wardrobe', icon: <Shirt size={20} />, title: dict?.nav?.wardrobe || 'Lemari' },
     { href: '/shop', icon: <Gift size={20} />, title: dict?.nav?.shop || 'Toko' },
     { href: '/work', icon: <Briefcase size={20} />, title: dict?.nav?.work || 'Kerja' },
@@ -54,23 +54,9 @@ export function CommandMenus({
     {
       href: '/chat',
       icon: <MessageSquare size={22} />,
-      title: dict.nav.chat.toUpperCase(),
+      title: (dict?.nav?.chat || 'Chat Livia').toUpperCase(),
       show: true,
       isSpecial: true,
-    },
-    {
-      href: '/call',
-      icon: <PhoneCall size={22} />,
-      title: (language === 'en' ? 'Voice Call' : 'Panggilan').toUpperCase(),
-      show: true,
-      isSpecial: false,
-    },
-    {
-      href: '/pomodoro',
-      icon: <Clock size={22} />,
-      title: dict.nav.pomodoro.toUpperCase(),
-      show: true,
-      isSpecial: false,
     },
     {
       href: '/story',
@@ -114,7 +100,8 @@ export function CommandMenus({
           style={{ pointerEvents: isOpen ? 'auto' : 'none' }}
         >
           {subMenus.map((m, i) => {
-            const row = 4 - Math.floor(i / 2);
+            const totalRows = Math.ceil(subMenus.length / 2);
+            const row = totalRows - 1 - Math.floor(i / 2);
             return (
               <div
                 key={m.title}
@@ -132,7 +119,7 @@ export function CommandMenus({
           })}
         </div>
 
-        {/* Menu utama kamar */}
+        {/* Menu utama kamar (hanya Chat Livia, Cerita, Jalan, Dapur, Kebun) */}
         <div
           className="absolute bottom-[90px] right-0 flex flex-col gap-2.5 w-full items-end"
           style={{ pointerEvents: isOpen ? 'none' : 'auto' }}
