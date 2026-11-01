@@ -467,9 +467,9 @@ export default function LandingPage() {
               {/* Stage Container: Sprite & VN Dialogue Box */}
               <div className="relative mt-6 min-h-[360px] sm:min-h-[400px] flex items-end">
                 {/* Livia Sprite positioned at left-center */}
-                <div className="pointer-events-none absolute -bottom-4 -left-6 sm:left-0 z-10 w-[240px] sm:w-[320px] md:w-[360px] h-[360px] sm:h-[420px] flex items-end justify-center">
+                <div className="pointer-events-none absolute -bottom-4 -left-6 sm:left-0 z-10 w-[240px] sm:w-[320px] md:w-[360px] h-[360px] sm:h-[420px] hidden md:flex items-end justify-center">
                   <LiviaSprite
-                    expression={currentExpression}
+                    expression="normal"
                     outfit="landing-page"
                     disableFloat
                     className="h-full w-full object-contain"
