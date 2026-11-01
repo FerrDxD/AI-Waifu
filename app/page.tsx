@@ -466,7 +466,7 @@ export default function LandingPage() {
 
               {/* Stage Container: Sprite & VN Dialogue Box */}
               <div className="relative mt-6 min-h-[360px] sm:min-h-[400px] flex items-end">
-                {/* Livia Sprite positioned at left-center */}
+                {/* Livia Sprite positioned at left-center (desktop only) */}
                 <div className="pointer-events-none absolute -bottom-4 -left-10 sm:-left-4 md:-left-8 z-0 w-[240px] sm:w-[320px] md:w-[360px] h-[360px] sm:h-[420px] hidden md:flex items-end justify-center">
                   <LiviaSprite
                     expression="normal"
@@ -476,14 +476,11 @@ export default function LandingPage() {
                   />
                 </div>
 
-                {/* Floating VN Dialogue Box (Overlapping right of sprite) */}
+                {/* Floating VN Dialogue Box */}
                 <div className="relative z-20 ml-auto w-full max-w-md rounded-[2rem] border border-white/80 bg-white/90 p-5 sm:p-6 shadow-[0_12px_36px_rgba(255,117,140,0.14)] backdrop-blur-2xl">
                   {/* Nameplate Pill */}
                   <div className="absolute -top-3.5 left-6 inline-flex items-center gap-2 rounded-full border border-white bg-gradient-to-r from-[#ff0844] to-[#ffb199] px-4 py-1 shadow-[0_4px_16px_rgba(255,117,140,0.35)]">
-                    <span
-                      aria-hidden
-                      className="h-1.5 w-1.5 rounded-full bg-white animate-pulse"
-                    />
+                    <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
                     <span className="font-display text-xs font-black uppercase tracking-widest text-white">
                       Livia
                     </span>
@@ -517,11 +514,7 @@ export default function LandingPage() {
                         <button
                           key={choice.id}
                           onClick={() => handleSelectDialogue(choice)}
-                          className={`w-full text-left rounded-xl border px-3 py-2 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 ${
-                            activeChoiceId === choice.id
-                              ? 'border-pink-300 bg-pink-50/90 text-pink-700 shadow-sm'
-                              : 'border-pink-100/70 bg-white/70 text-[#5c4d47] hover:border-pink-200 hover:bg-pink-50/40'
-                          }`}
+                          className={`w-full text-left rounded-xl border px-3 py-2 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 ${activeChoiceId === choice.id ? 'border-pink-300 bg-pink-50/90 text-pink-700 shadow-sm' : 'border-pink-100/70 bg-white/70 text-[#5c4d47] hover:border-pink-200 hover:bg-pink-50/40'}`}
                         >
                           <span className="font-serif italic mr-1 text-pink-400">›</span>
                           {choice.label}
@@ -530,168 +523,27 @@ export default function LandingPage() {
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Action CTA Dock */}
-              <div className="mt-6 flex flex-wrap items-center gap-3 sm:gap-4 relative z-20">
-                <Link
-                  href="/register"
-                  className="inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#ff758c] to-[#ff0844] px-6 py-3.5 text-sm sm:text-base font-bold text-white shadow-[0_10px_26px_rgba(255,117,140,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(255,117,140,0.45)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
-                >
-                  <span className="font-display font-black uppercase tracking-wider">
-                    Tinggal Bersama Livia
-                  </span>
-                  <ArrowRight size={16} />
-                </Link>
-
-                <Link
-                  href="/login"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-orange-100 bg-white/80 px-6 py-3.5 text-sm sm:text-base font-bold text-[#5c4d47] backdrop-blur-md transition-all hover:border-orange-200 hover:bg-white hover:shadow-sm active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
-                >
-                  <span className="font-display font-black uppercase tracking-wider">
-                    Akses Akun Kos
-                  </span>
-                </Link>
-              </div>
-            </div>
-
-            {/* ── Right Column: Living Productivity Canvas (5 cols) ── */}
-            <div className="lg:col-span-5 flex flex-col gap-4">
-              <div className="rounded-[2.5rem] border border-white/80 bg-white/80 p-5 sm:p-6 shadow-[0_16px_40px_rgba(255,117,140,0.12)] backdrop-blur-2xl">
-                {/* Header widget */}
-                <div className="flex items-center justify-between border-b border-pink-100 pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#5c4d47]">
-                      Meja Belajar Kos
+                {/* Action CTA Dock */}
+                <div className="mt-6 flex flex-wrap items-center gap-3 sm:gap-4 relative z-20">
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#ff758c] to-[#ff0844] px-6 py-3.5 text-sm sm:text-base font-bold text-white shadow-[0_10px_26px_rgba(255,117,140,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(255,117,140,0.45)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+                  >
+                    <span className="font-display font-black uppercase tracking-wider">
+                      Tinggal Bersama Livia
                     </span>
-                  </div>
-                  <span className="font-mono text-[10px] font-bold text-pink-600">
-                    LIVE PREVIEW
-                  </span>
-                </div>
+                    <ArrowRight size={16} />
+                  </Link>
 
-                {/* Widget 1: Interactive Pomodoro Timer */}
-                <div className="mt-4 rounded-2xl border border-pink-100 bg-[#fdfbf7]/90 p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase text-[#5c4d47]/70">
-                      <Clock size={12} className="text-pink-500" />
-                      Pomodoro Fokus
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-orange-100 bg-white/80 px-6 py-3.5 text-sm sm:text-base font-bold text-[#5c4d47] backdrop-blur-md transition-all hover:border-orange-200 hover:bg-white hover:shadow-sm active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+                  >
+                    <span className="font-display font-black uppercase tracking-wider">
+                      Akses Akun Kos
                     </span>
-                    <span className="rounded-full bg-pink-100/80 px-2 py-0.5 font-mono text-[9px] font-bold text-pink-600">
-                      25 MENIT
-                    </span>
-                  </div>
-
-                  <div className="mt-2 flex items-center justify-between">
-                    <div className="font-mono text-3xl sm:text-4xl font-bold tracking-tight text-[#5c4d47]">
-                      {formatPomoTime(pomoSeconds)}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={togglePomo}
-                        className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-[#ff758c] to-[#ff0844] px-3 py-1.5 font-mono text-xs font-bold text-white shadow-sm transition-all hover:opacity-95 active:scale-95 focus-visible:outline-none"
-                      >
-                        {isPomoRunning ? (
-                          <>
-                            <Pause size={12} /> Jeda
-                          </>
-                        ) : (
-                          <>
-                            <Play size={12} /> Mulai
-                          </>
-                        )}
-                      </button>
-                      <button
-                        onClick={resetPomo}
-                        className="rounded-xl border border-orange-100 bg-white p-1.5 text-[#5c4d47] transition-all hover:bg-orange-50 focus-visible:outline-none"
-                        title="Reset Timer"
-                      >
-                        <RotateCcw size={13} />
-                      </button>
-                    </div>
-                  </div>
-                  <p className="mt-2 text-[11px] text-[#5c4d47]/80 italic">
-                    &ldquo;Fokus 25 menit ya. Nanti kalau sudah selesai, aku buatin kopi susu.&rdquo;
-                  </p>
-                </div>
-
-                {/* Widget 2: Interactive Tasks Checklist */}
-                <div className="mt-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#5c4d47]/70">
-                      Agenda Kos Hari Ini:
-                    </span>
-                    <span className="font-mono text-[9px] text-pink-600 font-semibold">
-                      Klik untuk ceklis (+5 EXP)
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    {tasks.map((task) => (
-                      <button
-                        key={task.id}
-                        onClick={() => handleToggleTask(task.id)}
-                        className={`group flex items-center justify-between rounded-xl border p-2.5 text-left transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-pink-500 ${
-                          task.done
-                            ? 'border-emerald-100 bg-emerald-50/50 text-[#5c4d47]/60'
-                            : 'border-pink-100/60 bg-white/70 text-[#5c4d47] hover:border-pink-200 hover:bg-white'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5">
-                          {task.done ? (
-                            <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
-                          ) : (
-                            <Circle size={15} className="text-gray-300 group-hover:text-pink-400 shrink-0" />
-                          )}
-                          <span
-                            className={`text-xs font-medium ${
-                              task.done ? 'line-through text-gray-400' : 'text-[#5c4d47]'
-                            }`}
-                          >
-                            {task.title}
-                          </span>
-                        </div>
-                        <span className="rounded-md bg-gray-100/80 px-1.5 py-0.5 font-mono text-[9px] text-gray-500">
-                          {task.category}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Widget 3: Memory Ticker & Affection Bar */}
-                <div className="mt-4 rounded-2xl border border-pink-100/80 bg-white/90 p-3.5">
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5 font-mono text-[10px] font-bold text-pink-600">
-                      <Sparkles size={11} />
-                      MEMORI AKTIF
-                    </span>
-                    <div className="flex items-center gap-1 font-mono text-[10px] font-bold text-amber-600">
-                      <span>Lv. 3 Teman Kos</span>
-                      {recentExpGain && (
-                        <span className="text-pink-600 animate-pulse font-extrabold">+{recentExpGain} EXP!</span>
-                      )}
-                    </div>
-                  </div>
-
-                  <p className="mt-1 text-xs text-[#5c4d47]/85 font-medium leading-relaxed">
-                    Livia mengingat kamu lebih suka kopi susu hangat saat belajar malam.
-                  </p>
-
-                  {/* Affection Progress Bar */}
-                  <div className="mt-2.5">
-                    <div className="flex items-center justify-between font-mono text-[9px] text-[#5c4d47]/60 mb-1">
-                      <span>Ikatan Kos</span>
-                      <span>{affectionExp} / 250 EXP</span>
-                    </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-pink-100/60">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-pink-400 to-pink-500 transition-all duration-500"
-                        style={{ width: `${Math.min(100, (affectionExp / 250) * 100)}%` }}
-                      />
-                    </div>
-                  </div>
+                  </Link>
                 </div>
               </div>
             </div>
