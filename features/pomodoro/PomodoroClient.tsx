@@ -17,10 +17,10 @@ import {
   Plus,
   Minus,
   Clock,
-  Layers,
   ChevronDown,
   ChevronUp,
   Award,
+  X,
 } from 'lucide-react';
 import { unlockAchievement } from '@/lib/achievements';
 import { playSfx } from '@/lib/sfx';
@@ -52,6 +52,7 @@ type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
 
 interface ModeConfig {
   label: string;
+  shortLabel: string;
   defaultMinutes: number;
   icon: typeof Zap;
   color: string;
@@ -62,6 +63,7 @@ interface ModeConfig {
 const MODES: Record<TimerMode, ModeConfig> = {
   focus: {
     label: 'Fokus Utama',
+    shortLabel: 'Fokus',
     defaultMinutes: 25,
     icon: Zap,
     color: 'from-[#ff758c] to-[#ff0844]',
@@ -70,6 +72,7 @@ const MODES: Record<TimerMode, ModeConfig> = {
   },
   shortBreak: {
     label: 'Istirahat Singkat',
+    shortLabel: 'Istirahat',
     defaultMinutes: 5,
     icon: Coffee,
     color: 'from-emerald-400 to-teal-500',
@@ -78,6 +81,7 @@ const MODES: Record<TimerMode, ModeConfig> = {
   },
   longBreak: {
     label: 'Istirahat Panjang',
+    shortLabel: 'Panjang',
     defaultMinutes: 15,
     icon: Moon,
     color: 'from-slate-700 to-stone-800',
@@ -113,6 +117,15 @@ export default function PomodoroClient() {
       if (m === 'longBreak') return 'Long Break';
     }
     return MODES[m].label;
+  };
+
+  const getModeShortLabel = (m: TimerMode) => {
+    if (language === 'en') {
+      if (m === 'focus') return 'Focus';
+      if (m === 'shortBreak') return 'Short';
+      if (m === 'longBreak') return 'Long';
+    }
+    return MODES[m].shortLabel;
   };
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -165,7 +178,9 @@ export default function PomodoroClient() {
       setShowConfetti(true);
       setCompletedSessions((prev) => prev + 1);
       setDialog(
-        'Luar biasa! Satu sesi fokus berhasil dituntaskan dengan sempurna. Istirahat sebentar ya!'
+        language === 'en'
+          ? 'Incredible! One focus sprint completed perfectly. Take a quick rest now!'
+          : 'Luar biasa! Satu sesi fokus berhasil dituntaskan dengan sempurna. Istirahat sebentar ya!'
       );
 
       try {
@@ -193,6 +208,7 @@ export default function PomodoroClient() {
   };
 
   const switchMode = (newMode: TimerMode) => {
+    playSfx('click');
     setIsRunning(false);
     setMode(newMode);
     setTimeLeft(customMinutes[newMode] * 60);
@@ -223,21 +239,30 @@ export default function PomodoroClient() {
   };
 
   const toggleTimer = () => {
-    if (!isRunning) playSfx('click');
-    setIsRunning(!isRunning);
+    playSfx('click');
+    const nextRunning = !isRunning;
+    setIsRunning(nextRunning);
+    if (nextRunning) {
+      if (timeLeft === customMinutes[mode] * 60) {
+        setDialog('Ayo mulai! Jangan biarkan konsentrasimu terpecah ya.');
+      }
+    } else {
+      setDialog('Lho, dijeda dulu? Jangan kelamaan ya, nanti fokusmu buyar!');
+    }
   };
 
   const resetTimer = () => {
     playSfx('click');
     setIsRunning(false);
     setTimeLeft(customMinutes[mode] * 60);
-    setDialog(MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)]);
+    const list = language === 'en' ? EN_MOTIVATIONS : MOTIVATIONS;
+    setDialog(list[Math.floor(Math.random() * list.length)]);
   };
 
   const getRandomMotivation = () => {
     playSfx('click');
-    const randomQuote =
-      MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)];
+    const list = language === 'en' ? EN_MOTIVATIONS : MOTIVATIONS;
+    const randomQuote = list[Math.floor(Math.random() * list.length)];
     setDialog(randomQuote);
   };
 
@@ -254,8 +279,8 @@ export default function PomodoroClient() {
   const strokeDashoffset = circumference * (1 - progress);
 
   return (
-    <div className="min-h-[100dvh] w-full bg-[#fdfbf7] text-[#5c4d47] relative overflow-hidden font-sans select-none flex flex-col justify-between p-4 md:p-8 selection:bg-[#ff758c]/25 selection:text-[#5c4d47]">
-      {/* Background Decor */}
+    <div className="min-h-[100dvh] w-full bg-[#fdfbf7] text-[#5c4d47] relative overflow-y-auto overflow-x-hidden font-sans select-none flex flex-col justify-between p-4 sm:p-6 lg:p-8 selection:bg-[#ff758c]/25 selection:text-[#5c4d47]">
+      {/* Subtle Pastel Ambient Decor */}
       <div
         aria-hidden
         className="absolute inset-0 pointer-events-none overflow-hidden z-0"
@@ -265,28 +290,61 @@ export default function PomodoroClient() {
         <div className="absolute -bottom-32 left-1/3 w-96 h-96 rounded-full bg-rose-100/40 blur-[90px]" />
       </div>
 
-      {/* Completion Modal / Overlay */}
+      {/* Completion Modal / Celebration Overlay */}
       {showConfetti && (
-        <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center bg-black/30 backdrop-blur-xs animate-[fadeIn_0.2s_ease-out]">
-          <div className="relative text-center p-8 rounded-3xl bg-white/95 backdrop-blur-xl shadow-2xl border border-pink-200 max-w-sm mx-4 transform scale-100">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Sesi Fokus Selesai"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs animate-[fadeIn_0.2s_ease-out] p-4"
+          onClick={() => setShowConfetti(false)}
+        >
+          <div
+            className="relative text-center p-8 rounded-3xl bg-white/95 backdrop-blur-xl shadow-2xl border border-pink-200 max-w-sm w-full transform scale-100 cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setShowConfetti(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-full text-[#8c7a70] hover:text-[#5c4d47] hover:bg-pink-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+              aria-label="Tutup pemberitahuan"
+            >
+              <X size={18} />
+            </button>
+
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-[#ff758c] to-[#ff0844] flex items-center justify-center text-white mx-auto mb-4 shadow-[0_8px_20px_rgba(255,117,140,0.35)] animate-pulse">
               <Award size={32} />
             </div>
+
             <h2 className="text-xl font-display font-black text-[#5c4d47] tracking-wider uppercase">
               Sesi Fokus Selesai!
             </h2>
             <p className="text-pink-600 font-bold mt-1.5 text-xs">
               +5 Poin Afeksi Livia & Produktivitas Meningkat
             </p>
+
+            <div className="mt-5">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowConfetti(false);
+                  switchMode('shortBreak');
+                }}
+                className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-[#ff758c] to-[#ff0844] hover:opacity-95 text-white font-bold text-xs tracking-wider uppercase shadow-xs active:scale-95 transition-all"
+              >
+                Mulai Istirahat Singkat
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Top Header Navigation */}
-      <header className="relative z-20 flex items-center justify-between shrink-0 mb-4 max-w-6xl w-full mx-auto">
+      <header className="relative z-20 flex items-center justify-between shrink-0 mb-4 max-w-2xl w-full mx-auto">
         <Link
           href="/home"
           className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 hover:bg-white border border-pink-100 shadow-xs hover:shadow-md transition-all text-[#5c4d47] hover:text-pink-600 font-bold text-xs group active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+          title="Kembali ke Kamar Kos"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform text-pink-500" />
           <span>{dict?.common?.back || 'Kembali'}</span>
@@ -304,304 +362,266 @@ export default function PomodoroClient() {
         </div>
       </header>
 
-      {/* Main Study Desk Layout (2-Column Grid) */}
-      <main className="relative z-20 flex-1 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-14 min-h-0 my-auto w-full max-w-6xl mx-auto px-2">
-        {/* LEFT COLUMN: THE CONCENTRIC FOCUS CLOCK */}
-        <div className="w-full lg:w-1/2 flex flex-col items-center justify-center min-h-0 shrink-0">
-          {/* Mode Pill Above Timer */}
-          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/95 border border-pink-100 shadow-xs mb-5">
-            <currentConfig.icon className="w-4 h-4 text-pink-600" />
-            <span className="text-xs font-display font-black uppercase tracking-widest text-[#5c4d47]">
-              {getModeLabel(mode)}
+      {/* MAIN CENTERED FOCUS STAGE */}
+      <main className="relative z-20 flex-1 flex flex-col items-center justify-center gap-5 sm:gap-6 min-h-0 my-auto w-full max-w-2xl mx-auto px-2">
+        {/* 1. Mode Segmented Control Bar */}
+        <nav
+          aria-label="Pilihan Mode Timer"
+          className="p-1.5 rounded-full bg-white/90 backdrop-blur-md border border-pink-100 shadow-xs flex items-center gap-1.5 w-full sm:w-auto"
+        >
+          {(Object.keys(MODES) as TimerMode[]).map((tabMode) => {
+            const tab = MODES[tabMode];
+            const Icon = tab.icon;
+            const isActive = mode === tabMode;
+            return (
+              <button
+                key={tabMode}
+                type="button"
+                onClick={() => switchMode(tabMode)}
+                aria-pressed={isActive}
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 active:scale-95 ${
+                  isActive
+                    ? `bg-gradient-to-r ${tab.color} text-white shadow-md shadow-pink-500/20 scale-[1.02]`
+                    : 'text-[#8c7a70] hover:text-[#5c4d47] hover:bg-pink-50/60'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <span>{getModeShortLabel(tabMode)}</span>
+                <span className="font-mono text-[11px] opacity-80 tabular-nums">
+                  ({customMinutes[tabMode]}m)
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* 2. Concentric Circular Focus Clock */}
+        <section
+          aria-label="Penunjuk Waktu Fokus"
+          className="relative w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80 flex items-center justify-center shrink-0 my-1"
+        >
+          {/* Luminous Ambient Halo & Base Card */}
+          <div className="absolute inset-0 rounded-full bg-white/95 backdrop-blur-xl border border-pink-100 shadow-[0_16px_40px_rgba(255,117,140,0.12)]" />
+
+          <svg
+            className="absolute inset-2 w-[calc(100%-16px)] h-[calc(100%-16px)] -rotate-90 transform"
+            viewBox="0 0 100 100"
+            aria-hidden="true"
+          >
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="#fff0f3"
+              strokeWidth="4"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke={currentConfig.ringColor}
+              strokeWidth="4.5"
+              strokeLinecap="round"
+              strokeDasharray={`${circumference}`}
+              strokeDashoffset={`${strokeDashoffset}`}
+              className="transition-all duration-1000 ease-linear"
+              style={{
+                filter: `drop-shadow(0px 0px 6px ${currentConfig.ringColor}35)`,
+              }}
+            />
+          </svg>
+
+          <div className="relative z-10 flex flex-col items-center">
+            <span
+              className={`px-3 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-widest uppercase border mb-1.5 shadow-2xs ${currentConfig.badgeBg}`}
+            >
+              {isRunning ? 'SEDANG BERJALAN' : 'JEDA WAKTU'}
+            </span>
+
+            <div
+              className="text-5xl sm:text-6xl lg:text-7xl font-mono tabular-nums font-black tracking-tight text-[#5c4d47]"
+              aria-live="polite"
+            >
+              {formatTime(timeLeft)}
+            </div>
+
+            <span className="text-[11px] font-mono text-[#8c7a70] mt-1.5 tabular-nums">
+              Target: {customMinutes[mode]} Menit
             </span>
           </div>
+        </section>
 
-          {/* Concentric Circular Timer */}
-          <div className="relative w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80 flex items-center justify-center shrink-0">
-            {/* Soft Ambient Shadow Card */}
-            <div className="absolute inset-0 rounded-full bg-white/95 backdrop-blur-xl border border-pink-100 shadow-[0_16px_40px_rgba(255,117,140,0.12)]" />
+        {/* 3. Primary Control Action Hub */}
+        <div className="flex items-center gap-3.5 shrink-0">
+          <button
+            type="button"
+            onClick={resetTimer}
+            title="Reset Timer"
+            aria-label="Reset Timer"
+            className="w-12 h-12 rounded-2xl bg-white/90 hover:bg-white border border-pink-100 text-[#8c7a70] hover:text-pink-600 flex items-center justify-center transition-all shadow-xs hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+          >
+            <RotateCcw className="w-5 h-5" />
+          </button>
 
-            <svg
-              className="absolute inset-2 w-[calc(100%-16px)] h-[calc(100%-16px)] -rotate-90 transform"
-              viewBox="0 0 100 100"
-            >
-              <circle
-                cx="50"
-                cy="50"
-                r="45"
-                fill="none"
-                stroke="#fff0f3"
-                strokeWidth="4"
-              />
-              <circle
-                cx="50"
-                cy="50"
-                r="45"
-                fill="none"
-                stroke={currentConfig.ringColor}
-                strokeWidth="4.5"
-                strokeLinecap="round"
-                strokeDasharray={`${circumference}`}
-                strokeDashoffset={`${strokeDashoffset}`}
-                className="transition-all duration-1000 ease-linear"
-                style={{
-                  filter: `drop-shadow(0px 0px 6px ${currentConfig.ringColor}35)`,
-                }}
-              />
-            </svg>
+          <button
+            type="button"
+            onClick={toggleTimer}
+            aria-label={isRunning ? 'Jeda Timer' : 'Mulai Timer'}
+            className={`px-8 py-3.5 rounded-2xl font-display font-black text-xs md:text-sm tracking-wider flex items-center gap-2.5 transition-all duration-300 shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 ${
+              isRunning
+                ? 'bg-amber-400 hover:bg-amber-500 text-[#5c4d47]'
+                : `bg-gradient-to-r ${currentConfig.color} text-white shadow-[0_6px_20px_rgba(255,117,140,0.35)]`
+            }`}
+          >
+            {isRunning ? (
+              <>
+                <Pause className="w-5 h-5 fill-current" />
+                <span>JEDA</span>
+              </>
+            ) : (
+              <>
+                <Play className="w-5 h-5 fill-current" />
+                <span>MULAI</span>
+              </>
+            )}
+          </button>
 
-            <div className="relative z-10 flex flex-col items-center">
-              <span
-                className={`px-3 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-widest uppercase border mb-1.5 shadow-2xs ${currentConfig.badgeBg}`}
-              >
-                {isRunning ? 'SEDANG BERJALAN' : 'JEDA WAKTU'}
-              </span>
-
-              <div className="text-5xl sm:text-6xl lg:text-7xl font-mono tabular-nums font-black tracking-tight text-[#5c4d47]">
-                {formatTime(timeLeft)}
-              </div>
-
-              <span className="text-[11px] font-mono text-[#8c7a70] mt-1.5 tabular-nums">
-                Target: {customMinutes[mode]} Menit
-              </span>
-            </div>
-          </div>
-
-          {/* Control Buttons Row */}
-          <div className="flex items-center gap-3.5 mt-8 shrink-0">
-            <button
-              onClick={resetTimer}
-              title="Reset Timer"
-              className="w-12 h-12 rounded-2xl bg-white/90 hover:bg-white border border-pink-100 text-[#8c7a70] hover:text-pink-600 flex items-center justify-center transition-all shadow-xs hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
-            >
-              <RotateCcw className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={toggleTimer}
-              className={`px-8 py-3.5 rounded-2xl font-display font-black text-xs md:text-sm tracking-wider flex items-center gap-2 transition-all duration-300 shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 ${
-                isRunning
-                  ? 'bg-amber-400 hover:bg-amber-500 text-[#5c4d47]'
-                  : `bg-gradient-to-r ${currentConfig.color} text-white shadow-[0_6px_20px_rgba(255,117,140,0.35)]`
-              }`}
-            >
-              {isRunning ? (
-                <>
-                  <Pause className="w-5 h-5 fill-current" />
-                  <span>JEDA</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-5 h-5 fill-current" />
-                  <span>MULAI</span>
-                </>
-              )}
-            </button>
-
-            <button
-              onClick={() => {
-                playSfx('click');
-                setShowSettingsDrawer(!showSettingsDrawer);
-              }}
-              title="Pengaturan Durasi Timer"
-              className={`w-12 h-12 rounded-2xl border flex items-center justify-center transition-all shadow-xs hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 ${
-                showSettingsDrawer
-                  ? 'bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white border-transparent'
-                  : 'bg-white/90 hover:bg-white border-pink-100 text-[#8c7a70] hover:text-pink-600'
-              }`}
-            >
-              <Settings className="w-5 h-5" />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              playSfx('click');
+              setShowSettingsDrawer(!showSettingsDrawer);
+            }}
+            title="Pengaturan Durasi Timer"
+            aria-label="Pengaturan Durasi Timer"
+            aria-expanded={showSettingsDrawer}
+            className={`w-12 h-12 rounded-2xl border flex items-center justify-center transition-all shadow-xs hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 ${
+              showSettingsDrawer
+                ? 'bg-gradient-to-r from-[#ff758c] to-[#ff0844] text-white border-transparent'
+                : 'bg-white/90 hover:bg-white border-pink-100 text-[#8c7a70] hover:text-pink-600'
+            }`}
+          >
+            <Settings className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* RIGHT COLUMN: STUDY DESK DRAWERS */}
-        <div className="w-full lg:w-1/2 flex flex-col gap-4 min-h-0 justify-center">
-          {/* DRAWER 1: MODE SELECTOR */}
-          <div className="p-4 md:p-5 rounded-3xl bg-white/90 backdrop-blur-xl border border-pink-100/90 shadow-[0_8px_24px_rgba(255,117,140,0.06)] flex flex-col gap-3">
-            <div className="flex items-center justify-between border-b border-pink-100/60 pb-2.5">
-              <div className="flex items-center gap-2">
-                <Layers className="w-4 h-4 text-pink-600" />
-                <span className="text-xs font-display font-black uppercase tracking-wider text-[#5c4d47]">
-                  {language === 'en' ? 'Session Mode' : 'Mode Belajar'}
-                </span>
-              </div>
-              <span className="text-[11px] font-mono text-[#8c7a70]">
-                {language === 'en' ? 'Select sprint' : 'Pilih interval'}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2.5 pt-0.5">
-              {(Object.keys(MODES) as TimerMode[]).map((tabMode) => {
-                const tab = MODES[tabMode];
-                const Icon = tab.icon;
-                const isActive = mode === tabMode;
-                return (
-                  <button
-                    key={tabMode}
-                    onClick={() => switchMode(tabMode)}
-                    className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl font-bold text-xs transition-all duration-300 border focus-visible:outline-none ${
-                      isActive
-                        ? `bg-gradient-to-r ${tab.color} text-white shadow-md border-transparent scale-[1.02]`
-                        : 'bg-white hover:bg-pink-50/60 text-[#8c7a70] hover:text-[#5c4d47] border-pink-100/70'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span className="truncate w-full text-center text-[11px] md:text-xs">
-                      {getModeLabel(tabMode).split(' ')[0]}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* DRAWER 2: CUSTOM DURATION CONTROLS */}
-          <div className="p-4 md:p-5 rounded-3xl bg-white/90 backdrop-blur-xl border border-pink-100/90 shadow-[0_8px_24px_rgba(255,117,140,0.06)] flex flex-col gap-3">
-            <div
-              onClick={() => {
-                playSfx('click');
-                setShowSettingsDrawer(!showSettingsDrawer);
-              }}
-              className="flex items-center justify-between border-b border-pink-100/60 pb-2.5 cursor-pointer group"
-            >
+        {/* 4. Collapsible Duration Fine-Tuning Drawer */}
+        {showSettingsDrawer && (
+          <div className="w-full max-w-md p-4 rounded-3xl bg-white/95 backdrop-blur-xl border border-pink-100/90 shadow-[0_8px_24px_rgba(255,117,140,0.08)] animate-[fadeIn_0.2s_ease-out] flex flex-col gap-3">
+            <div className="flex items-center justify-between border-b border-pink-100/60 pb-2">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-pink-600" />
                 <span className="text-xs font-display font-black uppercase tracking-wider text-[#5c4d47]">
                   {language === 'en'
                     ? 'Duration Settings'
-                    : 'Pengaturan Waktu (Custom)'}
+                    : 'Pengaturan Durasi (Menit)'}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs font-bold text-pink-600 group-hover:translate-x-0.5 transition-transform">
-                <span>
-                  {showSettingsDrawer
-                    ? language === 'en'
-                      ? 'Tutup'
-                      : 'Tutup'
-                    : language === 'en'
-                    ? 'Atur'
-                    : 'Atur'}
-                </span>
-                {showSettingsDrawer ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowSettingsDrawer(false)}
+                className="text-xs font-bold text-pink-600 hover:text-pink-700"
+              >
+                {language === 'en' ? 'Close' : 'Tutup'}
+              </button>
             </div>
 
-            {showSettingsDrawer ? (
-              <div className="flex flex-col gap-2.5 pt-1">
-                {(Object.keys(MODES) as TimerMode[]).map((mKey) => {
-                  const m = MODES[mKey];
-                  const Icon = m.icon;
-                  return (
-                    <div
-                      key={mKey}
-                      className="flex items-center justify-between p-2.5 rounded-2xl bg-pink-50/60 border border-pink-100 text-xs font-bold text-[#5c4d47]"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <Icon className="w-4 h-4 text-pink-600 shrink-0" />
-                        <span className="truncate">{getModeLabel(mKey)}</span>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button
-                          onClick={() => adjustMinutes(mKey, -1)}
-                          className="w-7 h-7 rounded-xl bg-white border border-pink-200 text-pink-600 hover:bg-pink-600 hover:text-white flex items-center justify-center transition-colors shadow-2xs active:scale-95"
-                        >
-                          <Minus className="w-3.5 h-3.5" />
-                        </button>
-                        <span className="w-12 text-center font-mono tabular-nums font-black text-sm text-[#5c4d47]">
-                          {customMinutes[mKey]}
-                          <span className="text-[10px] font-normal text-[#8c7a70] ml-0.5">
-                            m
-                          </span>
-                        </span>
-                        <button
-                          onClick={() => adjustMinutes(mKey, 1)}
-                          className="w-7 h-7 rounded-xl bg-white border border-pink-200 text-pink-600 hover:bg-pink-600 hover:text-white flex items-center justify-center transition-colors shadow-2xs active:scale-95"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="flex items-center justify-between px-2 py-1 text-xs font-mono text-[#8c7a70]">
-                <span>
-                  {language === 'en' ? 'Focus:' : 'Fokus:'}{' '}
-                  <strong className="text-[#5c4d47] font-black">
-                    {customMinutes.focus}m
-                  </strong>
-                </span>
-                <span>•</span>
-                <span>
-                  {language === 'en' ? 'Short:' : 'Singkat:'}{' '}
-                  <strong className="text-[#5c4d47] font-black">
-                    {customMinutes.shortBreak}m
-                  </strong>
-                </span>
-                <span>•</span>
-                <span>
-                  {language === 'en' ? 'Long:' : 'Panjang:'}{' '}
-                  <strong className="text-[#5c4d47] font-black">
-                    {customMinutes.longBreak}m
-                  </strong>
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* DRAWER 3: LIVIA COMPANION DIALOGUE */}
-          <div className="relative pt-3.5">
-            {/* Raised Nameplate Pill */}
-            <div className="absolute top-0 left-6 inline-flex items-center gap-2 rounded-full border border-white bg-gradient-to-r from-[#ff0844] to-[#ffb199] px-4 py-1 shadow-[0_4px_16px_rgba(255,117,140,0.35)] z-20">
-              <span
-                aria-hidden
-                className="h-1.5 w-1.5 rounded-full bg-white animate-pulse"
-              />
-              <span className="font-display text-xs font-black uppercase tracking-widest text-white">
-                Livia Einhart
-              </span>
-            </div>
-
-            {/* Bubble Card with Chibi Avatar */}
-            <div className="p-4 md:p-5 rounded-3xl bg-white/95 backdrop-blur-2xl border border-pink-100/90 shadow-[0_10px_30px_rgba(255,117,140,0.1)] flex items-start gap-3.5">
-              <div className="relative w-12 h-12 rounded-2xl overflow-hidden bg-pink-100 shrink-0 border border-pink-200 shadow-2xs mt-1">
-                <Image
-                  src="/livia/chibi-livia.webp"
-                  alt="Livia"
-                  width={48}
-                  height={48}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <p className="text-xs md:text-sm font-medium text-[#5c4d47] leading-relaxed italic">
-                  &ldquo;{dialog}&rdquo;
-                </p>
-
-                <div className="flex items-center justify-between mt-3 pt-2 border-t border-pink-100/60">
-                  <span className="text-pink-400 text-xs animate-pulse select-none font-serif">
-                    ✧
-                  </span>
-
-                  <button
-                    onClick={getRandomMotivation}
-                    className="px-3 py-1.5 rounded-xl bg-pink-50 hover:bg-pink-100 border border-pink-200/80 text-xs font-bold tracking-wide text-pink-600 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95"
+            <div className="flex flex-col gap-2 pt-0.5">
+              {(Object.keys(MODES) as TimerMode[]).map((mKey) => {
+                const m = MODES[mKey];
+                const Icon = m.icon;
+                return (
+                  <div
+                    key={mKey}
+                    className="flex items-center justify-between p-2.5 rounded-2xl bg-pink-50/60 border border-pink-100 text-xs font-bold text-[#5c4d47]"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-pink-500" />
-                    <span>Minta Semangat</span>
-                  </button>
-                </div>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Icon className="w-4 h-4 text-pink-600 shrink-0" />
+                      <span className="truncate">{getModeLabel(mKey)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => adjustMinutes(mKey, -1)}
+                        aria-label={`Kurangi durasi ${getModeLabel(mKey)}`}
+                        className="w-7 h-7 rounded-xl bg-white border border-pink-200 text-pink-600 hover:bg-pink-600 hover:text-white flex items-center justify-center transition-colors shadow-2xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="w-12 text-center font-mono tabular-nums font-black text-sm text-[#5c4d47]">
+                        {customMinutes[mKey]}
+                        <span className="text-[10px] font-normal text-[#8c7a70] ml-0.5">
+                          m
+                        </span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => adjustMinutes(mKey, 1)}
+                        aria-label={`Tambah durasi ${getModeLabel(mKey)}`}
+                        className="w-7 h-7 rounded-xl bg-white border border-pink-200 text-pink-600 hover:bg-pink-600 hover:text-white flex items-center justify-center transition-colors shadow-2xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 5. Livia Companion Dialogue Shelf */}
+        <section
+          aria-label="Catatan Teman Belajar Livia"
+          className="w-full max-w-md relative pt-3 shrink-0"
+        >
+          {/* Raised Nameplate Pill */}
+          <div className="absolute top-0 left-6 inline-flex items-center gap-2 rounded-full border border-white bg-gradient-to-r from-[#ff0844] to-[#ffb199] px-3.5 py-0.5 shadow-[0_4px_16px_rgba(255,117,140,0.3)] z-20">
+            <span
+              aria-hidden
+              className="h-1.5 w-1.5 rounded-full bg-white animate-pulse"
+            />
+            <span className="font-display text-[11px] font-black uppercase tracking-widest text-white">
+              Livia Einhart
+            </span>
+          </div>
+
+          {/* Bubble Card with Chibi Avatar */}
+          <div className="p-4 rounded-3xl bg-white/95 backdrop-blur-2xl border border-pink-100/90 shadow-[0_10px_30px_rgba(255,117,140,0.08)] flex items-start gap-3.5">
+            <div className="relative w-11 h-11 rounded-2xl overflow-hidden bg-pink-100 shrink-0 border border-pink-200 shadow-2xs mt-1">
+              <Image
+                src="/livia/chibi-livia.webp"
+                alt="Livia"
+                width={44}
+                height={44}
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-[#5c4d47] leading-relaxed italic">
+                &ldquo;{dialog}&rdquo;
+              </p>
+
+              <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-pink-100/60">
+                <span className="text-pink-400 text-xs animate-pulse select-none font-serif">
+                  ✧
+                </span>
+
+                <button
+                  type="button"
+                  onClick={getRandomMotivation}
+                  className="px-3 py-1.5 rounded-xl bg-pink-50 hover:bg-pink-100 border border-pink-200/80 text-xs font-bold tracking-wide text-pink-600 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-pink-500" />
+                  <span>Minta Semangat</span>
+                </button>
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </main>
     </div>
   );
