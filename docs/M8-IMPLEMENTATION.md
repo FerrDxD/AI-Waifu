@@ -8,7 +8,7 @@ Status: **M8.1 Phase 1 & Phase 2 SELESAI** (multi-provider engine + selector
 model di settings). **M8.3 SELESAI** (tool calling JSON single-turn).
 **M8.4 SELESAI** (gamifikasi server-validated, tanpa leaderboard).
 **M8.5 SELESAI** (PWA/native: offline cache + push notification). M8.2,
-M8.6–M8.7 belum dimulai.
+M8.7 belum dimulai.
 
 ---
 
@@ -557,3 +557,55 @@ service worker hand-written + `web-push`.
    notifikasi di Settings menyimpan subscription, selesai pomodoro (tab
    tersembunyi) memunculkan notifikasi, cron reminder/miss-you tereksekusi.
 4. `_journal`/`0009` sudah digenerate; production memakai `db:migrate`.
+
+---
+
+## 8. M8.6 — Sharing & komunitas (selesai)
+
+Tujuan: ekspor momen chat (pertukaran pesan user & Livia) sebagai card gambar
+(pake canvas) dan bagikan ke sosial media — growth factor terbesar aplikasi
+character.
+
+### 8.1 Keputusan desain
+
+- **Canvas hand-written** (bukan library screenshot): kontrol penuh atas layout,
+  branding, dan ukuran (1080x1350 portrait, cocok IG/TikTok story).
+- **Web Share API** (file) sebagai jalur utama; fallback unduh PNG + salin link
+  kalau browser tidak mendukung.
+- **Tidak menyentuh chat page UI** (constraint user): fitur diekspos lewat route
+  mandiri /share yang menerima query params ?u=...&l=...&n=..., plus
+  komponen reusable ShareCardPreview. Integrasi tombol Bagikan di chat
+  dibiarkan opsional (link ke /share?u=...&l=...).
+
+### 8.2 Struktur
+
+| File | Peran |
+|---|---|
+| lib/share/share-card.ts | Logika murni: wrapText, layout, build/parse URL, render canvas, share/download |
+| components/share/ShareCardPreview.tsx | Preview canvas + tombol unduh/bagikan/salin link |
+| app/(main)/share/page.tsx | Route mandiri (form manual + preview dari query params) |
+| tests/share-card.test.ts | Test 12 (wrap, URL roundtrip, filename, layout) |
+
+### 8.3 Alur
+
+1. User membuka /share (manual: tempel pesan user + balasan Livia) atau
+   /share?u=...&l=... (dari integrasi eksternal).
+2. ShareCardPreview merender canvas (avatar Livia + bubble user pink +
+   bubble Livia putih + branding Teman Kos).
+3. Tombol:
+   - Unduh gambar -> PNG via canvas.toBlob + download.
+   - Bagikan -> Web Share API (file) kalau didukung; fallback unduh + salin link.
+   - Salin link -> clipboard URL share yang menyimpan momen.
+
+### 8.4 Test & gerbang
+
+- tests/share-card.test.ts: 11 test (wrap text, URL roundtrip, filename, layout),
+  murni tanpa DOM/canvas.
+- Verifikasi penuh: drift sinkron, typecheck 0, test 848/848 (2x), lint hanya
+  warning lama, evals HARD 55/55.
+
+### 8.5 Deploy
+
+Tidak ada migrasi/env baru. Redeploy otomatis mengekspos route /share.
+Integrasi tombol Bagikan di chat (opsional) cukup menambah link
+/share?u=encodeURIComponent(userMsg)&l=encodeURIComponent(liviaReply).
