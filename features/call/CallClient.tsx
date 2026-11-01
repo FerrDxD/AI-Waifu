@@ -172,10 +172,8 @@ export default function CallPage() {
       ? statusDetail || 'Terjadi gangguan koneksi.'
       : STATUS_LABEL[status];
 
-  // Resolve authentic expression sprite image or chibi avatar fallback
-  const validExpressions = ['normal', 'happy', 'blushing', 'angry', 'clingy'];
-  const spriteExpression = validExpressions.includes(expression) ? expression : 'normal';
-  const avatarImageSrc = `/livia/home-screen/default/${spriteExpression}.webp`;
+  // Avatar chibi konsisten dengan Chat dan modul lainnya
+  const avatarImageSrc = '/livia/chibi-livia.webp';
 
   return (
     <div className="h-[100dvh] w-full bg-[#141312] relative overflow-hidden flex flex-col justify-between font-sans select-none text-white selection:bg-[#ff758c]/30">
@@ -256,13 +254,13 @@ export default function CallPage() {
           )}
 
           {/* The Avatar Circle */}
-          <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden bg-gradient-to-b from-[#2a2725] to-[#1a1917] border-2 border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.6)] z-10 flex items-center justify-center">
+          <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden bg-gradient-to-br from-pink-100 to-pink-50 border-2 border-white/40 shadow-[0_12px_40px_rgba(255,117,140,0.25)] z-10 flex items-center justify-center p-3">
             <Image
               src={avatarImageSrc}
               alt="Livia"
               width={200}
               height={200}
-              className="w-full h-full object-cover object-top scale-110"
+              className="w-full h-full object-contain"
               priority
             />
           </div>
