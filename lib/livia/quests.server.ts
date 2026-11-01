@@ -162,7 +162,7 @@ export async function claimQuestRewardServer(
     .set({ money: moneyPlusExpr(15), lastSeen: new Date() })
     .where(eq(userProfiles.userId, userId));
 
-  await db.insert(dailyQuests).values({ userId, date, action: quest.targetAction, questId, count: rows[0]?.count ?? 0 });
+  await db.insert(dailyQuests).values({ userId, date, action: `claim_${questId}`, questId, count: rows[0]?.count ?? 0 });
 
   return { ok: true, rv: 15 };
 }

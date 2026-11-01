@@ -49,7 +49,7 @@ export const POST = jsonApiHandler<WorkBody>(
     if (earnedRv > 0 && jobId) {
       setClause.jobStats = sql`
         COALESCE(${userProfiles.jobStats}, '{}') || jsonb_build_object(
-          ${jobId},
+          ${jobId}::text,
           GREATEST(0, COALESCE((${userProfiles.jobStats}->>${jobId})::int, 0) + 1)
         )
       `;

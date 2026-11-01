@@ -330,21 +330,16 @@ export const dailyQuests = pgTable(
     updatedAt: timestamp('updated_at').defaultNow(),
   },
   (table) => ({
-    questUserDateActionProgress: uniqueIndex('uq_daily_quests_user_date_action_progress').on(
+    questUserDateAction: uniqueIndex('uq_daily_quests_user_date_action').on(
       table.userId,
       table.date,
       table.action
-    ).where(sql`${table.questId} IS NULL`),
-    questUserDateClaim: uniqueIndex('uq_daily_quests_user_date_claim').on(
-      table.userId,
-      table.date,
-      table.questId
-    ).where(sql`${table.questId} IS NOT NULL`),
+    ),
     /**
      * Baris klaim (questId/milestone non-null) jarang & perlu dicari per
      * user+date. Index parsial menekan ukuran vs index biasa.
      */
-    questUserDateClaimLookup: index('idx_quest_user_date_claim').on(table.userId, table.date),
+    questUserDateClaim: index('idx_quest_user_date_claim').on(table.userId, table.date),
   })
 );
 

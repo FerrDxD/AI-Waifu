@@ -110,7 +110,7 @@ export async function claimWork(
   if (amount > 0 && validJob) {
     setClause.jobStats = sql`
       COALESCE(${userProfiles.jobStats}, '{}') || jsonb_build_object(
-        ${validJob},
+        ${validJob}::text,
         GREATEST(0, COALESCE((${userProfiles.jobStats}->>${validJob})::int, 0) + 1)
       )
     `;
