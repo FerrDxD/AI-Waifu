@@ -168,7 +168,7 @@ sebelum DoD terpenuhi + ada test yang lulus.
 
 ## M9 — Hardening & Scale (Bulan 10+)
 
-- [ ] Load test (k6) untuk endpoint streaming + TTS; target 500 konkuren.
+- [~] **M9.1** **Load test (k6)**: skrip k6 untuk `/api/chat/stream` + `/api/tts` (target 500 konkuren, threshold p95 < 8s / < 3s, error rate < 1%) + runbook di `tests/load/`. Eksekusi menunggu k6 terpasang + staging + sesi auth. (docs: tests/load/README.md)
 - [ ] Web Application Pen-test eksternal (Bugcrowd / HackerOne) setelah M0–M5 selesai.
 - [ ] Backup otomatis Neon + disaster recovery drill.
 - [ ] GDPR audit resmi, data residency pilihan (EU/Asia).
