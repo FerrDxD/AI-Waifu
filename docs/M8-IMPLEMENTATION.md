@@ -7,7 +7,9 @@ berstatus rencana.
 Status: **M8.1 Phase 1 & Phase 2 SELESAI** (multi-provider engine + selector
 model di settings). **M8.3 SELESAI** (tool calling JSON single-turn).
 **M8.4 SELESAI** (gamifikasi server-validated, tanpa leaderboard).
-**M8.5 SELESAI** (PWA/native: offline cache + push notification). M8.2,
+**M8.5 SELESAI** (PWA/native: offline cache + push notification).
+**M8.6 SELESAI** (sharing: export momen chat jadi card gambar + share ke sosmed).
+**M8.8** (bugfix & stabilisasi M8.4) — audit selesai, perbaikan belum dimulai. M8.2,
 M8.7 belum dimulai.
 
 ---
