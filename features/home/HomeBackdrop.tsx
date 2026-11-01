@@ -92,13 +92,13 @@ export default function HomeBackdrop({
 
       {/* ── Panggung Livia Terpusat (Widescreen 16:9 Anti-Geser) ── */}
       <div className="absolute inset-0 flex items-end justify-center pointer-events-none pb-0">
-        <div className="relative h-[88vh] sm:h-[92vh] md:h-full aspect-[16/9] min-w-full md:min-w-0 flex items-end justify-center pointer-events-none">
+        <div className="relative h-[95vh] sm:h-[92vh] md:h-full aspect-[3/4] sm:aspect-[16/9] md:aspect-[16/9] min-w-0 flex items-end justify-center pointer-events-none">
           {/* Sprite Livia Mengisi Panggung 16:9 Proporsional */}
           <div className="w-full h-full flex items-end justify-center pointer-events-none">
             <LiviaSprite
               expression={displayExpression}
               outfit={outfit}
-              disableFloat={false}
+              disableFloat={true}
               className="w-full h-full"
               imgClassName="w-full h-full object-contain object-bottom pointer-events-none transition-transform duration-500"
             />
